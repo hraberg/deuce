@@ -3,7 +3,7 @@
 *Because it's there* -- George Mallory
 
 
-*Note: Absolutely NOTHING works yet.*
+**Note: Absolutely NOTHING works yet.**
 
 
 ### Preparing Emacs
