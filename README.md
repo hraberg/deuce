@@ -31,9 +31,8 @@ The above should output:
     Loading emacs-lisp/byte-run...
     [... loads of Emacs Lisp loaded ...]
 
-    "GNU Emacs 24.1.50 (x86_64-unknown-linux-gnu)
-    of 2012-04-13 on hraberg-VPCZ21C5E"
-
+    "GNU Emacs 23.4 (x86_64-unknown-linux-gnu)
+    of 2012-04-14 on hraberg-VPCZ21C5E"
 
 *The task at hand is to get rid of the bare impure Emacs, replace it with Clojure and the JVM, while keeping Emacs Lisp running.*
 
