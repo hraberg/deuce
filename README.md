@@ -117,6 +117,7 @@ I expect this to take 1-2 weeks and fail, but to learn a bit about how Emacs doe
 
 * One approach is to embed a JVM inside Emacs, and let it eat its way out.
   * + Emacs stays working, A/B testing of individual functions can be made.
+  * + One could maybe implement the Emacs Lisp runtime on top of Clojure this way, and slide it into a C bare impure Emacs, to divide the problem into two distinct parts.
   * - Requires writing messy and potentially buggy glue code in C, and may get stuck in the implementation details of bare impure Emacs.
   * - Hard to know how far one has to go.
   * - Two parallel Emacs Lisp runtimes to manage.
