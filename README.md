@@ -100,13 +100,15 @@ The real goal is to bring back some of the fun of extending one's programming en
 
 [Climacs - An Emacs-like editor in Common Lisp](http://common-lisp.net/project/climacs/)
 
-[Portable Hemlock](http://www.common-lisp.net/project/phemlock/) Hemlock is another Common Lisp Emacs.
+[Portable Hemlock](http://www.common-lisp.net/project/phemlock/) Another Common Lisp Emacs.
+
+[JEmacs - The Java/Scheme-based Emacs](http://per.bothner.com/papers/Freenix00/Freenix00.html) Per Bothner, 2000
 
 [Zile](http://www.gnu.org/software/zile/) "Zile is lossy Emacs"
 
 [uemacs](http://git.kernel.org/?p=editors/uemacs/uemacs.git;a=tree) Linus' micro Emacs.
 
-[JEmacs - The Java/Scheme-based Emacs](http://per.bothner.com/papers/Freenix00/Freenix00.html) Per Bothner, 2000
+[YMACS](http://www.ymacs.org/) Ymacs is an Emacs-like editor that works in your browser.
 
 
 #### This is NOT YET GNU Emacs, one component of the GNU/Linux operating system.
