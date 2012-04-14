@@ -22,7 +22,7 @@ For a minimal [Emacs build](http://www.gnu.org/software/emacs/manual/html_node/e
     ./emacs/src/temacs -Q --batch --eval "(print (emacs-version))" # ./smoke
 
 `temacs` is "bare impure Emacs", the raw C version of Emacs, without any Emacs Lisp AOTd.
-The Emacs Lisp lives under `emacs/lisp`. `-Q` is `-q --no-site-file --no-splash`, it basically surpresses all customizations. `--batch` won't open the display editor.
+The Emacs Lisp lives under `emacs/lisp`. `-Q` is `-q --no-site-file --no-splash`, it basically suppresses all customizations. `--batch` won't open the display editor.
 
 The above should output:
 
@@ -49,7 +49,7 @@ There are several issues (like dynamic scoping), but nothing too hard or excitin
 
 A large part of bare Emacs is pretty redundant in 2012, so this will be mapped to JVM languages, and exposed to Emacs Lisp as the same primitives it has come to know and love. A subset of the Emacs C code is dealing with buffers, regex and other editing specifics, which will be harder to just replace.
 
-Bare impure Emacs is 203692 lines of C spread over 65 files and another 19912 lines of header files. There are around 1064 primitve `defsubr` in the minimal build.
+Bare impure Emacs is 203692 lines of C spread over 65 files and another 19912 lines of header files. There are around 1064 primitive `defsubr` in the minimal build.
 
 To simplify introspection, there are [BridJ](http://code.google.com/p/bridj/) stubs for the Emacs header files, which live under `src/emacs`:
 
@@ -65,28 +65,28 @@ The actual porting of the C will be done using a tactic of avoidance until a fun
 
 ### The Editor
 
-I don't expect the visual editor to exist for quite a while. Initially, the editor itself will be implemented using [Charva](http://www.pitman.co.za/projects/charva/index.html) (or similar) Java curses/console library to keep things as simple as possible, compability wise. Eventually Swing, SWT and browser based front ends can be added to the mix.
+I don't expect the visual editor to exist for quite a while. Initially, the editor itself will be implemented using [Charva](http://www.pitman.co.za/projects/charva/index.html) (or similar) Java curses/console library to keep things as simple as possible, compatibility wise. Eventually Swing, SWT and browser based front ends can be added to the mix.
 
 
 ### Testing
 
-Larger than the technical challanges - which are mainly about scale - is the fact it doesn't seem to be any large regression suite for Emacs one can use to ensure one is on the right track. There are some tests, and other editors, like Zile, have Emacs compability test suites for at least editing that could be reused.
+Larger than the technical challenges - which are mainly about scale - is the fact it doesn't seem to be any large regression suite for Emacs one can use to ensure one is on the right track. There are some tests, and other editors, like Zile, have Emacs compatibility test suites for at least editing that could be reused.
 
 
 ### The Road Map
 
-My guess is that it will take roughly a month to get anyhting useful at all out of batch mode with basic Emacs Lisp cross compilation. An editor that can do anything but crashing another 2 months. An actual useful, somewhat compatbile subset of Emacs 6 months.
+My guess is that it will take roughly a month to get anything useful at all out of batch mode with basic Emacs Lisp cross compilation. An editor that can do anything but crashing another 2 months. An actual useful, somewhat compatible subset of Emacs 6 months.
 
-Matching the performance and exect characteristics of the C code for buffers etc. isn't a goal.
+Matching the performance and exact characteristics of the C code for buffers etc. isn't a goal.
 
-100% compatbility is never excpected, as the port needs to be driven by the need to support a useful, growing subset of Emacs Lisp packages and Emacs features.
+100% compatibility is never expected, as the port needs to be driven by the need to support a useful, growing subset of Emacs Lisp packages and Emacs features.
 
 
 ### Future
 
 Once Emacs works again, we can move it forward into the future, where it originally came from. I eventually envision something quite different from Emacs, but that may very well end up being another project all together. But having a useful subset of Emacs running on the JVM may come handy when one least excepts it.
 
-The real goal is to bring back some of the fun of extending one's programming envioronment, by removing some of the old constraints and open up new possibilites - while respecting the Emacs tradition.
+The real goal is to bring back some of the fun of extending ones programming environment, by removing some of the old constraints and open up new possibilities - while respecting the Emacs tradition.
 
 
 ## References
