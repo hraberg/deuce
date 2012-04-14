@@ -109,7 +109,7 @@ The real goal is to bring back some of the fun of extending one's programming en
 [JEmacs - The Java/Scheme-based Emacs](http://per.bothner.com/papers/Freenix00/Freenix00.html) Per Bothner, 2000
 
 
-## This is NOT YET GNU Emacs, one component of the GNU/Linux operating system.
+#### This is NOT YET GNU Emacs, one component of the GNU/Linux operating system.
 
 
 ## License
