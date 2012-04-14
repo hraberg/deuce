@@ -19,7 +19,7 @@ For a minimal [Emacs build](http://www.gnu.org/software/emacs/manual/html_node/e
     ./emacs/src/temacs -Q --batch --eval "(print (emacs-version))" # ./smoke
 
 `temacs` is "bare impure Emacs", the raw C version of Emacs, without any Emacs Lisp AOTd.
-The Emacs Lisp lives under `emacs/lisp`. `-Q` is "-q --no-site-file --no-splash", it basically surpresses all customizations. `--batch` won't open the display editor.
+The Emacs Lisp lives under `emacs/lisp`. `-Q` is `-q --no-site-file --no-splash`, it basically surpresses all customizations. `--batch` won't open the display editor.
 
 The above should output:
 
