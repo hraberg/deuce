@@ -1,0 +1,6 @@
+#!/bin/sh
+
+target=${@:-temacs}
+
+cd emacs/src
+make $target
