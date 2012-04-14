@@ -1,4 +1,4 @@
-# DEUCE - Deuce is Emacs under Clojure
+# DEUCE - Deuce: Emacs under Clojure
 
 *Because it's there* -- George Mallory
 
