@@ -3,7 +3,7 @@
 *Because it's there* -- George Mallory
 
 
-**Note: Absolutely NOTHING works yet. Expect 2-3 months before anything remotely interesting.**
+**Note: Absolutely NOTHING works yet. Expect until Q3 2012 before anything even remotely interesting.**
 
 
 ### Preparing Emacs
