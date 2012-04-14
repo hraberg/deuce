@@ -100,55 +100,55 @@ I expect this to take 1-2 weeks and fail, but to learn a bit about how Emacs doe
 
 
 * Start from the beginning. Get Emacs starting and take it from there.
-  + The most obvious approach. Easy to see where one is at.
-  + YAGNI can be used.
-  - Every step forward may derail into multiple sub problems, each one requiring it's own mindset and toolbox.
-  - False sense of security when you load all initial Emacs Lisp without evaluating any of it.
+  * + The most obvious approach. Easy to see where one is at.
+  * + YAGNI can be used.
+  * - Every step forward may derail into multiple sub problems, each one requiring it's own mindset and toolbox.
+  * - False sense of security when you load all initial Emacs Lisp without evaluating any of it.
 
 * Treat Emacs Lisp as it's own problem and solve it first.
-  + To some extent, this must be made, getting the basic semantics of Emacs Lisp ported on top of Clojure early on, as everything else hinges on it.
-  - Lacks clear delineation - what is a minimal Emacs Lisp runtime?
-  - Emacs Lisp is boring on its own.
+  * + To some extent, this must be made, getting the basic semantics of Emacs Lisp ported on top of Clojure early on, as everything else hinges on it.
+  * - Lacks clear delineation - what is a minimal Emacs Lisp runtime?
+  * - Emacs Lisp is boring on its own.
 
 * Roll up the sleeves and just port the damn thing, function by function until it starts working.
-  + It's simple to understand.
-  - It's hard to do. Risk of missing the woods for the trees.
-  - Impossible to know what to avoid, or verify that they're working as intended together.
+  * + It's simple to understand.
+  * - It's hard to do. Risk of missing the woods for the trees.
+  * - Impossible to know what to avoid, or verify that they're working as intended together.
 
 * One approach is to embed a JVM inside Emacs, and let it eat its way out.
-  + Emacs stays working, A/B testing of individual functions can be made.
-  - Requires writing messy and potentially buggy glue code in C, and may get stuck in the implementation details of bare impure Emacs.
-  - Hard to know how far one has to go.
-  - Two parallel Emacs Lisp runtimes to manage.
+  * + Emacs stays working, A/B testing of individual functions can be made.
+  * - Requires writing messy and potentially buggy glue code in C, and may get stuck in the implementation details of bare impure Emacs.
+  * - Hard to know how far one has to go.
+  * - Two parallel Emacs Lisp runtimes to manage.
 
 * Compile Emacs as an library, and actually call it from Java, and move more and more pieces over.
-  + A/B mode possible, you can run Emacs in this mode for testing, if nothing else.
-  - Still requires bootstrapping bare Emacs in Clojure, with the additional confusion of having to manage and share state with C.
+  * + A/B mode possible, you can run Emacs in this mode for testing, if nothing else.
+  * - Still requires bootstrapping bare Emacs in Clojure, with the additional confusion of having to manage and share state with C.
 
 * Event recording from working Emacs, playback in Deuce, alternatively multiplexing a user session, comparing the two Emacs Lisp runtimes live.
-  + Captures broad, real world, test cases.
-  - Only works later in the game, once Emacs Lisp is somewhat working.
-  - Requires infrastructure on the Emacs side, anything form C, Emacs Lisp meta programming to keyboard macros.
+  * + Captures broad, real world, test cases.
+  * - Only works later in the game, once Emacs Lisp is somewhat working.
+  * - Requires infrastructure on the Emacs side, anything form C, Emacs Lisp meta programming to keyboard macros.
 
 * Auto converting the C part to Clojure or Java, using either source to source similar to [Vacietis](https://github.com/vsedach/Vacietis) or LLVM IR, like [emscripten](emscripten.org).
-  + "Easy", assuming the converter exists, Emacs depends on very few libraries.
-  + Great if the code is readable.
-  - But it most likely won't be, and while turning C into readable Clojure is a fun problem, it's likely out of scope.
-  - Basing a port on generated source feels wrong and leads to a lack of hackability of the new core.
+  * + "Easy", assuming the converter exists, Emacs depends on very few libraries.
+  * + Great if the code is readable.
+  * - But it most likely won't be, and while turning C into readable Clojure is a fun problem, it's likely out of scope.
+  * - Basing a port on generated source feels wrong and leads to a lack of hackability of the new core.
 
 * Avoid porting functions at all costs.
-  + Self evident, less code is always better code. "This is simple!"
-  + Certain parts of Emacs are better backed by Java's encoding, regex and IO handling than it's own.
-  + Some functions will never be missed.
-  - Some attempts to side step old Emacs functions with impostors may back fire and lead down compatibility hell, and cutting corners may end up costly.
-  - Sometimes it's easier to just do it.
+  * + Self evident, less code is always better code. "This is simple!"
+  * + Certain parts of Emacs are better backed by Java's encoding, regex and IO handling than it's own.
+  * + Some functions will never be missed.
+  * - Some attempts to side step old Emacs functions with impostors may back fire and lead down compatibility hell, and cutting corners may end up costly.
+  * - Sometimes it's easier to just do it.
 
 * Get to this editor, rumored to be bundled with Emacs, as quick as possible.
-  + This is actually what we want, isn't it?
-  + If the editor is visibly broken, one notices.
-  - Directly side tracks into screen buffer management and other potential time sinks.
-  - Risk of building the house without sound foundation.
-  - Seeing how broken it will be early on could be bad for morale.
+  * + This is actually what we want, isn't it?
+  * + If the editor is visibly broken, one notices.
+  * - Directly side tracks into screen buffer management and other potential time sinks.
+  * - Risk of building the house without sound foundation.
+  * - Seeing how broken it will be early on could be bad for morale.
 
 
 ## References
