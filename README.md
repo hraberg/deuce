@@ -1,7 +1,6 @@
 # DEUCE - Deuce is Emacs under Clojure
 
-    Because it's there
-        -- George Mallory
+*Because it's there* -- George Mallory
 
 
 *Note: Absolutely NOTHING works yet.*
