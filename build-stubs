@@ -1,30 +1,3 @@
 #!/bin/bash -e
 
-deuce=$PWD
-root_package=emacs
-
-rm -rf $deuce/src/$root_package
-
-cd emacs/src
-
-for h in `ls *-*.h`; do cp $h `echo $h | tr - _` ;done
-
-
-# These won't generate for various reasons:
-# ccl
-# dispextern
-# font
-# frame
-# intervals
-# nsterm
-# window
-
-for h in `ls *.h | grep -v "-"`
-do
-    java -jar $deuce/lib-ext/jnaerator-*.jar -arch linux_x64 -root $root_package $h -o $deuce/src -mode Jar -v -f
-done
-
-rm *_*.h
-
-cd -
-lein javac
+lein run -m deuce.scaffold
