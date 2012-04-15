@@ -2,7 +2,8 @@
   (require [clojure.walk :as walk]))
 
 (defmacro defun [name args & body]
-  (let [[doc body] (split-with string? body)]
+  (let [[doc body] (split-with string? body)
+        name (if (seq? name) (eval name) name)]
     `(do (defn ~name ~(vec args) ~@body)
          (alter-meta! (var ~name) merge {:doc ~(apply str doc)})
          ~name)))

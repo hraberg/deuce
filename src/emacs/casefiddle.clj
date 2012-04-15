@@ -1,4 +1,4 @@
-(ns emacs.casefiddle (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.casefiddle (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun upcase (obj)
   "Convert argument to upper case and return that.\nThe argument may be a character or string.  The result has the same type.\nThe argument object is not altered--the value is a copy.\n"

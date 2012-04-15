@@ -1,10 +1,10 @@
-(ns emacs.xdisp (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.xdisp (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun format-mode-line (format &optional face window buffer)
   "Format a string out of a mode line format specification.\nFirst arg FORMAT specifies the mode line format (see `mode-line-format'\nfor details) to use."
   )
 
-(defun slash-equals (num1 num2)
+(defun (core/symbol "slash-equals") (num1 num2)
   )
 
 (defun = (num1 num2)

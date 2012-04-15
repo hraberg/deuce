@@ -1,4 +1,4 @@
-(ns emacs.search (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.search (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun set-match-data (list &optional reseat)
   "Set internal data on last search match from elements of LIST.\nLIST should have been created by calling `match-data' previously."

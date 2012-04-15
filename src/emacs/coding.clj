@@ -1,4 +1,4 @@
-(ns emacs.coding (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.coding (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun coding-system-base (coding-system)
   "Return the base of CODING-SYSTEM.\n"

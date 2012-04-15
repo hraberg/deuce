@@ -1,4 +1,4 @@
-(ns emacs.dispnew (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.dispnew (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun ding (&optional arg)
   "Beep, or flash the screen.\nAlso, unless an argument is given,\n"

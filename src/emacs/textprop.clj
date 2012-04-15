@@ -1,4 +1,4 @@
-(ns emacs.textprop (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.textprop (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun next-char-property-change (position &optional limit)
   "Return the position of next text property or overlay change.\nThis scans characters forward in the current buffer from POSITION till\nit finds a change in some text property, or the beginning or end of an\noverlay, and returns the position of that.\nIf none is found up to (point-max), the function returns (point-max)."

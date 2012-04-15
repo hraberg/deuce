@@ -1,4 +1,4 @@
-(ns emacs.composite (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.composite (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun find-composition-internal (pos limit string detail-p)
   "Internal use only."

@@ -1,4 +1,4 @@
-(ns emacs.dired (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.dired (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun file-attributes (filename &optional id-format)
   "Return a list of attributes of file FILENAME.\nValue is nil if specified file cannot be opened."

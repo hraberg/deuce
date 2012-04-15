@@ -1,4 +1,4 @@
-(ns emacs.keyboard (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.keyboard (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun event-convert-list (event-desc)
   "Convert the event description list EVENT-DESC to an event type.\nEVENT-DESC should contain one base event type (a character or symbol)\nand zero or more modifier names (control, meta, hyper, super, shift, alt,\ndrag, down, double or triple).  The base must be last.\nThe return value is an event type (a character or symbol) which\n"

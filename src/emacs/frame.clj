@@ -1,4 +1,4 @@
-(ns emacs.frame (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.frame (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun frame-parameters (&optional frame)
   "Return the parameters-alist of frame FRAME.\nIt is a list of elements of the form (PARM . VALUE), where PARM is a symbol.\nThe meaningful PARMs depend on the kind of frame.\n"

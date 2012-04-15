@@ -1,4 +1,4 @@
-(ns emacs.fns (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.fns (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun provide (feature &optional subfeatures)
   "Announce that FEATURE is a feature of the current Emacs.\nThe optional argument SUBFEATURES should be a list of symbols listing\nparticular subfeatures supported in this version of FEATURE.interactive is a special form in `C source code'."

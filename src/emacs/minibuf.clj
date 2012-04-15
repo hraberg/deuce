@@ -1,4 +1,4 @@
-(ns emacs.minibuf (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.minibuf (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun minibuffer-depth ()
   "Return current depth of activations of minibuffer, a nonnegative integer.internal-lisp-face-attribute-values is a built-in function in `C\nsource code'."

@@ -1,4 +1,4 @@
-(ns emacs.doc (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.doc (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun Snarf-documentation (filename)
   "Used during Emacs initialization to scan the `etc/DOC...' file.\nThis searches the `etc/DOC...' file for doc strings and\nrecords them in function and variable definitions.\nThe function takes one argument, FILENAME, a string;\nit specifies the file name (without a directory) of the DOC file.\nThat file is found in `../etc' now; later, when the dumped Emacs is run,\nthe same file name is found in the `doc-directory'.search-forward-regexp is an interactive built-in function in\n`subr.el'."

@@ -1,4 +1,4 @@
-(ns emacs.term (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.term (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun controlling-tty-p (&optional terminal)
   "Return non-nil if TERMINAL is the controlling tty of the Emacs process."

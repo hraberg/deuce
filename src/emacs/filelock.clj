@@ -1,4 +1,4 @@
-(ns emacs.filelock (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.filelock (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun lock-buffer (&optional file)
   "Lock FILE, if current buffer is modified.\nFILE defaults to current buffer's visited file,\nor else nothing is done if current buffer isn't visiting a file.next-read-file-uses-dialog-p is a built-in function in `C source\ncode'."

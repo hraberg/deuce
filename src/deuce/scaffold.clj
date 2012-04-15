@@ -41,8 +41,8 @@
          (into {})
          (group-by (comp :namespace val)))))
 
-(def illegal-symbols {(symbol "1+") 'one-plus
-                      (symbol "1-") 'one-minus
+(def illegal-symbols {(symbol "1+") (symbol "1+")
+                      (symbol "1-") (symbol "1-")
                       (symbol "/=") 'slash-equals
                       '... 'dot-dot-dot
                       'ARGS... 'args-dot-dot-dot})
@@ -56,12 +56,13 @@
       (binding [*out* w]
         (println (list 'ns namespace
                        (list 'use ['deuce.core])
+                       (list 'require ['clojure.core :as 'core])
                        (list :refer-clojure :only [])))
-        (doseq [[f {:keys [args doc]}] fns
-                :let [f (get illegal-symbols f f)]]
+        (doseq [[f {:keys [args doc]}] fns]
           (println)
-          (println (str "(defun " f " " (pr-str (map (comp symbol string/lower-case)
-                                                     (replace illegal-symbols args)))))
+          (println (str "(defun " (if (illegal-symbols f) (str "(core/symbol \"" (str (illegal-symbols f)) "\")") f)
+                        " " (pr-str (map (comp symbol string/lower-case)
+                                         (replace illegal-symbols args)))))
           (when doc (println (str "  " (pr-str doc))))
           (println "  )"))))
     (require namespace)))

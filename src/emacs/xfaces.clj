@@ -1,4 +1,4 @@
-(ns emacs.xfaces (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.xfaces (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun internal-make-lisp-face (face &optional frame)
   "Make FACE, a symbol, a Lisp face with all attributes nil.\nIf FACE was not known as a face before, create a new one.\nIf optional argument FRAME is specified, make a frame-local face\nfor that frame.  Otherwise operate on the global face definition.\n"

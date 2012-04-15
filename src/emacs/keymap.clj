@@ -1,4 +1,4 @@
-(ns emacs.keymap (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.keymap (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun make-sparse-keymap (&optional string)
   "Construct and return a new sparse keymap.\nIts car is `keymap' and its cdr is an alist of (CHAR . DEFINITION),\nwhich binds the character CHAR to DEFINITION, or (SYMBOL . DEFINITION),\nwhich binds the function key or mouse event SYMBOL to DEFINITION.\nInitially the alist is nil."

@@ -1,4 +1,4 @@
-(ns emacs.buffer (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.buffer (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun barf-if-buffer-read-only ()
   )

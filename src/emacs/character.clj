@@ -1,4 +1,4 @@
-(ns emacs.character (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.character (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun char-direction (char)
   "Return the direction of CHAR.\nThe returned value is 0 for left-to-right and 1 for right-to-left.erase-buffer is an interactive built-in function in `C source code'."

@@ -1,4 +1,4 @@
-(ns emacs.eval (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.eval (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun user-variable-p (variable)
   "Return t if VARIABLE is intended to be set and modified by users.\n(The alternative is a variable used internally in a Lisp program.)\nA variable is a user variable if\n(1) the first character of its documentation is `*', or\n(2) it is customizable (its property list contains a non-nil value\n    of `standard-value' or `custom-autoload'), or\n(3) it is an alias for another user variable.\nReturn nil if VARIABLE is an alias and there is a loop in the\n"

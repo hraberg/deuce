@@ -1,4 +1,4 @@
-(ns emacs.syntax (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.syntax (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun standard-syntax-table ()
   "Return the standard syntax table.\n"

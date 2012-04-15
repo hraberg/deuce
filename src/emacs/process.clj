@@ -1,4 +1,4 @@
-(ns emacs.process (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.process (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun delete-process (process)
   "Delete PROCESS: kill it and forget about it immediately.\nPROCESS may be a process, a buffer, the name of a process or buffer, or\n"

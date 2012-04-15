@@ -1,4 +1,4 @@
-(ns emacs.terminal (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.terminal (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun terminal-list ()
   )

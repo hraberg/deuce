@@ -1,4 +1,4 @@
-(ns emacs.lread (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.lread (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun read-event (&optional prompt inherit-input-method seconds)
   "Read an event object from the input stream.\nIf the optional argument PROMPT is non-nil, display that as a prompt.\nIf the optional argument INHERIT-INPUT-METHOD is non-nil and some\ninput method is turned on in the current buffer, that input method\nis used for reading a character.\nIf the optional argument SECONDS is non-nil, it should be a number\nspecifying the maximum number of seconds to wait for input.  If no\ninput arrives in that time, return nil.  SECONDS may be a\nfloating-point value.re-search-forward is an interactive built-in function in `C source\ncode'."

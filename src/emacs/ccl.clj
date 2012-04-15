@@ -1,4 +1,4 @@
-(ns emacs.ccl (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.ccl (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun register-ccl-program (name ccl-prog)
   "Register CCL program CCL-PROG as NAME in `ccl-program-table'.\nCCL-PROG should be a compiled CCL program (vector), or nil.\nIf it is nil, just reserve NAME as a CCL program name.\n"

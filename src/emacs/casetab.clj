@@ -1,4 +1,4 @@
-(ns emacs.casetab (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.casetab (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun set-standard-case-table (table)
   "Select a new standard case table for new buffers.\nSee `set-case-table' for more info on case tables.this-single-command-raw-keys is a built-in function in `C source\ncode'."

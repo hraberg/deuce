@@ -1,4 +1,4 @@
-(ns emacs.data (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.data (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun natnump (object)
   )
@@ -51,7 +51,7 @@
   "Return t if OBJECT is a keyword.\nThis means that it is a symbol with a print name beginning with `:'\n"
   )
 
-(defun one-plus (number)
+(defun (core/symbol "1+") (number)
   "Return NUMBER plus one.  NUMBER may be a number or a marker.\nMarkers are converted to integers.abort-recursive-edit is an interactive built-in function in `C source\ncode'."
   )
 
@@ -262,7 +262,7 @@
   "Return X modulo Y.\nThe result falls between zero (inclusive) and Y (exclusive).\n"
   )
 
-(defun one-minus (number)
+(defun (core/symbol "1-") (number)
   "Return NUMBER minus one.  NUMBER may be a number or a marker.\n"
   )
 

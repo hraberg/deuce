@@ -1,4 +1,4 @@
-(ns emacs.emacs (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.emacs (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun invocation-directory ()
   )

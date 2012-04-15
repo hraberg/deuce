@@ -1,4 +1,4 @@
-(ns emacs.alloc (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.alloc (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun make-bool-vector (length init)
   "Return a new bool-vector of length LENGTH, using INIT for each element.\n"

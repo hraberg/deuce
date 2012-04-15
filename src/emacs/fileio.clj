@@ -1,4 +1,4 @@
-(ns emacs.fileio (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.fileio (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun file-name-absolute-p (filename)
   "Return t if file FILENAME specifies an absolute file name.\n"

@@ -1,4 +1,4 @@
-(ns emacs.editfns (use [deuce.core]) (:refer-clojure :only []))
+(ns emacs.editfns (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun byte-to-position (bytepos)
   "Return the character position for byte position BYTEPOS.\n"
