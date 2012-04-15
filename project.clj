@@ -12,4 +12,4 @@
                   "http://nativelibs4java.sourceforge.net/maven"]]
   :java-source-path "src"
   :javac-options ["-nowarn"]
-  :extra-classpath-dirs ["lib-ext/*"])
+  :extra-classpath-dirs ["lib-ext/*" "emacs/lisp"])
