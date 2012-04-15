@@ -17,7 +17,7 @@ The target version of Emacs is 23.4. It's assumed to live under `emacs`. `config
 For a minimal [Emacs build](http://www.gnu.org/software/emacs/manual/html_node/elisp/Building-Emacs.html):
 
     ./configure-emacs # downloads emacs-23.4.tar.bz if needed
-    ./make-emacs temacs tags
+    ./make-emacs temacs
 
     ./emacs/src/temacs -Q --batch --eval "(print (emacs-version))" # ./smoke
 
@@ -37,6 +37,19 @@ The above should output:
 *The task at hand is to get rid of the bare impure Emacs, replace it with Clojure and the JVM, while keeping Emacs Lisp running.*
 
 Clojure will be a first class citizen along Emacs Lisp in this new world. There may be ways to get this build even smaller, haven't looked into it yet.
+
+#### Tags
+
+Run `./collect-tags` and add something like this to your `init.el`:
+
+    ;; To navigate between C and Emacs Lisp
+    (require 'etags-select)
+    (require 'etags-table)
+
+    (global-set-key "\M-." 'etags-select-find-tag)
+    (setq etags-table-search-up-depth 10)
+
+There are probably better and cleaner ways of doing this, as TAGS includes TAGS-LISP (there's a hint at [here](http://www.emacswiki.org/emacs/EtagsSelect)).
 
 
 ### Emacs Lisp to Clojure

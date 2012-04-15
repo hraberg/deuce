@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# TAGS-LISP,include just refuses to work
+
+./make-emacs tags
+cat emacs/src/TAGS* > TAGS
+
+# ;; To navigate between C and Emacs Lisp
+# (require 'etags-select)
+# (require 'etags-table)
+
+# (global-set-key "\M-." 'etags-select-find-tag)
+# (setq etags-table-search-up-depth 10)
