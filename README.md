@@ -17,7 +17,7 @@ The target version of Emacs is 23.4. It's assumed to live under `emacs`. `config
 For a minimal [Emacs build](http://www.gnu.org/software/emacs/manual/html_node/elisp/Building-Emacs.html):
 
     ./configure-emacs # downloads emacs-23.4.tar.bz if needed
-    ./make-emacs temacs
+    ./make-emacs temacs tags
 
     ./emacs/src/temacs -Q --batch --eval "(print (emacs-version))" # ./smoke
 
