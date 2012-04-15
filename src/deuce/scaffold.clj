@@ -68,5 +68,4 @@
 
 (defn -main []
   (write-fn-stubs)
-  (shutdown-agents)
   (System/exit 0))
