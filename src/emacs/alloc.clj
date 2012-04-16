@@ -16,6 +16,9 @@
   "Return a newly created vector with specified arguments as elements.\n"
   )
 
+(defun string (&rest characters)
+  )
+
 (defun make-marker ()
   )
 
@@ -43,4 +46,8 @@
   )
 
 (defun make-list (length init)
+  )
+
+(defun list (&rest objects)
+  "Return a newly created list with specified arguments as elements.\n"
   )

@@ -3,7 +3,12 @@
 # TAGS-LISP,include just refuses to work
 
 ./make-emacs tags
+
 cat emacs/src/TAGS* > TAGS
+
+# Build a small tags file for the part we're interested in
+cd emacs/src
+../lib-src/etags -o TAGS-TEMACS --regex='/[     ]*DEFVAR_[A-Z_  (]+"\([^"]+\)"/' $(echo *.o | sed s/\\.o/.c/g)
 
 # ;; To navigate between C and Emacs Lisp
 # (require 'etags-select)

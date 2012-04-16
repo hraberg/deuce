@@ -85,6 +85,9 @@
 (defun eq (obj1 obj2)
   )
 
+(defun * (&rest numbers-or-markers)
+  )
+
 (defun - (&optional number-or-marker &rest more-numbers-or-markers)
   "Negate number or subtract numbers or markers and return the result.\nWith one arg, negates it.  With more than one arg,\n"
   )
@@ -176,6 +179,12 @@
 
 (defun cdr (list)
   "Return the cdr of LIST.  If arg is nil, return nil.\nError if arg is not nil and not a cons cell.  See also `cdr-safe'."
+  )
+
+(defun (core/symbol "slash-equals") (num1 num2)
+  )
+
+(defun = (num1 num2)
   )
 
 (defun char-or-string-p (object)

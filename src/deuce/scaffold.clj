@@ -25,13 +25,13 @@
        (into {})))
 
 (defn find-files-for-tags [tags]
+  (sh/sh "./collect-tags")
   (let [tags (vec tags)]
     (->> (eval-in-emacs
-          (setq tags-file-name "emacs/src/TAGS")
+          (setq tags-file-name "emacs/src/TAGS-TEMACS")
           (princ (mapcar (lambda (x) (buffer-name (find-tag-noselect x))) tags)))
          read-string
-         (map #(string/replace % #"\..+$" ""))
-         (replace {"Makefile" "data"}))))
+         (map #(string/replace % #"\..+$" "")))))
 
 (defn generate-fn-stubs []
   (let [subrs (subrs)]
