@@ -63,7 +63,13 @@
           (println (str "(defun " (if (illegal-symbols f) (str "(core/symbol \"" (str (illegal-symbols f)) "\")") f)
                         " " (pr-str (map (comp symbol string/lower-case)
                                          (replace illegal-symbols args)))))
-          (when doc (println (str "  " (pr-str doc))))
+          (when doc
+            (print  "  \"")
+            (print (-> doc
+                       string/trimr
+                       (string/replace #"\n" "\n  ")
+                       (string/escape {\" "\\\"" \\ "\\\\"})))
+            (println "\""))
           (println "  )"))))
     (require namespace)))
 

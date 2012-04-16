@@ -9,11 +9,15 @@
   )
 
 (defun tty-no-underline (&optional terminal)
-  "Declare that the tty used by TERMINAL does not handle underlining.\nThis is used to override the terminfo data, for certain terminals that\ndo not really do underlining, but say that they do.  This function has\nno effect if used on a non-tty terminal."
+  "Declare that the tty used by TERMINAL does not handle underlining.
+  This is used to override the terminfo data, for certain terminals that
+  do not really do underlining, but say that they do.  This function has
+  no effect if used on a non-tty terminal."
   )
 
 (defun tty-type (&optional terminal)
-  "Return the type of the tty device that TERMINAL uses.\nReturns nil if TERMINAL is not on a tty device."
+  "Return the type of the tty device that TERMINAL uses.
+  Returns nil if TERMINAL is not on a tty device."
   )
 
 (defun tty-display-color-cells (&optional terminal)
@@ -21,7 +25,9 @@
   )
 
 (defun resume-tty (&optional tty)
-  "Resume the previously suspended terminal device TTY.\nThe terminal is opened and reinitialized.  Frames that are on the\nsuspended terminal are revived."
+  "Resume the previously suspended terminal device TTY.
+  The terminal is opened and reinitialized.  Frames that are on the
+  suspended terminal are revived."
   )
 
 (defun suspend-tty (&optional tty)

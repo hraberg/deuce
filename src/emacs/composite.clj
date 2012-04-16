@@ -13,5 +13,9 @@
   )
 
 (defun composition-get-gstring (from to font-object string)
-  "Return a glyph-string for characters between FROM and TO.\nIf the glyph string is for graphic display, FONT-OBJECT must be\na font-object to use for those characters.\nOtherwise (for terminal display), FONT-OBJECT must be a terminal ID, a\nframe, or nil for the selected frame's terminal device."
+  "Return a glyph-string for characters between FROM and TO.
+  If the glyph string is for graphic display, FONT-OBJECT must be
+  a font-object to use for those characters.
+  Otherwise (for terminal display), FONT-OBJECT must be a terminal ID, a
+  frame, or nil for the selected frame's terminal device."
   )

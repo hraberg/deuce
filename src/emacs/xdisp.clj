@@ -1,9 +1,16 @@
 (ns emacs.xdisp (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun format-mode-line (format &optional face window buffer)
-  "Format a string out of a mode line format specification.\nFirst arg FORMAT specifies the mode line format (see `mode-line-format'\nfor details) to use."
+  "Format a string out of a mode line format specification.
+  First arg FORMAT specifies the mode line format (see `mode-line-format'
+  for details) to use."
   )
 
 (defun invisible-p (pos-or-prop)
-  "Non-nil if the property makes the text invisible.\nPOS-OR-PROP can be a marker or number, in which case it is taken to be\na position in the current buffer and the value of the `invisible' property\nis checked; or it can be some other value, which is then presumed to be the\nvalue of the `invisible' property of the text of interest.\nThe non-nil value returned can be t for truly invisible text or something\n"
+  "Non-nil if the property makes the text invisible.
+  POS-OR-PROP can be a marker or number, in which case it is taken to be
+  a position in the current buffer and the value of the `invisible' property
+  is checked; or it can be some other value, which is then presumed to be the
+  value of the `invisible' property of the text of interest.
+  The non-nil value returned can be t for truly invisible text or something"
   )
