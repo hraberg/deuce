@@ -1,5 +1,6 @@
 (ns deuce.core
-  (require [clojure.walk :as walk]))
+  (require [clojure.walk :as walk])
+  (:gen-class))
 
 (defmacro defun [name args & body]
   (let [[doc body] (split-with string? body)
@@ -12,3 +13,5 @@
   `(let [env# (zipmap '~(keys &env) ~(vec (keys &env)))
          code# (str "(progn " (apply str (walk/postwalk-replace env# '~emacs-lisp)) ")")]
      (:out (sh/sh "emacs/src/emacs" "-Q" "-batch" "--eval" code#))))
+
+(defn -main [& args])

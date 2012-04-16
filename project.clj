@@ -5,4 +5,6 @@
             :distribution :repo}
   :url "http://www.gnu.org/software/emacs/"
   :dependencies [[org.clojure/clojure "1.4.0-beta7"]]
-  :extra-classpath-dirs ["lib-ext/*" "emacs/lisp"])
+  :resources-path "emacs/lisp"
+  :jar-exclusions [#".*\.elc"]
+  :main deuce.core)
