@@ -3,12 +3,13 @@
 (defun provide (feature &optional subfeatures)
   "Announce that FEATURE is a feature of the current Emacs.
   The optional argument SUBFEATURES should be a list of symbols listing
-  particular subfeatures supported in this version of FEATURE.interactive is a special form in `C source code'."
+  particular subfeatures supported in this version of FEATURE."
   )
 
 (defun widget-get (widget property)
   "In WIDGET, get the value of PROPERTY.
-  The value could either be specified when the widget was created, or"
+  The value could either be specified when the widget was created, or
+  later with `widget-put'."
   )
 
 (defun string-as-multibyte (string)
@@ -23,7 +24,8 @@
   (PROP1 VALUE1 PROP2 VALUE2 ...).  PROP and VAL are any objects.
   If PROP is already a property on the list, its value is set to VAL,
   otherwise the new PROP VAL pair is added.  The new plist is returned;
-  use `(setq x (lax-plist-put x prop val))' to be sure to use the new value."
+  use `(setq x (lax-plist-put x prop val))' to be sure to use the new value.
+  The PLIST is modified by side effects."
   )
 
 (defun safe-length (list)
@@ -35,22 +37,26 @@
   )
 
 (defun member (elt list)
-  "Return non-nil if ELT is an element of LIST.  Comparison done with `equal'."
+  "Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.
+  The value is actually the tail of LIST whose car is ELT."
   )
 
 (defun copy-hash-table (table)
+  "Return a copy of hash table TABLE."
   )
 
 (defun append (&rest sequences)
   "Concatenate all the arguments and make the result a list.
   The result is a list whose elements are the elements of all the arguments.
-  Each argument may be a list, vector or string."
+  Each argument may be a list, vector or string.
+  The last argument is not copied, just used as the tail of the new list."
   )
 
 (defun mapconcat (function sequence separator)
   "Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.
   In between each pair of results, stick in SEPARATOR.  Thus, \" \" as
-  SEPARATOR results in spaces between the values returned by FUNCTION."
+  SEPARATOR results in spaces between the values returned by FUNCTION.
+  SEQUENCE may be a list, a vector, a bool-vector, or a string."
   )
 
 (defun compare-strings (str1 start1 end1 str2 start2 end2 &optional ignore-case)
@@ -65,31 +71,31 @@
   This is an alist which represents the same mapping from objects to objects,
   but does not share the alist structure with ALIST.
   The objects mapped (cars and cdrs of elements of the alist)
-  are shared, however."
+  are shared, however.
+  Elements of ALIST that are not conses are also shared."
   )
 
 (defun copy-sequence (arg)
   "Return a copy of a list, vector, string or char-table.
-  The elements of a list or vector are not copied; they are shared"
+  The elements of a list or vector are not copied; they are shared
+  with the original."
   )
 
 (defun string-as-unibyte (string)
   "Return a unibyte string with the same individual bytes as STRING.
   If STRING is unibyte, the result is STRING itself.
   Otherwise it is a newly created string, with no text properties.
-  If STRING is multibyte and contains a character of charset"
+  If STRING is multibyte and contains a character of charset
+  `eight-bit', it is converted to the corresponding single byte."
   )
 
 (defun sxhash (obj)
   "Compute a hash code for OBJ and return it as integer.shrink-window is an interactive built-in function in `C source code'."
   )
 
-(defun md5 (object &optional start end coding-system noerror)
-  "Return MD5 message digest of OBJECT, a buffer or string."
-  )
-
 (defun widget-apply (widget property &rest args)
-  "Apply the value of WIDGET's PROPERTY to the widget itself."
+  "Apply the value of WIDGET's PROPERTY to the widget itself.
+  ARGS are passed as extra arguments to the function."
   )
 
 (defun hash-table-p (obj)
@@ -103,7 +109,8 @@
   The modified SEQ is returned.  Comparison is done with `equal'.
   If SEQ is not a list, or the first member of SEQ is ELT, deleting it
   is not a side effect; it is simply using a different sequence.
-  Therefore, write `(setq foo (delete element foo))'"
+  Therefore, write `(setq foo (delete element foo))'
+  to be sure of changing the value of `foo'."
   )
 
 (defun locale-info (item)
@@ -133,7 +140,7 @@
   )
 
 (defun elt (sequence n)
-  "Return element of SEQUENCE at index N.while is a special form in `C source code'."
+  "Return element of SEQUENCE at index N."
   )
 
 (defun base64-encode-string (string &optional no-line-break)
@@ -163,23 +170,28 @@
   All integers representable in Lisp are equally likely.
     On most systems, this is 29 bits' worth.
   With positive integer LIMIT, return random number in interval [0,LIMIT).
-  With argument t, set the random number seed from the current time and pid."
+  With argument t, set the random number seed from the current time and pid.
+  Other values of LIMIT are ignored."
   )
 
 (defun concat (&rest sequences)
   "Concatenate all the arguments and make the result a string.
-  The result is a string whose elements are the elements of all the arguments."
+  The result is a string whose elements are the elements of all the arguments.
+  Each argument may be a string or a list or vector of characters (integers)."
   )
 
 (defun string-bytes (string)
-  "Return the number of bytes in STRING."
+  "Return the number of bytes in STRING.
+  If STRING is multibyte, this may be greater than the length of STRING."
   )
 
 (defun assoc (key list)
-  "Return non-nil if KEY is `equal' to the car of an element of LIST."
+  "Return non-nil if KEY is `equal' to the car of an element of LIST.
+  The value is actually the first element of LIST whose car equals KEY."
   )
 
 (defun remhash (key table)
+  "Remove KEY from TABLE."
   )
 
 (defun yes-or-no-p (prompt)
@@ -195,19 +207,22 @@
   )
 
 (defun clear-string (string)
-  "Clear the contents of STRING."
+  "Clear the contents of STRING.
+  This makes STRING unibyte and may change its length."
   )
 
 (defun delq (elt list)
   "Delete by side effect any occurrences of ELT as a member of LIST.
   The modified LIST is returned.  Comparison is done with `eq'.
   If the first member of LIST is ELT, there is no way to remove it by side effect;
-  therefore, write `(setq foo (delq element foo))'"
+  therefore, write `(setq foo (delq element foo))'
+  to be sure of changing the value of `foo'."
   )
 
 (defun assq (key list)
   "Return non-nil if KEY is `eq' to the car of an element of LIST.
-  The value is actually the first element of LIST whose car is KEY."
+  The value is actually the first element of LIST whose car is KEY.
+  Elements of LIST that are not conses are ignored."
   )
 
 (defun string-make-multibyte (string)
@@ -225,16 +240,19 @@
 
 (defun string-equal (s1 s2)
   "Return t if two strings have identical contents.
-  Case is significant, but text properties are ignored."
+  Case is significant, but text properties are ignored.
+  Symbols are also allowed; their print names are used instead."
   )
 
 (defun mapcar (function sequence)
   "Apply FUNCTION to each element of SEQUENCE, and make a list of the results.
-  The result is a list just as long as SEQUENCE."
+  The result is a list just as long as SEQUENCE.
+  SEQUENCE may be a list, a vector, a bool-vector, or a string."
   )
 
 (defun fillarray (array item)
-  "Store each element of ARRAY with ITEM."
+  "Store each element of ARRAY with ITEM.
+  ARRAY is a vector, string, char-table, or bool-vector."
   )
 
 (defun load-average (&optional use-floats)
@@ -242,14 +260,17 @@
   )
 
 (defun hash-table-weakness (table)
+  "Return the weakness of TABLE."
   )
 
 (defun clrhash (table)
+  "Clear hash table TABLE and return it."
   )
 
 (defun vconcat (&rest sequences)
   "Concatenate all the arguments and make the result a vector.
-  The result is a vector whose elements are the elements of all the arguments."
+  The result is a vector whose elements are the elements of all the arguments.
+  Each argument may be a list, vector or string."
   )
 
 (defun make-hash-table (&rest keyword-args)
@@ -257,7 +278,8 @@
   )
 
 (defun rassoc (key list)
-  "Return non-nil if KEY is `equal' to the cdr of an element of LIST."
+  "Return non-nil if KEY is `equal' to the cdr of an element of LIST.
+  The value is actually the first element of LIST whose cdr equals KEY."
   )
 
 (defun equal (o1 o2)
@@ -272,26 +294,31 @@
   )
 
 (defun nreverse (list)
-  "Reverse LIST by modifying cdr pointers."
+  "Reverse LIST by modifying cdr pointers.
+  Return the reversed list."
   )
 
 (defun reverse (list)
-  "Reverse LIST, copying.  Return the reversed list."
+  "Reverse LIST, copying.  Return the reversed list.
+  See also the function `nreverse', which is used more often."
   )
 
 (defun nthcdr (n list)
+  "Take cdr N times on LIST, return the result."
   )
 
 (defun hash-table-rehash-size (table)
+  "Return the current rehash size of TABLE."
   )
 
 (defun put (symbol propname value)
-  "Store SYMBOL's PROPNAME property with value VALUE."
+  "Store SYMBOL's PROPNAME property with value VALUE.
+  It can be retrieved with `(get SYMBOL PROPNAME)'."
   )
 
 (defun nth (n list)
   "Return the Nth element of LIST.
-  N counts from zero.  If LIST is not that long, nil is returned.cond is a special form in `C source code'."
+  N counts from zero.  If LIST is not that long, nil is returned."
   )
 
 (defun string-to-unibyte (string)
@@ -299,7 +326,8 @@
   If STRING is unibyte, the result is STRING itself.
   Otherwise it is a newly created string, with no text properties,
   where each `eight-bit' character is converted to the corresponding byte.
-  If STRING contains a non-ASCII, non-`eight-bit' character,"
+  If STRING contains a non-ASCII, non-`eight-bit' character,
+  an error is signaled."
   )
 
 (defun nconc (&rest lists)
@@ -311,22 +339,27 @@
   "Return the length of vector, list or string SEQUENCE.
   A byte-code function object is also allowed.
   If the string contains multibyte characters, this is not necessarily
-  the number of bytes in the string; it is the number of characters."
+  the number of bytes in the string; it is the number of characters.
+  To get the number of bytes, use `string-bytes'."
   )
 
 (defun memq (elt list)
-  "Return non-nil if ELT is an element of LIST.  Comparison done with `eq'."
+  "Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
+  The value is actually the tail of LIST whose car is ELT."
   )
 
 (defun memql (elt list)
-  "Return non-nil if ELT is an element of LIST.  Comparison done with `eql'."
+  "Return non-nil if ELT is an element of LIST.  Comparison done with `eql'.
+  The value is actually the tail of LIST whose car is ELT."
   )
 
 (defun gethash (key table &optional dflt)
-  "Look up KEY in TABLE and return its associated value."
+  "Look up KEY in TABLE and return its associated value.
+  If KEY is not found, return DFLT which defaults to nil."
   )
 
 (defun identity (arg)
+  "Return the argument unchanged."
   )
 
 (defun define-hash-table-test (name test hash)
@@ -336,7 +369,8 @@
 (defun hash-table-size (table)
   "Return the size of TABLE.
   The size can be used as an argument to `make-hash-table' to create
-  a hash table than can hold as many elements as TABLE holds"
+  a hash table than can hold as many elements as TABLE holds
+  without need for resizing."
   )
 
 (defun require (feature &optional filename noerror)
@@ -354,29 +388,34 @@
   )
 
 (defun get (symbol propname)
-  "Return the value of SYMBOL's PROPNAME property."
+  "Return the value of SYMBOL's PROPNAME property.
+  This is the last value stored with `(put SYMBOL PROPNAME VALUE)'."
   )
 
 (defun lax-plist-get (plist prop)
   "Extract a value from a property list, comparing with `equal'.
   PLIST is a property list, which is a list of the form
   (PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
-  corresponding to the given PROP, or nil if PROP is not"
+  corresponding to the given PROP, or nil if PROP is not
+  one of the properties on the list."
   )
 
 (defun maphash (function table)
-  "Call FUNCTION for all entries in hash table TABLE."
+  "Call FUNCTION for all entries in hash table TABLE.
+  FUNCTION is called with two arguments, KEY and VALUE."
   )
 
 (defun rassq (key list)
-  "Return non-nil if KEY is `eq' to the cdr of an element of LIST."
+  "Return non-nil if KEY is `eq' to the cdr of an element of LIST.
+  The value is actually the first element of LIST whose cdr is KEY."
   )
 
 (defun string-make-unibyte (string)
   "Return the unibyte equivalent of STRING.
   Multibyte character codes are converted to unibyte according to
   `nonascii-translation-table' or, if that is nil, `nonascii-insert-offset'.
-  If the lookup in the translation table fails, this function takes just"
+  If the lookup in the translation table fails, this function takes just
+  the low 8 bits of each character."
   )
 
 (defun y-or-n-p (prompt)
@@ -392,7 +431,8 @@
 
 (defun string-lessp (s1 s2)
   "Return t if first arg string is less than second in lexicographic order.
-  Case is significant."
+  Case is significant.
+  Symbols are also allowed; their print names are used instead."
   )
 
 (defun widget-put (widget property value)
@@ -415,6 +455,7 @@
   )
 
 (defun hash-table-rehash-threshold (table)
+  "Return the current rehash threshold of TABLE."
   )
 
 (defun plist-put (plist prop val)
@@ -423,20 +464,24 @@
   (PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol and VAL is any object.
   If PROP is already a property on the list, its value is set to VAL,
   otherwise the new PROP VAL pair is added.  The new plist is returned;
-  use `(setq x (plist-put x prop val))' to be sure to use the new value."
+  use `(setq x (plist-put x prop val))' to be sure to use the new value.
+  The PLIST is modified by side effects.encode-big5"
   )
 
 (defun puthash (key value table)
   "Associate KEY with VALUE in hash table TABLE.
-  If KEY is already present in table, replace its current value with"
+  If KEY is already present in table, replace its current value with
+  VALUE."
   )
 
 (defun hash-table-test (table)
+  "Return the test TABLE uses."
   )
 
 (defun mapc (function sequence)
   "Apply FUNCTION to each element of SEQUENCE for side effects only.
-  Unlike `mapcar', don't accumulate the results.  Return SEQUENCE."
+  Unlike `mapcar', don't accumulate the results.  Return SEQUENCE.
+  SEQUENCE may be a list, a vector, a bool-vector, or a string."
   )
 
 (defun plist-member (plist prop)
@@ -444,14 +489,17 @@
   PLIST is a property list, which is a list of the form
   (PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol.
   Unlike `plist-get', this allows you to distinguish between a missing
-  property and a property with the value nil."
+  property and a property with the value nil.
+  The value is actually the tail of PLIST whose car is PROP."
   )
 
 (defun sort (list predicate)
   "Sort LIST, stably, comparing elements using PREDICATE.
   Returns the sorted list.  LIST is modified by side effects.
-  PREDICATE is called with two elements of LIST, and should return non-nil"
+  PREDICATE is called with two elements of LIST, and should return non-nil
+  if the first element should sort before the second."
   )
 
 (defun base64-decode-string (string)
+  "Base64-decode STRING and return the result."
   )

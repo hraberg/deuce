@@ -11,5 +11,6 @@
 
 (defun prefix-numeric-value (raw)
   "Return numeric meaning of raw prefix argument RAW.
-  A raw prefix argument is what you get from `(interactive \"P\")'."
+  A raw prefix argument is what you get from `(interactive \"P\")'.
+  Its numeric meaning is what you would get from `(interactive \"p\")'."
   )

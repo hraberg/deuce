@@ -8,7 +8,8 @@
   (2) it is customizable (its property list contains a non-nil value
       of `standard-value' or `custom-autoload'), or
   (3) it is an alias for another user variable.
-  Return nil if VARIABLE is an alias and there is a loop in the"
+  Return nil if VARIABLE is an alias and there is a loop in the
+  chain of symbols."
   )
 
 (defun autoload (function file &optional docstring interactive type)
@@ -23,10 +24,11 @@
   Third through fifth args give info about the real definition.
   They default to nil.
   If FUNCTION is already defined other than as an autoload,
-  this does nothing and returns nil.save-current-buffer is a special form in `C source code'."
+  this does nothing and returns nil."
   )
 
 (defun fetch-bytecode (object)
+  "If byte-compiled OBJECT is lazy-loaded, fetch it now."
   )
 
 (defun signal (error-symbol data)
@@ -58,7 +60,8 @@
 
 (defun funcall (function &rest arguments)
   "Call first argument as a function, passing remaining arguments to it.
-  Return the value that function returns."
+  Return the value that function returns.
+  Thus, (funcall 'cons 'x 'y) returns (x . y)."
   )
 
 (defun interactive-p ()
@@ -73,7 +76,8 @@
   omitted or nil, NEW-ALIAS gets the documentation string of BASE-VARIABLE,
   or of the variable at the end of the chain of aliases, if BASE-VARIABLE is
   itself an alias.  If NEW-ALIAS is bound, and BASE-VARIABLE is not,
-  then the value of BASE-VARIABLE is set to that of NEW-ALIAS."
+  then the value of BASE-VARIABLE is set to that of NEW-ALIAS.
+  The return value is BASE-VARIABLE."
   )
 
 (defun throw (tag value)
@@ -84,7 +88,8 @@
 
 (defun apply (function &rest arguments)
   "Call FUNCTION with our remaining args, using our last arg as list of args.
-  Then return the value FUNCTION returns."
+  Then return the value FUNCTION returns.
+  Thus, (apply '+ 1 2 '(3 4)) returns 10."
   )
 
 (defun run-hooks (&rest hooks)
@@ -98,10 +103,12 @@
   )
 
 (defun eval (form)
+  "Evaluate FORM and return its value."
   )
 
 (defun backtrace-debug (level flag)
-  "Set the debug-on-exit flag of eval frame LEVEL levels down to FLAG."
+  "Set the debug-on-exit flag of eval frame LEVEL levels down to FLAG.
+  The debugger is entered when that frame exits, if the flag is non-nil.base64"
   )
 
 (defun backtrace-frame (nframes)
@@ -112,7 +119,8 @@
   the value is (t FUNCTION ARG-VALUES...).
   A &rest arg is represented as the tail of the list ARG-VALUES.
   FUNCTION is whatever was supplied as car of evaluated list,
-  or a lambda expression for macro calls."
+  or a lambda expression for macro calls.
+  If NFRAMES is more than the number of frames, the value is nil."
   )
 
 (defun commandp (function &optional for-call-interactively)

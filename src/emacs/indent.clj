@@ -2,7 +2,8 @@
 
 (defun current-indentation ()
   "Return the indentation of the current line.
-  This is the horizontal position of the character"
+  This is the horizontal position of the character
+  following any initial whitespace."
   )
 
 (defun current-column ()
@@ -15,7 +16,8 @@
   values greater than (frame-width).
   Whether the line is visible (if `selective-display' is t) has no effect;
   however, ^M is treated as end of line when `selective-display' is t.
-  Text that has an invisible property is considered as having width 0, unless"
+  Text that has an invisible property is considered as having width 0, unless
+  `buffer-invisibility-spec' specifies that it is replaced by an ellipsis."
   )
 
 (defun compute-motion (from frompos to topos width offsets window)

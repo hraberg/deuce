@@ -65,16 +65,19 @@
   (Actually, INITIAL can also be a cons of a string and an integer.
   Such values are treated as in `read-from-minibuffer', but are normally
   not useful in this function.)
-  Third arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits"
+  Third arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
+  the current input method and the setting of`enable-multibyte-characters'."
   )
 
 (defun minibuffer-prompt ()
-  "Return the prompt string of the currently-active minibuffer."
+  "Return the prompt string of the currently-active minibuffer.
+  If no minibuffer is active, return nil."
   )
 
 (defun read-command (prompt &optional default-value)
   "Read the name of a command and return as a symbol.
-  Prompt with PROMPT.  By default, return DEFAULT-VALUE or its first element"
+  Prompt with PROMPT.  By default, return DEFAULT-VALUE or its first element
+  if it is a list."
   )
 
 (defun try-completion (string collection &optional predicate)
@@ -93,7 +96,8 @@
   "Return value of Lisp expression read using the minibuffer.
   Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
   is a string to insert in the minibuffer before reading.
-  (INITIAL-CONTENTS can also be a cons of a string and an integer."
+  (INITIAL-CONTENTS can also be a cons of a string and an integer.
+  Such arguments are used as in `read-from-minibuffer'.)"
   )
 
 (defun read-string (prompt &optional initial-input history default-value inherit-input-method)
@@ -115,7 +119,8 @@
   )
 
 (defun minibuffer-prompt-end ()
-  "Return the buffer position of the end of the minibuffer prompt."
+  "Return the buffer position of the end of the minibuffer prompt.
+  Return (point-min) if current buffer is not a minibuffer."
   )
 
 (defun set-minibuffer-window (window)
@@ -128,7 +133,7 @@
 (defun minibufferp (&optional buffer)
   "Return t if BUFFER is a minibuffer.
   No argument or nil as argument means use current buffer as BUFFER.
-  BUFFER can be a buffer or a buffer name.catch is a special form in `C source code'."
+  BUFFER can be a buffer or a buffer name."
   )
 
 (defun internal-complete-buffer (string predicate flag)
@@ -157,7 +162,8 @@
   The argument PROMPT should be a string ending with a colon and a space.
   If `read-buffer-completion-ignore-case' is non-nil, completion ignores
   case while reading the buffer name.
-  If `read-buffer-function' is non-nil, this works by calling it as a"
+  If `read-buffer-function' is non-nil, this works by calling it as a
+  function, instead of the usual behavior."
   )
 
 (defun read-minibuffer (prompt &optional initial-contents)
@@ -165,15 +171,17 @@
   Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
   is a string to insert in the minibuffer before reading.
   (INITIAL-CONTENTS can also be a cons of a string and an integer.
-  Such arguments are used as in `read-from-minibuffer'.)save-restriction is a special form in `C source code'."
+  Such arguments are used as in `read-from-minibuffer'.)"
   )
 
 (defun minibuffer-contents ()
-  "Return the user input in a minibuffer as a string."
+  "Return the user input in a minibuffer as a string.
+  If the current buffer is not a minibuffer, return its entire contents."
   )
 
 (defun read-variable (prompt &optional default-value)
   "Read the name of a user variable and return it as a symbol.
   Prompt with PROMPT.  By default, return DEFAULT-VALUE or its first element
-  if it is a list."
+  if it is a list.
+  A user variable is one for which `user-variable-p' returns non-nil."
   )

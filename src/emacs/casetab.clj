@@ -7,7 +7,8 @@
   )
 
 (defun case-table-p (object)
-  "Return t if OBJECT is a case table."
+  "Return t if OBJECT is a case table.
+  See `set-case-table' for more information on these data structures."
   )
 
 (defun current-case-table ()
@@ -30,9 +31,11 @@
    canonical equivalent character; it may be nil, in which case it is
    deduced from DOWNCASE and UPCASE.
   EQUIVALENCES is a map that cyclicly permutes each equivalence class
-   (of characters with the same canonical equivalent); it may be nil,"
+   (of characters with the same canonical equivalent); it may be nil,
+   in which case it is deduced from CANONICALIZE."
   )
 
 (defun standard-case-table ()
-  "Return the standard case table."
+  "Return the standard case table.
+  This is the one used for new buffers."
   )

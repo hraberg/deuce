@@ -1,6 +1,7 @@
 (ns emacs.window (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun window-live-p (object)
+  "Return t if OBJECT is a window which is currently visible."
   )
 
 (defun set-window-hscroll (window ncol)
@@ -9,6 +10,7 @@
   )
 
 (defun window-configuration-p (object)
+  "Return t if OBJECT is a window-configuration object."
   )
 
 (defun minibuffer-window (&optional frame)
@@ -50,7 +52,8 @@
   does not update this value.
   Return nil if there is no recorded value.  (This can happen if the
   last redisplay of WINDOW was preempted, and did not finish.)
-  If UPDATE is non-nil, compute the up-to-date position"
+  If UPDATE is non-nil, compute the up-to-date position
+  if it isn't already recorded."
   )
 
 (defun window-height (&optional window)
@@ -63,11 +66,13 @@
   If WINDOW is nil, set margins of the currently selected window.
   Second arg LEFT-WIDTH specifies the number of character cells to
   reserve for the left marginal area.  Optional third arg RIGHT-WIDTH
-  does the same for the right marginal area.  A nil width parameter"
+  does the same for the right marginal area.  A nil width parameter
+  means no margin."
   )
 
 (defun set-window-point (window pos)
-  "Make point value in WINDOW be at position POS in WINDOW's buffer."
+  "Make point value in WINDOW be at position POS in WINDOW's buffer.
+  Return POS."
   )
 
 (defun window-point (&optional window)
@@ -87,7 +92,8 @@
   )
 
 (defun set-window-parameter (window parameter value)
-  "Set WINDOW's value of PARAMETER to VALUE."
+  "Set WINDOW's value of PARAMETER to VALUE.
+  WINDOW defaults to the selected window.  Return VALUE."
   )
 
 (defun coordinates-in-window-p (coordinates window)
@@ -104,7 +110,8 @@
   If they are in the right fringe of WINDOW, `right-fringe' is returned.
   If they are on the border between WINDOW and its right sibling,
     `vertical-line' is returned.
-  If they are in the windows's left or right marginal areas, `left-margin'"
+  If they are in the windows's left or right marginal areas, `left-margin'
+    or `right-margin' is returned."
   )
 
 (defun window-line-height (&optional line window)
@@ -120,7 +127,8 @@
   Third parameter VERTICAL-TYPE specifies the type of the vertical scroll
   bar: left, right, or nil.
   If WIDTH is nil, use the frame's scroll-bar width.
-  If VERTICAL-TYPE is t, use the frame's scroll-bar type."
+  If VERTICAL-TYPE is t, use the frame's scroll-bar type.
+  Fourth parameter HORIZONTAL-TYPE is currently unused."
   )
 
 (defun window-width (&optional window)
@@ -132,11 +140,13 @@
   "Get width of marginal areas of window WINDOW.
   If WINDOW is omitted or nil, use the currently selected window.
   Value is a cons of the form (LEFT-WIDTH . RIGHT-WIDTH).
-  If a marginal area does not exist, its width will be returned"
+  If a marginal area does not exist, its width will be returned
+  as nil."
   )
 
 (defun window-full-width-p (&optional window)
-  "Return t if WINDOW is as wide as its frame."
+  "Return t if WINDOW is as wide as its frame.
+  WINDOW defaults to the selected window."
   )
 
 (defun adjust-window-trailing-edge (window delta horizontal)
@@ -152,11 +162,13 @@
   )
 
 (defun window-configuration-frame (config)
+  "Return the frame that CONFIG, a window-configuration object, is about."
   )
 
 (defun window-start (&optional window)
   "Return position at which display currently starts in WINDOW.
-  WINDOW defaults to the selected window."
+  WINDOW defaults to the selected window.
+  This is updated by redisplay or by calling `set-window-start'."
   )
 
 (defun set-window-buffer (window buffer-or-name &optional keep-margins)
@@ -169,7 +181,8 @@
   )
 
 (defun window-parameter (window parameter)
-  "Return WINDOW's value for PARAMETER."
+  "Return WINDOW's value for PARAMETER.
+  WINDOW defaults to the selected window."
   )
 
 (defun select-window (window &optional norecord)
@@ -188,14 +201,16 @@
   )
 
 (defun window-minibuffer-p (&optional window)
-  "Return non-nil if WINDOW is a minibuffer window."
+  "Return non-nil if WINDOW is a minibuffer window.
+  WINDOW defaults to the selected window."
   )
 
 (defun window-scroll-bars (&optional window)
   "Get width and type of scroll bars of window WINDOW.
   If WINDOW is omitted or nil, use the currently selected window.
   Value is a list of the form (WIDTH COLS VERTICAL-TYPE HORIZONTAL-TYPE).
-  If WIDTH is nil or TYPE is t, the window is using the frame's corresponding"
+  If WIDTH is nil or TYPE is t, the window is using the frame's corresponding
+  value."
   )
 
 (defun window-dedicated-p (&optional window)
@@ -208,6 +223,7 @@
   )
 
 (defun selected-window ()
+  "Return the window that the cursor now appears in and commands apply to."
   )
 
 (defun set-window-vscroll (window vscroll &optional pixels-p)
@@ -217,13 +233,15 @@
   optional third arg PIXELS-P non-nil means that VSCROLL is in pixels.
   If PIXELS-P is nil, VSCROLL may have to be rounded so that it
   corresponds to an integral number of pixels.  The return value is the
-  result of this rounding."
+  result of this rounding.
+  If PIXELS-P is non-nil, the return value is VSCROLL."
   )
 
 (defun window-vscroll (&optional window pixels-p)
   "Return the amount by which WINDOW is scrolled vertically.
   Use the selected window if WINDOW is nil or omitted.
-  Normally, value is a multiple of the canonical character height of WINDOW;"
+  Normally, value is a multiple of the canonical character height of WINDOW;
+  optional second arg PIXELS-P means value is measured in pixels."
   )
 
 (defun get-buffer-window (&optional buffer-or-name frame)
@@ -233,11 +251,13 @@
   If optional argument FRAME is `visible', search all visible frames.
   If optional argument FRAME is 0, search all visible and iconified frames.
   If FRAME is t, search all frames.
-  If FRAME is nil, search only the selected frame."
+  If FRAME is nil, search only the selected frame.
+  If FRAME is a frame, search only that frame."
   )
 
 (defun window-display-table (&optional window)
-  "Return the display-table that WINDOW is using."
+  "Return the display-table that WINDOW is using.
+  WINDOW defaults to the selected window."
   )
 
 (defun window-tree (&optional frame)
@@ -250,7 +270,8 @@
   WINDOW nil or omitted means use the selected window.
   MINIBUF t means include the minibuffer window, even if it isn't active.
   MINIBUF nil or omitted means include the minibuffer window only
-  if it's active."
+  if it's active.
+  MINIBUF neither nil nor t means never include the minibuffer window."
   )
 
 (defun window-fringes (&optional window)
@@ -262,7 +283,8 @@
 
 (defun window-parameters (&optional window)
   "Return the parameters of WINDOW and their values.
-  WINDOW defaults to the selected window.  The return value is a list of"
+  WINDOW defaults to the selected window.  The return value is a list of
+  elements of the form (PARAMETER . VALUE)."
   )
 
 (defun window-at (x y &optional frame)
@@ -274,7 +296,8 @@
   )
 
 (defun window-buffer (&optional window)
-  "Return the buffer that WINDOW is displaying."
+  "Return the buffer that WINDOW is displaying.
+  WINDOW defaults to the selected window."
   )
 
 (defun set-window-configuration (configuration)
@@ -282,13 +305,15 @@
   CONFIGURATION must be a value previously returned
   by `current-window-configuration' (which see).
   If CONFIGURATION was made from a frame that is now deleted,
-  only frame-independent values can be restored.  In this case,"
+  only frame-independent values can be restored.  In this case,
+  the return value is nil.  Otherwise the value is t."
   )
 
 (defun force-window-update (&optional object)
   "Force all windows to be updated on next redisplay.
   If optional arg OBJECT is a window, force redisplay of that window only.
-  If OBJECT is a buffer or buffer name, force redisplay of all windows"
+  If OBJECT is a buffer or buffer name, force redisplay of all windows
+  displaying that buffer."
   )
 
 (defun set-window-fringes (window left-width &optional right-width outside-margins)
@@ -301,11 +326,13 @@
   frame's default fringe width.  Default fringe widths can be set with
   the command `set-fringe-style'.
   If optional fourth arg OUTSIDE-MARGINS is non-nil, draw the fringes
-  outside of the display margins.  By default, fringes are drawn between"
+  outside of the display margins.  By default, fringes are drawn between
+  display marginal areas and the text area."
   )
 
 (defun window-hscroll (&optional window)
-  "Return the number of columns by which WINDOW is scrolled from left margin."
+  "Return the number of columns by which WINDOW is scrolled from left margin.
+  WINDOW defaults to the selected window."
   )
 
 (defun get-largest-window (&optional frame dedicated)
@@ -316,14 +343,17 @@
   If optional argument FRAME is `visible', search all visible frames.
   If FRAME is 0, search all visible and iconified frames.
   If FRAME is t, search all frames.
-  If FRAME is nil, search only the selected frame."
+  If FRAME is nil, search only the selected frame.
+  If FRAME is a frame, search only that frame."
   )
 
 (defun minibuffer-selected-window ()
-  "Return the window which was selected when entering the minibuffer."
+  "Return the window which was selected when entering the minibuffer.
+  Returns nil, if selected window is not a minibuffer window."
   )
 
 (defun windowp (object)
+  "Return t if OBJECT is a window."
   )
 
 (defun set-window-dedicated-p (window flag)

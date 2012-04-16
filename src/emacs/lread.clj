@@ -43,17 +43,20 @@
 (defun read-from-string (string &optional start end)
   "Read one Lisp expression which is represented as text by STRING.
   Returns a cons: (OBJECT-READ . FINAL-STRING-INDEX).
-  START and END optionally delimit a substring of STRING from which to read;"
+  START and END optionally delimit a substring of STRING from which to read;
+   they default to 0 and (length STRING) respectively."
   )
 
 (defun intern (string &optional obarray)
   "Return the canonical symbol whose name is STRING.
   If there is none, one is created by this function and returned.
-  A second optional argument specifies the obarray to use;"
+  A second optional argument specifies the obarray to use;
+  it defaults to the value of `obarray'."
   )
 
 (defun get-load-suffixes ()
-  "Return the suffixes that `load' should try if a suffix is required."
+  "Return the suffixes that `load' should try if a suffix is required.
+  This uses the variables `load-suffixes' and `load-file-rep-suffixes'."
   )
 
 (defun load (file &optional noerror nomessage nosuffix must-suffix)
@@ -66,7 +69,8 @@
   )
 
 (defun mapatoms (function &optional obarray)
-  "Call FUNCTION on every symbol in OBARRAY."
+  "Call FUNCTION on every symbol in OBARRAY.
+  OBARRAY defaults to the value of `obarray'."
   )
 
 (defun locate-file-internal (filename path &optional suffixes predicate)
@@ -75,18 +79,20 @@
   If SUFFIXES is non-nil, it should be a list of suffixes to append to
   file name when searching.
   If non-nil, PREDICATE is used instead of `file-readable-p'.
-  PREDICATE can also be an integer to pass to the access(2) function,"
+  PREDICATE can also be an integer to pass to the access(2) function,
+  in which case file-name-handlers are ignored."
   )
 
 (defun unintern (name obarray)
   "Delete the symbol named NAME, if any, from OBARRAY.
   The value is t if a symbol was found and deleted, nil otherwise.
   NAME may be a string or a symbol.  If it is a symbol, that symbol
-  is deleted, if it belongs to OBARRAY--no other symbol is deleted."
+  is deleted, if it belongs to OBARRAY--no other symbol is deleted.
+  OBARRAY defaults to the value of the variable `obarray'."
   )
 
 (defun get-file-char ()
-  "Don't use this yourself.defun is a special form in `C source code'."
+  "Don't use this yourself."
   )
 
 (defun intern-soft (name &optional obarray)

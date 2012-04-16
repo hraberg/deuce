@@ -6,6 +6,7 @@
   )
 
 (defun unibyte-char-to-multibyte (ch)
+  "Convert the byte CH to multibyte character."
   )
 
 (defun multibyte-char-to-unibyte (ch)
@@ -16,7 +17,8 @@
 
 (defun char-resolve-modifiers (char)
   "Resolve modifiers in the character CHAR.
-  The value is a character with modifiers resolved into the character"
+  The value is a character with modifiers resolved into the character
+  code.  Unresolved modifiers are kept in the value."
   )
 
 (defun string-width (string)
@@ -35,13 +37,16 @@
 
 (defun char-width (char)
   "Return width of CHAR when displayed in the current buffer.
-  The width is measured by how many columns it occupies on the screen."
+  The width is measured by how many columns it occupies on the screen.
+  Tab is taken to occupy `tab-width' columns."
   )
 
 (defun characterp (object &optional ignore)
+  "Return non-nil if OBJECT is a character."
   )
 
 (defun unibyte-string (&rest bytes)
+  "Concatenate all the argument bytes and make the result a unibyte string."
   )
 
 (defun get-byte (&optional position string)

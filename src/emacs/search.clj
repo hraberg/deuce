@@ -19,7 +19,8 @@
   Case is ignored if `case-fold-search' is non-nil in the current buffer.
   If third arg START is non-nil, start search at that index in STRING.
   For index of first char beyond the match, do (match-end 0).
-  `match-end' and `match-beginning' also give indices of substrings"
+  `match-end' and `match-beginning' also give indices of substrings
+  matched by parenthesis constructs in the pattern."
   )
 
 (defun string-match (regexp string &optional start)
@@ -35,7 +36,8 @@
   "Return t if text after point matches regular expression REGEXP.
   Find the longest match, in accord with Posix regular expression rules.
   This function modifies the match data that `match-beginning',
-  `match-end' and `match-data' access; save and restore the match"
+  `match-end' and `match-data' access; save and restore the match
+  data if you want to preserve them."
   )
 
 (defun match-data (&optional integers reuse reseat)
@@ -56,7 +58,8 @@
   SUBEXP, a number, specifies which parenthesized expression in the last
     regexp.
   Value is nil if SUBEXPth pair didn't match, or there were less than
-    SUBEXP pairs."
+    SUBEXP pairs.
+  Zero means the entire text matched by the whole regexp or whole string."
   )
 
 (defun match-end (subexp)
@@ -64,7 +67,8 @@
   SUBEXP, a number, specifies which parenthesized expression in the last
     regexp.
   Value is nil if SUBEXPth pair didn't match, or there were less than
-    SUBEXP pairs."
+    SUBEXP pairs.
+  Zero means the entire text matched by the whole regexp or whole string."
   )
 
 (defun regexp-quote (string)

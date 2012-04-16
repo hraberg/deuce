@@ -15,8 +15,15 @@
                    (and (fboundp sym) (subrp (symbol-function sym))
                         (princ (describe-function sym)))))))
 
+(defn special-forms []
+  (->> (string/split (read-subrs) #"\.|\)" )
+       (map #(re-find #"(\S+) is a special form in `C source code'" %))
+       (remove nil?)
+       (map (comp symbol second))
+       set))
+
 (defn subrs []
-  (->> (string/split (read-subrs) #".*is a built-in function in `C source code'.\n\n")
+  (->> (string/split (read-subrs) #"[a-z-+*/=%<>]+ is a (built-in function|special form) in `C source code'.\n\n")
        (remove empty?)
        (map #(let [[decl doc] (->> (string/split % #"\n\n")
                                    (drop-while (complement (partial re-find #"\(.*"))))
@@ -34,7 +41,8 @@
          (map #(string/replace % #"\..+$" "")))))
 
 (defn generate-fn-stubs []
-  (let [subrs (subrs)]
+  (let [special-forms (special-forms)
+        subrs (reduce dissoc (subrs) special-forms)]
     (->> (map #(vector (key %) (assoc (val %) :namespace %2))
               subrs
               (find-files-for-tags (map name (keys subrs))))
@@ -44,8 +52,8 @@
 (def illegal-symbols {(symbol "1+") (symbol "1+")
                       (symbol "1-") (symbol "1-")
                       (symbol "/=") 'slash-equals
-                      '... 'dot-dot-dot
-                      'ARGS... 'args-dot-dot-dot})
+                      '... '(&rest args)
+                      'ARGS... '(&rest args)})
 
 (defn write-fn-stubs []
   (.mkdir (io/file "src/emacs"))
@@ -61,8 +69,9 @@
         (doseq [[f {:keys [args doc]}] fns]
           (println)
           (println (str "(defun " (if (illegal-symbols f) (str "(core/symbol \"" (str (illegal-symbols f)) "\")") f)
-                        " " (pr-str (map (comp symbol string/lower-case)
-                                         (replace illegal-symbols args)))))
+                        " " (pr-str (->> (replace illegal-symbols args)
+                                         flatten
+                                         (map (comp symbol string/lower-case))))))
           (when doc
             (print  "  \"")
             (print (-> doc

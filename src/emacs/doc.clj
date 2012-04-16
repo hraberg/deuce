@@ -32,5 +32,6 @@
 
 (defun documentation (function &optional raw)
   "Return the documentation string of FUNCTION.
-  Unless a non-nil second argument RAW is given, the"
+  Unless a non-nil second argument RAW is given, the
+  string is passed through `substitute-command-keys'."
   )

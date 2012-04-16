@@ -18,7 +18,8 @@
   The copy starts out with the same definitions of KEYMAP,
   but changing either the copy or KEYMAP does not affect the other.
   Any key definitions that are subkeymaps are recursively copied.
-  However, a key definition which is a symbol whose definition is a keymap"
+  However, a key definition which is a symbol whose definition is a keymap
+  is not copied."
   )
 
 (defun map-keymap-internal (function keymap)
@@ -30,7 +31,8 @@
   )
 
 (defun current-local-map ()
-  "Return current buffer's local keymap, or nil if it has none."
+  "Return current buffer's local keymap, or nil if it has none.
+  Normally the local keymap is set by the major mode with `use-local-map'."
   )
 
 (defun where-is-internal (definition &optional keymap firstonly noindirect no-remap)
@@ -76,20 +78,24 @@
 
 (defun keymap-prompt (map)
   "Return the prompt-string of a keymap MAP.
-  If non-nil, the prompt is shown in the echo-area"
+  If non-nil, the prompt is shown in the echo-area
+  when reading a key-sequence to be looked-up in this keymap."
   )
 
 (defun apropos-internal (regexp &optional predicate)
   "Show all symbols whose names contain match for REGEXP.
   If optional 2nd arg PREDICATE is non-nil, (funcall PREDICATE SYMBOL) is done
-  for each symbol and a symbol is mentioned only if that returns non-nil."
+  for each symbol and a symbol is mentioned only if that returns non-nil.
+  Return list of symbols found."
   )
 
 (defun set-keymap-parent (keymap parent)
-  "Modify KEYMAP to set its parent map to PARENT."
+  "Modify KEYMAP to set its parent map to PARENT.
+  Return PARENT.  PARENT should be nil or another keymap."
   )
 
 (defun current-minor-mode-maps ()
+  "Return a list of keymaps for the minor modes of the current buffer."
   )
 
 (defun make-keymap (&optional string)
@@ -107,7 +113,8 @@
   looked up in BUFFER.
   The optional argument PREFIX, if non-nil, should be a key sequence;
   then we display only bindings that start with that prefix.
-  The optional argument MENUS, if non-nil, says to mention menu bindings."
+  The optional argument MENUS, if non-nil, says to mention menu bindings.
+  (Ordinarily these are omitted from the output.)"
   )
 
 (defun accessible-keymaps (keymap &optional prefix)
@@ -115,7 +122,8 @@
   Returns a list of elements of the form (KEYS . MAP), where the sequence
   KEYS starting from KEYMAP gets you to MAP.  These elements are ordered
   so that the KEYS increase in length.  The first element is ([] . KEYMAP).
-  An optional argument PREFIX, if non-nil, should be a key sequence;"
+  An optional argument PREFIX, if non-nil, should be a key sequence;
+  then the value includes only maps for prefixes that start with PREFIX."
   )
 
 (defun lookup-key (keymap key &optional accept-default)
@@ -127,17 +135,20 @@
 (defun key-description (keys &optional prefix)
   "Return a pretty description of key-sequence KEYS.
   Optional arg PREFIX is the sequence of keys leading up to KEYS.
-  Control characters turn into \"C-foo\" sequences, meta into \"M-foo\","
+  Control characters turn into \"C-foo\" sequences, meta into \"M-foo\",
+  spaces are put between sequence elements, etc."
   )
 
 (defun single-key-description (key &optional no-angles)
   "Return a pretty description of command character KEY.
   Control characters turn into C-whatever, etc.
-  Optional argument NO-ANGLES non-nil means don't put angle brackets"
+  Optional argument NO-ANGLES non-nil means don't put angle brackets
+  around function keys and event symbols."
   )
 
 (defun use-local-map (keymap)
-  "Select KEYMAP as the local keymap."
+  "Select KEYMAP as the local keymap.
+  If KEYMAP is nil, that means no local keymap."
   )
 
 (defun local-key-binding (keys &optional accept-default)
@@ -153,7 +164,8 @@
   its value instead of as COMMAND's value; but COMMAND is still defined
   as a function.
   The third optional argument NAME, if given, supplies a menu name
-  string for the map.  This is required to use the keymap as a menu."
+  string for the map.  This is required to use the keymap as a menu.
+  This function returns COMMAND."
   )
 
 (defun keymap-parent (keymap)
@@ -171,6 +183,7 @@
   )
 
 (defun current-global-map ()
+  "Return the current global keymap."
   )
 
 (defun command-remapping (command &optional position keymaps)
@@ -191,8 +204,10 @@
 
 (defun describe-vector (vector &optional describer)
   "Insert a description of contents of VECTOR.
-  This is text showing the elements of vector matched against indices."
+  This is text showing the elements of vector matched against indices.
+  DESCRIBER is the output function used; nil means use `princ'."
   )
 
 (defun use-global-map (keymap)
+  "Select KEYMAP as the global keymap."
   )

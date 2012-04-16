@@ -7,7 +7,9 @@
   )
 
 (defun cancel-kbd-macro-events ()
+  "Cancel the events added to a keyboard macro for this command."
   )
 
 (defun store-kbd-macro-event (event)
+  "Store EVENT into the keyboard macro being defined."
   )

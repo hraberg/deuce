@@ -3,7 +3,8 @@
 (defun frame-parameters (&optional frame)
   "Return the parameters-alist of frame FRAME.
   It is a list of elements of the form (PARM . VALUE), where PARM is a symbol.
-  The meaningful PARMs depend on the kind of frame."
+  The meaningful PARMs depend on the kind of frame.
+  If FRAME is omitted, return information on the currently selected frame."
   )
 
 (defun frame-parameter (frame parameter)
@@ -19,7 +20,8 @@
    'x' for an Emacs frame that is really an X window,
    'w32' for an Emacs frame that is a window on MS-Windows display,
    'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
-   'pc' for a direct-write MS-DOS frame."
+   'pc' for a direct-write MS-DOS frame.
+  See also `frame-live-p'."
   )
 
 (defun frame-visible-p (frame)
@@ -46,6 +48,7 @@
   )
 
 (defun frame-list ()
+  "Return a list of all live frames."
   )
 
 (defun set-frame-size (frame cols rows)
@@ -72,7 +75,8 @@
   If MINIFRAME is a window, include only its own frame
   and any frame now using that window as the minibuffer.
   If MINIFRAME is `visible', include all visible frames.
-  If MINIFRAME is 0, include all visible and iconified frames."
+  If MINIFRAME is 0, include all visible and iconified frames.
+  Otherwise, include all frames."
   )
 
 (defun set-mouse-pixel-position (frame x y)
@@ -91,12 +95,14 @@
   "Return non-nil if OBJECT is a frame which has not been deleted.
   Value is nil if OBJECT is not a live frame.  If object is a live
   frame, the return value indicates what sort of terminal device it is
-  displayed on.  See the documentation of `framep' for possible"
+  displayed on.  See the documentation of `framep' for possible
+  return values."
   )
 
 (defun set-frame-width (frame cols &optional pretend)
   "Specify that the frame FRAME has COLS columns.
-  Optional third arg non-nil means that redisplay should use COLS columns"
+  Optional third arg non-nil means that redisplay should use COLS columns
+  but that the idea of the actual width of the frame should not be changed."
   )
 
 (defun next-frame (&optional frame miniframe)
@@ -108,12 +114,14 @@
   If MINIFRAME is a window, include only its own frame
   and any frame now using that window as the minibuffer.
   If MINIFRAME is `visible', include all visible frames.
-  If MINIFRAME is 0, include all visible and iconified frames."
+  If MINIFRAME is 0, include all visible and iconified frames.
+  Otherwise, include all frames.prin1"
   )
 
 (defun frame-pixel-width (&optional frame)
   "Return FRAME's width in pixels.
-  For a terminal frame, the result really gives the width in characters."
+  For a terminal frame, the result really gives the width in characters.
+  If FRAME is omitted, the selected frame is used."
   )
 
 (defun set-frame-height (frame lines &optional pretend)
@@ -124,11 +132,13 @@
 
 (defun frame-focus (frame)
   "Return the frame to which FRAME's keystrokes are currently being sent.
-  This returns nil if FRAME's focus is not redirected."
+  This returns nil if FRAME's focus is not redirected.
+  See `redirect-frame-focus'."
   )
 
 (defun frame-first-window (&optional frame)
-  "Returns the topmost, leftmost window of FRAME."
+  "Returns the topmost, leftmost window of FRAME.
+  If omitted, FRAME defaults to the currently selected frame."
   )
 
 (defun frame-root-window (&optional frame)
@@ -141,23 +151,27 @@
   If FRAME is nil, use the selected frame.  If FRAME is the
   selected frame, this makes WINDOW the selected window.
   Optional argument NORECORD non-nil means to neither change the
-  order of recently selected windows nor the buffer list."
+  order of recently selected windows nor the buffer list.
+  Return WINDOW."
   )
 
 (defun set-frame-position (frame xoffset yoffset)
   "Sets position of FRAME in pixels to XOFFSET by YOFFSET.
   This is actually the position of the upper left corner of the frame.
-  Negative values for XOFFSET or YOFFSET are interpreted relative to"
+  Negative values for XOFFSET or YOFFSET are interpreted relative to
+  the rightmost or bottommost possible position (that stays within the screen)."
   )
 
 (defun frame-selected-window (&optional frame)
-  "Return the selected window of FRAME."
+  "Return the selected window of FRAME.
+  FRAME defaults to the currently selected frame."
   )
 
 (defun frame-char-width (&optional frame)
   "Width in pixels of characters in the font in frame FRAME.
   If FRAME is omitted, the selected frame is used.
-  On a graphical screen, the width is the standard width of the default font."
+  On a graphical screen, the width is the standard width of the default font.
+  For a terminal screen, the value is always 1."
   )
 
 (defun mouse-position ()
@@ -169,7 +183,8 @@
   to read the mouse position, it returns the selected frame for FRAME
   and nil for X and Y.
   If `mouse-position-function' is non-nil, `mouse-position' calls it,
-  passing the normal return value to that function as an argument,"
+  passing the normal return value to that function as an argument,
+  and returns whatever that function returns."
   )
 
 (defun set-mouse-position (frame x y)
@@ -180,9 +195,11 @@
   )
 
 (defun selected-frame ()
+  "Return the frame that is now selected."
   )
 
 (defun window-frame (window)
+  "Return the frame object that window WINDOW is on."
   )
 
 (defun redirect-frame-focus (frame &optional focus-frame)
@@ -199,7 +216,8 @@
 
 (defun frame-char-height (&optional frame)
   "Height in pixels of a line in the font in frame FRAME.
-  If FRAME is omitted, the selected frame is used."
+  If FRAME is omitted, the selected frame is used.
+  For a terminal frame, the value is always 1."
   )
 
 (defun active-minibuffer-window ()
@@ -212,5 +230,6 @@
   upper-left corner of the frame, X is the horizontal offset, and Y is
   the vertical offset.
   If Emacs is running on a mouseless terminal or hasn't been programmed
-  to read the mouse position, it returns the selected frame for FRAME"
+  to read the mouse position, it returns the selected frame for FRAME
+  and nil for X and Y."
   )

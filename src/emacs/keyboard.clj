@@ -5,12 +5,14 @@
   EVENT-DESC should contain one base event type (a character or symbol)
   and zero or more modifier names (control, meta, hyper, super, shift, alt,
   drag, down, double or triple).  The base must be last.
-  The return value is an event type (a character or symbol) which"
+  The return value is an event type (a character or symbol) which
+  has the same base event type and all the specified modifiers."
   )
 
 (defun input-pending-p ()
   "Return t if command input is currently available with no wait.
-  Actually, the value is nil only if we can be sure that no input is available;"
+  Actually, the value is nil only if we can be sure that no input is available;
+  if there is a doubt, the value is t."
   )
 
 (defun posn-at-point (&optional pos window)
@@ -19,6 +21,7 @@
   )
 
 (defun recent-keys ()
+  "Return vector of last 300 events, not counting those from keyboard macros."
   )
 
 (defun current-input-mode ()
@@ -33,7 +36,8 @@
       META is neither t nor nil if accepting 8-bit input and using
       all 8 bits as the character code.
     QUIT is the character Emacs currently uses to quit.
-  The elements of this list correspond to the arguments of"
+  The elements of this list correspond to the arguments of
+  `set-input-mode'."
   )
 
 (defun command-execute (cmd &optional record-flag keys special)
@@ -44,7 +48,8 @@
   Otherwise, that is done only if an arg is read using the minibuffer.
   The argument KEYS specifies the value to use instead of (this-command-keys)
   when reading the arguments; if it is nil, (this-command-keys) is used.
-  The argument SPECIAL, if non-nil, means that this command is executing"
+  The argument SPECIAL, if non-nil, means that this command is executing
+  a special event, so ignore the prefix argument and don't clear it."
   )
 
 (defun recursion-depth ()
@@ -66,7 +71,8 @@
   Third arg META t means accept 8-bit input (for a Meta key).
    META nil means ignore the top bit, on the assumption it is parity.
    Otherwise, accept 8-bit input and don't use the top bit for Meta.
-  Optional fourth arg QUIT if non-nil specifies character to use for quitting."
+  Optional fourth arg QUIT if non-nil specifies character to use for quitting.
+  See also `current-input-mode'."
   )
 
 (defun read-key-sequence (prompt &optional continue-echo dont-downcase-last can-return-switch-frame command-loop)
@@ -90,7 +96,8 @@
   )
 
 (defun discard-input ()
-  "Discard the contents of the terminal input buffer."
+  "Discard the contents of the terminal input buffer.
+  Also end any kbd macro being defined."
   )
 
 (defun reset-this-command-lengths ()
@@ -109,7 +116,8 @@
   More generally, it returns the last key sequence read, either by
   the command loop or by `read-key-sequence'.
   Unlike `this-command-keys', this function's value
-  does not include prefix arguments."
+  does not include prefix arguments.
+  The value is always a vector."
   )
 
 (defun set-quit-char (quit)
@@ -145,5 +153,6 @@
 
 (defun clear-this-command-keys (&optional keep-record)
   "Clear out the vector that `this-command-keys' returns.
-  Also clear the record of the last 100 events, unless optional arg"
+  Also clear the record of the last 100 events, unless optional arg
+  KEEP-RECORD is non-nil."
   )

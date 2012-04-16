@@ -1,7 +1,8 @@
 (ns emacs.syntax (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun standard-syntax-table ()
-  "Return the standard syntax table."
+  "Return the standard syntax table.
+  This is the one used for new buffers."
   )
 
 (defun parse-partial-sexp (from to &optional targetdepth stopbefore oldstate commentstop)
@@ -44,7 +45,8 @@
   )
 
 (defun syntax-table-p (object)
-  "Return t if OBJECT is a syntax table."
+  "Return t if OBJECT is a syntax table.
+  Currently, any char-table counts as a syntax table."
   )
 
 (defun scan-lists (from count depth)
@@ -54,15 +56,18 @@
 
 (defun skip-chars-backward (string &optional lim)
   "Move point backward, stopping after a char not in STRING, or at pos LIM.
-  See `skip-chars-forward' for details."
+  See `skip-chars-forward' for details.
+  Returns the distance traveled, either zero or negative."
   )
 
 (defun backward-prefix-chars ()
-  "Move point backward over any number of chars with prefix syntax."
+  "Move point backward over any number of chars with prefix syntax.
+  This includes chars with \"quote\" or \"prefix\" syntax (' or p)."
   )
 
 (defun copy-syntax-table (&optional table)
-  "Construct a new syntax table and return it."
+  "Construct a new syntax table and return it.
+  It is a copy of the TABLE, which defaults to the standard syntax table."
   )
 
 (defun syntax-table ()
@@ -74,14 +79,16 @@
   "Move point backward across chars in specified syntax classes.
   SYNTAX is a string of syntax code characters.
   Stop on reaching a char whose syntax is not in SYNTAX, or at position LIM.
-  If SYNTAX starts with ^, skip characters whose syntax is NOT in SYNTAX."
+  If SYNTAX starts with ^, skip characters whose syntax is NOT in SYNTAX.
+  This function returns the distance traveled, either zero or negative."
   )
 
 (defun forward-comment (count)
   "Move forward across up to COUNT comments.  If COUNT is negative, move backward.
   Stop scanning if we find something other than a comment or whitespace.
   Set point to where scanning stops.
-  If COUNT comments are found as expected, with nothing except whitespace"
+  If COUNT comments are found as expected, with nothing except whitespace
+  between them, return t; otherwise return nil."
   )
 
 (defun skip-syntax-forward (syntax &optional lim)
@@ -98,6 +105,7 @@
   )
 
 (defun matching-paren (character)
+  "Return the matching parenthesis of CHARACTER, or nil if none."
   )
 
 (defun skip-chars-forward (string &optional lim)
@@ -114,12 +122,14 @@
   "Return the syntax code of CHARACTER, described by a character.
   For example, if CHARACTER is a word constituent, the
   character `w' (119) is returned.
-  The characters that correspond to various syntax codes"
+  The characters that correspond to various syntax codes
+  are listed in the documentation of `modify-syntax-entry'."
   )
 
 (defun string-to-syntax (string)
   "Convert a syntax specification STRING into syntax cell form.
   STRING should be a string as it is allowed as argument of
   `modify-syntax-entry'.  Value is the equivalent cons cell
-  (CODE . MATCHING-CHAR) that can be used as value of a `syntax-table'"
+  (CODE . MATCHING-CHAR) that can be used as value of a `syntax-table'
+  text property."
   )

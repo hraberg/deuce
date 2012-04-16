@@ -12,7 +12,8 @@
    that are relative to the specified directory.
   If MATCH is non-nil, mention only file names that match the regexp MATCH.
   If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
-   Otherwise, the list returned is sorted with `string-lessp'."
+   Otherwise, the list returned is sorted with `string-lessp'.
+   NOSORT is useful if you plan to sort the result yourself."
   )
 
 (defun file-name-completion (file directory &optional predicate)
@@ -30,5 +31,6 @@
   )
 
 (defun file-attributes-lessp (f1 f2)
-  "Return t if first arg file attributes list is less than second."
+  "Return t if first arg file attributes list is less than second.
+  Comparison is in lexicographic order and case is significant."
   )

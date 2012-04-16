@@ -12,5 +12,6 @@
   a position in the current buffer and the value of the `invisible' property
   is checked; or it can be some other value, which is then presumed to be the
   value of the `invisible' property of the text of interest.
-  The non-nil value returned can be t for truly invisible text or something"
+  The non-nil value returned can be t for truly invisible text or something
+  else if the text is replaced by an ellipsis."
   )

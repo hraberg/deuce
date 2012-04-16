@@ -1,7 +1,8 @@
 (ns emacs.fileio (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun file-name-absolute-p (filename)
-  "Return t if file FILENAME specifies an absolute file name."
+  "Return t if file FILENAME specifies an absolute file name.
+  On Unix, this is a name starting with a `/' or a `~'."
   )
 
 (defun set-visited-file-modtime (&optional time-list)
@@ -9,7 +10,8 @@
   Useful if the buffer was not read from the file normally
   or if the file itself has been changed for some known benign reason.
   An argument specifies the modification time value to use
-  (instead of that of the visited file), in the form of a list"
+  (instead of that of the visited file), in the form of a list
+  (HIGH . LOW) or (HIGH LOW)."
   )
 
 (defun set-default-file-modes (mode)
@@ -19,9 +21,11 @@
   )
 
 (defun file-writable-p (filename)
+  "Return t if file FILENAME can be written or created by you."
   )
 
 (defun car-less-than-car (a b)
+  "Return t if (car A) is numerically less than (car B)."
   )
 
 (defun expand-file-name (name &optional default-directory)
@@ -46,10 +50,12 @@
 (defun file-exists-p (filename)
   "Return t if file FILENAME exists (whether or not you can read it.)
   See also `file-readable-p' and `file-attributes'.
-  This returns nil for a symlink to a nonexistent file."
+  This returns nil for a symlink to a nonexistent file.
+  Use `file-symlink-p' to test for such links."
   )
 
 (defun delete-directory-internal (directory)
+  "Delete the directory named DIRECTORY.  Does not follow symlinks."
   )
 
 (defun find-file-name-handler (filename operation)
@@ -65,7 +71,8 @@
   )
 
 (defun clear-visited-file-modtime ()
-  "Clear out records of last mod time of visited file."
+  "Clear out records of last mod time of visited file.
+  Next attempt to save will certainly not complain of a discrepancy."
   )
 
 (defun visited-file-modtime ()
@@ -79,7 +86,8 @@
 
 (defun verify-visited-file-modtime (buf)
   "Return t if last mod time of BUF's visited file matches what BUF records.
-  This means that the file has not been changed since it was visited or saved."
+  This means that the file has not been changed since it was visited or saved.
+  See Info node `(elisp)Modification Time' for more details."
   )
 
 (defun directory-file-name (directory)
@@ -98,15 +106,18 @@
 
 (defun file-newer-than-file-p (file1 file2)
   "Return t if file FILE1 is newer than file FILE2.
-  If FILE1 does not exist, the answer is nil;"
+  If FILE1 does not exist, the answer is nil;
+  otherwise, if FILE2 does not exist, the answer is t."
   )
 
 (defun file-readable-p (filename)
-  "Return t if file FILENAME exists and you can read it."
+  "Return t if file FILENAME exists and you can read it.
+  See also `file-exists-p' and `file-attributes'."
   )
 
 (defun file-executable-p (filename)
-  "Return t if FILENAME can be executed by you."
+  "Return t if FILENAME can be executed by you.
+  For a directory, this means you can access files in that directory."
   )
 
 (defun make-temp-name (prefix)
@@ -117,13 +128,15 @@
 
 (defun access-file (filename string)
   "Access file FILENAME, and get an error if that does not work.
-  The second argument STRING is used in the error message."
+  The second argument STRING is used in the error message.
+  If there is no error, returns nil."
   )
 
 (defun recent-auto-save-p ()
   "Return t if current buffer has been auto-saved recently.
   More precisely, if it has been auto-saved since last read from or saved
-  in the visited file.  If the buffer has no visited file,"
+  in the visited file.  If the buffer has no visited file,
+  then any auto-save counts as \"recent\"."
   )
 
 (defun insert-file-contents (filename &optional visit beg end replace)
@@ -138,7 +151,8 @@
 (defun file-name-nondirectory (filename)
   "Return file name FILENAME sans its directory.
   For example, in a Unix-syntax file name,
-  this is everything after the last slash,"
+  this is everything after the last slash,
+  or the entire name if it contains no slash."
   )
 
 (defun substitute-in-file-name (filename)
@@ -151,18 +165,21 @@
 
 (defun file-directory-p (filename)
   "Return t if FILENAME names an existing directory.
-  Symbolic links to directories count as directories."
+  Symbolic links to directories count as directories.
+  See `file-symlink-p' to distinguish symlinks."
   )
 
 (defun set-buffer-auto-saved ()
-  "Mark current buffer as auto-saved with its current text."
+  "Mark current buffer as auto-saved with its current text.
+  No auto-save file will be written until the buffer changes again."
   )
 
 (defun set-file-times (filename &optional time)
   "Set times of file FILENAME to TIME.
   Set both access and modification times.
   Return t on success, else nil.
-  Use the current time if TIME is nil.  TIME is in the format of"
+  Use the current time if TIME is nil.  TIME is in the format of
+  `current-time'."
   )
 
 (defun file-accessible-directory-p (filename)
@@ -171,7 +188,8 @@
   and the directory must allow you to open files in it.  In order to use a
   directory as a buffer's current directory, this predicate must return true.
   A directory name spec may be given instead; then the value is t
-  if the directory so specified exists and really is a readable and"
+  if the directory so specified exists and really is a readable and
+  searchable directory."
   )
 
 (defun file-name-as-directory (file)
@@ -179,20 +197,22 @@
   This operation exists because a directory is also a file, but its name as
   a directory is different from its name as a file.
   The result can be used as the value of `default-directory'
-  or passed as second argument to `expand-file-name'."
+  or passed as second argument to `expand-file-name'.
+  For a Unix-syntax file name, just appends a slash."
   )
 
 (defun file-regular-p (filename)
   "Return t if FILENAME names a regular file.
   This is the sort of file that holds an ordinary stream of data bytes.
   Symbolic links to regular files count as regular files.
-  See `file-symlink-p' to distinguish symlinks.condition-case is a special form in `C source code'."
+  See `file-symlink-p' to distinguish symlinks."
   )
 
 (defun file-name-directory (filename)
   "Return the directory component in file name FILENAME.
   Return nil if FILENAME does not include a directory.
-  Otherwise return a directory name."
+  Otherwise return a directory name.
+  Given a Unix syntax file name, returns a string ending in slash."
   )
 
 (defun file-symlink-p (filename)
@@ -202,5 +222,6 @@
   )
 
 (defun file-modes (filename)
-  "Return mode bits of file named FILENAME, as an integer."
+  "Return mode bits of file named FILENAME, as an integer.
+  Return nil, if file does not exist or is not accessible."
   )
