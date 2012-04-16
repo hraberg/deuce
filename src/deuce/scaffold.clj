@@ -1,5 +1,5 @@
 (ns deuce.scaffold
-  (use [deuce.core])
+  (use [deuce.core :exclude (-main)])
   (require [clojure.java.shell :as sh]
            [clojure.string :as string]
            [clojure.walk :as walk]

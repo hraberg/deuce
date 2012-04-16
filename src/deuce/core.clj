@@ -4,7 +4,10 @@
 
 (defmacro defun [name args & body]
   (let [[doc body] (split-with string? body)
-        name (if (seq? name) (eval name) name)]
+        name (if (seq? name) (eval name) name)
+        args (replace '{&rest &} args)
+        [args &optional optional-args] (partition-by '#{&optional} args)
+        args (concat args (when &optional ['& (vec optional-args)]))]
     `(do (defn ~name ~(vec args) ~@body)
          (alter-meta! (var ~name) merge {:doc ~(apply str doc)})
          ~name)))
