@@ -174,6 +174,8 @@ I expect this to take 1-2 weeks and fail, but to learn a bit about how Emacs doe
 
 [The Craft of Text Editing: Emacs for the Modern World](http://www.finseth.com/craft/) Craig A. Finseth, 1991, 1999
 
+[Down with Emacs Lisp: Dynamic Scope Analysis](http://www-pu.informatik.uni-tuebingen.de/users/sperber/papers/dynamic-scope-analysis.pdf) Matthias Neubauer and Michael Sperber, 2001
+
 [Climacs - An Emacs-like editor in Common Lisp](http://common-lisp.net/project/climacs/)
 
 [Portable Hemlock](http://www.common-lisp.net/project/phemlock/) Another Common Lisp Emacs.
