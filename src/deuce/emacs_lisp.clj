@@ -9,6 +9,7 @@
   "Define NAME as a function.
   The definition is (lambda ARGLIST [DOCSTRING] BODY...).
   See also the function `interactive'."
+  {:arglists '([NAME ARGLIST [DOCSTRING] BODY...])}
   [name arglist & body]
   (c/let [[docstring body] (split-with string? body)
           name (if (seq? name) (eval name) name)
@@ -24,6 +25,7 @@
   If BODYFORM completes normally, its value is returned
   after executing the UNWINDFORMS.
   If BODYFORM exits nonlocally, the UNWINDFORMS are executed anyway."
+  {:arglists '([BODYFORM UNWINDFORMS...])}
   [bodyform & unwindforms])
 
 (c/defmacro condition-case
@@ -31,7 +33,8 @@
   Executes BODYFORM and returns its value if no error happens.
   Each element of HANDLERS looks like (CONDITION-NAME BODY...)
   where the BODY is made of Lisp expressions."
-   [var bodyform & handlers])
+  {:arglists '([VAR BODYFORM &rest HANDLERS])}
+  [var bodyform & handlers])
 
 (c/defmacro cond
   "Try each clause until one succeeds.
@@ -42,6 +45,7 @@
   If no clause succeeds, cond returns nil.
   If a clause has one element, as in (CONDITION),
   CONDITION's value if non-nil is returned from the cond-form."
+  {:arglists '([CLAUSES...])}
   [& clauses])
 
 (c/defmacro setq
@@ -52,10 +56,12 @@
   The second VAL is not computed until after the first SYM is set, and so on;
   each VAL can use the new value of variables set earlier in the `setq'.
   The return value of the `setq' form is the value of the last VAL."
+  {:arglists '([[SYM VAL]...])}
   [& sym-vals])
 
 (c/defmacro quote
   "Return the argument, without evaluating it.  `(quote x)' yields `x'."
+  {:arglists '([ARG])}
   [arg])
 
 (c/defmacro let
@@ -64,6 +70,7 @@
   Each element of VARLIST is a symbol (which is bound to nil)
   or a list (SYMBOL VALUEFORM) (which binds SYMBOL to the value of VALUEFORM).
   All the VALUEFORMs are evalled before any symbols are bound."
+  {:arglists '([VARLIST BODY...])}
   [varlist & body])
 
 (c/defmacro defconst
@@ -73,18 +80,21 @@
   If SYMBOL is buffer-local, its default value is what is set;
    buffer-local values are not affected.
   DOCSTRING is optional."
+  {:arglists '([SYMBOL INITVALUE [DOCSTRING]])}
   [symbol initvalue & [docstring]])
 
 (c/defmacro prog2
   "Eval FORM1, FORM2 and BODY sequentially; return value from FORM2.
   The value of FORM2 is saved during the evaluation of the
   remaining args, whose values are discarded."
+  {:arglists '([FORM1 FORM2 BODY...])}
   [form1 form2 & body])
 
 (c/defmacro prog1
   "Eval FIRST and BODY sequentially; return value from FIRST.
   The value of FIRST is saved during the evaluation of the remaining args,
   whose values are discarded."
+  {:arglists '([FIRST BODY...])}
   [first & body])
 
 (c/defmacro setq-default
@@ -93,18 +103,21 @@
   VALUE is an expression: it is evaluated and its value returned.
   The default value of a variable is seen in buffers
   that do not have their own values for the variable."
+  {:arglists '([[VAR VALUE]...])}
   [& var-values])
 
 (c/defmacro or
   "Eval args until one of them yields non-nil, then return that value.
   The remaining args are not evalled at all.
   If all args return nil, return nil."
+  {:arglists '([CONDITIONS...])}
   [& conditions])
 
 (c/defmacro while
   "If TEST yields non-nil, eval BODY... and repeat.
   The order of execution is thus TEST, BODY, TEST, BODY and so on
   until TEST returns nil."
+  {:arglists '([TEST BODY...])}
   [test & body])
 
 (c/defmacro defmacro
@@ -115,22 +128,26 @@
   the function (lambda ARGLIST BODY...) is applied to
   the list ARGS... as it appears in the expression,
   and the result should be a form to be evaluated instead of the original."
+  {:arglists '([NAME ARGLIST [DOCSTRING] [DECL] BODY...])}
   [name arglist & body])
 
 (c/defmacro function
   "Like `quote', but preferred for objects which are functions.
   In byte compilation, `function' causes its argument to be compiled.
   `quote' cannot do that."
+  {:arglists '([ARG])}
   [arg])
 
 (c/defmacro and
   "Eval args until one of them yields nil, then return nil.
   The remaining args are not evalled at all.
   If no arg yields nil, return the last arg's value."
+  {:arglists '([CONDITIONS...])}
   [& conditions])
 
 (c/defmacro progn
   "Eval BODY forms sequentially and return value of last one."
+  {:arglists '([BODY...])}
   [& body])
 
 (c/defmacro let*
@@ -139,6 +156,7 @@
   Each element of VARLIST is a symbol (which is bound to nil)
   or a list (SYMBOL VALUEFORM) (which binds SYMBOL to the value of VALUEFORM).
   Each VALUEFORM can refer to the symbols already bound by this VARLIST."
+  {:arglists '([VARLIST BODY...])}
   [varlist & body])
 
 (c/defmacro defvar
@@ -146,11 +164,13 @@
   You are not required to define a variable in order to use it,
   but the definition can supply documentation and an initial value
   in a way that tags can recognize."
+  {:arglists '([SYMBOL &optional INITVALUE DOCSTRING])}
   [symbol & [initvalue docstring]])
 
 (c/defmacro catch
   "Eval BODY allowing nonlocal exits using `throw'.
   TAG is evalled to get the tag to use; it must not be nil."
+  {:arglists '([TAG BODY...])}
   [tag & body])
 
 (c/defmacro if
@@ -158,6 +178,7 @@
   Returns the value of THEN or the value of the last of the ELSE's.
   THEN must be one expression, but ELSE... can be zero or more expressions.
   If COND yields nil, and there are no ELSE's, the value is nil."
+  {:arglists '([COND THEN ELSE...])}
   [cond then & else])
 
 (c/defmacro save-restriction
@@ -169,6 +190,7 @@
   So any `narrow-to-region' within BODY lasts only until the end of the form.
   The old restrictions settings are restored
   even in case of abnormal exit (throw or error)."
+  {:arglists '([&rest BODY])}
   [& body])
 
 (c/defmacro save-window-excursion
@@ -179,6 +201,7 @@
   Also restore the choice of selected window.
   Also restore which buffer is current.
   Does not restore the value of point in current buffer."
+  {:arglists '([BODY...])}
   [& body])
 
 (c/defmacro save-excursion
@@ -191,6 +214,7 @@
 
 (c/defmacro with-output-to-temp-buffer
   "Bind `standard-output' to buffer BUFNAME, eval BODY, then show that buffer."
+  {:arglists '([BUFNAME BODY...])}
   [bufname & body])
 
 (c/defmacro interactive
@@ -203,9 +227,11 @@
    it tells `call-interactively' how to read arguments
    to pass to the function.
   When actually called, `interactive' just returns nil."
+  {:arglists '([&optional ARGS])}
   [& args])
 
 (c/defmacro save-current-buffer
   "Save the current buffer; execute BODY; restore the current buffer.
   Executes BODY just like `progn'."
+  {:arglists '([&rest BODY])}
   [& body])
