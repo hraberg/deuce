@@ -128,8 +128,7 @@
 
 (defun eql (obj1 obj2)
   "Return t if the two args are the same Lisp object.
-  Floating-point numbers of equal value are `eql', but they may not be `eq'.search-backward-regexp is an interactive built-in function in
-  `subr.el'."
+  Floating-point numbers of equal value are `eql', but they may not be `eq'."
   )
 
 (defun plist-get (plist prop)

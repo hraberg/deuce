@@ -7,8 +7,7 @@
   The function takes one argument, FILENAME, a string;
   it specifies the file name (without a directory) of the DOC file.
   That file is found in `../etc' now; later, when the dumped Emacs is run,
-  the same file name is found in the `doc-directory'.search-forward-regexp is an interactive built-in function in
-  `subr.el'."
+  the same file name is found in the `doc-directory'."
   )
 
 (defun substitute-command-keys (string)

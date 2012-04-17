@@ -23,7 +23,7 @@
        set))
 
 (defn subrs []
-  (->> (string/split (read-subrs) #"[^.)]+ is (an interactive built-in function|a built-in function|a special form)\s+in\s+`C\ssource\scode'.\n\n")
+  (->> (string/split (read-subrs) #"[^.)]+ is (an interactive built-in function|a built-in function|a special form)\s+in\s+(`C\ssource\scode'.\n\n|`subr.el'.)")
        (remove empty?)
        (map #(let [[decl doc] (->> (string/split % #"\n\n")
                                    (drop-while (complement (partial re-find #"\(.*"))))
@@ -40,9 +40,11 @@
          read-string
          (map #(string/replace % #"\..+$" "")))))
 
+(def subr-aliases '#{search-forward-regexp search-backward-regexp})
+
 (defn generate-fn-stubs []
   (let [special-forms (special-forms)
-        subrs (reduce dissoc (subrs) special-forms)]
+        subrs (reduce dissoc (subrs) (concat subr-aliases special-forms))]
     (->> (map #(vector (key %) (assoc (val %) :namespace %2))
               subrs
               (find-files-for-tags (map name (keys subrs))))
