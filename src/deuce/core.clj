@@ -2,6 +2,8 @@
   (require [clojure.walk :as walk])
   (:gen-class))
 
+(def t true)
+
 (defmacro defun [name args & body]
   (let [[doc body] (split-with string? body)
         name (if (seq? name) (eval name) name)
