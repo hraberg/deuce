@@ -1,15 +1,14 @@
 (ns emacs.minibuf (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
 (defun minibuffer-depth ()
-  "Return current depth of activations of minibuffer, a nonnegative integer.internal-lisp-face-attribute-values is a built-in function in `C
-  source code'."
+  "Return current depth of activations of minibuffer, a nonnegative integer."
   )
 
 (defun test-completion (string collection &optional predicate)
   "Return non-nil if STRING is a valid completion.
   Takes the same arguments as `all-completions' and `try-completion'.
   If COLLECTION is a function, it is called with three arguments:
-  the values STRING, PREDICATE and `lambda'.top-level is an interactive built-in function in `C source code'."
+  the values STRING, PREDICATE and `lambda'."
   )
 
 (defun completing-read (prompt collection &optional predicate require-match initial-input hist def inherit-input-method)
@@ -114,8 +113,7 @@
    element of the list of default values) to return if the user enters the
    empty string.
   Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
-   the current input method and the setting of `enable-multibyte-characters'.call-last-kbd-macro is an interactive built-in function in `C source
-  code'."
+   the current input method and the setting of `enable-multibyte-characters'."
   )
 
 (defun minibuffer-prompt-end ()
@@ -126,8 +124,7 @@
 (defun set-minibuffer-window (window)
   "Specify which minibuffer window to use for the minibuffer.
   This affects where the minibuffer is displayed if you put text in it
-  without invoking the usual minibuffer commands.previous-char-property-change is a built-in function in `C source
-  code'."
+  without invoking the usual minibuffer commands."
   )
 
 (defun minibufferp (&optional buffer)
@@ -172,6 +169,11 @@
   is a string to insert in the minibuffer before reading.
   (INITIAL-CONTENTS can also be a cons of a string and an integer.
   Such arguments are used as in `read-from-minibuffer'.)"
+  )
+
+(defun minibuffer-contents-no-properties ()
+  "Return the user input in a minibuffer as a string, without text-properties.
+  If the current buffer is not a minibuffer, return its entire contents."
   )
 
 (defun minibuffer-contents ()

@@ -8,6 +8,12 @@
   Value is a vector of face attributes."
   )
 
+(defun display-supports-face-attributes-p (attributes &optional display)
+  "Return non-nil if all the face attributes in ATTRIBUTES are supported.
+  The optional argument DISPLAY can be a display name, a frame, or
+  nil (meaning the selected frame's display)."
+  )
+
 (defun face-attribute-relative-p (attribute value)
   "Check whether a face attribute value is relative.
   Specifically, this function returns t if the attribute ATTRIBUTE
@@ -33,9 +39,25 @@
   If FRAME is omitted or nil, use the selected frame."
   )
 
+(defun internal-set-lisp-face-attribute (face attr value &optional frame)
+  "Set attribute ATTR of FACE to VALUE.
+  FRAME being a frame means change the face on that frame.
+  FRAME nil means change the face of the selected frame.
+  FRAME t means change the default for new frames.
+  FRAME 0 means change the face on all frames, and change the default
+    for new frames."
+  )
+
 (defun clear-face-cache (&optional thoroughly)
   "Clear face caches on all frames.
   Optional THOROUGHLY non-nil means try to free unused fonts, too."
+  )
+
+(defun internal-set-alternative-font-registry-alist (alist)
+  "Define alternative font registries to try in face font selection.
+  ALIST is an alist of (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...) entries.
+  Each ALTERNATIVE is tried in order if no fonts of font registry REGISTRY can
+  be found.  Value is ALIST."
   )
 
 (defun merge-face-attribute (attribute value1 value2)
@@ -50,6 +72,20 @@
   If FRAME is nil or omitted, use the selected frame."
   )
 
+(defun tty-suppress-bold-inverse-default-colors (suppress)
+  "Suppress/allow boldness of faces with inverse default colors.
+  SUPPRESS non-nil means suppress it.
+  This affects bold faces on TTYs whose foreground is the default background
+  color of the display and whose background is the default foreground color.
+  For such faces, the bold face attribute is ignored if this variable
+  is non-nil."
+  )
+
+(defun internal-merge-in-global-face (face frame)
+  "Add attributes from frame-default definition of FACE to FACE on FRAME.
+  Default face attributes override any local face attributes."
+  )
+
 (defun face-font (face &optional frame character)
   "Return the font name of face FACE, or nil if it is unspecified.
   The font name is, by default, for ASCII characters.
@@ -62,6 +98,11 @@
   return the font name used for CHARACTER."
   )
 
+(defun internal-lisp-face-attribute-values (attr)
+  "Return a list of valid discrete values for face attribute ATTR.
+  Value is nil if ATTR doesn't have a discrete set of valid values."
+  )
+
 (defun internal-lisp-face-equal-p (face1 face2 &optional frame)
   "True if FACE1 and FACE2 are equal.
   If the optional argument FRAME is given, report on FACE1 and FACE2 in that frame.
@@ -69,12 +110,22 @@
   If FRAME is omitted or nil, use the selected frame."
   )
 
+(defun internal-set-font-selection-order (order)
+  "Set font selection order for face font selection to ORDER.
+  ORDER must be a list of length 4 containing the symbols `:width',
+  `:height', `:weight', and `:slant'.  Face attributes appearing
+  first in ORDER are matched first, e.g. if `:height' appears before
+  `:weight' in ORDER, font selection first tries to find a font with
+  a suitable height, and then tries to match the font weight.
+  Value is ORDER."
+  )
+
 (defun internal-lisp-face-p (face &optional frame)
   "Return non-nil if FACE names a face.
   FACE should be a symbol or string.
   If optional second argument FRAME is non-nil, check for the
   existence of a frame-local face with name FACE on that frame.
-  Otherwise check for the existence of a global face.upcase-region is an interactive built-in function in `C source code'."
+  Otherwise check for the existence of a global face."
   )
 
 (defun internal-copy-lisp-face (from to frame new-frame)
@@ -91,8 +142,24 @@
   For internal use only."
   )
 
+(defun internal-set-alternative-font-family-alist (alist)
+  "Define alternative font families to try in face font selection.
+  ALIST is an alist of (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...) entries.
+  Each ALTERNATIVE is tried in order if no fonts of font family FAMILY can
+  be found.  Value is ALIST."
+  )
+
 (defun face-attributes-as-vector (plist)
   "Return a vector of face attributes corresponding to PLIST."
+  )
+
+(defun internal-get-lisp-face-attribute (symbol keyword &optional frame)
+  "Return face attribute KEYWORD of face SYMBOL.
+  If SYMBOL does not name a valid Lisp face or KEYWORD isn't a valid
+  face attribute name, signal an error.
+  If the optional argument FRAME is given, report on face SYMBOL in that
+  frame.  If FRAME is t, report on the defaults for face SYMBOL (for new
+  frames).  If FRAME is omitted or nil, use the selected frame."
   )
 
 (defun color-distance (color1 color2 &optional frame)

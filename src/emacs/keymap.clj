@@ -26,8 +26,7 @@
   "Call FUNCTION once for each event binding in KEYMAP.
   FUNCTION is called with two arguments: the event that is bound, and
   the definition it is bound to.  The event may be a character range.
-  If KEYMAP has a parent, this function returns it without processing it.scroll-other-window is an interactive built-in function in `C source
-  code'."
+  If KEYMAP has a parent, this function returns it without processing it."
   )
 
 (defun current-local-map ()
@@ -52,16 +51,14 @@
   `single-key-description' which turns them into \"C-char\".
   Also, this function recognizes the 2**7 bit as the Meta character,
   whereas `single-key-description' uses the 2**27 bit for Meta.
-  See Info node `(elisp)Describing Characters' for examples.modify-syntax-entry is an interactive built-in function in `C source
-  code'."
+  See Info node `(elisp)Describing Characters' for examples."
   )
 
 (defun current-active-maps (&optional olp position)
   "Return a list of the currently active keymaps.
   OLP if non-nil indicates that we should obey `overriding-local-map' and
   `overriding-terminal-local-map'.  POSITION can specify a click position
-  like in the respective argument of `key-binding'.word-search-backward is an interactive built-in function in `C source
-  code'."
+  like in the respective argument of `key-binding'."
   )
 
 (defun key-binding (key &optional accept-default no-remap position)
@@ -170,8 +167,7 @@
 
 (defun keymap-parent (keymap)
   "Return the parent keymap of KEYMAP.
-  If KEYMAP has no parent, return nil.upcase-initials-region is an interactive built-in function in `C
-  source code'."
+  If KEYMAP has no parent, return nil."
   )
 
 (defun global-key-binding (keys &optional accept-default)

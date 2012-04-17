@@ -1,5 +1,10 @@
 (ns emacs.dispnew (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
+(defun open-termscript (file)
+  "Start writing all terminal output to FILE as well as the terminal.
+  FILE = nil means just close any termscript file currently open."
+  )
+
 (defun ding (&optional arg)
   "Beep, or flash the screen.
   Also, unless an argument is given,
@@ -10,7 +15,7 @@
   "Set the cursor-visibility flag of WINDOW to SHOW.
   WINDOW nil means use the selected window.  SHOW non-nil means
   show a cursor in WINDOW in the next redisplay.  SHOW nil means
-  don't show a cursor.log10 is a built-in function in `C source code'."
+  don't show a cursor."
   )
 
 (defun redraw-frame (frame)
@@ -37,8 +42,7 @@
 
 (defun internal-show-cursor-p (&optional window)
   "Value is non-nil if next redisplay will display a cursor in WINDOW.
-  WINDOW nil or omitted means report on the selected window.make-variable-buffer-local is an interactive built-in function in `C
-  source code'."
+  WINDOW nil or omitted means report on the selected window."
   )
 
 (defun last-nonminibuffer-frame ()
@@ -48,6 +52,10 @@
 (defun send-string-to-terminal (string &optional terminal)
   "Send STRING to the terminal without alteration.
   Control characters in STRING will have terminal-dependent effects."
+  )
+
+(defun redraw-display ()
+  "Clear and redisplay all visible frames."
   )
 
 (defun sleep-for (seconds &optional milliseconds)

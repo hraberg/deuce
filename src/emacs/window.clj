@@ -1,12 +1,53 @@
 (ns emacs.window (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
+(defun delete-windows-on (&optional buffer-or-name frame)
+  "Delete all windows showing BUFFER-OR-NAME.
+  BUFFER-OR-NAME may be a buffer or the name of an existing buffer and
+  defaults to the current buffer."
+  )
+
 (defun window-live-p (object)
   "Return t if OBJECT is a window which is currently visible."
+  )
+
+(defun other-window (count &optional all-frames)
+  "Select another window in cyclic ordering of windows.
+  COUNT specifies the number of windows to skip, starting with the
+  selected window, before making the selection.  If COUNT is
+  positive, skip COUNT windows forwards.  If COUNT is negative,
+  skip -COUNT windows backwards.  COUNT zero means do not skip any
+  window, so select the selected window.  In an interactive call,
+  COUNT is the numeric prefix argument.  Return nil."
+  )
+
+(defun scroll-other-window (&optional arg)
+  "Scroll next window upward ARG lines; or near full screen if no ARG.
+  A near full screen is `next-screen-context-lines' less than a full screen.
+  The next window is the one below the current one; or the one at the top
+  if the current one is at the bottom.  Negative ARG means scroll downward.
+  If ARG is the atom `-', scroll downward by nearly full screen.
+  When calling from a program, supply as argument a number, nil, or `-'."
   )
 
 (defun set-window-hscroll (window ncol)
   "Set number of columns WINDOW is scrolled from left margin to NCOL.
   Return NCOL.  NCOL should be zero or positive."
+  )
+
+(defun recenter (&optional arg)
+  "Center point in selected window and maybe redisplay frame.
+  With prefix argument ARG, recenter putting point on screen line ARG
+  relative to the selected window.  If ARG is negative, it counts up from the
+  bottom of the window.  (ARG should be less than the height of the window.)"
+  )
+
+(defun scroll-down (&optional arg)
+  "Scroll text of selected window down ARG lines.
+  If ARG is omitted or nil, scroll down by a near full screen.
+  A near full screen is `next-screen-context-lines' less than a full screen.
+  Negative ARG means scroll upward.
+  If ARG is the atom `-', scroll upward by nearly full screen.
+  When calling from a program, supply as argument a number, nil, or `-'."
   )
 
 (defun window-configuration-p (object)
@@ -16,7 +57,16 @@
 (defun minibuffer-window (&optional frame)
   "Return the window used now for minibuffers.
   If the optional argument FRAME is specified, return the minibuffer window
-  used by that frame.backward-char is an interactive built-in function in `C source code'."
+  used by that frame."
+  )
+
+(defun scroll-up (&optional arg)
+  "Scroll text of selected window upward ARG lines.
+  If ARG is omitted or nil, scroll upward by a near full screen.
+  A near full screen is `next-screen-context-lines' less than a full screen.
+  Negative ARG means scroll downward.
+  If ARG is the atom `-', scroll downward by nearly full screen.
+  When calling from a program, supply as argument a number, nil, or `-'."
   )
 
 (defun other-window-for-scrolling ()
@@ -25,13 +75,11 @@
   showing that buffer is used.
   If in the minibuffer, `minibuffer-scroll-window' if non-nil
   specifies the window.  This takes precedence over
-  `other-window-scroll-buffer'.word-search-forward-lax is an interactive built-in function in `C
-  source code'."
+  `other-window-scroll-buffer'."
   )
 
 (defun set-window-display-table (window table)
-  "Set WINDOW's display-table to TABLE.base64-decode-region is an interactive built-in function in `C source
-  code'."
+  "Set WINDOW's display-table to TABLE."
   )
 
 (defun pos-visible-in-window-p (&optional pos window partially)
@@ -80,6 +128,16 @@
   WINDOW defaults to the selected window."
   )
 
+(defun delete-other-windows (&optional window)
+  "Make WINDOW (or the selected window) fill its frame.
+  Only the frame WINDOW is on is affected.
+  This function tries to reduce display jumps by keeping the text
+  previously visible in WINDOW in the same place on the frame.  Doing this
+  depends on the value of (window-start WINDOW), so if calling this
+  function in a program gives strange scrolling, make sure the
+  window-start value is reasonable when this function is called."
+  )
+
 (defun window-pixel-edges (&optional window)
   "Return a list of the edge pixel coordinates of WINDOW.
   The list has the form (LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at
@@ -89,6 +147,21 @@
 (defun get-lru-window (&optional frame dedicated)
   "Return the window least recently selected or used for display.
   (LRU means Least Recently Used.)"
+  )
+
+(defun set-window-redisplay-end-trigger (window value)
+  "This function is obsolete since 23.1."
+  )
+
+(defun current-window-configuration (&optional frame)
+  "Return an object representing the current window configuration of FRAME.
+  If FRAME is nil or omitted, use the selected frame.
+  This describes the number of windows, their sizes and current buffers,
+  and for each displayed buffer, where display starts, and the positions of
+  point and mark.  An exception is made for point in the current buffer:
+  its value is -not- saved.
+  This also records the currently selected frame, and FRAME's focus
+  redirection (see `redirect-frame-focus')."
   )
 
 (defun set-window-parameter (window parameter value)
@@ -149,6 +222,12 @@
   WINDOW defaults to the selected window."
   )
 
+(defun replace-buffer-in-windows (&optional buffer-or-name)
+  "Replace BUFFER-OR-NAME with some other buffer in all windows showing it.
+  BUFFER-OR-NAME may be a buffer or the name of an existing buffer and
+  defaults to the current buffer."
+  )
+
 (defun adjust-window-trailing-edge (window delta horizontal)
   "Adjust the bottom or right edge of WINDOW by DELTA.
   If HORIZONTAL is non-nil, that means adjust the width, moving the right edge.
@@ -185,6 +264,10 @@
   WINDOW defaults to the selected window."
   )
 
+(defun window-redisplay-end-trigger (&optional window)
+  "This function is obsolete since 23.1."
+  )
+
 (defun select-window (window &optional norecord)
   "Select WINDOW.  Most editing will apply to WINDOW's buffer.
   If WINDOW is not already selected, make WINDOW's buffer current
@@ -213,6 +296,14 @@
   value."
   )
 
+(defun shrink-window (size &optional horizontal)
+  "Make selected window SIZE lines smaller.
+  Interactively, if no argument is given, make the selected window one
+  line smaller.  If optional argument HORIZONTAL is non-nil, make the
+  window narrower by SIZE columns.  If SIZE is negative, enlarge selected
+  window by -SIZE lines or columns.  Return nil."
+  )
+
 (defun window-dedicated-p (&optional window)
   "Return non-nil when WINDOW is dedicated to its buffer.
   More precisely, return the value assigned by the last call of
@@ -224,6 +315,13 @@
 
 (defun selected-window ()
   "Return the window that the cursor now appears in and commands apply to."
+  )
+
+(defun move-to-window-line (arg)
+  "Position point relative to window.
+  With no argument, position point at center of window.
+  An argument specifies vertical position within the window;
+  zero means top of window, negative means relative to bottom of window."
   )
 
 (defun set-window-vscroll (window vscroll &optional pixels-p)
@@ -277,8 +375,7 @@
 (defun window-fringes (&optional window)
   "Get width of fringes of window WINDOW.
   If WINDOW is omitted or nil, use the currently selected window.
-  Value is a list of the form (LEFT-WIDTH RIGHT-WIDTH OUTSIDE-MARGINS).tty-suppress-bold-inverse-default-colors is a built-in function in `C
-  source code'."
+  Value is a list of the form (LEFT-WIDTH RIGHT-WIDTH OUTSIDE-MARGINS)."
   )
 
 (defun window-parameters (&optional window)
@@ -291,8 +388,7 @@
   "Return window containing coordinates X and Y on FRAME.
   If omitted, FRAME defaults to the currently selected frame.
   The top left corner of the frame is considered to be row 0,
-  column 0.make-frame-visible is an interactive built-in function in `C source
-  code'."
+  column 0."
   )
 
 (defun window-buffer (&optional window)
@@ -352,6 +448,14 @@
   Returns nil, if selected window is not a minibuffer window."
   )
 
+(defun enlarge-window (size &optional horizontal)
+  "Make selected window SIZE lines taller.
+  Interactively, if no argument is given, make the selected window one
+  line taller.  If optional argument HORIZONTAL is non-nil, make selected
+  window wider by SIZE columns.  If SIZE is negative, shrink the window by
+  -SIZE lines or columns.  Return nil."
+  )
+
 (defun windowp (object)
   "Return t if OBJECT is a window."
   )
@@ -368,6 +472,18 @@
   WINDOW defaults to the selected window."
   )
 
+(defun split-window (&optional window size horizontal)
+  "Split WINDOW, putting SIZE lines in the first of the pair.
+  WINDOW defaults to selected one and SIZE to half its size.
+  If optional third arg HORIZONTAL is non-nil, split side by side and put
+  SIZE columns in the first of the pair.  In that case, SIZE includes that
+  window's scroll bar, or the divider column to its right.
+  Interactively, all arguments are nil.
+  Returns the newly created window (which is the lower or rightmost one).
+  The upper or leftmost window is the original one, and remains selected
+  if it was selected before."
+  )
+
 (defun window-inside-edges (&optional window)
   "Return a list of the edge coordinates of WINDOW.
   The list has the form (LEFT TOP RIGHT BOTTOM).
@@ -382,12 +498,33 @@
   For the precise meaning of these arguments see `next-window'."
   )
 
+(defun scroll-right (&optional arg set-minimum)
+  "Scroll selected window display ARG columns right.
+  Default for ARG is window width minus 2.
+  Value is the total amount of leftward horizontal scrolling in
+  effect after the change.
+  If SET-MINIMUM is non-nil, the new scroll amount becomes the
+  lower bound for automatic scrolling, i.e. automatic scrolling
+  will not scroll a window to a column less than the value returned
+  by this function.  This happens in an interactive call."
+  )
+
 (defun set-window-start (window pos &optional noforce)
   "Make display in WINDOW start at position POS in WINDOW's buffer.
   WINDOW defaults to the selected window.  Return POS.
   Optional third arg NOFORCE non-nil inhibits next redisplay from
-  overriding motion of point in order to display at this exact start.switch-to-buffer is an interactive built-in function in `C source
-  code'."
+  overriding motion of point in order to display at this exact start."
+  )
+
+(defun scroll-left (&optional arg set-minimum)
+  "Scroll selected window display ARG columns left.
+  Default for ARG is window width minus 2.
+  Value is the total amount of leftward horizontal scrolling in
+  effect after the change.
+  If SET-MINIMUM is non-nil, the new scroll amount becomes the
+  lower bound for automatic scrolling, i.e. automatic scrolling
+  will not scroll a window to a column less than the value returned
+  by this function.  This happens in an interactive call."
   )
 
 (defun window-edges (&optional window)
@@ -395,4 +532,16 @@
   The list has the form (LEFT TOP RIGHT BOTTOM).
   TOP and BOTTOM count by lines, and LEFT and RIGHT count by columns,
   all relative to 0, 0 at top left corner of frame."
+  )
+
+(defun delete-window (&optional window)
+  "Remove WINDOW from its frame.
+  WINDOW defaults to the selected window.  Return nil.
+  Signal an error when WINDOW is the only window on its frame."
+  )
+
+(defun compare-window-configurations (x y)
+  "Compare two window configurations as regards the structure of windows.
+  This function ignores details such as the values of point and mark
+  and scrolling positions."
   )

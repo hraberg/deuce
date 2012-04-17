@@ -9,8 +9,7 @@
   If the optional argument SECONDS is non-nil, it should be a number
   specifying the maximum number of seconds to wait for input.  If no
   input arrives in that time, return nil.  SECONDS may be a
-  floating-point value.re-search-forward is an interactive built-in function in `C source
-  code'."
+  floating-point value."
   )
 
 (defun read-char-exclusive (&optional prompt inherit-input-method seconds)
@@ -40,11 +39,37 @@
   character code if possible (e.g. C-SPC -> 0)."
   )
 
+(defun eval-buffer (&optional buffer printflag filename unibyte do-allow-print)
+  "Execute the current buffer as Lisp code.
+  When called from a Lisp program (i.e., not interactively), this
+  function accepts up to five optional arguments:
+  BUFFER is the buffer to evaluate (nil means use current buffer).
+  PRINTFLAG controls printing of output:
+   A value of nil means discard it; anything else is stream for print.
+  FILENAME specifies the file name to use for `load-history'.
+  UNIBYTE, if non-nil, specifies `load-convert-to-unibyte' for this
+   invocation.
+  DO-ALLOW-PRINT, if non-nil, specifies that `print' and related
+   functions should work normally even if PRINTFLAG is nil."
+  )
+
 (defun read-from-string (string &optional start end)
   "Read one Lisp expression which is represented as text by STRING.
   Returns a cons: (OBJECT-READ . FINAL-STRING-INDEX).
   START and END optionally delimit a substring of STRING from which to read;
    they default to 0 and (length STRING) respectively."
+  )
+
+(defun eval-region (start end &optional printflag read-function)
+  "Execute the region as Lisp code.
+  When called from programs, expects two arguments,
+  giving starting and ending indices in the current buffer
+  of the text to be executed.
+  Programs can pass third argument PRINTFLAG which controls output:
+  A value of nil means discard it; anything else is stream for printing it.
+  Also the fourth argument READ-FUNCTION, if non-nil, is used
+  instead of `read' to read each expression.  It gets one argument
+  which is the input stream for reading characters."
   )
 
 (defun intern (string &optional obarray)
@@ -100,6 +125,5 @@
   NAME may be a string or a symbol.  If it is a symbol, that exact
   symbol is searched for.
   A second optional argument specifies the obarray to use;
-  it defaults to the value of `obarray'.window-redisplay-end-trigger is a built-in function in `C source
-  code'."
+  it defaults to the value of `obarray'."
   )

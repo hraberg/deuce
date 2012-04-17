@@ -22,7 +22,7 @@
   "Return a newly created category-set which contains CATEGORIES.
   CATEGORIES is a string of category mnemonics.
   The value is a bool-vector which has t at the indices corresponding to
-  those categories.decode-big5"
+  those categories."
   )
 
 (defun category-set-mnemonics (category-set)
@@ -69,7 +69,7 @@
   should be a terse text (preferably less than 16 characters),
   and the rest lines should be the full description.
   The category is defined only in category table TABLE, which defaults to
-  the current buffer's category table.write-region is an interactive built-in function in `C source code'."
+  the current buffer's category table."
   )
 
 (defun get-unused-category (&optional table)

@@ -1,16 +1,95 @@
 (ns emacs.search (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
+(defun search-forward (string &optional bound noerror count)
+  "Search forward from point for STRING.
+  Set point to the end of the occurrence found, and return point.
+  An optional second argument bounds the search; it is a buffer position.
+  The match found must not extend after that position.  A value of nil is
+    equivalent to (point-max).
+  Optional third argument, if t, means if fail just return nil (no error).
+    If not nil and not t, move to limit of search and return nil.
+  Optional fourth argument is repeat count--search for successive occurrences."
+  )
+
+(defun re-search-backward (regexp &optional bound noerror count)
+  "Search backward from point for match for regular expression REGEXP.
+  Set point to the beginning of the match, and return point.
+  The match found is the one starting last in the buffer
+  and yet ending before the origin of the search.
+  An optional second argument bounds the search; it is a buffer position.
+  The match found must start at or after that position.
+  Optional third argument, if t, means if fail just return nil (no error).
+    If not nil and not t, move to limit of search and return nil.
+  Optional fourth argument is repeat count--search for successive occurrences.
+  See also the functions `match-beginning', `match-end', `match-string',
+  and `replace-match'."
+  )
+
 (defun set-match-data (list &optional reseat)
   "Set internal data on last search match from elements of LIST.
   LIST should have been created by calling `match-data' previously."
+  )
+
+(defun word-search-forward-lax (string &optional bound noerror count)
+  "Search forward from point for STRING, ignoring differences in punctuation.
+  Set point to the end of the occurrence found, and return point."
+  )
+
+(defun word-search-backward (string &optional bound noerror count)
+  "Search backward from point for STRING, ignoring differences in punctuation.
+  Set point to the beginning of the occurrence found, and return point.
+  An optional second argument bounds the search; it is a buffer position.
+  The match found must not extend before that position.
+  Optional third argument, if t, means if fail just return nil (no error).
+    If not nil and not t, move to limit of search and return nil.
+  Optional fourth argument is repeat count--search for successive occurrences."
+  )
+
+(defun posix-search-forward (regexp &optional bound noerror count)
+  "Search forward from point for regular expression REGEXP.
+  Find the longest match in accord with Posix regular expression rules.
+  Set point to the end of the occurrence found, and return point.
+  An optional second argument bounds the search; it is a buffer position.
+  The match found must not extend after that position.
+  Optional third argument, if t, means if fail just return nil (no error).
+    If not nil and not t, move to limit of search and return nil.
+  Optional fourth argument is repeat count--search for successive occurrences.
+  See also the functions `match-beginning', `match-end', `match-string',
+  and `replace-match'."
+  )
+
+(defun word-search-forward (string &optional bound noerror count)
+  "Search forward from point for STRING, ignoring differences in punctuation.
+  Set point to the end of the occurrence found, and return point.
+  An optional second argument bounds the search; it is a buffer position.
+  The match found must not extend after that position.
+  Optional third argument, if t, means if fail just return nil (no error).
+    If not nil and not t, move to limit of search and return nil.
+  Optional fourth argument is repeat count--search for successive occurrences."
+  )
+
+(defun word-search-backward-lax (string &optional bound noerror count)
+  "Search backward from point for STRING, ignoring differences in punctuation.
+  Set point to the beginning of the occurrence found, and return point."
   )
 
 (defun looking-at (regexp)
   "Return t if text after point matches regular expression REGEXP.
   This function modifies the match data that `match-beginning',
   `match-end' and `match-data' access; save and restore the match
-  data if you want to preserve them.set-safe-terminal-coding-system-internal is a built-in function in `C
-  source code'."
+  data if you want to preserve them."
+  )
+
+(defun re-search-forward (regexp &optional bound noerror count)
+  "Search forward from point for regular expression REGEXP.
+  Set point to the end of the occurrence found, and return point.
+  An optional second argument bounds the search; it is a buffer position.
+  The match found must not extend after that position.
+  Optional third argument, if t, means if fail just return nil (no error).
+    If not nil and not t, move to limit of search and return nil.
+  Optional fourth argument is repeat count--search for successive occurrences.
+  See also the functions `match-beginning', `match-end', `match-string',
+  and `replace-match'."
   )
 
 (defun posix-string-match (regexp string &optional start)
@@ -62,6 +141,16 @@
   Zero means the entire text matched by the whole regexp or whole string."
   )
 
+(defun search-backward (string &optional bound noerror count)
+  "Search backward from point for STRING.
+  Set point to the beginning of the occurrence found, and return point.
+  An optional second argument bounds the search; it is a buffer position.
+  The match found must not extend before that position.
+  Optional third argument, if t, means if fail just return nil (no error).
+   If not nil and not t, position at limit of search and return nil.
+  Optional fourth argument is repeat count--search for successive occurrences."
+  )
+
 (defun match-end (subexp)
   "Return position of end of text matched by last search.
   SUBEXP, a number, specifies which parenthesized expression in the last
@@ -71,7 +160,21 @@
   Zero means the entire text matched by the whole regexp or whole string."
   )
 
+(defun posix-search-backward (regexp &optional bound noerror count)
+  "Search backward from point for match for regular expression REGEXP.
+  Find the longest match in accord with Posix regular expression rules.
+  Set point to the beginning of the match, and return point.
+  The match found is the one starting last in the buffer
+  and yet ending before the origin of the search.
+  An optional second argument bounds the search; it is a buffer position.
+  The match found must start at or after that position.
+  Optional third argument, if t, means if fail just return nil (no error).
+    If not nil and not t, move to limit of search and return nil.
+  Optional fourth argument is repeat count--search for successive occurrences.
+  See also the functions `match-beginning', `match-end', `match-string',
+  and `replace-match'."
+  )
+
 (defun regexp-quote (string)
-  "Return a regexp string which matches exactly STRING and nothing else.self-insert-command is an interactive built-in function in `C source
-  code'."
+  "Return a regexp string which matches exactly STRING and nothing else."
   )

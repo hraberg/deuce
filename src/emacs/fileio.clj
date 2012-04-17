@@ -1,5 +1,9 @@
 (ns emacs.fileio (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
+(defun clear-buffer-auto-save-failure ()
+  "Clear any record of a recent auto-save failure in the current buffer."
+  )
+
 (defun file-name-absolute-p (filename)
   "Return t if file FILENAME specifies an absolute file name.
   On Unix, this is a name starting with a `/' or a `~'."
@@ -17,7 +21,7 @@
 (defun set-default-file-modes (mode)
   "Set the file permission bits for newly created files.
   The argument MODE should be an integer; only the low 9 bits are used.
-  This setting is inherited by subprocesses.suspend-emacs is an interactive built-in function in `C source code'."
+  This setting is inherited by subprocesses."
   )
 
 (defun file-writable-p (filename)
@@ -47,11 +51,31 @@
   See also the function `substitute-in-file-name'."
   )
 
+(defun write-region (start end filename &optional append visit lockname mustbenew)
+  "Write current region into specified file.
+  When called from a program, requires three arguments:
+  START, END and FILENAME.  START and END are normally buffer positions
+  specifying the part of the buffer to write.
+  If START is nil, that means to use the entire buffer contents.
+  If START is a string, then output that string to the file
+  instead of any buffer contents; END is ignored."
+  )
+
 (defun file-exists-p (filename)
   "Return t if file FILENAME exists (whether or not you can read it.)
   See also `file-readable-p' and `file-attributes'.
   This returns nil for a symlink to a nonexistent file.
   Use `file-symlink-p' to test for such links."
+  )
+
+(defun do-auto-save (&optional no-message current-only)
+  "Auto-save all buffers that need it.
+  This is all buffers that have auto-saving enabled
+  and are changed since last auto-saved.
+  Auto-saving writes the buffer into a file
+  so that your editing is not lost if the system crashes.
+  This file is not the file you visited; that changes only when you save.
+  Normally we run the normal hook `auto-save-hook' before saving."
   )
 
 (defun delete-directory-internal (directory)
@@ -65,9 +89,27 @@
   `file-name-handler-alist' matches it."
   )
 
+(defun rename-file (file newname &optional ok-if-already-exists)
+  "Rename FILE as NEWNAME.  Both args must be strings.
+  If file has names other than FILE, it continues to have those names.
+  Signals a `file-already-exists' error if a file NEWNAME already exists
+  unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
+  A number as third arg means request confirmation if NEWNAME already exists.
+  This is what happens in interactive use with M-x."
+  )
+
+(defun make-symbolic-link (filename linkname &optional ok-if-already-exists)
+  "Make a symbolic link to FILENAME, named LINKNAME.
+  Both args must be strings.
+  Signals a `file-already-exists' error if a file LINKNAME already exists
+  unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
+  A number as third arg means request confirmation if LINKNAME already exists.
+  This happens for interactive use with M-x."
+  )
+
 (defun default-file-modes ()
   "Return the default file protection for created files.
-  The value is an integer.end-of-line is an interactive built-in function in `C source code'."
+  The value is an integer."
   )
 
 (defun clear-visited-file-modtime ()
@@ -80,8 +122,11 @@
   The value is a list of the form (HIGH LOW), like the time values
   that `file-attributes' returns.  If the current buffer has no recorded
   file modification time, this function returns 0.
-  See Info node `(elisp)Modification Time' for more details.current-window-configuration is a built-in function in `C source
-  code'."
+  See Info node `(elisp)Modification Time' for more details."
+  )
+
+(defun unix-sync ()
+  "Tell Unix to finish all pending disk updates."
   )
 
 (defun verify-visited-file-modtime (buf)
@@ -95,13 +140,11 @@
   This is the name of the file that holds the data for the directory DIRECTORY.
   This operation exists because a directory is also a file, but its name as
   a directory is different from its name as a file.
-  In Unix-syntax, this function just removes the final slash.decode-coding-region is an interactive built-in function in `C source
-  code'."
+  In Unix-syntax, this function just removes the final slash."
   )
 
 (defun make-directory-internal (directory)
-  "Create a new directory named DIRECTORY.beginning-of-line is an interactive built-in function in `C source
-  code'."
+  "Create a new directory named DIRECTORY."
   )
 
 (defun file-newer-than-file-p (file1 file2)
@@ -113,6 +156,11 @@
 (defun file-readable-p (filename)
   "Return t if file FILENAME exists and you can read it.
   See also `file-exists-p' and `file-attributes'."
+  )
+
+(defun delete-file (filename)
+  "Delete file named FILENAME.  If it is a symlink, remove the symlink.
+  If file has multiple names, it continues to exist with the other names."
   )
 
 (defun file-executable-p (filename)
@@ -130,6 +178,14 @@
   "Access file FILENAME, and get an error if that does not work.
   The second argument STRING is used in the error message.
   If there is no error, returns nil."
+  )
+
+(defun add-name-to-file (file newname &optional ok-if-already-exists)
+  "Give FILE additional name NEWNAME.  Both args must be strings.
+  Signals a `file-already-exists' error if a file NEWNAME already exists
+  unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
+  A number as third arg means request confirmation if NEWNAME already exists.
+  This is what happens in interactive use with M-x."
   )
 
 (defun recent-auto-save-p ()
@@ -182,6 +238,11 @@
   `current-time'."
   )
 
+(defun set-file-modes (filename mode)
+  "Set mode bits of file named FILENAME to MODE (an integer).
+  Only the 12 low bits of MODE are used."
+  )
+
 (defun file-accessible-directory-p (filename)
   "Return t if file FILENAME names a directory you can open.
   For the value to be t, FILENAME must specify the name of a directory as a file,
@@ -199,6 +260,11 @@
   The result can be used as the value of `default-directory'
   or passed as second argument to `expand-file-name'.
   For a Unix-syntax file name, just appends a slash."
+  )
+
+(defun copy-file (file newname &optional ok-if-already-exists keep-time preserve-uid-gid)
+  "Copy FILE to NEWNAME.  Both args must be strings.
+  If NEWNAME names a directory, copy FILE there."
   )
 
 (defun file-regular-p (filename)
@@ -221,7 +287,25 @@
   Otherwise it returns nil."
   )
 
+(defun unhandled-file-name-directory (filename)
+  "Return a directly usable directory name somehow associated with FILENAME.
+  A `directly usable' directory name is one that may be used without the
+  intervention of any file handler.
+  If FILENAME is a directly usable file itself, return
+  (file-name-directory FILENAME).
+  If FILENAME refers to a file which is not accessible from a local process,
+  then this should return nil.
+  The `call-process' and `start-process' functions use this function to
+  get a current directory to run processes in."
+  )
+
 (defun file-modes (filename)
   "Return mode bits of file named FILENAME, as an integer.
   Return nil, if file does not exist or is not accessible."
+  )
+
+(defun next-read-file-uses-dialog-p ()
+  "Return t if a call to `read-file-name' will use a dialog.
+  The return value is only relevant for a call to `read-file-name' that happens
+  before any other event (mouse or keypress) is handled."
   )

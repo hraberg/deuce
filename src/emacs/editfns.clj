@@ -52,8 +52,12 @@
   From START to END, translate characters according to TABLE.
   TABLE is a string or a char-table; the Nth character in it is the
   mapping for the character with code N.
-  It returns the number of characters changed.set-keyboard-coding-system-internal is a built-in function in `C
-  source code'."
+  It returns the number of characters changed."
+  )
+
+(defun insert-before-markers-and-inherit (&rest args)
+  "Insert text at point, relocating markers and inheriting properties.
+  Point and markers move forward to end up after the inserted text."
   )
 
 (defun field-beginning (&optional pos escape-from-edge limit)
@@ -74,15 +78,13 @@
 
 (defun user-uid ()
   "Return the effective uid of Emacs.
-  Value is an integer or a float, depending on the value.register-code-conversion-map is a built-in function in `C source
-  code'."
+  Value is an integer or a float, depending on the value."
   )
 
 (defun set-time-zone-rule (tz)
   "Set the local time zone using TZ, a string specifying a time zone rule.
   If TZ is nil, use implementation-defined default time zone information.
-  If TZ is t, use Universal Time.next-single-char-property-change is a built-in function in `C source
-  code'."
+  If TZ is t, use Universal Time."
   )
 
 (defun insert-and-inherit (&rest args)
@@ -105,7 +107,7 @@
 (defun point-max ()
   "Return the maximum permissible value of point in the current buffer.
   This is (1+ (buffer-size)), unless narrowing (a buffer restriction)
-  is in effect, in which case it is less.recursive-edit is an interactive built-in function in `C source code'."
+  is in effect, in which case it is less."
   )
 
 (defun char-equal (c1 c2)
@@ -126,7 +128,7 @@
 (defun char-after (&optional pos)
   "Return character in current buffer at position POS.
   POS is an integer or a marker and defaults to point.
-  If POS is out of range, the value is nil.kill-emacs is an interactive built-in function in `C source code'."
+  If POS is out of range, the value is nil."
   )
 
 (defun gap-size ()
@@ -157,7 +159,7 @@
 
 (defun gap-position ()
   "Return the position of the gap, in the current buffer.
-  See also `gap-size'.forward-word is an interactive built-in function in `C source code'."
+  See also `gap-size'."
   )
 
 (defun eolp ()
@@ -169,6 +171,14 @@
   "Return the character position of the last character on the current line.
   With argument N not nil or 1, move forward N - 1 lines first.
   If scan reaches end of buffer, return that position."
+  )
+
+(defun narrow-to-region (start end)
+  "Restrict editing in this buffer to the current region.
+  The rest of the text becomes temporarily invisible and untouchable
+  but is not deleted; if you save the buffer in a file, the invisible
+  text is included in the file.  C-x n w makes all visible again.
+  See also `save-restriction'."
   )
 
 (defun get-internal-run-time ()
@@ -184,6 +194,11 @@
   This is 1, unless narrowing (a buffer restriction) is in effect."
   )
 
+(defun widen ()
+  "Remove restrictions (narrowing) from current buffer.
+  This allows the buffer's full text to be seen and edited."
+  )
+
 (defun subst-char-in-region (start end fromchar tochar &optional noundo)
   "From START to END, replace FROMCHAR with TOCHAR each time it occurs.
   If optional arg NOUNDO is non-nil, don't record this change for undo
@@ -197,8 +212,7 @@
 
 (defun position-bytes (position)
   "Return the byte position for character position POSITION.
-  If POSITION is out of range, the value is nil.set-terminal-coding-system-internal is a built-in function in `C
-  source code'."
+  If POSITION is out of range, the value is nil."
   )
 
 (defun point ()
@@ -232,10 +246,15 @@
   If the buffer is narrowed, this means the end of the narrowed part."
   )
 
+(defun buffer-substring-no-properties (start end)
+  "Return the characters of part of the buffer, without the text properties.
+  The two arguments START and END are character positions;
+  they can be in either order."
+  )
+
 (defun user-real-uid ()
   "Return the real uid of Emacs.
-  Value is an integer or a float, depending on the value.buffer-substring-no-properties is a built-in function in `C source
-  code'."
+  Value is an integer or a float, depending on the value."
   )
 
 (defun field-end (&optional pos escape-from-edge limit)
@@ -303,8 +322,7 @@
 (defun delete-field (&optional pos)
   "Delete the field surrounding POS.
   A field is a region of text with the same `field' property.
-  If POS is nil, the value of point is used for POS.previous-single-property-change is a built-in function in `C source
-  code'."
+  If POS is nil, the value of point is used for POS."
   )
 
 (defun delete-and-extract-region (start end)
@@ -339,10 +357,19 @@
   "Convert arg CHAR to a string containing that character."
   )
 
+(defun delete-region (start end)
+  "Delete the text between point and mark."
+  )
+
 (defun transpose-regions (startr1 endr1 startr2 endr2 &optional leave-markers)
   "Transpose region STARTR1 to ENDR1 with STARTR2 to ENDR2.
   The regions should not be overlapping, because the size of the buffer is
   never changed in a transposition."
+  )
+
+(defun goto-char (position)
+  "Set point to POSITION, a number or marker.
+  Beginning of buffer is position (point-min), end is (point-max)."
   )
 
 (defun insert-char (character count &optional inherit)

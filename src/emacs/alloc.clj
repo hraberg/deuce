@@ -41,14 +41,26 @@
   "Return a newly allocated marker which does not point at any place."
   )
 
+(defun garbage-collect ()
+  "Reclaim storage for Lisp objects no longer needed.
+  Garbage collection happens automatically if you cons more than
+  `gc-cons-threshold' bytes of Lisp data since previous garbage collection.
+  `garbage-collect' normally returns a list with info on amount of space in use:
+   ((USED-CONSES . FREE-CONSES) (USED-SYMS . FREE-SYMS)
+    (USED-MARKERS . FREE-MARKERS) USED-STRING-CHARS USED-VECTOR-SLOTS
+    (USED-FLOATS . FREE-FLOATS) (USED-INTERVALS . FREE-INTERVALS)
+    (USED-STRINGS . FREE-STRINGS))
+  However, if there was overflow in pure space, `garbage-collect'
+  returns nil, because real GC can't be done."
+  )
+
 (defun cons (car cdr)
   "Create a new cons, give it CAR and CDR as components, and return it."
   )
 
 (defun make-symbol (name)
   "Return a newly allocated uninterned symbol whose name is NAME.
-  Its value and function definition are void, and its property list is nil.make-frame-invisible is an interactive built-in function in `C source
-  code'."
+  Its value and function definition are void, and its property list is nil."
   )
 
 (defun purecopy (obj)

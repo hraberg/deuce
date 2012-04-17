@@ -24,7 +24,7 @@
   )
 
 (defun open-font (font-entity &optional size frame)
-  "Open FONT-ENTITY.list-processes is an interactive built-in function in `C source code'."
+  "Open FONT-ENTITY."
   )
 
 (defun list-fonts (font-spec &optional frame num prefer)
@@ -51,8 +51,7 @@
 
 (defun find-font (font-spec &optional frame)
   "Return a font-entity matching with FONT-SPEC on the current frame.
-  Optional 2nd argument FRAME, if non-nil, specifies the target frame.remove-list-of-text-properties is a built-in function in `C source
-  code'."
+  Optional 2nd argument FRAME, if non-nil, specifies the target frame."
   )
 
 (defun font-shape-gstring (gstring)

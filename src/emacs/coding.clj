@@ -19,6 +19,10 @@
   "Return the list of aliases of CODING-SYSTEM."
   )
 
+(defun set-safe-terminal-coding-system-internal (coding-system)
+  "Internal use only."
+  )
+
 (defun define-coding-system-alias (alias coding-system)
   "Define ALIAS as an alias for CODING-SYSTEM."
   )
@@ -28,8 +32,23 @@
   Return the corresponding character."
   )
 
+(defun set-keyboard-coding-system-internal (coding-system &optional terminal)
+  "Internal use only."
+  )
+
 (defun coding-system-plist (coding-system)
   "Return the property list of CODING-SYSTEM."
+  )
+
+(defun find-coding-systems-region-internal (start end &optional exclude)
+  "Internal use only."
+  )
+
+(defun decode-coding-region (start end coding-system &optional destination)
+  "Decode the current region from the specified coding system.
+  When called from a program, takes four arguments:
+  	START, END, CODING-SYSTEM, and DESTINATION.
+  START and END are buffer positions."
   )
 
 (defun detect-coding-string (string &optional highest)
@@ -37,6 +56,13 @@
   Return a list of possible coding systems ordered by priority.
   The coding systems to try and their priorities follows what
   the function `coding-system-priority-list' (which see) returns."
+  )
+
+(defun encode-coding-region (start end coding-system &optional destination)
+  "Encode the current region by specified coding system.
+  When called from a program, takes four arguments:
+          START, END, CODING-SYSTEM and DESTINATION.
+  START and END are buffer positions."
   )
 
 (defun decode-sjis-char (code)
@@ -54,7 +80,7 @@
   "Read a coding system from the minibuffer, prompting with string PROMPT.
   If the user enters null input, return second argument DEFAULT-CODING-SYSTEM.
   Ignores case when completing coding systems (all Emacs coding systems
-  are lower-case).scroll-right is an interactive built-in function in `C source code'."
+  are lower-case)."
   )
 
 (defun check-coding-systems-region (start end coding-system-list)
@@ -63,6 +89,14 @@
 
 (defun encode-coding-string (string coding-system &optional nocopy buffer)
   "Encode STRING to CODING-SYSTEM, and return the result."
+  )
+
+(defun find-operation-coding-system (operation &rest arguments)
+  "Choose a coding system for an operation based on the target name.
+  The value names a pair of coding systems: (DECODING-SYSTEM . ENCODING-SYSTEM).
+  DECODING-SYSTEM is the coding system to use for decoding
+  (in case OPERATION does decoding), and ENCODING-SYSTEM is the coding system
+  for encoding (in case OPERATION does encoding)."
   )
 
 (defun terminal-coding-system (&optional terminal)
@@ -88,12 +122,20 @@
   the function `coding-system-priority-list' (which see) returns."
   )
 
+(defun define-coding-system-internal (&rest args)
+  "For internal use only."
+  )
+
 (defun coding-system-put (coding-system prop val)
   "Change value in CODING-SYSTEM's property list PROP to VAL."
   )
 
 (defun decode-coding-string (string coding-system &optional nocopy buffer)
   "Decode STRING which is encoded in CODING-SYSTEM, and return the result."
+  )
+
+(defun set-terminal-coding-system-internal (coding-system &optional terminal)
+  "Internal use only."
   )
 
 (defun read-non-nil-coding-system (prompt)

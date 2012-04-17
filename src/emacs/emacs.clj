@@ -20,6 +20,12 @@
   If the daemon was given a name argument, return that name."
   )
 
+(defun kill-emacs (&optional arg)
+  "Exit the Emacs job and kill it.
+  If ARG is an integer, return ARG as the exit program code.
+  If ARG is a string, stuff it as keyboard input."
+  )
+
 (defun dump-emacs (filename symfile)
   "Dump current state of Emacs into executable file FILENAME.
   Take symbols from SYMFILE (presumably the file you executed to run Emacs).

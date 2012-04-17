@@ -54,6 +54,10 @@
   With optional DIVISOR, return the nearest integer to ARG/DIVISOR."
   )
 
+(defun log10 (arg)
+  "Return the logarithm base 10 of ARG."
+  )
+
 (defun ffloor (arg)
   "Return the largest integer no greater than ARG, as a float.
   (Round towards -inf.)"
@@ -68,8 +72,7 @@
 (defun ceiling (arg &optional divisor)
   "Return the smallest integer no less than ARG.
   This rounds the value towards +inf.
-  With optional DIVISOR, return the smallest integer no less than ARG/DIVISOR.capitalize-word is an interactive built-in function in `C source
-  code'."
+  With optional DIVISOR, return the smallest integer no less than ARG/DIVISOR."
   )
 
 (defun sin (arg)
@@ -85,8 +88,7 @@
   )
 
 (defun acos (arg)
-  "Return the inverse cosine of ARG.display-supports-face-attributes-p is a built-in function in `C source
-  code'."
+  "Return the inverse cosine of ARG."
   )
 
 (defun exp (arg)

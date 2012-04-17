@@ -5,7 +5,7 @@
   )
 
 (defun overlayp (object)
-  "Return t if OBJECT is an overlay.end-kbd-macro is an interactive built-in function in `C source code'."
+  "Return t if OBJECT is an overlay."
   )
 
 (defun make-overlay (beg end &optional buffer front-advance rear-advance)
@@ -93,6 +93,15 @@
   BUFFER-OR-NAME is a buffer, return it as given."
   )
 
+(defun make-indirect-buffer (base-buffer name &optional clone)
+  "Create and return an indirect buffer for buffer BASE-BUFFER, named NAME.
+  BASE-BUFFER should be a live buffer, or the name of an existing buffer.
+  NAME should be a string which is not the name of an existing buffer.
+  Optional argument CLONE non-nil means preserve BASE-BUFFER's state,
+  such as major and minor modes, in the indirect buffer.
+  CLONE nil means the indirect buffer's state is reset to default values."
+  )
+
 (defun current-buffer ()
   "Return the current buffer as a Lisp object."
   )
@@ -107,9 +116,26 @@
   BUFFER defaults to the current buffer."
   )
 
+(defun rename-buffer (newname &optional unique)
+  "Change current buffer's name to NEWNAME (a string).
+  If second arg UNIQUE is nil or omitted, it is an error if a
+  buffer named NEWNAME already exists.
+  If UNIQUE is non-nil, come up with a new name using
+  `generate-new-buffer-name'.
+  Interactively, you can set UNIQUE with a prefix argument.
+  We return the name we actually gave the buffer.
+  This does not change the name of the visited file (if any)."
+  )
+
 (defun overlay-buffer (overlay)
   "Return the buffer OVERLAY belongs to.
   Return nil if OVERLAY has been deleted."
+  )
+
+(defun erase-buffer ()
+  "Delete the entire contents of the current buffer.
+  Any narrowing restriction in effect (see `narrow-to-region') is removed,
+  so the buffer is truly empty after this."
   )
 
 (defun kill-all-local-variables ()
@@ -119,6 +145,19 @@
   `standard-syntax-table', the local keymap is set to nil,
   and the abbrev table from `fundamental-mode-abbrev-table'.
   This function also forces redisplay of the mode line."
+  )
+
+(defun bury-buffer (&optional buffer-or-name)
+  "Put BUFFER-OR-NAME at the end of the list of all buffers.
+  There it is the least likely candidate for `other-buffer' to return;
+  thus, the least likely buffer for C-x b to select by
+  default."
+  )
+
+(defun switch-to-buffer (buffer-or-name &optional norecord)
+  "Make BUFFER-OR-NAME current and display it in selected window.
+  BUFFER-OR-NAME may be a buffer, a string (a buffer name), or
+  nil.  Return the buffer switched to."
   )
 
 (defun overlay-end (overlay)
@@ -132,8 +171,7 @@
   )
 
 (defun overlay-put (overlay prop value)
-  "Set one property of overlay OVERLAY: give property PROP value VALUE.encode-coding-region is an interactive built-in function in `C source
-  code'."
+  "Set one property of overlay OVERLAY: give property PROP value VALUE."
   )
 
 (defun set-buffer (buffer-or-name)
@@ -143,6 +181,11 @@
   temporarily.  This function does not display the buffer, so its effect
   ends when the current command terminates.  Use `switch-to-buffer' or
   `pop-to-buffer' to switch buffers permanently."
+  )
+
+(defun buffer-enable-undo (&optional buffer)
+  "Start keeping undo information for buffer BUFFER.
+  No argument or nil as argument means do this for the current buffer."
   )
 
 (defun buffer-list (&optional frame)
@@ -163,7 +206,14 @@
   Most elements look like (SYMBOL . VALUE), describing one variable.
   For a symbol that is locally unbound, just the symbol appears in the value.
   Note that storing new VALUEs in these elements doesn't change the variables.
-  No argument or nil as argument means use current buffer as BUFFER.delete-frame is an interactive built-in function in `C source code'."
+  No argument or nil as argument means use current buffer as BUFFER."
+  )
+
+(defun kill-buffer (&optional buffer-or-name)
+  "Kill buffer BUFFER-OR-NAME.
+  The argument may be a buffer or the name of an existing buffer.
+  Argument nil or omitted means kill the current buffer.  Return t if the
+  buffer is actually killed, nil otherwise."
   )
 
 (defun overlays-in (beg end)
@@ -182,7 +232,7 @@
   )
 
 (defun buffer-swap-text (buffer)
-  "Swap the text between current buffer and BUFFER.unix-sync is an interactive built-in function in `C source code'."
+  "Swap the text between current buffer and BUFFER."
   )
 
 (defun overlay-get (overlay prop)
@@ -200,7 +250,7 @@
 
 (defun set-buffer-modified-p (flag)
   "Mark current buffer as modified or unmodified according to FLAG.
-  A non-nil FLAG means mark the buffer modified.rename-file is an interactive built-in function in `C source code'."
+  A non-nil FLAG means mark the buffer modified."
   )
 
 (defun move-overlay (overlay beg end &optional buffer)

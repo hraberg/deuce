@@ -80,10 +80,37 @@
   The return value is BASE-VARIABLE."
   )
 
+(defun run-hook-with-args-until-success (hook &rest args)
+  "Run HOOK with the specified arguments ARGS.
+  HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
+  value, that value may be a function or a list of functions to be
+  called to run the hook.  If the value is a function, it is called with
+  the given arguments and its return value is returned.
+  If it is a list of functions, those functions are called, in order,
+  with the given arguments ARGS, until one of them
+  returns a non-nil value.  Then we return that value.
+  However, if they all return nil, we return nil."
+  )
+
 (defun throw (tag value)
   "Throw to the catch for TAG and return VALUE from it.
-  Both TAG and VALUE are evalled.unhandled-file-name-directory is a built-in function in `C source
-  code'."
+  Both TAG and VALUE are evalled."
+  )
+
+(defun backtrace ()
+  "Print a trace of Lisp function calls currently active.
+  Output stream used is value of `standard-output'."
+  )
+
+(defun run-hook-with-args-until-failure (hook &rest args)
+  "Run HOOK with the specified arguments ARGS.
+  HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
+  value, that value may be a function or a list of functions to be
+  called to run the hook.  If the value is a function, it is called with
+  the given arguments and its return value is returned.
+  If it is a list of functions, those functions are called, in order,
+  with the given arguments ARGS, until one of them returns nil.
+  Then we return nil.  However, if they all return non-nil, we return non-nil."
   )
 
 (defun apply (function &rest arguments)
@@ -108,7 +135,7 @@
 
 (defun backtrace-debug (level flag)
   "Set the debug-on-exit flag of eval frame LEVEL levels down to FLAG.
-  The debugger is entered when that frame exits, if the flag is non-nil.base64"
+  The debugger is entered when that frame exits, if the flag is non-nil."
   )
 
 (defun backtrace-frame (nframes)

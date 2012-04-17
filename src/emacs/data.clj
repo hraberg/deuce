@@ -55,7 +55,7 @@
   )
 
 (defun zerop (number)
-  "Return t if NUMBER is zero.other-window is an interactive built-in function in `C source code'."
+  "Return t if NUMBER is zero."
   )
 
 (defun indirect-variable (object)
@@ -78,8 +78,7 @@
 
 (defun (core/symbol "1+") (number)
   "Return NUMBER plus one.  NUMBER may be a number or a marker.
-  Markers are converted to integers.abort-recursive-edit is an interactive built-in function in `C source
-  code'."
+  Markers are converted to integers."
   )
 
 (defun subrp (object)
@@ -168,6 +167,14 @@
   SUBR must be a built-in function."
   )
 
+(defun make-local-variable (variable)
+  "Make VARIABLE have a separate value in the current buffer.
+  Other buffers will continue to share a common default value.
+  (The buffer-local value of VARIABLE starts out as the same value
+  VARIABLE previously had.  If VARIABLE was void, it remains void.)
+  Return VARIABLE."
+  )
+
 (defun numberp (object)
   "Return t if OBJECT is a number (floating point or integer)."
   )
@@ -216,8 +223,7 @@
   )
 
 (defun lognot (number)
-  "Return the bitwise complement of NUMBER.  NUMBER must be an integer.move-to-window-line is an interactive built-in function in `C source
-  code'."
+  "Return the bitwise complement of NUMBER.  NUMBER must be an integer."
   )
 
 (defun setcdr (cell newcdr)
@@ -225,8 +231,7 @@
   )
 
 (defun set (symbol newval)
-  "Set SYMBOL's value to NEWVAL, and return NEWVAL.narrow-to-region is an interactive built-in function in `C source
-  code'."
+  "Set SYMBOL's value to NEWVAL, and return NEWVAL."
   )
 
 (defun < (num1 num2)
@@ -238,7 +243,7 @@
   )
 
 (defun fset (symbol definition)
-  "Set SYMBOL's function definition to DEFINITION, and return DEFINITION.upcase-word is an interactive built-in function in `C source code'."
+  "Set SYMBOL's function definition to DEFINITION, and return DEFINITION."
   )
 
 (defun cdr (list)
@@ -252,6 +257,16 @@
 
 (defun = (num1 num2)
   "Return t if two args, both numbers or markers, are equal."
+  )
+
+(defun make-variable-buffer-local (variable)
+  "Make VARIABLE become buffer-local whenever it is set.
+  At any time, the value for the current buffer is in effect,
+  unless the variable has never been set in this buffer,
+  in which case the default value is in effect.
+  Note that binding the variable with `let', or setting it while
+  a `let'-style binding made in this buffer is in effect,
+  does not make the variable buffer-local.  Return VARIABLE."
   )
 
 (defun char-or-string-p (object)
@@ -272,7 +287,7 @@
 
 (defun max (number-or-marker &rest numbers-or-markers)
   "Return largest of all the arguments (which must be numbers or markers).
-  The value is always a number; markers are converted to numbers.md5 is a built-in function in `C source code'."
+  The value is always a number; markers are converted to numbers."
   )
 
 (defun local-variable-if-set-p (variable &optional buffer)
@@ -281,8 +296,7 @@
   while it does not have a `let'-style binding that was made in BUFFER,
   will produce a buffer local binding.  See Info node
   `(elisp)Creating Buffer-Local'.
-  BUFFER defaults to the current buffer.make-variable-frame-local is an interactive built-in function in `C
-  source code'."
+  BUFFER defaults to the current buffer."
   )
 
 (defun default-boundp (symbol)
@@ -355,6 +369,11 @@
   "Return SYMBOL's function definition.  Error if that is void."
   )
 
+(defun kill-local-variable (variable)
+  "Make VARIABLE no longer have a separate value in the current buffer.
+  From now on the default value will apply in this buffer.  Return VARIABLE."
+  )
+
 (defun car (list)
   "Return the car of LIST.  If arg is nil, return nil.
   Error if arg is not nil and not a cons cell.  See also `car-safe'."
@@ -393,6 +412,11 @@
 
 (defun char-table-p (object)
   "Return t if OBJECT is a char-table."
+  )
+
+(defun make-variable-frame-local (variable)
+  "This function is obsolete since 22.2;
+  explicitly check for a frame-parameter instead."
   )
 
 (defun number-to-string (number)

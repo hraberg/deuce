@@ -35,7 +35,7 @@
    and 8 are ignored.
   Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.
    If it is symbol `syntax-table', stop after the start of a comment or a
-   string, or after end of a comment or a string.lower-frame is an interactive built-in function in `C source code'."
+   string, or after end of a comment or a string."
   )
 
 (defun scan-sexps (from count)
@@ -47,6 +47,14 @@
 (defun syntax-table-p (object)
   "Return t if OBJECT is a syntax table.
   Currently, any char-table counts as a syntax table."
+  )
+
+(defun forward-word (&optional arg)
+  "Move point forward ARG words (backward if ARG is negative).
+  Normally returns t.
+  If an edge of the buffer or a field boundary is reached, point is left there
+  and the function returns nil.  Field boundaries are not noticed if
+  `inhibit-field-text-motion' is non-nil."
   )
 
 (defun scan-lists (from count depth)
@@ -72,7 +80,7 @@
 
 (defun syntax-table ()
   "Return the current syntax table.
-  This is the one specified by the current buffer.delete-region is an interactive built-in function in `C source code'."
+  This is the one specified by the current buffer."
   )
 
 (defun skip-syntax-backward (syntax &optional lim)
@@ -96,12 +104,29 @@
   SYNTAX is a string of syntax code characters.
   Stop before a char whose syntax is not in SYNTAX, or at position LIM.
   If SYNTAX starts with ^, skip characters whose syntax is NOT in SYNTAX.
-  This function returns the distance traveled, either zero or positive.do-auto-save is an interactive built-in function in `C source code'."
+  This function returns the distance traveled, either zero or positive."
   )
 
 (defun set-syntax-table (table)
   "Select a new syntax table for the current buffer.
-  One argument, a syntax table.backtrace is an interactive built-in function in `C source code'."
+  One argument, a syntax table."
+  )
+
+(defun modify-syntax-entry (char newentry &optional syntax-table)
+  "Set syntax for character CHAR according to string NEWENTRY.
+  The syntax is changed only for table SYNTAX-TABLE, which defaults to
+   the current buffer's syntax table.
+  CHAR may be a cons (MIN . MAX), in which case, syntaxes of all characters
+  in the range MIN to MAX are changed.
+  The first character of NEWENTRY should be one of the following:
+    Space or -  whitespace syntax.    w   word constituent.
+    _           symbol constituent.   .   punctuation.
+    (           open-parenthesis.     )   close-parenthesis.
+    \"           string quote.         \\   escape.
+    $           paired delimiter.     '   expression quote or prefix operator.
+    <           comment starter.      >   comment ender.
+    /           character-quote.      @   inherit from `standard-syntax-table'.
+    |           generic string fence. !   generic comment fence."
   )
 
 (defun matching-paren (character)
@@ -132,4 +157,8 @@
   `modify-syntax-entry'.  Value is the equivalent cons cell
   (CODE . MATCHING-CHAR) that can be used as value of a `syntax-table'
   text property."
+  )
+
+(defun internal-describe-syntax-value (syntax)
+  "Insert a description of the internal syntax description SYNTAX at point."
   )

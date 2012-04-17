@@ -28,6 +28,22 @@
   and return the ending buffer position and screen location."
   )
 
+(defun indent-to (column &optional minimum)
+  "Indent from point with tabs and spaces until COLUMN is reached.
+  Optional second argument MINIMUM says always do at least MINIMUM spaces
+  even if that goes past COLUMN; by default, MINIMUM is zero."
+  )
+
+(defun move-to-column (column &optional force)
+  "Move point to column COLUMN in the current line.
+  Interactively, COLUMN is the value of prefix numeric argument.
+  The column of a character is calculated by adding together the widths
+  as displayed of the previous characters in the line.
+  This function ignores line-continuation;
+  there is no upper limit on the column number a character can have
+  and horizontal scrolling has no effect."
+  )
+
 (defun vertical-motion (lines &optional window)
   "Move point to start of the screen line LINES lines down.
   If LINES is negative, this means moving up."

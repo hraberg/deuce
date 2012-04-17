@@ -16,6 +16,11 @@
   See the documentation of `define-ccl-program' for the detail of CCL program."
   )
 
+(defun register-code-conversion-map (symbol map)
+  "Register SYMBOL as code conversion map MAP.
+  Return index number of the registered map."
+  )
+
 (defun ccl-execute-on-string (ccl-program status string &optional continue unibyte-p)
   "Execute CCL-PROGRAM with initial STATUS on STRING."
   )

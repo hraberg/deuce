@@ -105,7 +105,7 @@
   "Return the charset of highest priority that contains CH.
   If optional 2nd arg RESTRICTION is non-nil, it is a list of charsets
   from which to find the charset.  It may also be a coding system.  In
-  that case, find the charset from what supported by that coding system.copy-file is an interactive built-in function in `C source code'."
+  that case, find the charset from what supported by that coding system."
   )
 
 (defun decode-char (charset code-point &optional restriction)

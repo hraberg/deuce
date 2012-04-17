@@ -3,7 +3,7 @@
 (defun error-message-string (obj)
   "Convert an error value (ERROR-SYMBOL . DATA) to an error message.
   See Info anchor `(elisp)Definition of signal' for some details on how this
-  error message is constructed.1"
+  error message is constructed."
   )
 
 (defun print (object &optional printcharfun)
@@ -11,6 +11,13 @@
   Quoting characters are printed when needed to make output that `read'
   can handle, whenever this is possible.  For complex objects, the behavior
   is controlled by `print-level' and `print-length', which see."
+  )
+
+(defun redirect-debugging-output (file &optional append)
+  "Redirect debugging output (stderr stream) to file FILE.
+  If FILE is nil, reset target to the initial stderr stream.
+  Optional arg APPEND non-nil (interactively, with prefix arg) means
+  append to existing target file."
   )
 
 (defun terpri (&optional printcharfun)
@@ -24,6 +31,13 @@
   when necessary to make output that `read' can handle, whenever possible,
   unless the optional second argument NOESCAPE is non-nil.  For complex objects,
   the behavior is controlled by `print-level' and `print-length', which see."
+  )
+
+(defun prin1 (object &optional printcharfun)
+  "Output the printed representation of OBJECT, any Lisp object.
+  Quoting characters are printed when needed to make output that `read'
+  can handle, whenever this is possible.  For complex objects, the behavior
+  is controlled by `print-level' and `print-length', which see."
   )
 
 (defun external-debugging-output (character)

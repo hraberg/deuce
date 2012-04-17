@@ -3,8 +3,7 @@
 (defun lock-buffer (&optional file)
   "Lock FILE, if current buffer is modified.
   FILE defaults to current buffer's visited file,
-  or else nothing is done if current buffer isn't visiting a file.next-read-file-uses-dialog-p is a built-in function in `C source
-  code'."
+  or else nothing is done if current buffer isn't visiting a file."
   )
 
 (defun unlock-buffer ()

@@ -2,8 +2,7 @@
 
 (defun set-standard-case-table (table)
   "Select a new standard case table for new buffers.
-  See `set-case-table' for more info on case tables.this-single-command-raw-keys is a built-in function in `C source
-  code'."
+  See `set-case-table' for more info on case tables."
   )
 
 (defun case-table-p (object)
@@ -12,8 +11,7 @@
   )
 
 (defun current-case-table ()
-  "Return the case table of the current buffer.find-coding-systems-region-internal is a built-in function in `C
-  source code'."
+  "Return the case table of the current buffer."
   )
 
 (defun set-case-table (table)

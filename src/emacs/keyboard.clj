@@ -20,6 +20,15 @@
   POS defaults to point in WINDOW; WINDOW defaults to the selected window."
   )
 
+(defun this-single-command-raw-keys ()
+  "Return the raw events that were read for this command.
+  More generally, it returns the last key sequence read, either by
+  the command loop or by `read-key-sequence'.
+  Unlike `this-single-command-keys', this function's value
+  shows the events before all translations (except for input methods).
+  The value is always a vector."
+  )
+
 (defun recent-keys ()
   "Return vector of last 300 events, not counting those from keyboard macros."
   )
@@ -52,14 +61,18 @@
   a special event, so ignore the prefix argument and don't clear it."
   )
 
+(defun suspend-emacs (&optional stuffstring)
+  "Stop Emacs and return to superior process.  You can resume later.
+  If `cannot-suspend' is non-nil, or if the system doesn't support job
+  control, run a subshell instead."
+  )
+
 (defun recursion-depth ()
-  "Return the current depth in recursive edits.exit-recursive-edit is an interactive built-in function in `C source
-  code'."
+  "Return the current depth in recursive edits."
   )
 
 (defun read-key-sequence-vector (prompt &optional continue-echo dont-downcase-last can-return-switch-frame command-loop)
-  "Like `read-key-sequence' but always return a vector.previous-single-char-property-change is a built-in function in `C
-  source code'."
+  "Like `read-key-sequence' but always return a vector."
   )
 
 (defun set-input-mode (interrupt flow meta &optional quit)
@@ -89,10 +102,32 @@
   edge of the window."
   )
 
+(defun open-dribble-file (file)
+  "Start writing all keyboard characters to a dribble file called FILE.
+  If FILE is nil, close any open dribble file."
+  )
+
+(defun recursive-edit ()
+  "Invoke the editor command loop recursively.
+  To get out of the recursive edit, a command can do `(throw 'exit nil)';
+  that tells this function to return.
+  Alternatively, `(throw 'exit t)' makes this function signal an error.
+  This function is called by the editor initialization to begin editing."
+  )
+
 (defun this-command-keys-vector ()
   "Return the key sequence that invoked this command, as a vector.
   However, if the command has called `read-key-sequence', it returns
   the last key sequence that has been read."
+  )
+
+(defun top-level ()
+  "Exit all recursive editing levels.
+  This also exits all active minibuffers."
+  )
+
+(defun execute-extended-command (prefixarg)
+  "Read function name, then read its arguments and call it."
   )
 
 (defun discard-input ()
@@ -120,15 +155,27 @@
   The value is always a vector."
   )
 
+(defun exit-recursive-edit ()
+  "Exit from the innermost recursive edit or minibuffer."
+  )
+
 (defun set-quit-char (quit)
   "Specify character used for quitting.
   QUIT must be an ASCII character."
+  )
+
+(defun abort-recursive-edit ()
+  "Abort the command that requested this recursive edit or minibuffer input."
   )
 
 (defun set-input-interrupt-mode (interrupt)
   "Set interrupt mode of reading keyboard input.
   If INTERRUPT is non-nil, Emacs will use input interrupts;
   otherwise Emacs uses CBREAK mode."
+  )
+
+(defun internal-event-symbol-parse-modifiers (symbol)
+  "Parse the event symbol.  For internal use."
   )
 
 (defun set-output-flow-control (flow &optional terminal)

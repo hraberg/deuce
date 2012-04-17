@@ -23,7 +23,7 @@
        set))
 
 (defn subrs []
-  (->> (string/split (read-subrs) #"[a-z-+*/=%<>]+ is a (built-in function|special form) in `C source code'.\n\n")
+  (->> (string/split (read-subrs) #"[^.)]+ is (an interactive built-in function|a built-in function|a special form)\s+in\s+`C\ssource\scode'.\n\n")
        (remove empty?)
        (map #(let [[decl doc] (->> (string/split % #"\n\n")
                                    (drop-while (complement (partial re-find #"\(.*"))))
@@ -53,7 +53,8 @@
                       (symbol "1-") (symbol "1-")
                       (symbol "/=") 'slash-equals
                       '... '(&rest args)
-                      'ARGS... '(&rest args)})
+                      'ARGS... '(&rest args)
+                      'ARGUMENTS... '(&rest arguments)})
 
 (defn write-fn-stubs []
   (.mkdir (io/file "src/emacs"))

@@ -32,8 +32,7 @@
   "Return the length of a list, but avoid error or infinite loop.
   This function never gets an error.  If LIST is not really a list,
   it returns 0.  If LIST is circular, it returns a finite value
-  which is at least the number of distinct elements.delete-backward-char is an interactive built-in function in `C source
-  code'."
+  which is at least the number of distinct elements."
   )
 
 (defun member (elt list)
@@ -90,7 +89,11 @@
   )
 
 (defun sxhash (obj)
-  "Compute a hash code for OBJ and return it as integer.shrink-window is an interactive built-in function in `C source code'."
+  "Compute a hash code for OBJ and return it as integer."
+  )
+
+(defun md5 (object &optional start end coding-system noerror)
+  "Return MD5 message digest of OBJECT, a buffer or string."
   )
 
 (defun widget-apply (widget property &rest args)
@@ -99,8 +102,7 @@
   )
 
 (defun hash-table-p (obj)
-  "Return t if OBJ is a Lisp hash table object.handle-switch-frame is an interactive built-in function in `C source
-  code'."
+  "Return t if OBJ is a Lisp hash table object."
   )
 
 (defun delete (elt seq)
@@ -135,8 +137,7 @@
   PLIST is a property list, which is a list of the form
   (PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
   corresponding to the given PROP, or nil if PROP is not one of the
-  properties on the list.  This function never signals an error.get-char-property-and-overlay is a built-in function in `C source
-  code'."
+  properties on the list.  This function never signals an error."
   )
 
 (defun elt (sequence n)
@@ -146,15 +147,13 @@
 (defun base64-encode-string (string &optional no-line-break)
   "Base64-encode STRING and return the result.
   Optional second argument NO-LINE-BREAK means do not break long lines
-  into shorter lines.capitalize-region is an interactive built-in function in `C source
-  code'."
+  into shorter lines."
   )
 
 (defun equal-including-properties (o1 o2)
   "Return t if two Lisp objects have similar structure and contents.
   This is like `equal' except that it compares the text properties
-  of strings.  (`equal' ignores text properties.)search-backward is an interactive built-in function in `C source
-  code'."
+  of strings.  (`equal' ignores text properties.)"
   )
 
 (defun substring-no-properties (string &optional from to)
@@ -203,7 +202,7 @@
   )
 
 (defun hash-table-count (table)
-  "Return the number of elements in TABLE.eval-region is an interactive built-in function in `C source code'."
+  "Return the number of elements in TABLE."
   )
 
 (defun clear-string (string)
@@ -234,8 +233,7 @@
   or entirely ASCII, it is returned unchanged.  In particular, when
   STRING is unibyte and entirely ASCII, the returned string is unibyte.
   (When the characters are all ASCII, Emacs primitives will treat the
-  string the same way whether it is unibyte or multibyte.)set-process-inherit-coding-system-flag is a built-in function in `C
-  source code'."
+  string the same way whether it is unibyte or multibyte.)"
   )
 
 (defun string-equal (s1 s2)
@@ -257,6 +255,13 @@
 
 (defun load-average (&optional use-floats)
   "Return list of 1 minute, 5 minute and 15 minute load averages."
+  )
+
+(defun base64-encode-region (beg end &optional no-line-break)
+  "Base64-encode the region between BEG and END.
+  Return the length of the encoded text.
+  Optional third argument NO-LINE-BREAK means do not break long lines
+  into shorter lines."
   )
 
 (defun hash-table-weakness (table)
@@ -289,8 +294,7 @@
   Vectors and strings are compared element by element.
   Numbers are compared by value, but integers cannot equal floats.
    (Use `=' if you want integers and floats to be able to be equal.)
-  Symbols must match exactly.internal-merge-in-global-face is a built-in function in `C source
-  code'."
+  Symbols must match exactly."
   )
 
 (defun nreverse (list)
@@ -316,6 +320,12 @@
   It can be retrieved with `(get SYMBOL PROPNAME)'."
   )
 
+(defun base64-decode-region (beg end)
+  "Base64-decode the region between BEG and END.
+  Return the length of the decoded text.
+  If the region can't be decoded, signal an error and don't modify the buffer."
+  )
+
 (defun nth (n list)
   "Return the Nth element of LIST.
   N counts from zero.  If LIST is not that long, nil is returned."
@@ -332,7 +342,7 @@
 
 (defun nconc (&rest lists)
   "Concatenate any number of lists by altering them.
-  Only the last argument is not altered, and need not be a list.indent-to is an interactive built-in function in `C source code'."
+  Only the last argument is not altered, and need not be a list."
   )
 
 (defun length (sequence)
@@ -383,8 +393,7 @@
   If the optional third argument NOERROR is non-nil,
   then return nil if the file is not found instead of signaling an error.
   Normally the return value is FEATURE.
-  The normal messages at start and end of loading FILENAME are suppressed.execute-extended-command is an interactive built-in function in `C
-  source code'."
+  The normal messages at start and end of loading FILENAME are suppressed."
   )
 
 (defun get (symbol propname)
@@ -437,8 +446,7 @@
 
 (defun widget-put (widget property value)
   "In WIDGET, set PROPERTY to VALUE.
-  The value can later be retrieved with `widget-get'.word-search-backward-lax is an interactive built-in function in `C
-  source code'."
+  The value can later be retrieved with `widget-get'."
   )
 
 (defun substring (string from &optional to)
@@ -465,7 +473,7 @@
   If PROP is already a property on the list, its value is set to VAL,
   otherwise the new PROP VAL pair is added.  The new plist is returned;
   use `(setq x (plist-put x prop val))' to be sure to use the new value.
-  The PLIST is modified by side effects.encode-big5"
+  The PLIST is modified by side effects."
   )
 
 (defun puthash (key value table)

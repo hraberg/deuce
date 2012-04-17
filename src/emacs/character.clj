@@ -2,7 +2,7 @@
 
 (defun char-direction (char)
   "Return the direction of CHAR.
-  The returned value is 0 for left-to-right and 1 for right-to-left.erase-buffer is an interactive built-in function in `C source code'."
+  The returned value is 0 for left-to-right and 1 for right-to-left."
   )
 
 (defun unibyte-char-to-multibyte (ch)
@@ -11,8 +11,7 @@
 
 (defun multibyte-char-to-unibyte (ch)
   "Convert the multibyte character CH to a byte.
-  If the multibyte character does not represent a byte, return -1.replace-buffer-in-windows is an interactive built-in function in `C
-  source code'."
+  If the multibyte character does not represent a byte, return -1."
   )
 
 (defun char-resolve-modifiers (char)
@@ -27,7 +26,7 @@
   When calculating width of a multibyte character in STRING,
   only the base leading-code is considered; the validity of
   the following bytes is not checked.  Tabs in STRING are always
-  taken to occupy `tab-width' columns.rename-buffer is an interactive built-in function in `C source code'."
+  taken to occupy `tab-width' columns."
   )
 
 (defun char-bytes (char)
@@ -59,5 +58,5 @@
   )
 
 (defun max-char ()
-  "Return the character of the maximum code.delete-file is an interactive built-in function in `C source code'."
+  "Return the character of the maximum code."
   )

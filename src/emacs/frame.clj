@@ -1,5 +1,25 @@
 (ns emacs.frame (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
 
+(defun delete-frame (&optional frame force)
+  "Delete FRAME, permanently eliminating it from use.
+  FRAME defaults to the selected frame."
+  )
+
+(defun lower-frame (&optional frame)
+  "Send FRAME to the back, so it is occluded by any frames that overlap it.
+  If you don't specify a frame, the selected frame is used.
+  If Emacs is displaying on an ordinary terminal or some other device which
+  doesn't support multiple overlapping frames, this function does nothing."
+  )
+
+(defun raise-frame (&optional frame)
+  "Bring FRAME to the front, so it occludes any frames it overlaps.
+  If FRAME is invisible or iconified, make it visible.
+  If you don't specify a frame, the selected frame is used.
+  If Emacs is displaying on an ordinary terminal or some other device which
+  doesn't support multiple overlapping frames, this function selects FRAME."
+  )
+
 (defun frame-parameters (&optional frame)
   "Return the parameters-alist of frame FRAME.
   It is a list of elements of the form (PARM . VALUE), where PARM is a symbol.
@@ -9,8 +29,7 @@
 
 (defun frame-parameter (frame parameter)
   "Return FRAME's value for parameter PARAMETER.
-  If FRAME is nil, describe the currently selected frame.make-local-variable is an interactive built-in function in `C source
-  code'."
+  If FRAME is nil, describe the currently selected frame."
   )
 
 (defun framep (object)
@@ -47,13 +66,25 @@
   so that `frame-parameters' will return them."
   )
 
+(defun handle-switch-frame (event)
+  "Handle a switch-frame event EVENT.
+  Switch-frame events are usually bound to this function.
+  A switch-frame event tells Emacs that the window manager has requested
+  that the user's events be directed to the frame mentioned in the event.
+  This function selects the selected window of the frame of EVENT."
+  )
+
+(defun make-frame-visible (&optional frame)
+  "Make the frame FRAME visible (assuming it is an X window).
+  If omitted, FRAME defaults to the currently selected frame."
+  )
+
 (defun frame-list ()
   "Return a list of all live frames."
   )
 
 (defun set-frame-size (frame cols rows)
-  "Sets size of FRAME to COLS by ROWS, measured in characters.set-window-redisplay-end-trigger is a built-in function in `C source
-  code'."
+  "Sets size of FRAME to COLS by ROWS, measured in characters."
   )
 
 (defun window-system (&optional frame)
@@ -105,6 +136,13 @@
   but that the idea of the actual width of the frame should not be changed."
   )
 
+(defun select-frame (frame &optional norecord)
+  "Select FRAME.
+  Subsequent editing commands apply to its selected window.
+  Optional argument NORECORD means to neither change the order of
+  recently selected windows nor the buffer list."
+  )
+
 (defun next-frame (&optional frame miniframe)
   "Return the next frame in the frame list after FRAME.
   It considers only frames on the same terminal as FRAME.
@@ -115,7 +153,7 @@
   and any frame now using that window as the minibuffer.
   If MINIFRAME is `visible', include all visible frames.
   If MINIFRAME is 0, include all visible and iconified frames.
-  Otherwise, include all frames.prin1"
+  Otherwise, include all frames."
   )
 
 (defun frame-pixel-width (&optional frame)
@@ -127,7 +165,7 @@
 (defun set-frame-height (frame lines &optional pretend)
   "Specify that the frame FRAME has LINES lines.
   Optional third arg non-nil means that redisplay should use LINES lines
-  but that the idea of the actual height of the frame should not be changed.move-to-column is an interactive built-in function in `C source code'."
+  but that the idea of the actual height of the frame should not be changed."
   )
 
 (defun frame-focus (frame)
@@ -143,7 +181,7 @@
 
 (defun frame-root-window (&optional frame)
   "Returns the root-window of FRAME.
-  If omitted, FRAME defaults to the currently selected frame.downcase-word is an interactive built-in function in `C source code'."
+  If omitted, FRAME defaults to the currently selected frame."
   )
 
 (defun set-frame-selected-window (frame window &optional norecord)
@@ -160,6 +198,18 @@
   This is actually the position of the upper left corner of the frame.
   Negative values for XOFFSET or YOFFSET are interpreted relative to
   the rightmost or bottommost possible position (that stays within the screen)."
+  )
+
+(defun iconify-frame (&optional frame)
+  "Make the frame FRAME into an icon.
+  If omitted, FRAME defaults to the currently selected frame."
+  )
+
+(defun make-frame-invisible (&optional frame force)
+  "Make the frame FRAME invisible.
+  If omitted, FRAME defaults to the currently selected frame.
+  On graphical displays, invisible frames are not updated and are
+  usually not displayed at all, even in a window system's \"taskbar\"."
   )
 
 (defun frame-selected-window (&optional frame)
@@ -210,8 +260,7 @@
   )
 
 (defun visible-frame-list ()
-  "Return a list of all frames now \"visible\" (being updated).re-search-backward is an interactive built-in function in `C source
-  code'."
+  "Return a list of all frames now \"visible\" (being updated)."
   )
 
 (defun frame-char-height (&optional frame)
@@ -221,7 +270,7 @@
   )
 
 (defun active-minibuffer-window ()
-  "Return the currently active minibuffer window, or nil if none.forward-line is an interactive built-in function in `C source code'."
+  "Return the currently active minibuffer window, or nil if none."
   )
 
 (defun mouse-pixel-position ()

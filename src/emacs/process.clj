@@ -6,6 +6,14 @@
   nil, indicating the current buffer's process."
   )
 
+(defun signal-process (process sigcode)
+  "Send PROCESS the signal with code SIGCODE.
+  PROCESS may also be a number specifying the process id of the
+  process to signal; in this case, the process need not be a child of
+  this Emacs.
+  SIGCODE may be an integer, or a symbol whose name is a signal name."
+  )
+
 (defun set-process-sentinel (process sentinel)
   "Give PROCESS the sentinel SENTINEL; nil for none.
   The sentinel is called as a function when the process changes state.
@@ -34,6 +42,12 @@
 
 (defun make-network-process (&rest args)
   "Create and return a network server or client process."
+  )
+
+(defun set-process-query-on-exit-flag (process flag)
+  "Specify if query is needed for PROCESS when Emacs is exited.
+  If the second argument FLAG is non-nil, Emacs will query the user before
+  exiting or killing a buffer if PROCESS is running."
   )
 
 (defun quit-process (&optional process current-group)
@@ -83,6 +97,13 @@
 (defun process-filter (process)
   "Returns the filter function of PROCESS; nil if none.
   See `set-process-filter' for more info on filter functions."
+  )
+
+(defun process-inherit-coding-system-flag (process)
+  "Return the value of inherit-coding-system flag for PROCESS.
+  If this flag is t, `buffer-file-coding-system' of the buffer
+  associated with PROCESS will inherit the coding system used to decode
+  the process output."
   )
 
 (defun process-filter-multibyte-p (process)
@@ -191,6 +212,14 @@
   If this functionality is unsupported, return nil."
   )
 
+(defun set-process-inherit-coding-system-flag (process flag)
+  "Determine whether buffer of PROCESS will inherit coding-system.
+  If the second argument FLAG is non-nil, then the variable
+  `buffer-file-coding-system' of the buffer associated with PROCESS
+  will be bound to the value of the coding system used to decode
+  the process output."
+  )
+
 (defun process-list ()
   "Return a list of all processes."
   )
@@ -227,8 +256,15 @@
 
 (defun kill-process (&optional process current-group)
   "Kill process PROCESS.  May be process or name of one.
-  See function `interrupt-process' for more details on usage.internal-describe-syntax-value is a built-in function in `C source
-  code'."
+  See function `interrupt-process' for more details on usage."
+  )
+
+(defun list-processes (&optional query-only)
+  "Display a list of all processes.
+  If optional argument QUERY-ONLY is non-nil, only processes with
+  the query-on-exit flag set will be listed.
+  Any process listed as exited or signaled is actually eliminated
+  after the listing is made."
   )
 
 (defun set-process-coding-system (process &optional decoding encoding)
@@ -245,6 +281,10 @@
   "Configure speed, bytesize, etc. of a serial process."
   )
 
+(defun set-process-filter-multibyte (process flag)
+  "This function is obsolete since 23.1."
+  )
+
 (defun process-send-eof (&optional process)
   "Make PROCESS see end-of-file in its input.
   EOF comes after any text already sent to it.
@@ -255,6 +295,11 @@
   text to PROCESS after you call this function.
   If PROCESS is a serial process, wait until all output written to the
   process has been transmitted to the serial port."
+  )
+
+(defun set-process-datagram-address (process address)
+  "Set the datagram address for PROCESS to ADDRESS.
+  Returns nil upon error setting address, ADDRESS otherwise."
   )
 
 (defun process-query-on-exit-flag (process)
@@ -286,8 +331,7 @@
   )
 
 (defun set-process-plist (process plist)
-  "Replace the plist of PROCESS with PLIST.  Returns PLIST.defining-kbd-macro is an interactive built-in function in `C source
-  code'."
+  "Replace the plist of PROCESS with PLIST.  Returns PLIST."
   )
 
 (defun interrupt-process (&optional process current-group)
