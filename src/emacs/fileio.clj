@@ -1,4 +1,7 @@
-(ns emacs.fileio (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.fileio
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun clear-buffer-auto-save-failure ()
   "Clear any record of a recent auto-save failure in the current buffer."

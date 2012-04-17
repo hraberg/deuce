@@ -1,4 +1,7 @@
-(ns emacs.emacs (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.emacs
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun invocation-directory ()
   "Return the directory name in which the Emacs executable was located."

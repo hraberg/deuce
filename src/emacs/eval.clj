@@ -1,4 +1,7 @@
-(ns emacs.eval (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.eval
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude [apply eval]))
 
 (defun user-variable-p (variable)
   "Return t if VARIABLE is intended to be set and modified by users.

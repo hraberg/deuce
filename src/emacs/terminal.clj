@@ -1,4 +1,7 @@
-(ns emacs.terminal (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.terminal
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun terminal-list ()
   "Return a list of all terminal devices."

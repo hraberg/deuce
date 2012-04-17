@@ -1,4 +1,7 @@
-(ns emacs.undo (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.undo
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun undo-boundary ()
   "Mark a boundary between units of undo.

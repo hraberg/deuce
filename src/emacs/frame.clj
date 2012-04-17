@@ -1,4 +1,7 @@
-(ns emacs.frame (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.frame
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun delete-frame (&optional frame force)
   "Delete FRAME, permanently eliminating it from use.

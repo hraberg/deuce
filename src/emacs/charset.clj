@@ -1,4 +1,7 @@
-(ns emacs.charset (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.charset
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun sort-charsets (lisp-object charsets)
   "Sort charset list CHARSETS by a priority of each charset.

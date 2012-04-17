@@ -1,4 +1,7 @@
-(ns emacs.menu (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.menu
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun x-popup-menu (position menu)
   "Pop up a deck-of-cards menu and return user's selection.

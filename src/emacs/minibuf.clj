@@ -1,4 +1,7 @@
-(ns emacs.minibuf (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.minibuf
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude [read-string]))
 
 (defun minibuffer-depth ()
   "Return current depth of activations of minibuffer, a nonnegative integer."

@@ -1,4 +1,7 @@
-(ns emacs.xdisp (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.xdisp
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun format-mode-line (format &optional face window buffer)
   "Format a string out of a mode line format specification.

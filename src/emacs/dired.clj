@@ -1,4 +1,7 @@
-(ns emacs.dired (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.dired
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun file-attributes (filename &optional id-format)
   "Return a list of attributes of file FILENAME.

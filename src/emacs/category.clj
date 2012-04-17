@@ -1,4 +1,7 @@
-(ns emacs.category (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.category
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun standard-category-table ()
   "Return the standard category table.

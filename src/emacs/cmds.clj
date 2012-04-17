@@ -1,4 +1,7 @@
-(ns emacs.cmds (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.cmds
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun forward-line (&optional n)
   "Move N lines forward (backward if N is negative).

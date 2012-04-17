@@ -1,4 +1,7 @@
-(ns emacs.chartab (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.chartab
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun char-table-parent (char-table)
   "Return the parent char-table of CHAR-TABLE.

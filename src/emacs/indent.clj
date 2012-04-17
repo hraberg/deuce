@@ -1,4 +1,7 @@
-(ns emacs.indent (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.indent
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun current-indentation ()
   "Return the indentation of the current line.

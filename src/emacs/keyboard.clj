@@ -1,4 +1,7 @@
-(ns emacs.keyboard (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.keyboard
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun event-convert-list (event-desc)
   "Convert the event description list EVENT-DESC to an event type.

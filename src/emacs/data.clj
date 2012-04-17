@@ -1,4 +1,9 @@
-(ns emacs.data (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.data
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure
+  :exclude
+  [+ * - / aset set < = > max >= <= mod atom min]))
 
 (defun natnump (object)
   "Return t if OBJECT is a nonnegative integer."
@@ -76,7 +81,7 @@
   interned in the initial obarray."
   )
 
-(defun (core/symbol "1+") (number)
+(defun (symbol "1+") (number)
   "Return NUMBER plus one.  NUMBER may be a number or a marker.
   Markers are converted to integers."
   )
@@ -251,7 +256,7 @@
   Error if arg is not nil and not a cons cell.  See also `cdr-safe'."
   )
 
-(defun (core/symbol "slash-equals") (num1 num2)
+(defun (symbol "slash-equals") (num1 num2)
   "Return t if first arg is not equal to second arg.  Both must be numbers or markers."
   )
 
@@ -397,7 +402,7 @@
   Both X and Y must be numbers or markers."
   )
 
-(defun (core/symbol "1-") (number)
+(defun (symbol "1-") (number)
   "Return NUMBER minus one.  NUMBER may be a number or a marker.
   Markers are converted to integers."
   )

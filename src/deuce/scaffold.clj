@@ -1,10 +1,16 @@
 (ns deuce.scaffold
-  (use [deuce.core :exclude (-main)])
+  (use [clojure.set :only (intersection)])
   (require [clojure.java.shell :as sh]
            [clojure.string :as string]
            [clojure.walk :as walk]
-           [clojure.java.io :as io])
+           [clojure.java.io :as io]
+           [clojure.pprint :as pprint])
   (:gen-class))
+
+(defmacro eval-in-emacs [& emacs-lisp]
+  `(let [env# (zipmap '~(keys &env) ~(vec (keys &env)))
+         code# (str "(progn " (apply str (walk/postwalk-replace env# '~emacs-lisp)) ")")]
+     (:out (sh/sh "emacs/src/emacs" "-Q" "-batch" "--eval" code#))))
 
 (defn read-subrs []
   (eval-in-emacs
@@ -56,19 +62,29 @@
                       'ARGS... '(&rest args)
                       'ARGUMENTS... '(&rest arguments)})
 
-(defn print-fn-stub [f args doc]
-  (println (str "(defun " (if (illegal-symbols f) (str "(core/symbol \"" (str (illegal-symbols f)) "\")") f)
-                " " (pr-str (->> (replace illegal-symbols args)
-                                 flatten
-                                 (map (comp symbol string/lower-case))))))
-  (when doc
-    (print  "  \"")
-    (print (-> doc
-               string/trimr
-               (string/replace #"\n" "\n  ")
-               (string/escape {\" "\\\"" \\ "\\\\"})))
-    (println "\""))
-  (println "  )"))
+(defn print-fn-stubs [namespace fns]
+  (pprint/pprint (list 'ns namespace
+                       (list 'use ['deuce.emacs-lisp :only '(defun)])
+                       (list :refer-clojure :exclude
+                             (vec (intersection (set (keys (ns-publics 'clojure.core)))
+                                                (set (keys fns)))))))
+  (doseq [[f {:keys [args doc]}] fns]
+    (println)
+    (println (str "(defun " (if (illegal-symbols f) (str "(symbol \"" (str (illegal-symbols f)) "\")") f)
+                  " " (pr-str (->> (replace illegal-symbols args)
+                                   flatten
+                                   (map (comp symbol string/lower-case))))))
+    (when doc
+      (print  "  \"")
+      (print (-> doc
+                 string/trimr
+                 (string/replace #"\n" "\n  ")
+                 (string/escape {\" "\\\"" \\ "\\\\"})))
+      (println "\""))
+    (println "  )")))
+
+(defn print-special-forms []
+  (print-fn-stubs 'deuce.emacs-lisp (select-keys (subrs) (special-forms))))
 
 (defn write-fn-stubs []
   (.mkdir (io/file "src/emacs"))
@@ -77,13 +93,7 @@
     (println namespace (str "(" (count fns) " subrs)"))
     (with-open [w (io/writer (io/file "src/emacs" (str original ".clj")))]
       (binding [*out* w]
-        (println (list 'ns namespace
-                       (list 'use ['deuce.core])
-                       (list 'require ['clojure.core :as 'core])
-                       (list :refer-clojure :only [])))
-        (doseq [[f {:keys [args doc]}] fns]
-          (println)
-          (print-fn-stub f args doc))))
+        (print-fn-stubs namespace fns)))
     (require namespace)))
 
 (defn -main []

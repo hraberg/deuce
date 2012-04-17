@@ -1,4 +1,7 @@
-(ns emacs.character (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.character
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun char-direction (char)
   "Return the direction of CHAR.

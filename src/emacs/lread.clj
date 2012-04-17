@@ -1,4 +1,7 @@
-(ns emacs.lread (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.lread
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude [read intern load]))
 
 (defun read-event (&optional prompt inherit-input-method seconds)
   "Read an event object from the input stream.

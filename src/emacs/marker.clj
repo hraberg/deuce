@@ -1,4 +1,7 @@
-(ns emacs.marker (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.marker
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun marker-position (marker)
   "Return the position MARKER points at, as a character number.

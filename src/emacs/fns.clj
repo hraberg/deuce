@@ -1,4 +1,9 @@
-(ns emacs.fns (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.fns
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure
+  :exclude
+  [concat assoc reverse nth identity require get sort]))
 
 (defun provide (feature &optional subfeatures)
   "Announce that FEATURE is a feature of the current Emacs.

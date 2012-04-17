@@ -1,4 +1,7 @@
-(ns emacs.doc (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.doc
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun Snarf-documentation (filename)
   "Used during Emacs initialization to scan the `etc/DOC...' file.

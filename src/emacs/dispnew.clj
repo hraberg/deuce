@@ -1,4 +1,7 @@
-(ns emacs.dispnew (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.dispnew
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun open-termscript (file)
   "Start writing all terminal output to FILE as well as the terminal.

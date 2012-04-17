@@ -1,4 +1,7 @@
-(ns emacs.callint (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.callint
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun call-interactively (function &optional record-flag keys)
   "Call FUNCTION, reading args according to its interactive calling specs.

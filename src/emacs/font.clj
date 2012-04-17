@@ -1,4 +1,7 @@
-(ns emacs.font (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.font
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun font-xlfd-name (font &optional fold-wildcards)
   "Return XLFD name of FONT.

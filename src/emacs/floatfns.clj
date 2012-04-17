@@ -1,4 +1,7 @@
-(ns emacs.floatfns (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.floatfns
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude [float]))
 
 (defun ftruncate (arg)
   "Truncate a floating point number to an integral float value.

@@ -1,4 +1,7 @@
-(ns emacs.print (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.print
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude [print]))
 
 (defun error-message-string (obj)
   "Convert an error value (ERROR-SYMBOL . DATA) to an error message.

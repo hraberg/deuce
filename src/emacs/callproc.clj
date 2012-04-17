@@ -1,4 +1,7 @@
-(ns emacs.callproc (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.callproc
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun getenv-internal (variable &optional env)
   "Get the value of environment variable VARIABLE.

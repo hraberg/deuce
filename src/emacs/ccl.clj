@@ -1,4 +1,7 @@
-(ns emacs.ccl (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.ccl
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun register-ccl-program (name ccl-prog)
   "Register CCL program CCL-PROG as NAME in `ccl-program-table'.

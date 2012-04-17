@@ -1,4 +1,7 @@
-(ns emacs.filelock (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.filelock
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun lock-buffer (&optional file)
   "Lock FILE, if current buffer is modified.

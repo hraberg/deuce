@@ -1,4 +1,7 @@
-(ns emacs.buffer (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.buffer
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun barf-if-buffer-read-only ()
   "Signal a `buffer-read-only' error if the current buffer is read-only."

@@ -1,4 +1,7 @@
-(ns emacs.xfaces (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.xfaces
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun internal-make-lisp-face (face &optional frame)
   "Make FACE, a symbol, a Lisp face with all attributes nil.

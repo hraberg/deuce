@@ -1,4 +1,7 @@
-(ns emacs.macros (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.macros
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun start-kbd-macro (append &optional no-exec)
   "Record subsequent keyboard input, defining a keyboard macro.

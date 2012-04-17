@@ -1,4 +1,7 @@
-(ns emacs.search (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.search
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun search-forward (string &optional bound noerror count)
   "Search forward from point for STRING.

@@ -1,4 +1,7 @@
-(ns emacs.textprop (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.textprop
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun next-char-property-change (position &optional limit)
   "Return the position of next text property or overlay change.

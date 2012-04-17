@@ -1,4 +1,7 @@
-(ns emacs.keymap (use [deuce.core]) (require [clojure.core :as core]) (:refer-clojure :only []))
+(ns
+ emacs.keymap
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude []))
 
 (defun make-sparse-keymap (&optional string)
   "Construct and return a new sparse keymap.
