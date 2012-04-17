@@ -186,6 +186,10 @@ I expect this to take 1-2 weeks and fail, but to learn a bit about how Emacs doe
 
 [YMACS](http://www.ymacs.org/) Ymacs is an Emacs-like editor that works in your browser.
 
+[Pymacs](https://github.com/pinard/Pymacs.git) Emacs to Python interface
+
+[el4r](http://www.rubyist.net/~rubikitch/computer/el4r/index.en.html) EmacsRuby engine - EmacsLisp for Ruby
+
 
 #### This is NOT YET GNU Emacs, one component of the GNU/Linux operating system.
 
