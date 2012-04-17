@@ -200,5 +200,5 @@ I expect this to take 1-2 weeks and fail, but to learn a bit about how Emacs doe
 
 [GNU General Public License Version 3](http://www.gnu.org/licenses/)
 
-[GNU Emacs](http://www.gnu.org/software/emacs) is Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-  2010, 2011, 2012  Free Software Foundation, Inc.
+[GNU Emacs](http://www.gnu.org/software/emacs/) is Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+  2010, 2011, 2012  [Free Software Foundation, Inc](http://www.fsf.org/).
