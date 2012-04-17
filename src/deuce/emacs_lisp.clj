@@ -66,17 +66,6 @@
   All the VALUEFORMs are evalled before any symbols are bound."
   [varlist & body])
 
-(c/defmacro save-restriction
-  "Execute BODY, saving and restoring current buffer's restrictions.
-  The buffer's restrictions make parts of the beginning and end invisible.
-  (They are set up with `narrow-to-region' and eliminated with `widen'.)
-  This special form, `save-restriction', saves the current buffer's restrictions
-  when it is entered, and restores them when it is exited.
-  So any `narrow-to-region' within BODY lasts only until the end of the form.
-  The old restrictions settings are restored
-  even in case of abnormal exit (throw or error)."
-  [& body])
-
 (c/defmacro defconst
   "Define SYMBOL as a constant variable.
   The intent is that neither programs nor users should ever change this value.
@@ -106,45 +95,11 @@
   that do not have their own values for the variable."
   [& var-values])
 
-(c/defmacro save-window-excursion
-  "Execute BODY, preserving window sizes and contents.
-  Return the value of the last form in BODY.
-  Restore which buffer appears in which window, where display starts,
-  and the value of point and mark for each window.
-  Also restore the choice of selected window.
-  Also restore which buffer is current.
-  Does not restore the value of point in current buffer."
-  [& body])
-
-(c/defmacro save-excursion
-  "Save point, mark, and current buffer; execute BODY; restore those things.
-  Executes BODY just like `progn'.
-  The values of point, mark and the current buffer are restored
-  even in case of abnormal exit (throw or error).
-  The state of activation of the mark is also restored."
-  [& body])
-
-(c/defmacro with-output-to-temp-buffer
-  "Bind `standard-output' to buffer BUFNAME, eval BODY, then show that buffer."
-  [bufname & body])
-
 (c/defmacro or
   "Eval args until one of them yields non-nil, then return that value.
   The remaining args are not evalled at all.
   If all args return nil, return nil."
   [& conditions])
-
-(c/defmacro interactive
-  "Specify a way of parsing arguments for interactive use of a function.
-  For example, write
-   (defun foo (arg buf) \"Doc string\" (interactive \"P\\nbbuffer: \") .... )
-   to make ARG be the raw prefix argument, and set BUF to an existing buffer,
-   when `foo' is called as a command.
-  The \"call\" to `interactive' is actually a declaration rather than a function;
-   it tells `call-interactively' how to read arguments
-   to pass to the function.
-  When actually called, `interactive' just returns nil."
-  [& args])
 
 (c/defmacro while
   "If TEST yields non-nil, eval BODY... and repeat.
@@ -161,11 +116,6 @@
   the list ARGS... as it appears in the expression,
   and the result should be a form to be evaluated instead of the original."
   [name arglist & body])
-
-(c/defmacro save-current-buffer
-  "Save the current buffer; execute BODY; restore the current buffer.
-  Executes BODY just like `progn'."
-  [& body])
 
 (c/defmacro function
   "Like `quote', but preferred for objects which are functions.
@@ -209,3 +159,53 @@
   THEN must be one expression, but ELSE... can be zero or more expressions.
   If COND yields nil, and there are no ELSE's, the value is nil."
   [cond then & else])
+
+(c/defmacro save-restriction
+  "Execute BODY, saving and restoring current buffer's restrictions.
+  The buffer's restrictions make parts of the beginning and end invisible.
+  (They are set up with `narrow-to-region' and eliminated with `widen'.)
+  This special form, `save-restriction', saves the current buffer's restrictions
+  when it is entered, and restores them when it is exited.
+  So any `narrow-to-region' within BODY lasts only until the end of the form.
+  The old restrictions settings are restored
+  even in case of abnormal exit (throw or error)."
+  [& body])
+
+(c/defmacro save-window-excursion
+  "Execute BODY, preserving window sizes and contents.
+  Return the value of the last form in BODY.
+  Restore which buffer appears in which window, where display starts,
+  and the value of point and mark for each window.
+  Also restore the choice of selected window.
+  Also restore which buffer is current.
+  Does not restore the value of point in current buffer."
+  [& body])
+
+(c/defmacro save-excursion
+  "Save point, mark, and current buffer; execute BODY; restore those things.
+  Executes BODY just like `progn'.
+  The values of point, mark and the current buffer are restored
+  even in case of abnormal exit (throw or error).
+  The state of activation of the mark is also restored."
+  [& body])
+
+(c/defmacro with-output-to-temp-buffer
+  "Bind `standard-output' to buffer BUFNAME, eval BODY, then show that buffer."
+  [bufname & body])
+
+(c/defmacro interactive
+  "Specify a way of parsing arguments for interactive use of a function.
+  For example, write
+   (defun foo (arg buf) \"Doc string\" (interactive \"P\\nbbuffer: \") .... )
+   to make ARG be the raw prefix argument, and set BUF to an existing buffer,
+   when `foo' is called as a command.
+  The \"call\" to `interactive' is actually a declaration rather than a function;
+   it tells `call-interactively' how to read arguments
+   to pass to the function.
+  When actually called, `interactive' just returns nil."
+  [& args])
+
+(c/defmacro save-current-buffer
+  "Save the current buffer; execute BODY; restore the current buffer.
+  Executes BODY just like `progn'."
+  [& body])
