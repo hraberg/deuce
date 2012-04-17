@@ -4,7 +4,7 @@
             :url "http://www.gnu.org/licenses/"
             :distribution :repo}
   :url "http://www.gnu.org/software/emacs/"
-  :dependencies [[org.clojure/clojure "1.4.0-beta7"]]
+  :dependencies [[org.clojure/clojure "1.4.0"]]
   :resources-path "emacs/lisp"
   :jar-exclusions [#".*\.elc"]
   :main deuce.core)
