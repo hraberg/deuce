@@ -42,14 +42,12 @@
 
 (def subr-aliases '#{search-forward-regexp search-backward-regexp})
 
-(defn generate-fn-stubs []
-  (let [special-forms (special-forms)
-        subrs (reduce dissoc (subrs) (concat subr-aliases special-forms))]
-    (->> (map #(vector (key %) (assoc (val %) :namespace %2))
-              subrs
-              (find-files-for-tags (map name (keys subrs))))
-         (into {})
-         (group-by (comp :namespace val)))))
+(defn generate-fn-stubs [subrs]
+  (->> (map #(vector (key %) (assoc (val %) :namespace %2))
+            subrs
+            (find-files-for-tags (map name (keys subrs))))
+       (into {})
+       (group-by (comp :namespace val))))
 
 (def illegal-symbols {(symbol "1+") (symbol "1+")
                       (symbol "1-") (symbol "1-")
@@ -60,7 +58,7 @@
 
 (defn write-fn-stubs []
   (.mkdir (io/file "src/emacs"))
-  (doseq [[original fns] (generate-fn-stubs)
+  (doseq [[original fns] (generate-fn-stubs (reduce dissoc (subrs) (concat subr-aliases (special-forms))))
           :let [namespace (symbol (str "emacs." original))]]
     (println namespace (str "(" (count fns) " subrs)"))
     (with-open [w (io/writer (io/file "src/emacs" (str original ".clj")))]
