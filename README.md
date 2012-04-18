@@ -87,6 +87,8 @@ Larger than the technical challenges - which are mainly about scale - is the fac
 * [Org-mode](http://orgmode.org/worg/org-tests/index.html) [testing/README](http://repo.or.cz/w/org-mode.git/blob/HEAD:/testing/README)
 * [Regression Testing XEmacs](http://www.xemacs.org/Documentation/21.5/html/internals_12.html) may or may not work with GNU Emacs.
 
+[`./ert`](https://github.com/hraberg/deuce/blob/master/ert) will run [its own test suite](https://github.com/hraberg/deuce/blob/master/test/ert-tests.el), using the Emacs built at `emacs/src/emacs`. This is the version above, before it was merged into Emacs 24.
+
 
 ### Building
 
