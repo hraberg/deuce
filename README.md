@@ -88,6 +88,11 @@ Larger than the technical challenges - which are mainly about scale - is the fac
 * [Regression Testing XEmacs](http://www.xemacs.org/Documentation/21.5/html/internals_12.html) may or may not work with GNU Emacs.
 
 
+### Building
+
+`lein uberjar` will bundle together deuce, Clojure and the Emacs Lisp from GNU Emacs into an executable jar (which currently can't do anything).
+
+
 ### The Road Map
 
 My guess is that it will take roughly a month to get anything useful at all out of batch mode with basic Emacs Lisp cross compilation. An editor that can do anything but crashing another 2 months. An actual useful, somewhat compatible subset of Emacs 6 months.
