@@ -87,11 +87,11 @@
   (print-fn-stubs 'deuce.emacs-lisp (select-keys (subrs) (special-forms))))
 
 (defn write-fn-stubs []
-  (.mkdir (io/file "src/emacs"))
+  (.mkdir (io/file "src/deuce/emacs"))
   (doseq [[original fns] (generate-fn-stubs (reduce dissoc (subrs) (concat subr-aliases (special-forms))))
-          :let [namespace (symbol (str "emacs." original))]]
+          :let [namespace (symbol (str "deuce.emacs." original))]]
     (println namespace (str "(" (count fns) " subrs)"))
-    (with-open [w (io/writer (io/file "src/emacs" (str original ".clj")))]
+    (with-open [w (io/writer (io/file "src/deuce/emacs" (str original ".clj")))]
       (binding [*out* w]
         (print-fn-stubs namespace fns)))
     (require namespace)))
