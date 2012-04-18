@@ -90,12 +90,14 @@ Larger than the technical challenges - which are mainly about scale - is the fac
 
 ### Building
 
-`lein uberjar` will bundle together deuce, Clojure and the Emacs Lisp from GNU Emacs into an executable jar (which currently can't do anything).
+`lein uberjar` will bundle together deuce, Clojure and the Emacs Lisp from GNU Emacs into an executable jar (which currently cannot do anything).
 
 
 ### The Road Map
 
 My guess is that it will take roughly a month to get anything useful at all out of batch mode with basic Emacs Lisp cross compilation. An editor that can do anything but crashing another 2 months. An actual useful, somewhat compatible subset of Emacs 6 months.
+
+A potential first milestone is to get [`ert.el`](https://github.com/ohler/ert) testing itself in batch mode.
 
 Matching the performance and exact characteristics of the C code for buffers etc. isn't a goal.
 
