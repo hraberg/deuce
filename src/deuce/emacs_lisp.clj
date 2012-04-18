@@ -1,7 +1,7 @@
 (ns deuce.emacs-lisp
     (require [clojure.core :as c])
     (require [clojure.walk :as walk])
-    (:refer-clojure :exclude [defmacro if and or cond let while]))
+    (:refer-clojure :exclude [defmacro and or cond let while]))
 
 (def t true)
 
