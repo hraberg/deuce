@@ -1,6 +1,7 @@
 (ns
  deuce.emacs.print
- (use [deuce.emacs-lisp :only (defun)])
+ (use [deuce.emacs-lisp :only (defun t)])
+ (require [clojure.core :as c])
  (:refer-clojure :exclude [print]))
 
 (defun error-message-string (obj)
@@ -14,7 +15,9 @@
   Quoting characters are printed when needed to make output that `read'
   can handle, whenever this is possible.  For complex objects, the behavior
   is controlled by `print-level' and `print-length', which see."
-  )
+  (binding [*out* (or printcharfun *out*)]
+    (prn object))
+  object)
 
 (defun redirect-debugging-output (file &optional append)
   "Redirect debugging output (stderr stream) to file FILE.
@@ -26,7 +29,9 @@
 (defun terpri (&optional printcharfun)
   "Output a newline to stream PRINTCHARFUN.
   If PRINTCHARFUN is omitted or nil, the value of `standard-output' is used."
-  )
+  (binding [*out* (or printcharfun *out*)]
+    (newline))
+  t)
 
 (defun prin1-to-string (object &optional noescape)
   "Return a string containing the printed representation of OBJECT.
@@ -34,14 +39,16 @@
   when necessary to make output that `read' can handle, whenever possible,
   unless the optional second argument NOESCAPE is non-nil.  For complex objects,
   the behavior is controlled by `print-level' and `print-length', which see."
-  )
+  ((if noescape str pr-str) object))
 
 (defun prin1 (object &optional printcharfun)
   "Output the printed representation of OBJECT, any Lisp object.
   Quoting characters are printed when needed to make output that `read'
   can handle, whenever this is possible.  For complex objects, the behavior
   is controlled by `print-level' and `print-length', which see."
-  )
+  (binding [*out* (or printcharfun *out*)]
+    (pr object))
+  object)
 
 (defun external-debugging-output (character)
   "Write CHARACTER to stderr.
@@ -53,7 +60,8 @@
   "Output the printed representation of OBJECT, any Lisp object.
   No quoting characters are used; no delimiters are printed around
   the contents of strings."
-  )
+  (c/print object)
+  object)
 
 (defun write-char (character &optional printcharfun)
   "Output character CHARACTER to stream PRINTCHARFUN.

@@ -40,10 +40,8 @@
     string? (read-string stream)
     (partial
      contains? #{t nil}) (minibuf/read-minibuffer "Lisp expression: ")
-    (partial
-     instance? Reader) (c/read (if (instance? PushbackReader stream) stream
-                                   (PushbackReader. stream)))
-    (assert false stream)))
+     (c/read (if (instance? PushbackReader stream) stream
+                 (PushbackReader. stream)))))
 
 (defun read-char (&optional prompt inherit-input-method seconds)
   "Read a character from the command input (keyboard or macro).
