@@ -1,6 +1,7 @@
 (ns
  deuce.emacs.editfns
  (use [deuce.emacs-lisp :only (defun)])
+ (require [clojure.core :as c])
  (:refer-clojure :exclude [format]))
 
 (defun byte-to-position (bytepos)
@@ -77,7 +78,7 @@
   "Format a string out of a format-string and arguments.
   The first argument is a format control string.
   The other arguments are substituted into it to make the result, a string."
-  )
+  (apply c/format string objects))
 
 (defun user-uid ()
   "Return the effective uid of Emacs.
@@ -437,7 +438,9 @@
   The message also goes into the `*Messages*' buffer.
   (In keyboard macros, that's all it does.)
   Return the message."
-  )
+  (let [message (apply format format-string args)]
+    (println message)
+    message))
 
 (defun insert (&rest args)
   "Insert the arguments, either strings or characters, at point.
