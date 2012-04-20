@@ -6,7 +6,3 @@ emacs="emacs/src/emacs -Q -batch -L test"
 for t in $(ls test/*-tests.el); do
   $emacs -l $t -f ert-run-tests-batch-and-exit
 done
-
-$emacs -l test/org-test.el \
-    --eval "(progn (org-reload) (setq org-confirm-babel-evaluate nil) (setq org-test-default-directory-name \"test\"))" \
-    -f org-test-run-batch-tests

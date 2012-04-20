@@ -1,7 +1,9 @@
 (ns
  deuce.emacs.lread
- (use [deuce.emacs-lisp :only (defun)])
- (:refer-clojure :exclude [read intern load]))
+ (use [deuce.emacs-lisp :only (defun t)])
+ (require [clojure.core :as c])
+ (:refer-clojure :exclude [read intern load])
+ (import [java.io Reader PushbackReader]))
 
 (defun read-event (&optional prompt inherit-input-method seconds)
   "Read an event object from the input stream.
@@ -33,7 +35,14 @@
    a string (takes text from string, starting at the beginning)
    t (read text line using minibuffer and use it, or read from
       standard input in batch mode)."
-  )
+  (condp some [stream]
+    string? (read-string stream)
+    (partial
+     contains? #{t nil}) (c/read)
+    (partial
+     instance? Reader) (c/read (if (instance? PushbackReader stream) stream
+                                   (PushbackReader. stream)))
+    (assert false stream)))
 
 (defun read-char (&optional prompt inherit-input-method seconds)
   "Read a character from the command input (keyboard or macro).
