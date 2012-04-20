@@ -54,7 +54,9 @@
   If the variable `minibuffer-allow-text-properties' is non-nil,
    then the string which is returned includes whatever text properties
    were present in the minibuffer.  Otherwise the value has no text properties."
-  )
+  (print prompt)
+  (flush)
+  ((if read c/read-string identity) (or (not-empty (.readLine *in*)) default-value)))
 
 (defun assoc-string (key list &optional case-fold)
   "Like `assoc' but specifically for strings (and symbols)."
@@ -81,7 +83,7 @@
   "Read the name of a command and return as a symbol.
   Prompt with PROMPT.  By default, return DEFAULT-VALUE or its first element
   if it is a list."
-  )
+  (symbol (read-from-minibuffer prompt nil nil nil nil default-value)))
 
 (defun try-completion (string collection &optional predicate)
   "Return common substring of all completions of STRING in COLLECTION.
@@ -118,7 +120,7 @@
    empty string.
   Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
    the current input method and the setting of `enable-multibyte-characters'."
-  )
+  (read-from-minibuffer prompt initial-input nil nil history default-value inherit-input-method))
 
 (defun minibuffer-prompt-end ()
   "Return the buffer position of the end of the minibuffer prompt.
@@ -173,9 +175,7 @@
   is a string to insert in the minibuffer before reading.
   (INITIAL-CONTENTS can also be a cons of a string and an integer.
   Such arguments are used as in `read-from-minibuffer'.)"
-  (print prompt)
-  (flush)
-  (c/read))
+  (read-from-minibuffer prompt initial-contents nil :read))
 
 (defun minibuffer-contents-no-properties ()
   "Return the user input in a minibuffer as a string, without text-properties.
@@ -192,4 +192,4 @@
   Prompt with PROMPT.  By default, return DEFAULT-VALUE or its first element
   if it is a list.
   A user variable is one for which `user-variable-p' returns non-nil."
-  )
+  (symbol (read-from-minibuffer prompt nil nil nil nil default-value)))
