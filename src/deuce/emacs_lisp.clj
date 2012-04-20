@@ -15,7 +15,7 @@
           name (if (seq? name) (eval name) name)
           [arg & args :as arglist] (replace '{&rest &} arglist)
           [arglist &optional optional-args] (if (= '&optional arg) [() arg args]
-                                              (split-with '#{&optional} arglist))
+                                              (partition-by '#{&optional} arglist))
           arglist (concat arglist (when &optional ['& (vec optional-args)]))]
          `(do (defn ~name ~(vec arglist) ~@body)
               (alter-meta! (var ~name) merge {:doc ~(apply str docstring)})

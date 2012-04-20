@@ -1,6 +1,7 @@
 (ns
  deuce.emacs.minibuf
  (use [deuce.emacs-lisp :only (defun)])
+ (require [clojure.core :as c])
  (:refer-clojure :exclude [read-string]))
 
 (defun minibuffer-depth ()
@@ -172,7 +173,9 @@
   is a string to insert in the minibuffer before reading.
   (INITIAL-CONTENTS can also be a cons of a string and an integer.
   Such arguments are used as in `read-from-minibuffer'.)"
-  )
+  (print prompt)
+  (flush)
+  (c/read))
 
 (defun minibuffer-contents-no-properties ()
   "Return the user input in a minibuffer as a string, without text-properties.

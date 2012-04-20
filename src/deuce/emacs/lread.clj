@@ -2,6 +2,7 @@
  deuce.emacs.lread
  (use [deuce.emacs-lisp :only (defun t)])
  (require [clojure.core :as c])
+ (require [deuce.emacs.minibuf :as minibuf])
  (:refer-clojure :exclude [read intern load])
  (import [java.io Reader PushbackReader]))
 
@@ -38,7 +39,7 @@
   (condp some [stream]
     string? (read-string stream)
     (partial
-     contains? #{t nil}) (c/read)
+     contains? #{t nil}) (minibuf/read-minibuffer "Lisp expression: ")
     (partial
      instance? Reader) (c/read (if (instance? PushbackReader stream) stream
                                    (PushbackReader. stream)))
