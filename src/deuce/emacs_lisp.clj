@@ -15,9 +15,12 @@
   (c/let [[docstring body] (split-with string? body)
           name (if (seq? name) (eval name) name)
           [arg & args :as arglist] (replace '{&rest &} arglist)
-          [arglist &optional optional-args] (if (= '&optional arg) [() arg args]
+          [arglist &optional optional-args] (if (= '&optional arg)
+                                              [() arg args]
                                               (partition-by '#{&optional} arglist))
-          arglist (concat arglist (when &optional ['& (vec optional-args)]))]
+          arglist (concat arglist (when &optional ['& (vec optional-args)]))
+          [[interactive] body] (split-with #(and (list? %)
+                                               (= 'interactive (first %))) body)]
          `(do (defn ~name ~(vec arglist) ~@body)
               (alter-meta! (var ~name) merge {:doc ~(apply str docstring)})
               ~name)))

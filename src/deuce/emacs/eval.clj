@@ -38,7 +38,7 @@
 (defun signal (error-symbol data)
   "Signal an error.  Args are ERROR-SYMBOL and associated DATA.
   This function does not return."
-  (throw (EmacsLispError. error-symbol data)))
+  (deuce.emacs-lisp/throw error-symbol data))
 
 (defun called-interactively-p (kind)
   "Return t if the containing function was called by `call-interactively'.
