@@ -19,8 +19,8 @@
                                               [() arg args]
                                               (partition-by '#{&optional} arglist))
           arglist (concat arglist (when &optional ['& (vec optional-args)]))
-          [[interactive] body] (split-with #(and (list? %)
-                                               (= 'interactive (first %))) body)]
+          [[interactive] body] (split-with #(c/and (list? %)
+                                                   (= 'interactive (first %))) body)]
          `(do (defn ~name ~(vec arglist) ~@body)
               (alter-meta! (var ~name) merge {:doc ~(apply str docstring)})
               ~name)))
