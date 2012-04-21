@@ -1,7 +1,8 @@
 (ns deuce.emacs-lisp
     (require [clojure.core :as c])
     (require [clojure.walk :as walk])
-    (:refer-clojure :exclude [defmacro and or cond let while]))
+    (:refer-clojure :exclude [defmacro and or cond let while])
+    (import [deuce EmacsLispError]))
 
 (def t true)
 
@@ -27,7 +28,10 @@
   after executing the UNWINDFORMS.
   If BODYFORM exits nonlocally, the UNWINDFORMS are executed anyway."
   {:arglists '([BODYFORM UNWINDFORMS...])}
-  [bodyform & unwindforms])
+  [bodyform & unwindforms]
+  (try
+    ~bodyform
+    (finally ~@unwindforms)))
 
 (c/defmacro condition-case
   "Regain control when an error is signaled.
@@ -35,7 +39,15 @@
   Each element of HANDLERS looks like (CONDITION-NAME BODY...)
   where the BODY is made of Lisp expressions."
   {:arglists '([VAR BODYFORM &rest HANDLERS])}
-  [var bodyform & handlers])
+  [var bodyform & handlers]
+  `(try
+     ~bodyform
+     (catch EmacsLispError e#
+       (let [~(if var var (gensym "_")) (.data e#)]
+         (case (.symbol e#)
+           ~@(apply concat (for [[c & h] handlers]
+                             `[~c (do ~@h)]))
+           (throw e#))))))
 
 (c/defmacro cond
   "Try each clause until one succeeds.
@@ -47,7 +59,8 @@
   If a clause has one element, as in (CONDITION),
   CONDITION's value if non-nil is returned from the cond-form."
   {:arglists '([CLAUSES...])}
-  [& clauses])
+  [& clauses]
+  `(c/cond ~@(apply concat clauses)))
 
 (c/defmacro setq
   "Set each SYM to the value of its VAL.
@@ -58,12 +71,18 @@
   each VAL can use the new value of variables set earlier in the `setq'.
   The return value of the `setq' form is the value of the last VAL."
   {:arglists '([[SYM VAL]...])}
-  [& sym-vals])
+  [& sym-vals]
+  `(do
+     ~@(for [[s v] (partition 2 sym-vals)]
+         `(c/let [v# ~v]
+                 (intern (create-ns 'deuce.emacs-lisp.globals) '~s v#)
+                 v#))))
 
-(c/defmacro quote
+(c/defmacro ^:clojure-special-form quote
   "Return the argument, without evaluating it.  `(quote x)' yields `x'."
   {:arglists '([ARG])}
-  [arg])
+  [arg]
+  `(quote ~arg))
 
 (c/defmacro let
   "Bind variables according to VARLIST then eval BODY.
@@ -72,7 +91,9 @@
   or a list (SYMBOL VALUEFORM) (which binds SYMBOL to the value of VALUEFORM).
   All the VALUEFORMs are evalled before any symbols are bound."
   {:arglists '([VARLIST BODY...])}
-  [varlist & body])
+  [varlist & body]
+  `(c/let [~@(if (every? list? varlist) (apply concat varlist) varlist)]
+          ~@body))
 
 (c/defmacro defconst
   "Define SYMBOL as a constant variable.
@@ -82,21 +103,31 @@
    buffer-local values are not affected.
   DOCSTRING is optional."
   {:arglists '([SYMBOL INITVALUE [DOCSTRING]])}
-  [symbol initvalue & [docstring]])
-
-(c/defmacro prog2
-  "Eval FORM1, FORM2 and BODY sequentially; return value from FORM2.
-  The value of FORM2 is saved during the evaluation of the
-  remaining args, whose values are discarded."
-  {:arglists '([FORM1 FORM2 BODY...])}
-  [form1 form2 & body])
+  [symbol initvalue & [docstring]]
+  `(do
+     (-> (intern (create-ns 'deuce.emacs-lisp.globals) '~symbol ~initvalue)
+         (alter-meta! merge {:doc ~(apply str docstring)}))
+     '~symbol))
 
 (c/defmacro prog1
   "Eval FIRST and BODY sequentially; return value from FIRST.
   The value of FIRST is saved during the evaluation of the remaining args,
   whose values are discarded."
   {:arglists '([FIRST BODY...])}
-  [first & body])
+  [first & body]
+  `(c/let [result# ~first]
+          ~@body
+          result#))
+
+(c/defmacro prog2
+  "Eval FORM1, FORM2 and BODY sequentially; return value from FORM2.
+  The value of FORM2 is saved during the evaluation of the
+  remaining args, whose values are discarded."
+  {:arglists '([FORM1 FORM2 BODY...])}
+  [form1 form2 & body]
+  `(do ~form1
+       (prog1 ~form2
+              ~@body)))
 
 (c/defmacro setq-default
   "Set the default value of variable VAR to VALUE.
@@ -105,21 +136,24 @@
   The default value of a variable is seen in buffers
   that do not have their own values for the variable."
   {:arglists '([[VAR VALUE]...])}
-  [& var-values])
+  [& var-values]
+  `(setq ~@var-values))
 
 (c/defmacro or
   "Eval args until one of them yields non-nil, then return that value.
   The remaining args are not evalled at all.
   If all args return nil, return nil."
   {:arglists '([CONDITIONS...])}
-  [& conditions])
+  [& conditions]
+  `(c/or ~@conditions))
 
 (c/defmacro while
   "If TEST yields non-nil, eval BODY... and repeat.
   The order of execution is thus TEST, BODY, TEST, BODY and so on
   until TEST returns nil."
   {:arglists '([TEST BODY...])}
-  [test & body])
+  [test & body]
+  `(c/while ~test ~@body))
 
 (c/defmacro defmacro
   "Define NAME as a macro.
@@ -137,28 +171,32 @@
   In byte compilation, `function' causes its argument to be compiled.
   `quote' cannot do that."
   {:arglists '([ARG])}
-  [arg])
+  [arg]
+  `(quote ~arg))
 
 (c/defmacro and
   "Eval args until one of them yields nil, then return nil.
   The remaining args are not evalled at all.
   If no arg yields nil, return the last arg's value."
   {:arglists '([CONDITIONS...])}
-  [& conditions])
+  [& conditions]
+  `(c/and ~@conditions))
 
 (c/defmacro progn
   "Eval BODY forms sequentially and return value of last one."
   {:arglists '([BODY...])}
-  [& body])
+  [& body]
+  `(do ~@body))
 
-(c/defmacro let*
+(c/defmacro ^:clojure-special-form let*
   "Bind variables according to VARLIST then eval BODY.
   The value of the last form in BODY is returned.
   Each element of VARLIST is a symbol (which is bound to nil)
   or a list (SYMBOL VALUEFORM) (which binds SYMBOL to the value of VALUEFORM).
   Each VALUEFORM can refer to the symbols already bound by this VARLIST."
   {:arglists '([VARLIST BODY...])}
-  [varlist & body])
+  [varlist & body]
+  `(let ~varlist ~@body))
 
 (c/defmacro defvar
   "Define SYMBOL as a variable, and return SYMBOL.
@@ -166,21 +204,38 @@
   but the definition can supply documentation and an initial value
   in a way that tags can recognize."
   {:arglists '([SYMBOL &optional INITVALUE DOCSTRING])}
-  [symbol & [initvalue docstring]])
+  [symbol & [initvalue docstring]]
+  `(do
+     (-> (intern (create-ns 'deuce.emacs-lisp.globals) '~symbol ~initvalue)
+         (alter-meta! merge {:doc ~(apply str docstring)}))
+     '~symbol))
 
-(c/defmacro catch
+(defun ^:clojure-special-form throw (tag value)
+  "Throw to the catch for TAG and return VALUE from it.
+  Both TAG and VALUE are evalled."
+  (throw (EmacsLispError. tag value)))
+
+(c/defmacro ^:clojure-special-form catch
   "Eval BODY allowing nonlocal exits using `throw'.
   TAG is evalled to get the tag to use; it must not be nil."
   {:arglists '([TAG BODY...])}
-  [tag & body])
+  [tag & body]
+  `(try
+     ~body
+     (catch EmacsLispError e#
+       (if (= ~tag (.symbol e#))
+         (.data e#)
+         (throw e#)))))
 
-(c/defmacro if
+(c/defmacro ^:clojure-special-form if
   "If COND yields non-nil, do THEN, else do ELSE...
   Returns the value of THEN or the value of the last of the ELSE's.
   THEN must be one expression, but ELSE... can be zero or more expressions.
   If COND yields nil, and there are no ELSE's, the value is nil."
   {:arglists '([COND THEN ELSE...])}
-  [cond then & else])
+  [cond then & else]
+  `(c/cond ~cond ~then
+           :else (do ~@else)))
 
 (c/defmacro save-restriction
   "Execute BODY, saving and restoring current buffer's restrictions.

@@ -7,4 +7,5 @@
   :dependencies [[org.clojure/clojure "1.4.0"]]
   :resources-path "emacs/lisp"
   :jar-exclusions [#".*\.elc"]
+  :java-source-path "src"
   :main deuce.core)

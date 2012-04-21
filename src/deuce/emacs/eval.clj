@@ -1,7 +1,8 @@
 (ns
  deuce.emacs.eval
  (use [deuce.emacs-lisp :only (defun)])
- (:refer-clojure :exclude [apply eval]))
+ (:refer-clojure :exclude [apply eval])
+ (import [deuce EmacsLispError]))
 
 (defun user-variable-p (variable)
   "Return t if VARIABLE is intended to be set and modified by users.
@@ -37,7 +38,7 @@
 (defun signal (error-symbol data)
   "Signal an error.  Args are ERROR-SYMBOL and associated DATA.
   This function does not return."
-  )
+  (throw (EmacsLispError. error-symbol data)))
 
 (defun called-interactively-p (kind)
   "Return t if the containing function was called by `call-interactively'.
@@ -93,11 +94,6 @@
   with the given arguments ARGS, until one of them
   returns a non-nil value.  Then we return that value.
   However, if they all return nil, we return nil."
-  )
-
-(defun throw (tag value)
-  "Throw to the catch for TAG and return VALUE from it.
-  Both TAG and VALUE are evalled."
   )
 
 (defun backtrace ()
