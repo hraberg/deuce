@@ -15,7 +15,7 @@
   (let [find #(.findWithinHorizon sc %1 %2)
         look #(find (pr-str %) 1)
         unquote #(if (look \@) 'unquote-splicing 'unquote)
-        re-sym #"[\w\d-+/*<>=\.?\\@]+"
+        re-sym #"[\w\d-+/*<>=\.?\\@&]+"
         re-str #"(?:[^\"\\]|\\.)*\""]
     (cond
      (look \s) (recur sc)
@@ -32,7 +32,8 @@
      (.hasNextLong sc) (.nextLong sc)
      (.hasNextDouble sc) (.nextDouble sc)
      (.hasNext sc re-sym) (symbol (.next sc re-sym))
-     (.hasNext sc) (not-empty (.next sc)))))
+     (.hasNext sc) (when-let [x (seq (.next sc))]
+                     (assert false (str "unexpected: " x))))))
 
 (defn parse [r]
   (tokenize-all (doto (Scanner. (if (string? r) (StringReader. r) r))
