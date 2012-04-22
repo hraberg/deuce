@@ -4,7 +4,7 @@
   (:require [clojure.string :as string]
             [clojure.java.io :as io])
   (import [java.util Scanner]
-          [java.io StringReader]
+          [java.io StringReader StreamTokenizer]
           [java.util.regex Pattern]))
 
 (declare tokenize)
@@ -31,8 +31,8 @@
      (look #"`") (list 'syntax-quote (tokenize sc))
      (look #":") (keyword (tokenize sc))
      (look #"\?") (symbol (str \? (find re-chr 0)))
-     (look #"\"") (string/replace (->> (find re-str 0) drop-last (apply str))
-                                  #"\\(.)" "$1")
+     (look #"\"") (.sval (doto (StreamTokenizer. (StringReader. (str \" (find re-str 0))))
+                           (.nextToken)))
      (look #";") (list 'comment (.nextLine sc))
      (look #"#") (cond
                   (look #"'") (list 'var (tokenize sc))
