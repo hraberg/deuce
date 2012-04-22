@@ -10,7 +10,8 @@
 (declare tokenize)
 
 (def ^Pattern re-sym #"[\S&&[^~`#\'\"]]+")
-(def ^Pattern re-str #"(?:[^\\\"]|\\.)*\"")
+
+(def ^Pattern re-str #"([^\"\\]*(?:\\.[^\"\\]*)*)\"")
 (def ^Pattern re-chr #"[\S&&[^\]\)\s]]*")
 
 (defn tokenize-all [^Scanner sc]
@@ -50,7 +51,7 @@
                      (assert false (str "unexpected: " (apply str x)))))))
 
 (defn parse [r]
-  (tokenize-all (doto (Scanner. r)
+  (tokenize-all (doto (Scanner. r "ISO-8859-1")
                   (.useDelimiter #"(\s+|\]|\))"))))
 
 (defn smoke []
