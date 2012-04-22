@@ -1,7 +1,8 @@
 (ns deuce.test.core
   (:use [deuce.core])
   (:use [clojure.test])
-  (:require [clojure.string :as string])
+  (:require [clojure.string :as string]
+            [clojure.java.io :as io])
   (import [java.util Scanner]
           [java.io StringReader]))
 
@@ -43,6 +44,6 @@
                   (.useDelimiter #"(\s+|\]|\))"))))
 
 (defn smoke []
-  (doseq [el (filter #(re-find #".el$" (str %)) (file-seq (clojure.java.io/file "emacs/lisp")))]
-    (with-open [r (clojure.java.io/reader el)]
+  (doseq [el (filter #(re-find #".el$" (str %)) (file-seq (io/file "emacs/lisp")))]
+    (with-open [r (io/reader el)]
       (println el (try (count (parse r)) (catch Throwable e e))))))
