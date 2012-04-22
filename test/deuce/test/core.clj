@@ -8,15 +8,15 @@
   (is false "No tests have been written."))
 
 (defn tokenize [sc]
-  (let [look #(.findWithinHorizon sc % 1)
+  (let [look #(.findWithinHorizon sc (pr-str %) 1)
         tokenize-all #(take-while identity (repeatedly (partial tokenize sc)))
-        unquote #(if (look #"@") 'unquote-splicing 'unquote)
+        unquote #(if (look \@) 'unquote-splicing 'unquote)
         re-sym #"[\w\d-+/*<>=.]+"]
     (cond
-     (look #"\s") (recur sc)
-     (look #"\(") (apply list (tokenize-all))
-     (look #"\[") (vec (tokenize-all))
-     (look #",") (list (unquote) (tokenize sc))
+     (look \s) (recur sc)
+     (look \() (apply list (tokenize-all))
+     (look \[) (vec (tokenize-all))
+     (look \,) (list (unquote) (tokenize sc))
      (.hasNextBigDecimal sc) (.nextBigDecimal sc)
      (.hasNext sc re-sym) (symbol (.next sc re-sym))
      (.hasNext sc) (not-empty (.next sc)))))
