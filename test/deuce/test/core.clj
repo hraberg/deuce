@@ -8,6 +8,8 @@
 (deftest replace-me ;; FIXME: write
   (is false "No tests have been written."))
 
+(declare tokenize)
+
 (defn tokenize-all [sc]
   (take-while identity (repeatedly (partial tokenize sc))))
 
@@ -25,7 +27,7 @@
      (look \') (list 'quote (tokenize sc))
      (look \`) (list 'syntax-quote (tokenize sc))
      (look \:) (keyword (tokenize sc))
-     (look \?) (symbol (find #"[\S&&[^\]\)\s]]+" 0))
+     (look \?) (symbol (str \? (find #"[\S&&[^\]\)\s]]*" 0)))
      (look \") (string/replace (->> (find re-str 0) drop-last (apply str))
                                #"\\(.)" "$1")
      (look \;) (list 'comment (.nextLine sc))
@@ -34,7 +36,7 @@
      (.hasNextDouble sc) (.nextDouble sc)
      (.hasNext sc re-sym) (symbol (.next sc re-sym))
      (.hasNext sc) (when-let [x (seq (.next sc))]
-                     (assert false (str "unexpected: " x))))))
+                     (assert false (str "unexpected: " (apply str x)))))))
 
 (defn parse [r]
   (tokenize-all (doto (Scanner. (if (string? r) (StringReader. r) r))
@@ -42,4 +44,5 @@
 
 (defn smoke []
   (doseq [el (filter #(re-find #".el$" (str %)) (file-seq (clojure.java.io/file "emacs/lisp")))]
-    (println el (try (count (parse (clojure.java.io/reader el))) (catch Throwable e e)))))
+    (with-open [r (clojure.java.io/reader el)]
+      (println el (try (count (parse r)) (catch Throwable e e))))))
