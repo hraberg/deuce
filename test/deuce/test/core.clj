@@ -18,17 +18,19 @@
   (let [find #(.findWithinHorizon sc %1 %2)
         look #(find (pr-str %) 1)
         unquote #(if (look \@) 'unquote-splicing 'unquote)
-        re-sym #"[\p{Graph}&&[^~`#\'\"]]+"
-        re-str #"(?:[^\"\\]|\\.)*\""]
+        re-sym #"[\S&&[^~`#\'\"]]+"
+        re-str #"(?:[^\"\\]|\\.)*\""
+        re-chr #"[\S&&[^\]\)\s]]*"]
     (cond
      (look \s) (recur sc)
      (look \() (apply list (tokenize-all sc))
      (look \[) (vec (tokenize-all sc))
+     (or (look \)) (look \])) nil
      (look \,) (list (unquote) (tokenize sc))
      (look \') (list 'quote (tokenize sc))
      (look \`) (list 'syntax-quote (tokenize sc))
      (look \:) (keyword (tokenize sc))
-     (look \?) (symbol (str \? (find #"[\S&&[^\]\)\s]]*" 0)))
+     (look \?) (symbol (str \? (find re-chr 0)))
      (look \") (string/replace (->> (find re-str 0) drop-last (apply str))
                                #"\\(.)" "$1")
      (look \;) (list 'comment (.nextLine sc))
@@ -36,7 +38,7 @@
      (.hasNextLong sc) (.nextLong sc)
      (.hasNextDouble sc) (.nextDouble sc)
      (.hasNext sc re-sym) (symbol (.next sc re-sym))
-     (.hasNext sc) (when-let [x (seq (.next sc))]
+     (.hasNext sc) (when-let [x (not-empty (tokenize sc))]
                      (assert false (str "unexpected: " (apply str x)))))))
 
 (defn parse [r]
