@@ -1,6 +1,7 @@
 (ns deuce.test.core
   (:use [deuce.core])
   (:use [clojure.test])
+  (:require [clojure.string :as string])
   (import [java.util Scanner]
           [java.io StringReader]))
 
@@ -19,7 +20,8 @@
      (look \() (apply list (tokenize-all))
      (look \[) (vec (tokenize-all))
      (look \,) (list (unquote) (tokenize sc))
-     (look \") (->> (find re-str 0) drop-last (remove #{\\}) (apply str))
+     (look \") (string/replace (->> (find re-str 0) drop-last (apply str))
+                               #"\\(.)" "$1")
      (.hasNextBigDecimal sc) (.nextBigDecimal sc)
      (.hasNext sc re-sym) (symbol (.next sc re-sym))
      (.hasNext sc) (not-empty (.next sc)))))
