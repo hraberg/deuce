@@ -15,7 +15,7 @@
   (let [find #(.findWithinHorizon sc %1 %2)
         look #(find (pr-str %) 1)
         unquote #(if (look \@) 'unquote-splicing 'unquote)
-        re-sym #"[\w\d-+/*<>=\.?\\@&]+"
+        re-sym #"[\p{Graph}&&[^~`#\'\"]]+"
         re-str #"(?:[^\"\\]|\\.)*\""]
     (cond
      (look \s) (recur sc)
@@ -25,6 +25,7 @@
      (look \') (list 'quote (tokenize sc))
      (look \`) (list 'syntax-quote (tokenize sc))
      (look \:) (keyword (tokenize sc))
+     (look \?) (symbol (find #"[\S&&[^\]\)\s]]+" 0))
      (look \") (string/replace (->> (find re-str 0) drop-last (apply str))
                                #"\\(.)" "$1")
      (look \;) (list 'comment (.nextLine sc))
@@ -38,3 +39,7 @@
 (defn parse [r]
   (tokenize-all (doto (Scanner. (if (string? r) (StringReader. r) r))
                   (.useDelimiter #"(\s+|\]|\))"))))
+
+(defn smoke []
+  (doseq [el (filter #(re-find #".el$" (str %)) (file-seq (clojure.java.io/file "emacs/lisp")))]
+    (println el (try (count (parse (clojure.java.io/reader el))) (catch Throwable e e)))))
