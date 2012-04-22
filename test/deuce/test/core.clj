@@ -34,7 +34,10 @@
      (look \") (string/replace (->> (find re-str 0) drop-last (apply str))
                                #"\\(.)" "$1")
      (look \;) (list 'comment (.nextLine sc))
-     (and (look \#) (look \')) (list 'var (tokenize sc))
+     (look \#) (if (look \')
+                 (list 'var (tokenize sc))
+                 (let [[object start end properties] (tokenize sc)]
+                   (list 'set-text-properties start end properties object)))
      (.hasNextLong sc) (.nextLong sc)
      (.hasNextDouble sc) (.nextDouble sc)
      (.hasNext sc re-sym) (symbol (.next sc re-sym))
