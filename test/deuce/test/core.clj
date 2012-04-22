@@ -51,9 +51,9 @@
                      (assert false (str "unexpected: " (apply str x)))))))
 
 (defn parse [r]
-  (tokenize-all (doto (Scanner. r "ISO-8859-1")
-                  (.useDelimiter #"(\s+|\]|\))"))))
+  (tokenize-all (doto (if (string? r) (Scanner. r) (Scanner. r "ISO-8859-1"))
+                  (.useDelimiter #"(\s+|\]|\)|\")"))))
 
 (defn smoke []
   (doseq [el (filter #(re-find #".el$" (str %)) (file-seq (io/file "emacs/lisp")))]
-    (println el (try (count (parse el)) (catch Throwable e e)))))
+    (try (count (parse el)) (catch Throwable e (println el e)))))
