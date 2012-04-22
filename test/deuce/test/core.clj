@@ -4,23 +4,22 @@
   (:require [clojure.string :as string]
             [clojure.java.io :as io])
   (import [java.util Scanner]
-          [java.io StringReader]))
-
-(deftest replace-me ;; FIXME: write
-  (is false "No tests have been written."))
+          [java.io StringReader]
+          [java.util.regex Pattern]))
 
 (declare tokenize)
 
-(defn tokenize-all [sc]
+(def ^Pattern re-sym #"[\S&&[^~`#\'\"]]+")
+(def ^Pattern re-str #"(?:[^\"\\]|\\.)*\"")
+(def ^Pattern re-chr #"[\S&&[^\]\)\s]]*")
+
+(defn tokenize-all [^Scanner sc]
   (take-while identity (repeatedly (partial tokenize sc))))
 
-(defn tokenize [sc]
-  (let [find #(.findWithinHorizon sc %1 %2)
-        look #(find (pr-str %) 1)
-        unquote #(if (look \@) 'unquote-splicing 'unquote)
-        re-sym #"[\S&&[^~`#\'\"]]+"
-        re-str #"(?:[^\"\\]|\\.)*\""
-        re-chr #"[\S&&[^\]\)\s]]*"]
+(defn tokenize [^Scanner sc]
+  (let [find (fn [^Pattern re h] (.findWithinHorizon sc re (int h)))
+        look #(find (re-pattern (pr-str %)) 1)
+        unquote #(if (look \@) 'unquote-splicing 'unquote)]
     (cond
      (look \s) (recur sc)
      (look \() (apply list (tokenize-all sc))
@@ -45,10 +44,9 @@
                      (assert false (str "unexpected: " (apply str x)))))))
 
 (defn parse [r]
-  (tokenize-all (doto (Scanner. (if (string? r) (StringReader. r) r))
+  (tokenize-all (doto (Scanner. r)
                   (.useDelimiter #"(\s+|\]|\))"))))
 
 (defn smoke []
   (doseq [el (filter #(re-find #".el$" (str %)) (file-seq (io/file "emacs/lisp")))]
-    (with-open [r (io/reader el)]
-      (println el (try (count (parse r)) (catch Throwable e e))))))
+    (println el (try (count (parse el)) (catch Throwable e e)))))

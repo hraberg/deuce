@@ -8,5 +8,5 @@
   :resources-path "emacs/lisp"
   :jar-exclusions [#".*\.elc"]
   :java-source-path "src"
-  :jvm-opts ["-Xss32m"]
+  :jvm-opts ["-Xss4m"]
   :main deuce.core)
