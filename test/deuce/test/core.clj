@@ -21,16 +21,16 @@
         unquote #(if (find #"@" 1) 'unquote-splicing 'unquote)]
     (condp find 1
       #"\s" (recur sc)
+      #"[)\]]" nil
       #"\(" (apply list (tokenize-all sc))
       #"\[" (vec (tokenize-all sc))
-      #"[)\]]" nil
       #"," (list (unquote) (tokenize sc))
       #"'" (list 'quote (tokenize sc))
       #"`" (list 'syntax-quote (tokenize sc))
       #":" (keyword (tokenize sc))
       #"\?" (symbol (str \? (find re-chr 0)))
       #"\"" (.sval (doto (StreamTokenizer. (StringReader. (str \" (find re-str 0))))
-                           (.nextToken)))
+                     (.nextToken)))
       #";" (list 'comment (.nextLine sc))
       #"#" (condp find 1
              #"'" (list 'var (tokenize sc))
@@ -39,9 +39,10 @@
              #"b" (.nextInt sc (int 2))
              #"\(" (let [[object start end properties] (tokenize-all sc)]
                      (list 'set-text-properties start end properties object))
-             (when (.hasNext sc #"\d+r\S+") (let [radix (find #"\d+" 0)]
-                                              (find #"r" 1)
-                                              (.nextInt sc (Integer/parseInt radix)))))
+             (when (.hasNext sc #"\d+r\S+")
+               (let [radix (find #"\d+" 0)]
+                 (find #"r" 1)
+                 (.nextInt sc (Integer/parseInt radix)))))
       (cond
        (.hasNextLong sc) (.nextLong sc)
        (.hasNextDouble sc) (.nextDouble sc)
