@@ -17,14 +17,13 @@
   (take-while identity (repeatedly (partial tokenize sc))))
 
 (defn tokenize [^Scanner sc]
-  (let [find (fn [^Pattern re h] (.findWithinHorizon sc re (int h)))
-        unquote #(if (find #"@" 1) 'unquote-splicing 'unquote)]
+  (let [find (fn [^Pattern re h] (.findWithinHorizon sc re (int h)))]
     (condp find 1
       #"\s" (recur sc)
       #"[)\]]" nil
       #"\(" (apply list (tokenize-all sc))
       #"\[" (vec (tokenize-all sc))
-      #"," (list (unquote) (tokenize sc))
+      #"," (list (if (find #"@" 1) 'unquote-splicing 'unquote) (tokenize sc))
       #"'" (list 'quote (tokenize sc))
       #"`" (list 'syntax-quote (tokenize sc))
       #":" (keyword (tokenize sc))
