@@ -9,9 +9,7 @@
 
 (declare tokenize)
 
-(def ^Pattern re-sym #"[\S&&[^#\"]]+")
 (def ^Pattern re-str #"(?s)([^\"\\]*(?:\\.[^\"\\]*)*)\"")
-(def ^Pattern re-chr #"[\S&&[^\]\)\s]]*")
 
 (defn tokenize-all [^Scanner sc]
   (take-while identity (repeatedly (partial tokenize sc))))
@@ -26,8 +24,8 @@
       #"," (list (if (find #"@" 1) 'unquote-splicing 'unquote) (tokenize sc))
       #"'" (list 'quote (tokenize sc))
       #"`" (list 'syntax-quote (tokenize sc))
-      #":" (keyword (tokenize sc))
-      #"\?" (symbol (str \? (find re-chr 0)))
+      #":" (keyword (.next sc))
+      #"\?" (symbol (str \? (.next sc)))
       #"\"" (.sval (doto (StreamTokenizer. (StringReader. (str \" (find re-str 0))))
                      (.nextToken)))
       #";" (list 'comment (.nextLine sc))
@@ -45,8 +43,7 @@
       (cond
        (.hasNextLong sc) (.nextLong sc)
        (.hasNextDouble sc) (.nextDouble sc)
-       (.hasNext sc re-sym) (symbol (.next sc re-sym))
-       (.hasNext sc) (assert false (str "unexpected: " (.next sc)))))))
+       (.hasNext sc) (symbol (.next sc))))))
 
 (defn parse [r]
   (tokenize-all (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
