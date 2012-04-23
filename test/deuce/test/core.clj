@@ -9,9 +9,8 @@
 
 (declare tokenize)
 
-(def ^Pattern re-sym #"[\S&&[^~`#\'\"]]+")
-
-(def ^Pattern re-str #"([^\"\\]*(?:\\.[^\"\\]*)*)\"")
+(def ^Pattern re-sym #"[\S&&[^#\"]]+")
+(def ^Pattern re-str #"(?s)([^\"\\]*(?:\\.[^\"\\]*)*)\"")
 (def ^Pattern re-chr #"[\S&&[^\]\)\s]]*")
 
 (defn tokenize-all [^Scanner sc]
@@ -51,8 +50,8 @@
                      (assert false (str "unexpected: " (apply str x)))))))
 
 (defn parse [r]
-  (tokenize-all (doto (if (string? r) (Scanner. r) (Scanner. r "ISO-8859-1"))
-                  (.useDelimiter #"(\s+|\]|\)|\")"))))
+  (tokenize-all (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
+                  (.useDelimiter #"(\s+|\]|\)|\"|;)"))))
 
 (defn smoke []
   (doseq [el (filter #(re-find #".el$" (str %)) (file-seq (io/file "emacs/lisp")))]
