@@ -46,8 +46,7 @@
      (.hasNextLong sc) (.nextLong sc)
      (.hasNextDouble sc) (.nextDouble sc)
      (.hasNext sc re-sym) (symbol (.next sc re-sym))
-     (.hasNext sc) (when-let [x (not-empty (tokenize sc))]
-                     (assert false (str "unexpected: " (apply str x)))))))
+     (.hasNext sc) (assert false (str "unexpected: " (.next sc))))))
 
 (defn parse [r]
   (tokenize-all (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
