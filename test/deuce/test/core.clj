@@ -33,11 +33,11 @@
       #";" (list 'comment (.nextLine sc))
       #"#" (condp find 1
              #"'" (list 'var (tokenize sc))
+             #"\(" (let [[object start end properties] (tokenize-all sc)]
+                     (list 'set-text-properties start end properties object))
              #"x" (.nextInt sc (int 16))
              #"o" (.nextInt sc (int 8))
              #"b" (.nextInt sc (int 2))
-             #"\(" (let [[object start end properties] (tokenize-all sc)]
-                     (list 'set-text-properties start end properties object))
              (when (.hasNext sc #"\d+r\S+")
                (let [radix (find #"\d+" 0)]
                  (find #"r" 1)
