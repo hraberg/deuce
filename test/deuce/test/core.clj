@@ -18,35 +18,35 @@
 
 (defn tokenize [^Scanner sc]
   (let [find (fn [^Pattern re h] (.findWithinHorizon sc re (int h)))
-        look #(find % 1)
-        unquote #(if (look #"@") 'unquote-splicing 'unquote)]
-    (cond
-     (look #"\s") (recur sc)
-     (look #"\(") (apply list (tokenize-all sc))
-     (look #"\[") (vec (tokenize-all sc))
-     (look #"[)\]]") nil
-     (look #",") (list (unquote) (tokenize sc))
-     (look #"'") (list 'quote (tokenize sc))
-     (look #"`") (list 'syntax-quote (tokenize sc))
-     (look #":") (keyword (tokenize sc))
-     (look #"\?") (symbol (str \? (find re-chr 0)))
-     (look #"\"") (.sval (doto (StreamTokenizer. (StringReader. (str \" (find re-str 0))))
+        unquote #(if (find #"@" 1) 'unquote-splicing 'unquote)]
+    (condp find 1
+      #"\s" (recur sc)
+      #"\(" (apply list (tokenize-all sc))
+      #"\[" (vec (tokenize-all sc))
+      #"[)\]]" nil
+      #"," (list (unquote) (tokenize sc))
+      #"'" (list 'quote (tokenize sc))
+      #"`" (list 'syntax-quote (tokenize sc))
+      #":" (keyword (tokenize sc))
+      #"\?" (symbol (str \? (find re-chr 0)))
+      #"\"" (.sval (doto (StreamTokenizer. (StringReader. (str \" (find re-str 0))))
                            (.nextToken)))
-     (look #";") (list 'comment (.nextLine sc))
-     (look #"#") (cond
-                  (look #"'") (list 'var (tokenize sc))
-                  (look #"x") (.nextInt sc (int 16))
-                  (look #"o") (.nextInt sc (int 8))
-                  (look #"b") (.nextInt sc (int 2))
-                  (.hasNext sc #"\d+r\S+") (let [radix (find #"\d+" 0)]
-                                             (look #"r")
-                                             (.nextInt sc (Integer/parseInt radix)))
-                (look #"\(") (let [[object start end properties] (tokenize-all sc)]
-                            (list 'set-text-properties start end properties object)))
-     (.hasNextLong sc) (.nextLong sc)
-     (.hasNextDouble sc) (.nextDouble sc)
-     (.hasNext sc re-sym) (symbol (.next sc re-sym))
-     (.hasNext sc) (assert false (str "unexpected: " (.next sc))))))
+      #";" (list 'comment (.nextLine sc))
+      #"#" (condp find 1
+             #"'" (list 'var (tokenize sc))
+             #"x" (.nextInt sc (int 16))
+             #"o" (.nextInt sc (int 8))
+             #"b" (.nextInt sc (int 2))
+             #"\(" (let [[object start end properties] (tokenize-all sc)]
+                     (list 'set-text-properties start end properties object))
+             (when (.hasNext sc #"\d+r\S+") (let [radix (find #"\d+" 0)]
+                                              (find #"r" 1)
+                                              (.nextInt sc (Integer/parseInt radix)))))
+      (cond
+       (.hasNextLong sc) (.nextLong sc)
+       (.hasNextDouble sc) (.nextDouble sc)
+       (.hasNext sc re-sym) (symbol (.next sc re-sym))
+       (.hasNext sc) (assert false (str "unexpected: " (.next sc)))))))
 
 (defn parse [r]
   (tokenize-all (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
