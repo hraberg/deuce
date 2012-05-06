@@ -3,7 +3,8 @@
 *Because it's there* -- George Mallory
 
 
-**Note: Absolutely NOTHING works yet. I plan to work full-time on this from August 2012. Expect until Q3 2012 before anything even remotely interesting.**
+**Note: Absolutely NOTHING works yet. Expect until Q3 2012 before anything even remotely interesting.**
+*(I plan to work full-time on this from August 2012.)*
 
 Also - there's a risk I'll give up, far before reaching the current benchmark of JVM Emacsen: [JEmacs](http://per.bothner.com/papers/Freenix00/Freenix00.html).
 
