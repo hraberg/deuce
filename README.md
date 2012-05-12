@@ -186,6 +186,8 @@ I expect this to take 1-2 weeks and fail, but to learn a bit about how Emacs doe
 
 [Emacs Lisp in Edwin Scheme](http://www.dtic.mil/dtic/tr/fulltext/u2/a276721.pdf) Matthew Birkholz, 1993
 
+[Thoughts On Common And Scheme Lisp Based Emacs](http://xahlee.org/emacs/modernization_of_elisp.html) Xah Lee, 2008
+
 [The Craft of Text Editing: Emacs for the Modern World](http://www.finseth.com/craft/) Craig A. Finseth, 1991, 1999
 
 [Down with Emacs Lisp: Dynamic Scope Analysis](http://www-pu.informatik.uni-tuebingen.de/users/sperber/papers/dynamic-scope-analysis.pdf) Matthias Neubauer and Michael Sperber, 2001
