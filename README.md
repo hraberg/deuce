@@ -11,17 +11,17 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 ### Preparing Emacs
 
-The target version of Emacs is 23.4. It's assumed to live under `emacs`. `configure-emacs` will download it if not.
+The target version of Emacs is 24.1. It's assumed to live under `emacs`. `configure-emacs` will download it if not.
 
 
 For a minimal [Emacs build](http://www.gnu.org/software/emacs/manual/html_node/elisp/Building-Emacs.html):
 
-    ./configure-emacs # downloads emacs-23.4.tar.bz if needed
-    ./make-emacs temacs
+    ./configure-emacs # downloads emacs-24.1.tar.bz if needed
+    make -C emacs # takes a few minutes.
 
     ./emacs/src/temacs -Q --batch --eval "(print (emacs-version))" # ./smoke
 
-`temacs` is "bare impure Emacs", the raw C version of Emacs, without any Emacs Lisp AOTd.
+`temacs` is "bare impure Emacs", the raw C version of Emacs, without any Emacs Lisp preloaded.
 The Emacs Lisp lives under `emacs/lisp`. `-Q` is `-q --no-site-file --no-splash`, it basically suppresses all customizations. `--batch` won't open the display editor.
 
 The above should output:
@@ -31,8 +31,8 @@ The above should output:
     Loading emacs-lisp/byte-run...
     [... loads of Emacs Lisp loaded ...]
 
-    "GNU Emacs 23.4 (x86_64-unknown-linux-gnu)
-    of 2012-04-14 on hraberg-VPCZ21C5E"
+    "GNU Emacs 24.1 (x86_64-unknown-linux-gnu)
+     of 2012-08-08 on hraberg-VPCZ21C5E"
 
 *The task at hand is to get rid of the bare impure Emacs, replace it with Clojure and the JVM, while keeping Emacs Lisp running.*
 
@@ -174,6 +174,22 @@ I expect this to take 1-2 weeks and fail, but to learn a bit about how Emacs doe
   * - Directly side tracks into screen buffer management and other potential time sinks.
   * - Risk of building the house without sound foundation.
   * - Seeing how broken it will be early on could be bad for morale.
+
+
+### Scott McKay's "Dylan Environment Universal Code Editor"
+
+I recently found out about this other Emacs clone, also named [Deuce](http://groups.google.com/group/comp.lang.lisp/msg/02782906f6c4d6e8?pli=1) (2001):
+
+> Actually, I called it Deuce as a conscious homage to Zwei, then force-fit an acronym: Dylan Environment Universal Code Editor.
+
+
+Scott then further talks about this:
+
+> A buffer is then dynamically composed of "section nodes" [..] it costs a little in performance, but in return it's much easier to build some cool features [like fonts, graphics].
+
+Which nicely leads into richer, HTML based versions - the general approach in "`deuce.clj`" is expected to aim for support of text based Emacs buffers, but skip the more modern (but obsolete) graphics features of GNU Emacs and head straight for the browser.
+
+I'll revisit the name if the Clojure port actually becomes usable and the name clash with Dylan Deuce leads to confusion.
 
 
 ## References

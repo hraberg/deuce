@@ -3,6 +3,4 @@
 target=${@:-temacs}
 
 test -e emacs/src/Makefile || ./configure-emacs
-
-cd emacs/src
-make $target
+make -C emacs/src $target
