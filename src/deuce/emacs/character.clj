@@ -1,7 +1,42 @@
 (ns
  deuce.emacs.character
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar auto-fill-chars nil
+  "A char-table for characters which invoke auto-filling.
+  Such characters have value t in this table.")
+
+(defvar printable-chars nil
+  "A char-table for each printable character.")
+
+(defvar unicode-category-table nil
+  "Char table of Unicode's \"General Category\".
+  All Unicode characters have one of the following values (symbol):
+    Lu, Ll, Lt, Lm, Lo, Mn, Mc, Me, Nd, Nl, No, Pc, Pd, Ps, Pe, Pi, Pf, Po,
+    Sm, Sc, Sk, So, Zs, Zl, Zp, Cc, Cf, Cs, Co, Cn
+  See The Unicode Standard for the meaning of those values.")
+
+(defvar char-width-table nil
+  "A char-table for width (columns) of each character.")
+
+(defvar char-script-table nil
+  "Char table of script symbols.
+  It has one extra slot whose value is a list of script symbols.")
+
+(defvar translation-table-vector nil
+  "Vector recording all translation tables ever defined.
+  Each element is a pair (SYMBOL . TABLE) relating the table to the
+  symbol naming it.  The ID of a translation table is an index into this vector.")
+
+(defvar script-representative-chars nil
+  "Alist of scripts vs the representative characters.
+  Each element is a cons (SCRIPT . CHARS).
+  SCRIPT is a symbol representing a script or a subgroup of a script.
+  CHARS is a list or a vector of characters.
+  If it is a list, all characters in the list are necessary for supporting SCRIPT.
+  If it is a vector, one of the characters in the vector is necessary.
+  This variable is used to find a font for a specific script.")
 
 (defun unibyte-char-to-multibyte (ch)
   "Convert the byte CH to multibyte character."

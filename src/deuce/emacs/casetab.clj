@@ -1,6 +1,6 @@
 (ns
  deuce.emacs.casetab
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
 
 (defun set-standard-case-table (table)

@@ -1,7 +1,12 @@
 (ns
  deuce.emacs.filelock
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar temporary-file-directory nil
+  "The directory for writing temporary files.
+  
+  You can customize this variable.")
 
 (defun lock-buffer (&optional file)
   "Lock FILE, if current buffer is modified.

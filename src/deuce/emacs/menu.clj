@@ -1,6 +1,6 @@
 (ns
  deuce.emacs.menu
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
 
 (defun x-popup-menu (position menu)

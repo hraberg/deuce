@@ -1,7 +1,33 @@
 (ns
  deuce.emacs.textprop
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar default-text-properties nil
+  "Property-list used as default values.
+  The value of a property in this list is seen as the value for every
+  character that does not have its own value for that property.")
+
+(defvar text-property-default-nonsticky nil
+  "Alist of properties vs the corresponding non-stickiness.
+  Each element has the form (PROPERTY . NONSTICKINESS).
+  
+  If a character in a buffer has PROPERTY, new text inserted adjacent to
+  the character doesn't inherit PROPERTY if NONSTICKINESS is non-nil,
+  inherits it if NONSTICKINESS is nil.  The `front-sticky' and
+  `rear-nonsticky' properties of the character override NONSTICKINESS.")
+
+(defvar char-property-alias-alist nil
+  "Alist of alternative properties for properties without a value.
+  Each element should look like (PROPERTY ALTERNATIVE1 ALTERNATIVE2...).
+  If a piece of text has no direct value for a particular property, then
+  this alist is consulted.  If that property appears in the alist, then
+  the first non-nil value from the associated alternative properties is
+  returned.")
+
+(defvar inhibit-point-motion-hooks nil
+  "If non-nil, don't run `point-left' and `point-entered' text properties.
+  This also inhibits the use of the `intangible' text property.")
 
 (defun next-char-property-change (position &optional limit)
   "Return the position of next text property or overlay change.

@@ -1,9 +1,32 @@
 (ns
  deuce.emacs.fns
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure
   :exclude
   [concat assoc reverse nth identity require get sort]))
+
+(defvar use-dialog-box nil
+  "*Non-nil means mouse commands use dialog boxes to ask questions.
+  This applies to `y-or-n-p' and `yes-or-no-p' questions asked by commands
+  invoked by mouse clicks and mouse menu items.
+  
+  On some platforms, file selection dialogs are also enabled if this is
+  non-nil.
+  
+  You can customize this variable.")
+
+(defvar use-file-dialog nil
+  "*Non-nil means mouse commands use a file dialog to ask for files.
+  This applies to commands from menus and tool bar buttons even when
+  they are initiated from the keyboard.  If `use-dialog-box' is nil,
+  that disables the use of a file dialog, regardless of the value of
+  this variable.
+  
+  You can customize this variable.")
+
+(defvar features nil
+  "A list of symbols which are the features of the executing Emacs.
+  Used by `featurep' and `require', and altered by `provide'.")
 
 (defun provide (feature &optional subfeatures)
   "Announce that FEATURE is a feature of the current Emacs.

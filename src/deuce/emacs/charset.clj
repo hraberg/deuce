@@ -1,7 +1,23 @@
 (ns
  deuce.emacs.charset
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar inhibit-load-charset-map nil
+  "Inhibit loading of charset maps.  Used when dumping Emacs.")
+
+(defvar current-iso639-language nil
+  "ISO639 language mnemonic symbol for the current language environment.
+  If the current language environment is for multiple languages (e.g. \"Latin-1\"),
+  the value may be a list of mnemonics.")
+
+(defvar charset-list nil
+  "List of all charsets ever defined.")
+
+(defvar charset-map-path nil
+  "*List of directories to search for charset map files.
+  
+  You can customize this variable.")
 
 (defun sort-charsets (charsets)
   "Sort charset list CHARSETS by a priority of each charset.

@@ -1,7 +1,190 @@
 (ns
  deuce.emacs.lread
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude [read intern load]))
+
+(defvar old-style-backquotes nil
+  "Set to non-nil when `read' encounters an old-style backquote.")
+
+(defvar values nil
+  "List of values of all expressions which were read, evaluated and printed.
+  Order is reverse chronological.")
+
+(defvar force-load-messages nil
+  "Non-nil means force printing messages when loading Lisp files.
+  This overrides the value of the NOMESSAGE argument to `load'.")
+
+(defvar read-with-symbol-positions nil
+  "If non-nil, add position of read symbols to `read-symbol-positions-list'.
+  
+  If this variable is a buffer, then only forms read from that buffer
+  will be added to `read-symbol-positions-list'.
+  If this variable is t, then all read forms will be added.
+  The effect of all other values other than nil are not currently
+  defined, although they may be in the future.
+  
+  The positions are relative to the last call to `read' or
+  `read-from-string'.  It is probably a bad idea to set this variable at
+  the toplevel; bind it instead.")
+
+(defvar read-symbol-positions-list nil
+  "A list mapping read symbols to their positions.
+  This variable is modified during calls to `read' or
+  `read-from-string', but only when `read-with-symbol-positions' is
+  non-nil.
+  
+  Each element of the list looks like (SYMBOL . CHAR-POSITION), where
+  CHAR-POSITION is an integer giving the offset of that occurrence of the
+  symbol from the position where `read' or `read-from-string' started.
+  
+  Note that a symbol will appear multiple times in this list, if it was
+  read multiple times.  The list is in the same order as the symbols
+  were read in.")
+
+(defvar load-path nil
+  "*List of directories to search for files to load.
+  Each element is a string (directory name) or nil (try default directory).
+  Initialized based on EMACSLOADPATH environment variable, if any,
+  otherwise to default specified by file `epaths.h' when Emacs was built.")
+
+(defvar load-history nil
+  "Alist mapping loaded file names to symbols and features.
+  Each alist element should be a list (FILE-NAME ENTRIES...), where
+  FILE-NAME is the name of a file that has been loaded into Emacs.
+  The file name is absolute and true (i.e. it doesn't contain symlinks).
+  As an exception, one of the alist elements may have FILE-NAME nil,
+  for symbols and features not associated with any file.
+  
+  The remaining ENTRIES in the alist element describe the functions and
+  variables defined in that file, the features provided, and the
+  features required.  Each entry has the form `(provide . FEATURE)',
+  `(require . FEATURE)', `(defun . FUNCTION)', `(autoload . SYMBOL)',
+  `(defface . SYMBOL)', or `(t . SYMBOL)'.  Entries like `(t . SYMBOL)'
+  may precede a `(defun . FUNCTION)' entry, and means that SYMBOL was an
+  autoload before this file redefined it as a function.  In addition,
+  entries may also be single symbols, which means that SYMBOL was
+  defined by `defvar' or `defconst'.
+  
+  During preloading, the file name recorded is relative to the main Lisp
+  directory.  These file names are converted to absolute at startup.")
+
+(defvar user-init-file nil
+  "File name, including directory, of user's initialization file.
+  If the file loaded had extension `.elc', and the corresponding source file
+  exists, this variable contains the name of source file, suitable for use
+  by functions like `custom-save-all' which edit the init file.
+  While Emacs loads and evaluates the init file, value is the real name
+  of the file, regardless of whether or not it has the `.elc' extension.")
+
+(defvar preloaded-file-list nil
+  "List of files that were preloaded (when dumping Emacs).")
+
+(defvar bytecomp-version-regexp nil
+  "Regular expression matching safe to load compiled Lisp files.
+  When Emacs loads a compiled Lisp file, it reads the first 512 bytes
+  from the file, and matches them against this regular expression.
+  When the regular expression matches, the file is considered to be safe
+  to load.  See also `load-dangerous-libraries'.")
+
+(defvar load-file-name nil
+  "Full name of file being loaded by `load'.")
+
+(defvar load-suffixes nil
+  "List of suffixes for (compiled or source) Emacs Lisp files.
+  This list should not include the empty string.
+  `load' and related functions try to append these suffixes, in order,
+  to the specified file name if a Lisp suffix is allowed or required.")
+
+(defvar load-convert-to-unibyte nil
+  "Non-nil means `read' converts strings to unibyte whenever possible.
+  This is normally bound by `load' and `eval-buffer' to control `read',
+  and is not meant for users to change.")
+
+(defvar load-file-rep-suffixes nil
+  "List of suffixes that indicate representations of the same file.
+  This list should normally start with the empty string.
+  
+  Enabling Auto Compression mode appends the suffixes in
+  `jka-compr-load-suffixes' to this list and disabling Auto Compression
+  mode removes them again.  `load' and related functions use this list to
+  determine whether they should look for compressed versions of a file
+  and, if so, which suffixes they should try to append to the file name
+  in order to do so.  However, if you want to customize which suffixes
+  the loading functions recognize as compression suffixes, you should
+  customize `jka-compr-load-suffixes' rather than the present variable.")
+
+(defvar load-source-file-function nil
+  "Function called in `load' for loading an Emacs Lisp source file.
+  This function is for doing code conversion before reading the source file.
+  If nil, loading is done without any code conversion.
+  Arguments are FULLNAME, FILE, NOERROR, NOMESSAGE, where
+   FULLNAME is the full name of FILE.
+  See `load' for the meaning of the remaining arguments.")
+
+(defvar load-read-function nil
+  "Function used by `load' and `eval-region' for reading expressions.
+  The default is nil, which means use the function `read'.")
+
+(defvar obarray nil
+  "Symbol table for use by `intern' and `read'.
+  It is a vector whose length ought to be prime for best results.
+  The vector's contents don't make sense if examined from Lisp programs;
+  to find all the symbols in an obarray, use `mapatoms'.")
+
+(defvar read-circle nil
+  "Non-nil means read recursive structures using #N= and #N# syntax.")
+
+(defvar eval-buffer-list nil
+  "List of buffers being read from by calls to `eval-buffer' and `eval-region'.")
+
+(defvar load-force-doc-strings nil
+  "Non-nil means `load' should force-load all dynamic doc strings.
+  This is useful when the file being loaded is a temporary copy.")
+
+(defvar byte-boolean-vars nil
+  "List of all DEFVAR_BOOL variables, used by the byte code optimizer.")
+
+(defvar after-load-alist nil
+  "An alist of expressions to be evalled when particular files are loaded.
+  Each element looks like (REGEXP-OR-FEATURE FORMS...).
+  
+  REGEXP-OR-FEATURE is either a regular expression to match file names, or
+  a symbol (a feature name).
+  
+  When `load' is run and the file-name argument matches an element's
+  REGEXP-OR-FEATURE, or when `provide' is run and provides the symbol
+  REGEXP-OR-FEATURE, the FORMS in the element are executed.
+  
+  An error in FORMS does not undo the load, but does prevent execution of
+  the rest of the FORMS.")
+
+(defvar load-in-progress nil
+  "Non-nil if inside of `load'.")
+
+(defvar load-dangerous-libraries nil
+  "Non-nil means load dangerous compiled Lisp files.
+  Some versions of XEmacs use different byte codes than Emacs.  These
+  incompatible byte codes can make Emacs crash when it tries to execute
+  them.")
+
+(defvar current-load-list nil
+  "Used for internal purposes by `load'.")
+
+(defvar source-directory nil
+  "Directory in which Emacs sources were found when Emacs was built.
+  You cannot count on them to still be there!")
+
+(defvar lexical-binding nil
+  "Whether to use lexical binding when evaluating code.
+  Non-nil means that the code in the current buffer should be evaluated
+  with lexical binding.
+  This variable is automatically set from the file variables of an
+  interpreted Lisp file read using `load'.  Unlike other file local
+  variables, this must be set in the first line of a file.")
+
+(defvar standard-input nil
+  "Stream for read to get input from.
+  See documentation of `read' for possible values.")
 
 (defun read-event (&optional prompt inherit-input-method seconds)
   "Read an event object from the input stream.

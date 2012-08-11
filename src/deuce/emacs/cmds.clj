@@ -1,7 +1,11 @@
 (ns
  deuce.emacs.cmds
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar post-self-insert-hook nil
+  "Hook run at the end of `self-insert-command'.
+  This is run after inserting the character.")
 
 (defun forward-line (&optional n)
   "Move N lines forward (backward if N is negative).

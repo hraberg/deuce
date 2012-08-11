@@ -1,7 +1,12 @@
 (ns
  deuce.emacs.indent
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar indent-tabs-mode nil
+  "*Indentation can insert tabs if this is non-nil.
+  
+  You can customize this variable.")
 
 (defun current-indentation ()
   "Return the indentation of the current line.

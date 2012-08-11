@@ -1,7 +1,47 @@
 (ns
  deuce.emacs.category
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar word-separating-categories nil
+  "List of pair (cons) of categories to determine word boundary.
+  See the documentation of the variable `word-combining-categories'.")
+
+(defvar word-combining-categories nil
+  "List of pair (cons) of categories to determine word boundary.
+  
+  Emacs treats a sequence of word constituent characters as a single
+  word (i.e. finds no word boundary between them) only if they belong to
+  the same script.  But, exceptions are allowed in the following cases.
+  
+  (1) The case that characters are in different scripts is controlled
+  by the variable `word-combining-categories'.
+  
+  Emacs finds no word boundary between characters of different scripts
+  if they have categories matching some element of this list.
+  
+  More precisely, if an element of this list is a cons of category CAT1
+  and CAT2, and a multibyte character C1 which has CAT1 is followed by
+  C2 which has CAT2, there's no word boundary between C1 and C2.
+  
+  For instance, to tell that Han characters followed by Hiragana
+  characters can form a single word, the element `(?C . ?H)' should be
+  in this list.
+  
+  (2) The case that character are in the same script is controlled by
+  the variable `word-separating-categories'.
+  
+  Emacs finds a word boundary between characters of the same script
+  if they have categories matching some element of this list.
+  
+  More precisely, if an element of this list is a cons of category CAT1
+  and CAT2, and a multibyte character C1 which has CAT1 but not CAT2 is
+  followed by C2 which has CAT2 but not CAT1, there's a word boundary
+  between C1 and C2.
+  
+  For instance, to tell that there's a word boundary between Hiragana
+  and Katakana (both are in the same script `kana'),
+  the element `(?H . ?K) should be in this list.")
 
 (defun standard-category-table ()
   "Return the standard category table.

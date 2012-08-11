@@ -1,6 +1,6 @@
 (ns
  deuce.emacs.casefiddle
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
 
 (defun upcase-word (arg)

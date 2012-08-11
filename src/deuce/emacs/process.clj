@@ -1,7 +1,31 @@
 (ns
  deuce.emacs.process
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar delete-exited-processes nil
+  "*Non-nil means delete processes immediately when they exit.
+  A value of nil means don't delete them until `list-processes' is run.
+  
+  You can customize this variable.")
+
+(defvar process-connection-type nil
+  "Control type of device used to communicate with subprocesses.
+  Values are nil to use a pipe, or t or `pty' to use a pty.
+  The value has no effect if the system has no ptys or if all ptys are busy:
+  then a pipe is used in any case.
+  The value takes effect when `start-process' is called.")
+
+(defvar process-adaptive-read-buffering nil
+  "If non-nil, improve receive buffering by delaying after short reads.
+  On some systems, when Emacs reads the output from a subprocess, the output data
+  is read in very small blocks, potentially resulting in very poor performance.
+  This behavior can be remedied to some extent by setting this variable to a
+  non-nil value, as it will automatically delay reading from such processes, to
+  allow them to produce more output before Emacs tries to read it.
+  If the value is t, the delay is reset after each write to the process; any other
+  non-nil value means that the delay is not reset on write.
+  The variable takes effect when `start-process' is called.")
 
 (defun delete-process (process)
   "Delete PROCESS: kill it and forget about it immediately.

@@ -1,7 +1,37 @@
 (ns
  deuce.emacs.editfns
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude [format]))
+
+(defvar buffer-access-fontified-property nil
+  "Property which (if non-nil) indicates text has been fontified.
+  `buffer-substring' need not call the `buffer-access-fontify-functions'
+  functions if all the text being accessed has this property.")
+
+(defvar operating-system-release nil
+  "The release of the operating system Emacs is running on.")
+
+(defvar user-real-login-name nil
+  "The user's name, based upon the real uid only.")
+
+(defvar buffer-access-fontify-functions nil
+  "List of functions called by `buffer-substring' to fontify if necessary.
+  Each function is called with two arguments which specify the range
+  of the buffer being accessed.")
+
+(defvar user-login-name nil
+  "The user's name, taken from environment variables if possible.")
+
+(defvar system-name nil
+  "The host name of the machine Emacs is running on.")
+
+(defvar inhibit-field-text-motion nil
+  "Non-nil means text motion commands don't notice fields.")
+
+(defvar user-full-name nil
+  "The full name of the user logged in.
+  
+  You can customize this variable.")
 
 (defun byte-to-position (bytepos)
   "Return the character position for byte position BYTEPOS.

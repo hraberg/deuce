@@ -1,7 +1,26 @@
 (ns
  deuce.emacs.macros
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar last-kbd-macro nil
+  "Last kbd macro defined, as a string or vector; nil if none defined.")
+
+(defvar defining-kbd-macro nil
+  "Non-nil while a keyboard macro is being defined.  Don't set this!
+  The value is the symbol `append' while appending to the definition of
+  an existing macro.")
+
+(defvar kbd-macro-termination-hook nil
+  "Normal hook run whenever a keyboard macro terminates.
+  This is run whether the macro ends normally or prematurely due to an error.")
+
+(defvar executing-kbd-macro-index nil
+  "Index in currently executing keyboard macro; undefined if none executing.")
+
+(defvar executing-kbd-macro nil
+  "Currently executing keyboard macro (string or vector).
+  This is nil when not executing a keyboard macro.")
 
 (defun start-kbd-macro (append &optional no-exec)
   "Record subsequent keyboard input, defining a keyboard macro.

@@ -1,7 +1,105 @@
 (ns
  deuce.emacs.eval
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude [apply eval]))
+
+(defvar debugger nil
+  "Function to call to invoke debugger.
+  If due to frame exit, args are `exit' and the value being returned;
+   this function's value will be returned instead of that.
+  If due to error, args are `error' and a list of the args to `signal'.
+  If due to `apply' or `funcall' entry, one arg, `lambda'.
+  If due to `eval' entry, one arg, t.")
+
+(defvar inhibit-quit nil
+  "Non-nil inhibits C-g quitting from happening immediately.
+  Note that `quit-flag' will still be set by typing C-g,
+  so a quit will be signaled as soon as `inhibit-quit' is nil.
+  To prevent this happening, set `quit-flag' to nil
+  before making `inhibit-quit' nil.")
+
+(defvar max-lisp-eval-depth nil
+  "*Limit on depth in `eval', `apply' and `funcall' before error.
+  
+  This limit serves to catch infinite recursions for you before they cause
+  actual stack overflow in C, which would be fatal for Emacs.
+  You can safely make it considerably larger than its default value,
+  if that proves inconveniently small.  However, if you increase it too far,
+  Emacs could overflow the real C stack, and crash.
+  
+  You can customize this variable.")
+
+(defvar macro-declaration-function nil
+  "Function to process declarations in a macro definition.
+  The function will be called with two args MACRO and DECL.
+  MACRO is the name of the macro being defined.
+  DECL is a list `(declare ...)' containing the declarations.
+  The value the function returns is not used.")
+
+(defvar quit-flag nil
+  "Non-nil causes `eval' to abort, unless `inhibit-quit' is non-nil.
+  If the value is t, that means do an ordinary quit.
+  If the value equals `throw-on-input', that means quit by throwing
+  to the tag specified in `throw-on-input'; it's for handling `while-no-input'.
+  Typing C-g sets `quit-flag' to t, regardless of `inhibit-quit',
+  but `inhibit-quit' non-nil prevents anything from taking notice of that.")
+
+(defvar debug-on-signal nil
+  "*Non-nil means call the debugger regardless of condition handlers.
+  Note that `debug-on-error', `debug-on-quit' and friends
+  still determine whether to handle the particular condition.")
+
+(defvar signal-hook-function nil
+  "If non-nil, this is a function for `signal' to call.
+  It receives the same arguments that `signal' was given.
+  The Edebug package uses this to regain control.")
+
+(defvar debug-on-next-call nil
+  "Non-nil means enter debugger before next `eval', `apply' or `funcall'.")
+
+(defvar debug-ignored-errors nil
+  "*List of errors for which the debugger should not be called.
+  Each element may be a condition-name or a regexp that matches error messages.
+  If any element applies to a given error, that error skips the debugger
+  and just returns to top level.
+  This overrides the variable `debug-on-error'.
+  It does not apply to errors handled by `condition-case'.
+  
+  You can customize this variable.")
+
+(defvar debug-on-quit nil
+  "*Non-nil means enter debugger if quit is signaled (C-g, for example).
+  Does not apply if quit is handled by a `condition-case'.
+  
+  You can customize this variable.")
+
+(defvar debug-on-error nil
+  "*Non-nil means enter debugger if an error is signaled.
+  Does not apply to errors handled by `condition-case' or those
+  matched by `debug-ignored-errors'.
+  If the value is a list, an error only means to enter the debugger
+  if one of its condition symbols appears in the list.
+  When you evaluate an expression interactively, this variable
+  is temporarily non-nil if `eval-expression-debug-on-error' is non-nil.
+  The command `toggle-debug-on-error' toggles this.
+  See also the variable `debug-on-quit'.
+  
+  You can customize this variable.")
+
+(defvar debugger-may-continue nil
+  "Non-nil means debugger may continue execution.
+  This is nil when the debugger is called under circumstances where it
+  might not be safe to continue.")
+
+(defvar max-specpdl-size nil
+  "*Limit on number of Lisp variable bindings and `unwind-protect's.
+  If Lisp code tries to increase the total number past this amount,
+  an error is signaled.
+  You can safely use a value considerably larger than the default value,
+  if that proves inconveniently small.  However, if you increase it too far,
+  Emacs could run out of memory trying to make the stack bigger.
+  
+  You can customize this variable.")
 
 (defun user-variable-p (variable)
   "Return t if VARIABLE is intended to be set and modified by users.

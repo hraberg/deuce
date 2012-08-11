@@ -1,7 +1,28 @@
 (ns
  deuce.emacs.ccl
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar code-conversion-map-vector nil
+  "Vector of code conversion maps.")
+
+(defvar font-ccl-encoder-alist nil
+  "Alist of fontname patterns vs corresponding CCL program.
+  Each element looks like (REGEXP . CCL-CODE),
+   where CCL-CODE is a compiled CCL program.
+  When a font whose name matches REGEXP is used for displaying a character,
+   CCL-CODE is executed to calculate the code point in the font
+   from the charset number and position code(s) of the character which are set
+   in CCL registers R0, R1, and R2 before the execution.
+  The code point in the font is set in CCL registers R1 and R2
+   when the execution terminated.
+   If the font is single-byte font, the register R2 is not used.")
+
+(defvar translation-hash-table-vector nil
+  "Vector containing all translation hash tables ever defined.
+  Comprises pairs (SYMBOL . TABLE) where SYMBOL and TABLE were set up by calls
+  to `define-translation-hash-table'.  The vector is indexed by the table id
+  used by CCL.")
 
 (defun register-ccl-program (name ccl-prog)
   "Register CCL program CCL-PROG as NAME in `ccl-program-table'.

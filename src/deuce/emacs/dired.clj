@@ -1,7 +1,16 @@
 (ns
  deuce.emacs.dired
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar completion-ignored-extensions nil
+  "Completion ignores file names ending in any string in this list.
+  It does not ignore them if all possible completions end in one of
+  these strings or when displaying a list of completions.
+  It ignores directory names if they match any string in this list which
+  ends in a slash.
+  
+  You can customize this variable.")
 
 (defun file-attributes (filename &optional id-format)
   "Return a list of attributes of file FILENAME.

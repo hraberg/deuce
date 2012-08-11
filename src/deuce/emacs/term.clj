@@ -1,7 +1,29 @@
 (ns
  deuce.emacs.term
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar suspend-tty-functions nil
+  "Functions to be run after suspending a tty.
+  The functions are run with one argument, the terminal object to be suspended.
+  See `suspend-tty'.")
+
+(defvar resume-tty-functions nil
+  "Functions to be run after resuming a tty.
+  The functions are run with one argument, the terminal object that was revived.
+  See `resume-tty'.")
+
+(defvar visible-cursor nil
+  "Non-nil means to make the cursor very visible.
+  This only has an effect when running in a text terminal.
+  What means \"very visible\" is up to your terminal.  It may make the cursor
+  bigger, or it may make it blink, or it may do nothing at all.
+  
+  You can customize this variable.")
+
+(defvar system-uses-terminfo nil
+  "Non-nil means the system uses terminfo rather than termcap.
+  This variable can be used by terminal emulator packages.")
 
 (defun controlling-tty-p (&optional terminal)
   "Return non-nil if TERMINAL is the controlling tty of the Emacs process.

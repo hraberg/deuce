@@ -1,7 +1,82 @@
 (ns
  deuce.emacs.alloc
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude [* vector cons = list]))
+
+(defvar purify-flag nil
+  "Non-nil means loading Lisp code in order to dump an executable.
+  This means that certain objects should be allocated in shared (pure) space.
+  It can also be set to a hash-table, in which case this table is used to
+  do hash-consing of the objects allocated to pure space.")
+
+(defvar cons-cells-consed nil
+  "Number of cons cells that have been consed so far.")
+
+(defvar symbols-consed nil
+  "Number of symbols that have been consed so far.")
+
+(defvar post-gc-hook nil
+  "Hook run after garbage collection has finished.")
+
+(defvar gc-cons-percentage nil
+  "*Portion of the heap used for allocation.
+  Garbage collection can happen automatically once this portion of the heap
+  has been allocated since the last garbage collection.
+  If this portion is smaller than `gc-cons-threshold', this is ignored.")
+
+(defvar gcs-done nil
+  "Accumulated number of garbage collections done.")
+
+(defvar gc-elapsed nil
+  "Accumulated time elapsed in garbage collections.
+  The time is in seconds as a floating point value.")
+
+(defvar gc-cons-threshold nil
+  "*Number of bytes of consing between garbage collections.
+  Garbage collection can happen automatically once this many bytes have been
+  allocated since the last garbage collection.  All data types count.
+  
+  Garbage collection happens automatically only when `eval' is called.
+  
+  By binding this temporarily to a large number, you can effectively
+  prevent garbage collection during a part of the program.
+  See also `gc-cons-percentage'.
+  
+  You can customize this variable.")
+
+(defvar memory-signal-data nil
+  "Precomputed `signal' argument for memory-full error.")
+
+(defvar string-chars-consed nil
+  "Number of string characters that have been consed so far.")
+
+(defvar memory-full nil
+  "Non-nil means Emacs cannot get much more Lisp memory.")
+
+(defvar vector-cells-consed nil
+  "Number of vector cells that have been consed so far.")
+
+(defvar misc-objects-consed nil
+  "Number of miscellaneous objects that have been consed so far.
+  These include markers and overlays, plus certain objects not visible
+  to users.")
+
+(defvar garbage-collection-messages nil
+  "Non-nil means display messages at start and end of garbage collection.
+  
+  You can customize this variable.")
+
+(defvar pure-bytes-used nil
+  "Number of bytes of shareable Lisp data allocated so far.")
+
+(defvar intervals-consed nil
+  "Number of intervals that have been consed so far.")
+
+(defvar strings-consed nil
+  "Number of strings that have been consed so far.")
+
+(defvar floats-consed nil
+  "Number of floats that have been consed so far.")
 
 (defun make-bool-vector (length init)
   "Return a new bool-vector of length LENGTH, using INIT for each element.

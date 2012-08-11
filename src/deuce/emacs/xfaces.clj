@@ -1,7 +1,91 @@
 (ns
  deuce.emacs.xfaces
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar face-font-rescale-alist nil
+  "Alist of fonts vs the rescaling factors.
+  Each element is a cons (FONT-PATTERN . RESCALE-RATIO), where
+  FONT-PATTERN is a font-spec or a regular expression matching a font name, and
+  RESCALE-RATIO is a floating point number to specify how much larger
+  (or smaller) font we should use.  For instance, if a face requests
+  a font of 10 point, we actually use a font of 10 * RESCALE-RATIO point.")
+
+(defvar face-remapping-alist nil
+  "Alist of face remappings.
+  Each element is of the form:
+  
+     (FACE . REPLACEMENT),
+  
+  which causes display of the face FACE to use REPLACEMENT instead.
+  REPLACEMENT is a face specification, i.e. one of the following:
+  
+    (1) a face name
+    (2) a property list of attribute/value pairs, or
+    (3) a list in which each element has the form of (1) or (2).
+  
+  List values for REPLACEMENT are merged to form the final face
+  specification, with earlier entries taking precedence, in the same as
+  as in the `face' text property.
+  
+  Face-name remapping cycles are suppressed; recursive references use
+  the underlying face instead of the remapped face.  So a remapping of
+  the form:
+  
+     (FACE EXTRA-FACE... FACE)
+  
+  or:
+  
+     (FACE (FACE-ATTR VAL ...) FACE)
+  
+  causes EXTRA-FACE... or (FACE-ATTR VAL ...) to be _merged_ with the
+  existing definition of FACE.  Note that this isn't necessary for the
+  default face, since every face inherits from the default face.
+  
+  If this variable is made buffer-local, the face remapping takes effect
+  only in that buffer.  For instance, the mode my-mode could define a
+  face `my-mode-default', and then in the mode setup function, do:
+  
+     (set (make-local-variable 'face-remapping-alist)
+  	'((default my-mode-default)))).
+  
+  Because Emacs normally only redraws screen areas when the underlying
+  buffer contents change, you may need to call `redraw-display' after
+  changing this variable for it to take effect.")
+
+(defvar tty-defined-color-alist nil
+  "An alist of defined terminal colors and their RGB values.
+  See the docstring of `tty-color-alist' for the details.")
+
+(defvar face-default-stipple nil
+  "*Default stipple pattern used on monochrome displays.
+  This stipple pattern is used on monochrome displays
+  instead of shades of gray for a face background color.
+  See `set-face-stipple' for possible values for this variable.")
+
+(defvar font-list-limit nil
+  "*Limit for font matching.
+  If an integer > 0, font matching functions won't load more than
+  that number of fonts when searching for a matching font.")
+
+(defvar scalable-fonts-allowed nil
+  "Allowed scalable fonts.
+  A value of nil means don't allow any scalable fonts.
+  A value of t means allow any scalable font.
+  Otherwise, value must be a list of regular expressions.  A font may be
+  scaled if its name matches a regular expression in the list.
+  Note that if value is nil, a scalable font might still be used, if no
+  other font of the appropriate family and registry is available.
+  
+  You can customize this variable.")
+
+(defvar face-ignored-fonts nil
+  "List of ignored fonts.
+  Each element is a regular expression that matches names of fonts to
+  ignore.")
+
+(defvar face-new-frame-defaults nil
+  "List of global face definitions (for internal use only.)")
 
 (defun internal-make-lisp-face (face &optional frame)
   "Make FACE, a symbol, a Lisp face with all attributes nil.

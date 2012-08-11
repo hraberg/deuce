@@ -1,7 +1,11 @@
 (ns
  deuce.emacs.chartab
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar char-code-property-alist nil
+  "Alist of character property name vs char-table containing property values.
+  Internal use only.")
 
 (defun char-table-parent (char-table)
   "Return the parent char-table of CHAR-TABLE.

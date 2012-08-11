@@ -1,7 +1,17 @@
 (ns
  deuce.emacs.terminal
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar delete-terminal-functions nil
+  "Special hook run when a terminal is deleted.
+  Each function is called with argument, the terminal.
+  This may be called just before actually deleting the terminal,
+  or some time later.")
+
+(defvar ring-bell-function nil
+  "Non-nil means call this function to ring the bell.
+  The function should accept no arguments.")
 
 (defun terminal-list ()
   "Return a list of all terminal devices."

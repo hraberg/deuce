@@ -1,7 +1,139 @@
 (ns
  deuce.emacs.minibuf
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude [read-string]))
+
+(defvar minibuffer-history-variable nil
+  "History list symbol to add minibuffer values to.
+  Each string of minibuffer input, as it appears on exit from the minibuffer,
+  is added with
+    (set minibuffer-history-variable
+    (cons STRING (symbol-value minibuffer-history-variable)))")
+
+(defvar read-expression-history nil
+  "A history list for arguments that are Lisp expressions to evaluate.
+  For example, `eval-expression' uses this.")
+
+(defvar completion-regexp-list nil
+  "List of regexps that should restrict possible completions.
+  The basic completion functions only consider a completion acceptable
+  if it matches all regular expressions in this list, with
+  `case-fold-search' bound to the value of `completion-ignore-case'.
+  See Info node `(elisp)Basic Completion', for a description of these
+  functions.")
+
+(defvar minibuffer-exit-hook nil
+  "Normal hook run just after exit from minibuffer.")
+
+(defvar minibuffer-completing-file-name nil
+  "Non-nil means completing file names.")
+
+(defvar enable-recursive-minibuffers nil
+  "Non-nil means to allow minibuffer commands while in the minibuffer.
+  This variable makes a difference whenever the minibuffer window is active.
+  
+  You can customize this variable.")
+
+(defvar minibuffer-setup-hook nil
+  "Normal hook run just after entry to minibuffer.")
+
+(defvar minibuffer-prompt-properties nil
+  "Text properties that are added to minibuffer prompts.
+  These are in addition to the basic `field' property, and stickiness
+  properties.
+  
+  You can customize this variable.")
+
+(defvar read-buffer-completion-ignore-case nil
+  "Non-nil means completion ignores case when reading a buffer name.
+  
+  You can customize this variable.")
+
+(defvar minibuffer-history-position nil
+  "Current position of redoing in the history list.")
+
+(defvar read-buffer-function nil
+  "If this is non-nil, `read-buffer' does its work by calling this function.
+  The function is called with the arguments passed to `read-buffer'.
+  
+  You can customize this variable.")
+
+(defvar history-delete-duplicates nil
+  "Non-nil means to delete duplicates in history.
+  If set to t when adding a new history element, all previous identical
+  elements are deleted from the history list.
+  
+  You can customize this variable.")
+
+(defvar minibuffer-completion-predicate nil
+  "Within call to `completing-read', this holds the PREDICATE argument.")
+
+(defvar completion-ignore-case nil
+  "Non-nil means don't consider case significant in completion.
+  For file-name completion, `read-file-name-completion-ignore-case'
+  controls the behavior, rather than this variable.
+  For buffer name completion, `read-buffer-completion-ignore-case'
+  controls the behavior, rather than this variable.")
+
+(defvar minibuffer-help-form nil
+  "Value that `help-form' takes on inside the minibuffer.")
+
+(defvar minibuffer-allow-text-properties nil
+  "Non-nil means `read-from-minibuffer' should not discard text properties.
+  This also affects `read-string', but it does not affect `read-minibuffer',
+  `read-no-blanks-input', or any of the functions that do minibuffer input
+  with completion; they always discard text properties.")
+
+(defvar read-expression-map nil
+  "Minibuffer keymap used for reading Lisp expressions.")
+
+(defvar history-length nil
+  "Maximum length of history lists before truncation takes place.
+  A number means truncate to that length; truncation deletes old
+  elements, and is done just after inserting a new element.
+  A value of t means no truncation.
+  
+  This variable only affects history lists that don't specify their own
+  maximum lengths.  Setting the `history-length' property of a history
+  variable overrides this default.
+  
+  You can customize this variable.")
+
+(defvar minibuffer-auto-raise nil
+  "Non-nil means entering the minibuffer raises the minibuffer's frame.
+  Some uses of the echo area also raise that frame (since they use it too).
+  
+  You can customize this variable.")
+
+(defvar minibuffer-completion-table nil
+  "Alist or obarray used for completion in the minibuffer.
+  This becomes the ALIST argument to `try-completion' and `all-completions'.
+  The value can also be a list of strings or a hash table.
+  
+  The value may alternatively be a function, which is given three arguments:
+    STRING, the current buffer contents;
+    PREDICATE, the predicate for filtering possible matches;
+    CODE, which says what kind of things to do.
+  CODE can be nil, t or `lambda':
+    nil    -- return the best completion of STRING, or nil if there is none.
+    t      -- return a list of all possible completions of STRING.
+    lambda -- return t if STRING is a valid completion as it stands.")
+
+(defvar history-add-new-input nil
+  "Non-nil means to add new elements in history.
+  If set to nil, minibuffer reading functions don't add new elements to the
+  history list, so it is possible to do this afterwards by calling
+  `add-to-history' explicitly.")
+
+(defvar minibuffer-completion-confirm nil
+  "Whether to demand confirmation of completion before exiting minibuffer.
+  If nil, confirmation is not required.
+  If the value is `confirm', the user may exit with an input that is not
+   a valid completion alternative, but Emacs asks for confirmation.
+  If the value is `confirm-after-completion', the user may exit with an
+   input that is not a valid completion alternative, but Emacs asks for
+   confirmation if the user submitted the input right after any of the
+   completion commands listed in `minibuffer-confirm-exit-commands'.")
 
 (defun minibuffer-depth ()
   "Return current depth of activations of minibuffer, a nonnegative integer."

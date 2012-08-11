@@ -1,6 +1,6 @@
 (ns
  deuce.emacs.bidi
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude [+]))
 
 (defun + (&rest numbers-or-markers)

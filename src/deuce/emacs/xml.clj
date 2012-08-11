@@ -1,6 +1,6 @@
 (ns
  deuce.emacs.xml
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
 
 (defun libxml-parse-html-region (start end &optional base-url)

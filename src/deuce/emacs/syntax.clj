@@ -1,7 +1,46 @@
 (ns
  deuce.emacs.syntax
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar words-include-escapes nil
+  "Non-nil means `forward-word', etc., should treat escape chars part of words.
+  
+  You can customize this variable.")
+
+(defvar parse-sexp-lookup-properties nil
+  "Non-nil means `forward-sexp', etc., obey `syntax-table' property.
+  Otherwise, that text property is simply ignored.
+  See the info node `(elisp)Syntax Properties' for a description of the
+  `syntax-table' property.")
+
+(defvar multibyte-syntax-as-symbol nil
+  "Non-nil means `scan-sexps' treats all multibyte characters as symbol.")
+
+(defvar parse-sexp-ignore-comments nil
+  "Non-nil means `forward-sexp', etc., should treat comments as whitespace.
+  
+  You can customize this variable.")
+
+(defvar find-word-boundary-function-table nil
+  "Char table of functions to search for the word boundary.
+  Each function is called with two arguments; POS and LIMIT.
+  POS and LIMIT are character positions in the current buffer.
+  
+  If POS is less than LIMIT, POS is at the first character of a word,
+  and the return value of a function is a position after the last
+  character of that word.
+  
+  If POS is not less than LIMIT, POS is at the last character of a word,
+  and the return value of a function is a position at the first
+  character of that word.
+  
+  In both cases, LIMIT bounds the search.")
+
+(defvar open-paren-in-column-0-is-defun-start nil
+  "*Non-nil means an open paren in column 0 denotes the start of a defun.
+  
+  You can customize this variable.")
 
 (defun standard-syntax-table ()
   "Return the standard syntax table.

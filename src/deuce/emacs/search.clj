@@ -1,7 +1,21 @@
 (ns
  deuce.emacs.search
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar inhibit-changing-match-data nil
+  "Internal use only.
+  If non-nil, the primitive searching and matching functions
+  such as `looking-at', `string-match', `re-search-forward', etc.,
+  do not set the match data.  The proper way to use this variable
+  is to bind it with `let' around a small expression.")
+
+(defvar search-spaces-regexp nil
+  "Regexp to substitute for bunches of spaces in regexp search.
+  Some commands use this for user-specified regexps.
+  Spaces that occur inside character classes or repetition operators
+  or other such regexp constructs are not replaced with this.
+  A value of nil (which is the normal value) means treat spaces literally.")
 
 (defun word-search-regexp (string &optional lax)
   "Return a regexp which matches words, ignoring punctuation.

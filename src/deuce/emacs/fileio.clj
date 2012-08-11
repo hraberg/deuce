@@ -1,7 +1,137 @@
 (ns
  deuce.emacs.fileio
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar file-name-coding-system nil
+  "*Coding system for encoding file names.
+  If it is nil, `default-file-name-coding-system' (which see) is used.")
+
+(defvar set-auto-coding-function nil
+  "If non-nil, a function to call to decide a coding system of file.
+  Two arguments are passed to this function: the file name
+  and the length of a file contents following the point.
+  This function should return a coding system to decode the file contents.
+  It should check the file name against `auto-coding-alist'.
+  If no coding system is decided, it should check a coding system
+  specified in the heading lines with the format:
+  	-*- ... coding: CODING-SYSTEM; ... -*-
+  or local variable spec of the tailing lines with `coding:' tag.")
+
+(defvar delete-by-moving-to-trash nil
+  "Specifies whether to use the system's trash can.
+  When non-nil, certain file deletion commands use the function
+  `move-file-to-trash' instead of deleting files outright.
+  This includes interactive calls to `delete-file' and
+  `delete-directory' and the Dired deletion commands.
+  
+  You can customize this variable.")
+
+(defvar auto-save-list-file-name nil
+  "File name in which we write a list of all auto save file names.
+  This variable is initialized automatically from `auto-save-list-file-prefix'
+  shortly after Emacs reads your `.emacs' file, if you have not yet given it
+  a non-nil value.")
+
+(defvar default-file-name-coding-system nil
+  "Default coding system for encoding file names.
+  This variable is used only when `file-name-coding-system' is nil.
+  
+  This variable is set/changed by the command `set-language-environment'.
+  User should not set this variable manually,
+  instead use `file-name-coding-system' to get a constant encoding
+  of file names regardless of the current language environment.")
+
+(defvar write-region-annotations-so-far nil
+  "When an annotation function is called, this holds the previous annotations.
+  These are the annotations made by other annotation functions
+  that were already called.  See also `write-region-annotate-functions'.")
+
+(defvar inhibit-file-name-operation nil
+  "The operation for which `inhibit-file-name-handlers' is applicable.")
+
+(defvar write-region-inhibit-fsync nil
+  "*Non-nil means don't call fsync in `write-region'.
+  This variable affects calls to `write-region' as well as save commands.
+  A non-nil value may result in data loss!")
+
+(defvar auto-save-visited-file-name nil
+  "Non-nil says auto-save a buffer in the file it is visiting, when practical.
+  Normally auto-save files are written under other names.
+  
+  You can customize this variable.")
+
+(defvar write-region-annotate-functions nil
+  "A list of functions to be called at the start of `write-region'.
+  Each is passed two arguments, START and END as for `write-region'.
+  These are usually two numbers but not always; see the documentation
+  for `write-region'.  The function should return a list of pairs
+  of the form (POSITION . STRING), consisting of strings to be effectively
+  inserted at the specified positions of the file being written (1 means to
+  insert before the first byte written).  The POSITIONs must be sorted into
+  increasing order.
+  
+  If there are several annotation functions, the lists returned by these
+  functions are merged destructively.  As each annotation function runs,
+  the variable `write-region-annotations-so-far' contains a list of all
+  annotations returned by previous annotation functions.
+  
+  An annotation function can return with a different buffer current.
+  Doing so removes the annotations returned by previous functions, and
+  resets START and END to `point-min' and `point-max' of the new buffer.
+  
+  After `write-region' completes, Emacs calls the function stored in
+  `write-region-post-annotation-function', once for each buffer that was
+  current when building the annotations (i.e., at least once), with that
+  buffer current.")
+
+(defvar file-name-handler-alist nil
+  "Alist of elements (REGEXP . HANDLER) for file names handled specially.
+  If a file name matches REGEXP, all I/O on that file is done by calling
+  HANDLER.  If a file name matches more than one handler, the handler
+  whose match starts last in the file name gets precedence.  The
+  function `find-file-name-handler' checks this list for a handler for
+  its argument.
+  
+  HANDLER should be a function.  The first argument given to it is the
+  name of the I/O primitive to be handled; the remaining arguments are
+  the arguments that were passed to that primitive.  For example, if you
+  do (file-exists-p FILENAME) and FILENAME is handled by HANDLER, then
+  HANDLER is called like this:
+  
+    (funcall HANDLER 'file-exists-p FILENAME)
+  
+  Note that HANDLER must be able to handle all I/O primitives; if it has
+  nothing special to do for a primitive, it should reinvoke the
+  primitive to handle the operation \"the usual way\".
+  See Info node `(elisp)Magic File Names' for more details.")
+
+(defvar auto-save-include-big-deletions nil
+  "If non-nil, auto-save even if a large part of the text is deleted.
+  If nil, deleting a substantial portion of the text disables auto-save
+  in the buffer; this is the default behavior, because the auto-save
+  file is usually more useful if it contains the deleted text.")
+
+(defvar after-insert-file-functions nil
+  "A list of functions to be called at the end of `insert-file-contents'.
+  Each is passed one argument, the number of characters inserted,
+  with point at the start of the inserted text.  Each function
+  should leave point the same, and return the new character count.
+  If `insert-file-contents' is intercepted by a handler from
+  `file-name-handler-alist', that handler is responsible for calling the
+  functions in `after-insert-file-functions' if appropriate.")
+
+(defvar inhibit-file-name-handlers nil
+  "A list of file name handlers that temporarily should not be used.
+  This applies only to the operation `inhibit-file-name-operation'.")
+
+(defvar write-region-post-annotation-function nil
+  "Function to call after `write-region' completes.
+  The function is called with no arguments.  If one or more of the
+  annotation functions in `write-region-annotate-functions' changed the
+  current buffer, the function stored in this variable is called for
+  each of those additional buffers as well, in addition to the original
+  buffer.  The relevant buffer is current during each function call.")
 
 (defun clear-buffer-auto-save-failure ()
   "Clear any record of a recent auto-save failure in the current buffer."

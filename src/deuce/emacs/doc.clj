@@ -1,7 +1,13 @@
 (ns
  deuce.emacs.doc
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar build-files nil
+  "A list of files used to build this Emacs binary.")
+
+(defvar internal-doc-file-name nil
+  "Name of file containing documentation strings of built-in symbols.")
 
 (defun Snarf-documentation (filename)
   "Used during Emacs initialization to scan the `etc/DOC...' file.

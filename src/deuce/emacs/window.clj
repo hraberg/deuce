@@ -1,7 +1,129 @@
 (ns
  deuce.emacs.window
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar window-combination-limit nil
+  "If t, splitting a window makes a new parent window.
+  If this variable is nil, splitting a window will create a new parent
+  window only if the window has no parent window or the window shall
+  become a combination orthogonal to the one it is part of.
+  
+  If this variable is t, splitting a window always creates a new parent
+  window.  If all splits behave this way, each frame's window tree is a
+  binary tree and every window but the frame's root window has exactly one
+  sibling.
+  
+  Other values are reserved for future use.
+  
+  The value of this variable is also assigned to the combination limit of
+  the new parent window.  The combination limit of a window can be
+  retrieved via the function `window-combination-limit' and altered by the
+  function `set-window-combination-limit'.
+  
+  You can customize this variable.")
+
+(defvar window-configuration-change-hook nil
+  "Functions to call when window configuration changes.
+  The buffer-local part is run once per window, with the relevant window
+  selected; while the global part is run only once for the modified frame,
+  with the relevant frame selected.")
+
+(defvar other-window-scroll-buffer nil
+  "If non-nil, this is a buffer and C-M-v should scroll its window.")
+
+(defvar window-persistent-parameters nil
+  "Alist of persistent window parameters.
+  This alist specifies which window parameters shall get saved by
+  `current-window-configuration' and `window-state-get' and subsequently
+  restored to their previous values by `set-window-configuration' and
+  `window-state-put'.
+  
+  The car of each entry of this alist is the symbol specifying the
+  parameter.  The cdr is one of the following:
+  
+  nil means the parameter is neither saved by `window-state-get' nor by
+  `current-window-configuration'.
+  
+  t means the parameter is saved by `current-window-configuration' and,
+  provided its WRITABLE argument is nil, by `window-state-get'.
+  
+  The symbol `writable' means the parameter is saved unconditionally by
+  both `current-window-configuration' and `window-state-get'.  Do not use
+  this value for parameters without read syntax (like windows or frames).
+  
+  Parameters not saved by `current-window-configuration' or
+  `window-state-get' are left alone by `set-window-configuration'
+  respectively are not installed by `window-state-put'.")
+
+(defvar minibuffer-scroll-window nil
+  "Non-nil means it is the window that C-M-v in minibuffer should scroll.")
+
+(defvar auto-window-vscroll nil
+  "Non-nil means to automatically adjust `window-vscroll' to view tall lines.")
+
+(defvar mode-line-in-non-selected-windows nil
+  "Non-nil means to use `mode-line-inactive' face in non-selected windows.
+  If the minibuffer is active, the `minibuffer-scroll-window' mode line
+  is displayed in the `mode-line' face.
+  
+  You can customize this variable.")
+
+(defvar temp-buffer-show-function nil
+  "Non-nil means call as function to display a help buffer.
+  The function is called with one argument, the buffer to be displayed.
+  Used by `with-output-to-temp-buffer'.
+  If this function is used, then it must do the entire job of showing
+  the buffer; `temp-buffer-show-hook' is not run unless this function runs it.
+  
+  You can customize this variable.")
+
+(defvar next-screen-context-lines nil
+  "Number of lines of continuity when scrolling by screenfuls.
+  
+  You can customize this variable.")
+
+(defvar window-point-insertion-type nil
+  "Type of marker to use for `window-point'.")
+
+(defvar recenter-redisplay nil
+  "Non-nil means `recenter' redraws entire frame.
+  If this option is non-nil, then the `recenter' command with a nil
+  argument will redraw the entire frame; the special value `tty' causes
+  the frame to be redrawn only if it is a tty frame.
+  
+  You can customize this variable.")
+
+(defvar scroll-preserve-screen-position nil
+  "Controls if scroll commands move point to keep its screen position unchanged.
+  A value of nil means point does not keep its screen position except
+  at the scroll margin or window boundary respectively.
+  A value of t means point keeps its screen position if the scroll
+  command moved it vertically out of the window, e.g. when scrolling
+  by full screens.
+  Any other value means point always keeps its screen position.
+  Scroll commands should have the `scroll-command' property
+  on their symbols to be controlled by this variable.
+  
+  You can customize this variable.")
+
+(defvar window-combination-resize nil
+  "If t, resize window combinations proportionally.
+  If this variable is nil, splitting a window gets the entire screen space
+  for displaying the new window from the window to split.  Deleting and
+  resizing a window preferably resizes one adjacent window only.
+  
+  If this variable is t, splitting a window tries to get the space
+  proportionally from all windows in the same combination.  This also
+  allows to split a window that is otherwise too small or of fixed size.
+  Resizing and deleting a window proportionally resize all windows in the
+  same combination.
+  
+  Other values are reserved for future use.
+  
+  This variable takes no effect if `window-combination-limit' is non-nil.
+  
+  You can customize this variable.")
 
 (defun window-live-p (object)
   "Return t if OBJECT is a live window and nil otherwise.

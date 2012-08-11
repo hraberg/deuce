@@ -1,7 +1,46 @@
 (ns
  deuce.emacs.keymap
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar emulation-mode-map-alists nil
+  "List of keymap alists to use for emulations modes.
+  It is intended for modes or packages using multiple minor-mode keymaps.
+  Each element is a keymap alist just like `minor-mode-map-alist', or a
+  symbol with a variable binding which is a keymap alist, and it is used
+  the same way.  The \"active\" keymaps in each alist are used before
+  `minor-mode-map-alist' and `minor-mode-overriding-map-alist'.")
+
+(defvar minibuffer-local-ns-map nil
+  "Local keymap for the minibuffer when spaces are not allowed.")
+
+(defvar where-is-preferred-modifier nil
+  "Preferred modifier key to use for `where-is'.
+  When a single binding is requested, `where-is' will return one that
+  uses this modifier key if possible.  If nil, or if no such binding
+  exists, bindings using keys without modifiers (or only with meta) will
+  be preferred.")
+
+(defvar minor-mode-overriding-map-alist nil
+  "Alist of keymaps to use for minor modes, in current major mode.
+  This variable is an alist just like `minor-mode-map-alist', and it is
+  used the same way (and before `minor-mode-map-alist'); however,
+  it is provided for major modes to bind locally.")
+
+(defvar minor-mode-map-alist nil
+  "Alist of keymaps to use for minor modes.
+  Each element looks like (VARIABLE . KEYMAP); KEYMAP is used to read
+  key sequences and look up bindings if VARIABLE's value is non-nil.
+  If two active keymaps bind the same key, the keymap appearing earlier
+  in the list takes precedence.")
+
+(defvar define-key-rebound-commands nil
+  "List of commands given new key bindings recently.
+  This is used for internal purposes during Emacs startup;
+  don't alter it yourself.")
+
+(defvar minibuffer-local-map nil
+  "Default keymap to use when reading from the minibuffer.")
 
 (defun make-sparse-keymap (&optional string)
   "Construct and return a new sparse keymap.

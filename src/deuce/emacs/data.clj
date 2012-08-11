@@ -1,7 +1,13 @@
 (ns
  deuce.emacs.data
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude [- aset set < > max >= <= mod atom min]))
+
+(defvar most-positive-fixnum nil
+  "The largest value that is representable in a Lisp integer.")
+
+(defvar most-negative-fixnum nil
+  "The smallest value that is representable in a Lisp integer.")
 
 (defun natnump (object)
   "Return t if OBJECT is a nonnegative integer."

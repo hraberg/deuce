@@ -5,6 +5,7 @@
     (import [deuce EmacsLispError]))
 
 (def t true)
+(create-ns 'deuce.emacs-lisp.globals)
 
 (c/defmacro defun
   "Define NAME as a function.

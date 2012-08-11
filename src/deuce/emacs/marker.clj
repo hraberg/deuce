@@ -1,7 +1,10 @@
 (ns
  deuce.emacs.marker
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
+
+(defvar byte-debug-flag nil
+  "Non-nil enables debugging checks in byte/char position conversions.")
 
 (defun marker-position (marker)
   "Return the position MARKER points at, as a character number.

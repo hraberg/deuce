@@ -1,6 +1,6 @@
 (ns
  deuce.emacs.bytecode
- (use [deuce.emacs-lisp :only (defun)])
+ (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
 
 (defun byte-code (bytestr vector maxdepth)
