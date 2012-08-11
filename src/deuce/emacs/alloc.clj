@@ -1,7 +1,7 @@
 (ns
  deuce.emacs.alloc
  (use [deuce.emacs-lisp :only (defun)])
- (:refer-clojure :exclude [vector cons list]))
+ (:refer-clojure :exclude [* vector cons = list]))
 
 (defun make-bool-vector (length init)
   "Return a new bool-vector of length LENGTH, using INIT for each element.
@@ -10,10 +10,19 @@
 
 (defun make-byte-code (arglist byte-code constants depth &optional docstring interactive-spec &rest elements)
   "Create a byte-code object with specified arguments as elements.
-  The arguments should be the arglist, bytecode-string, constant vector,
-  stack size, (optional) doc string, and (optional) interactive spec.
+  The arguments should be the ARGLIST, bytecode-string BYTE-CODE, constant
+  vector CONSTANTS, maximum stack size DEPTH, (optional) DOCSTRING,
+  and (optional) INTERACTIVE-SPEC.
   The first four arguments are required; at most six have any
-  significance."
+  significance.
+  The ARGLIST can be either like the one of `lambda', in which case the arguments
+  will be dynamically bound before executing the byte code, or it can be an
+  integer of the form NNNNNNNRMMMMMMM where the 7bit MMMMMMM specifies the
+  minimum number of arguments, the 7-bit NNNNNNN specifies the maximum number
+  of arguments (ignoring &rest) and the R bit specifies whether there is a &rest
+  argument to catch the left-over arguments.  If such an integer is used, the
+  arguments will not be dynamically bound but will be instead pushed on the
+  stack before executing the byte-code."
   )
 
 (defun memory-use-counts ()
@@ -29,6 +38,10 @@
   MISCS include overlays, markers, and some internal types.
   Frames, windows, buffers, and subprocesses count as vectors
     (but the contents of a buffer's text do not count here)."
+  )
+
+(defun * (&rest numbers-or-markers)
+  "Return product of any number of arguments, which are numbers or markers."
   )
 
 (defun vector (&rest objects)
@@ -50,15 +63,24 @@
   `gc-cons-threshold' bytes of Lisp data since previous garbage collection.
   `garbage-collect' normally returns a list with info on amount of space in use:
    ((USED-CONSES . FREE-CONSES) (USED-SYMS . FREE-SYMS)
-    (USED-MARKERS . FREE-MARKERS) USED-STRING-CHARS USED-VECTOR-SLOTS
+    (USED-MISCS . FREE-MISCS) USED-STRING-CHARS USED-VECTOR-SLOTS
     (USED-FLOATS . FREE-FLOATS) (USED-INTERVALS . FREE-INTERVALS)
     (USED-STRINGS . FREE-STRINGS))
   However, if there was overflow in pure space, `garbage-collect'
-  returns nil, because real GC can't be done."
+  returns nil, because real GC can't be done.
+  See Info node `(elisp)Garbage Collection'."
   )
 
 (defun cons (car cdr)
   "Create a new cons, give it CAR and CDR as components, and return it."
+  )
+
+(defun (symbol "slash-equals") (num1 num2)
+  "Return t if first arg is not equal to second arg.  Both must be numbers or markers."
+  )
+
+(defun = (num1 num2)
+  "Return t if two args, both numbers or markers, are equal."
   )
 
 (defun make-symbol (name)

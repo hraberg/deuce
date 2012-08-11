@@ -4,35 +4,84 @@
  (:refer-clojure :exclude []))
 
 (defun controlling-tty-p (&optional terminal)
-  "Return non-nil if TERMINAL is the controlling tty of the Emacs process."
+  "Return non-nil if TERMINAL is the controlling tty of the Emacs process.
+  
+  TERMINAL can be a terminal object, a frame, or nil (meaning the
+  selected frame's terminal).  This function always returns nil if
+  TERMINAL is not on a tty device."
   )
 
 (defun tty-display-color-p (&optional terminal)
-  "Return non-nil if the tty device TERMINAL can display colors."
+  "Return non-nil if the tty device TERMINAL can display colors.
+  
+  TERMINAL can be a terminal object, a frame, or nil (meaning the
+  selected frame's terminal).  This function always returns nil if
+  TERMINAL does not refer to a text-only terminal."
   )
 
 (defun tty-no-underline (&optional terminal)
   "Declare that the tty used by TERMINAL does not handle underlining.
   This is used to override the terminfo data, for certain terminals that
   do not really do underlining, but say that they do.  This function has
-  no effect if used on a non-tty terminal."
+  no effect if used on a non-tty terminal.
+  
+  TERMINAL can be a terminal object, a frame or nil (meaning the
+  selected frame's terminal).  This function always returns nil if
+  TERMINAL does not refer to a text-only terminal."
   )
 
 (defun tty-type (&optional terminal)
   "Return the type of the tty device that TERMINAL uses.
-  Returns nil if TERMINAL is not on a tty device."
+  Returns nil if TERMINAL is not on a tty device.
+  
+  TERMINAL can be a terminal object, a frame, or nil (meaning the
+  selected frame's terminal)."
   )
 
 (defun tty-display-color-cells (&optional terminal)
-  "Return the number of colors supported by the tty device TERMINAL."
+  "Return the number of colors supported by the tty device TERMINAL.
+  
+  TERMINAL can be a terminal object, a frame, or nil (meaning the
+  selected frame's terminal).  This function always returns 0 if
+  TERMINAL does not refer to a text-only terminal."
   )
 
 (defun resume-tty (&optional tty)
   "Resume the previously suspended terminal device TTY.
   The terminal is opened and reinitialized.  Frames that are on the
-  suspended terminal are revived."
+  suspended terminal are revived.
+  
+  It is an error to resume a terminal while another terminal is active
+  on the same device.
+  
+  This function runs `resume-tty-functions' after resuming the terminal.
+  The functions are run with one arg, the id of the resumed terminal
+  device.
+  
+  `resume-tty' does nothing if it is called on a device that is not
+  suspended.
+  
+  TTY may be a terminal object, a frame, or nil (meaning the selected
+  frame's terminal)."
   )
 
 (defun suspend-tty (&optional tty)
-  "Suspend the terminal device TTY."
+  "Suspend the terminal device TTY.
+  
+  The device is restored to its default state, and Emacs ceases all
+  access to the tty device.  Frames that use the device are not deleted,
+  but input is not read from them and if they change, their display is
+  not updated.
+  
+  TTY may be a terminal object, a frame, or nil for the terminal device
+  of the currently selected frame.
+  
+  This function runs `suspend-tty-functions' after suspending the
+  device.  The functions are run with one arg, the id of the suspended
+  terminal device.
+  
+  `suspend-tty' does nothing if it is called on a device that is already
+  suspended.
+  
+  A suspended tty may be resumed by calling `resume-tty' on it."
   )

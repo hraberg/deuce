@@ -40,7 +40,27 @@
   "Regain control when an error is signaled.
   Executes BODYFORM and returns its value if no error happens.
   Each element of HANDLERS looks like (CONDITION-NAME BODY...)
-  where the BODY is made of Lisp expressions."
+  where the BODY is made of Lisp expressions.
+
+  A handler is applicable to an error
+  if CONDITION-NAME is one of the error's condition names.
+  If an error happens, the first applicable handler is run.
+
+  The car of a handler may be a list of condition names instead of a
+  single condition name; then it handles all of them.  If the special
+  condition name `debug' is present in this list, it allows another
+  condition in the list to run the debugger if `debug-on-error' and the
+  other usual mechanisms says it should (otherwise, `condition-case'
+  suppresses the debugger).
+
+  When a handler handles an error, control returns to the `condition-case'
+  and it executes the handler's BODY...
+  with VAR bound to (ERROR-SYMBOL . SIGNAL-DATA) from the error.
+  (If VAR is nil, the handler can't access that information.)
+  Then the value of the last BODY form is returned from the `condition-case'
+  expression.
+
+  See also the function `signal' for more info."
   {:arglists '([VAR BODYFORM &rest HANDLERS])}
   [var bodyform & handlers]
   `(try
@@ -82,7 +102,15 @@
                  v#))))
 
 (c/defmacro ^:clojure-special-form quote
-  "Return the argument, without evaluating it.  `(quote x)' yields `x'."
+  "Return the argument, without evaluating it.  `(quote x)' yields `x'.
+  Warning: `quote' does not construct its return value, but just returns
+  the value that was pre-constructed by the Lisp reader (see info node
+  `(elisp)Printed Representation').
+  This means that '(a . b) is not identical to (cons 'a 'b): the former
+  does not cons.  Quoting should be reserved for constants that will
+  never be modified by side-effects, unless you like self-modifying code.
+  See the common pitfall in info node `(elisp)Rearrangement' for an example
+  of unexpected results when a quoted object is modified."
   {:arglists '([ARG])}
   [arg]
   `(quote ~arg))
@@ -100,11 +128,19 @@
 
 (c/defmacro defconst
   "Define SYMBOL as a constant variable.
-  The intent is that neither programs nor users should ever change this value.
-  Always sets the value of SYMBOL to the result of evalling INITVALUE.
-  If SYMBOL is buffer-local, its default value is what is set;
-   buffer-local values are not affected.
-  DOCSTRING is optional."
+  This declares that neither programs nor users should ever change the
+  value.  This constancy is not actually enforced by Emacs Lisp, but
+  SYMBOL is marked as a special variable so that it is never lexically
+  bound.
+
+  The `defconst' form always sets the value of SYMBOL to the result of
+  evalling INITVALUE.  If SYMBOL is buffer-local, its default value is
+  what is set; buffer-local values are not affected.  If SYMBOL has a
+  local binding, then this form sets the local binding's value.
+  However, you should normally not make local bindings for variables
+  defined with this form.
+
+  The optional DOCSTRING specifies the variable's documentation string."
   {:arglists '([SYMBOL INITVALUE [DOCSTRING]])}
   [symbol initvalue & [docstring]]
   `(do
@@ -137,7 +173,13 @@
   VAR, the variable name, is literal (not evaluated);
   VALUE is an expression: it is evaluated and its value returned.
   The default value of a variable is seen in buffers
-  that do not have their own values for the variable."
+  that do not have their own values for the variable.
+
+  More generally, you can use multiple variables and values, as in
+    (setq-default VAR VALUE VAR VALUE...)
+  This sets each VAR's default value to the corresponding VALUE.
+  The VALUE for the Nth VAR can refer to the new default values
+  of previous VARs."
   {:arglists '([[VAR VALUE]...])}
   [& var-values]
   `(setq ~@var-values))
@@ -165,7 +207,22 @@
   When the macro is called, as in (NAME ARGS...),
   the function (lambda ARGLIST BODY...) is applied to
   the list ARGS... as it appears in the expression,
-  and the result should be a form to be evaluated instead of the original."
+  and the result should be a form to be evaluated instead of the original.
+
+  DECL is a declaration, optional, which can specify how to indent
+  calls to this macro, how Edebug should handle it, and which argument
+  should be treated as documentation.  It looks like this:
+    (declare SPECS...)
+  The elements can look like this:
+    (indent INDENT)
+  	Set NAME's `lisp-indent-function' property to INDENT.
+
+    (debug DEBUG)
+  	Set NAME's `edebug-form-spec' property to DEBUG.  (This is
+  	equivalent to writing a `def-edebug-spec' for the macro.)
+
+    (doc-string ELT)
+  	Set NAME's `doc-string-elt' property to ELT."
   {:arglists '([NAME ARGLIST [DOCSTRING] [DECL] BODY...])}
   [name arglist & body])
 
@@ -203,9 +260,30 @@
 
 (c/defmacro defvar
   "Define SYMBOL as a variable, and return SYMBOL.
-  You are not required to define a variable in order to use it,
-  but the definition can supply documentation and an initial value
-  in a way that tags can recognize."
+  You are not required to define a variable in order to use it, but
+  defining it lets you supply an initial value and documentation, which
+  can be referred to by the Emacs help facilities and other programming
+  tools.  The `defvar' form also declares the variable as \"special\",
+  so that it is always dynamically bound even if `lexical-binding' is t.
+
+  The optional argument INITVALUE is evaluated, and used to set SYMBOL,
+  only if SYMBOL's value is void.  If SYMBOL is buffer-local, its
+  default value is what is set; buffer-local values are not affected.
+  If INITVALUE is missing, SYMBOL's value is not set.
+
+  If SYMBOL has a local binding, then this form affects the local
+  binding.  This is usually not what you want.  Thus, if you need to
+  load a file defining variables, with this form or with `defconst' or
+  `defcustom', you should always load that file _outside_ any bindings
+  for these variables.  (`defconst' and `defcustom' behave similarly in
+  this respect.)
+
+  The optional argument DOCSTRING is a documentation string for the
+  variable.
+
+  To define a user option, use `defcustom' instead of `defvar'.
+  The function `user-variable-p' also identifies a variable as a user
+  option if its DOCSTRING starts with *, but this behavior is obsolete."
   {:arglists '([SYMBOL &optional INITVALUE DOCSTRING])}
   [symbol & [initvalue docstring]]
   `(do
@@ -220,7 +298,12 @@
 
 (c/defmacro ^:clojure-special-form catch
   "Eval BODY allowing nonlocal exits using `throw'.
-  TAG is evalled to get the tag to use; it must not be nil."
+  TAG is evalled to get the tag to use; it must not be nil.
+
+  Then the BODY is executed.
+  Within BODY, a call to `throw' with the same TAG exits BODY and this `catch'.
+  If no throw happens, `catch' returns the value of the last BODY form.
+  If a throw happens, it specifies the value to return from `catch'."
   {:arglists '([TAG BODY...])}
   [tag & body]
   `(try
@@ -248,7 +331,13 @@
   when it is entered, and restores them when it is exited.
   So any `narrow-to-region' within BODY lasts only until the end of the form.
   The old restrictions settings are restored
-  even in case of abnormal exit (throw or error)."
+  even in case of abnormal exit (throw or error).
+
+  The value returned is the value of the last form in BODY.
+
+  Note: if you are using both `save-excursion' and `save-restriction',
+  use `save-excursion' outermost:
+      (save-excursion (save-restriction ...))"
   {:arglists '([&rest BODY])}
   [& body])
 
@@ -268,7 +357,15 @@
   Executes BODY just like `progn'.
   The values of point, mark and the current buffer are restored
   even in case of abnormal exit (throw or error).
-  The state of activation of the mark is also restored."
+  The state of activation of the mark is also restored.
+
+  This construct does not save `deactivate-mark', and therefore
+  functions that change the buffer will still cause deactivation
+  of the mark at the end of the command.  To prevent that, bind
+  `deactivate-mark' with `let'.
+
+  If you only want to save the current buffer but not point nor mark,
+  then just use `save-current-buffer', or even `with-current-buffer'."
   [& body])
 
 (c/defmacro with-output-to-temp-buffer
@@ -285,7 +382,61 @@
   The \"call\" to `interactive' is actually a declaration rather than a function;
    it tells `call-interactively' how to read arguments
    to pass to the function.
-  When actually called, `interactive' just returns nil."
+  When actually called, `interactive' just returns nil.
+
+  Usually the argument of `interactive' is a string containing a code letter
+   followed optionally by a prompt.  (Some code letters do not use I/O to get
+   the argument and do not use prompts.)  To get several arguments, concatenate
+   the individual strings, separating them by newline characters.
+  Prompts are passed to format, and may use % escapes to print the
+   arguments that have already been read.
+  If the argument is not a string, it is evaluated to get a list of
+   arguments to pass to the function.
+  Just `(interactive)' means pass no args when calling interactively.
+
+  Code letters available are:
+  a -- Function name: symbol with a function definition.
+  b -- Name of existing buffer.
+  B -- Name of buffer, possibly nonexistent.
+  c -- Character (no input method is used).
+  C -- Command name: symbol with interactive function definition.
+  d -- Value of point as number.  Does not do I/O.
+  D -- Directory name.
+  e -- Parameterized event (i.e., one that's a list) that invoked this command.
+       If used more than once, the Nth `e' returns the Nth parameterized event.
+       This skips events that are integers or symbols.
+  f -- Existing file name.
+  F -- Possibly nonexistent file name.
+  G -- Possibly nonexistent file name, defaulting to just directory name.
+  i -- Ignored, i.e. always nil.  Does not do I/O.
+  k -- Key sequence (downcase the last event if needed to get a definition).
+  K -- Key sequence to be redefined (do not downcase the last event).
+  m -- Value of mark as number.  Does not do I/O.
+  M -- Any string.  Inherits the current input method.
+  n -- Number read using minibuffer.
+  N -- Numeric prefix arg, or if none, do like code `n'.
+  p -- Prefix arg converted to number.  Does not do I/O.
+  P -- Prefix arg in raw form.  Does not do I/O.
+  r -- Region: point and mark as 2 numeric args, smallest first.  Does no I/O.
+  s -- Any string.  Does not inherit the current input method.
+  S -- Any symbol.
+  U -- Mouse up event discarded by a previous k or K argument.
+  v -- Variable name: symbol that is user-variable-p.
+  x -- Lisp expression read but not evaluated.
+  X -- Lisp expression read and evaluated.
+  z -- Coding system.
+  Z -- Coding system, nil if no prefix arg.
+
+  In addition, if the string begins with `*', an error is signaled if
+    the buffer is read-only.
+  If `@' appears at the beginning of the string, and if the key sequence
+   used to invoke the command includes any mouse events, then the window
+   associated with the first of those events is selected before the
+   command is run.
+  If the string begins with `^' and `shift-select-mode' is non-nil,
+   Emacs first calls the function `handle-shift-selection'.
+  You may use `@', `*', and `^' together.  They are processed in the
+   order that they appear, before reading any arguments."
   {:arglists '([&optional ARGS])}
   [& args])
 

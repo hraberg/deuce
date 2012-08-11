@@ -14,13 +14,31 @@
 (defun display-supports-face-attributes-p (attributes &optional display)
   "Return non-nil if all the face attributes in ATTRIBUTES are supported.
   The optional argument DISPLAY can be a display name, a frame, or
-  nil (meaning the selected frame's display)."
+  nil (meaning the selected frame's display).
+  
+  The definition of `supported' is somewhat heuristic, but basically means
+  that a face containing all the attributes in ATTRIBUTES, when merged
+  with the default face for display, can be represented in a way that's
+  
+   (1) different in appearance than the default face, and
+   (2) `close in spirit' to what the attributes specify, if not exact.
+  
+  Point (2) implies that a `:weight black' attribute will be satisfied by
+  any display that can display bold, and a `:foreground \"yellow\"' as long
+  as it can display a yellowish color, but `:slant italic' will _not_ be
+  satisfied by the tty display code's automatic substitution of a `dim'
+  face for italic."
   )
 
 (defun face-attribute-relative-p (attribute value)
   "Check whether a face attribute value is relative.
   Specifically, this function returns t if the attribute ATTRIBUTE
-  with the value VALUE is relative."
+  with the value VALUE is relative.
+  
+  A relative value is one that doesn't entirely override whatever is
+  inherited from another face.  For most possible attributes,
+  the only relative value that users see is `unspecified'.
+  However, for :height, floating point values are also relative."
   )
 
 (defun color-supported-p (color &optional frame background-p)
@@ -32,7 +50,11 @@
   )
 
 (defun x-load-color-file (filename)
-  "Create an alist of color entries from an external file."
+  "Create an alist of color entries from an external file.
+  
+  The file should define one named RGB color per line like so:
+    R G B   name
+  where R,G,B are numbers between 0 and 255 and name is an arbitrary string."
   )
 
 (defun internal-lisp-face-empty-p (face &optional frame)
@@ -137,7 +159,9 @@
   Otherwise, copy the frame-local definition of FROM on FRAME.
   If NEW-FRAME is a frame, copy that data into the frame-local
   definition of TO on NEW-FRAME.  If NEW-FRAME is nil,
-  FRAME controls where the data is copied to."
+  FRAME controls where the data is copied to.
+  
+  The value is TO."
   )
 
 (defun frame-face-alist (&optional frame)

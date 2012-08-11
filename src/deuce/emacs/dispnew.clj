@@ -33,14 +33,21 @@
   along with the buffers' read-only and modified flags.  This allows a fast
   check to see whether buffer menus might need to be recomputed.
   If this function returns non-nil, it updates the internal vector to reflect
-  the current state."
+  the current state.
+  
+  If VARIABLE is nil, an internal variable is used.  Users should not
+  pass nil for VARIABLE."
   )
 
 (defun redisplay (&optional force)
-  "Perform redisplay if no input is available.
-  If optional arg FORCE is non-nil or `redisplay-dont-pause' is non-nil,
-  perform a full redisplay even if input is available.
-  Return t if redisplay was performed, nil otherwise."
+  "Perform redisplay.
+  Optional arg FORCE, if non-nil, prevents redisplay from being
+  preempted by arriving input, even if `redisplay-dont-pause' is nil.
+  If `redisplay-dont-pause' is non-nil (the default), redisplay is never
+  preempted by arriving input, so FORCE does nothing.
+  
+  Return t if redisplay was performed, nil if redisplay was preempted
+  immediately by pending input."
   )
 
 (defun internal-show-cursor-p (&optional window)
@@ -54,7 +61,12 @@
 
 (defun send-string-to-terminal (string &optional terminal)
   "Send STRING to the terminal without alteration.
-  Control characters in STRING will have terminal-dependent effects."
+  Control characters in STRING will have terminal-dependent effects.
+  
+  Optional parameter TERMINAL specifies the tty terminal device to use.
+  It may be a terminal object, a frame, or nil for the terminal used by
+  the currently selected frame.  In batch mode, STRING is sent to stdout
+  when TERMINAL is nil."
   )
 
 (defun redraw-display ()

@@ -5,8 +5,10 @@
             :distribution :repo}
   :url "http://www.gnu.org/software/emacs/"
   :dependencies [[org.clojure/clojure "1.4.0"]]
-  :resources-path "emacs/lisp"
+  :plugins [[lein-swank "1.4.4"]
+            [lein-difftest "1.3.8"]]
+  :resource-paths ["emacs/lisp"]
   :jar-exclusions [#".*\.elc"]
-  :java-source-path "src"
+  :java-source-paths ["src"]
   :jvm-opts ["-Xss4m"]
   :main deuce.core)

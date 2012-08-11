@@ -1,10 +1,7 @@
 (ns
  deuce.emacs.lread
- (use [deuce.emacs-lisp :only (defun t)])
- (require [clojure.core :as c])
- (require [deuce.emacs.minibuf :as minibuf])
- (:refer-clojure :exclude [read intern load])
- (import [java.io Reader PushbackReader]))
+ (use [deuce.emacs-lisp :only (defun)])
+ (:refer-clojure :exclude [read intern load]))
 
 (defun read-event (&optional prompt inherit-input-method seconds)
   "Read an event object from the input stream.
@@ -22,7 +19,16 @@
   "Read a character from the command input (keyboard or macro).
   It is returned as a number.  Non-character events are ignored.
   If the character has modifiers, they are resolved and reflected to the
-  character code if possible (e.g. C-SPC -> 0)."
+  character code if possible (e.g. C-SPC -> 0).
+  
+  If the optional argument PROMPT is non-nil, display that as a prompt.
+  If the optional argument INHERIT-INPUT-METHOD is non-nil and some
+  input method is turned on in the current buffer, that input method
+  is used for reading a character.
+  If the optional argument SECONDS is non-nil, it should be a number
+  specifying the maximum number of seconds to wait for input.  If no
+  input arrives in that time, return nil.  SECONDS may be a
+  floating-point value."
   )
 
 (defun read (&optional stream)
@@ -36,18 +42,29 @@
    a string (takes text from string, starting at the beginning)
    t (read text line using minibuffer and use it, or read from
       standard input in batch mode)."
-  (condp some [stream]
-    string? (read-string stream)
-    (partial
-     contains? #{t nil}) (minibuf/read-minibuffer "Lisp expression: ")
-     (c/read (if (instance? PushbackReader stream) stream
-                 (PushbackReader. stream)))))
+  )
 
 (defun read-char (&optional prompt inherit-input-method seconds)
   "Read a character from the command input (keyboard or macro).
   It is returned as a number.
   If the character has modifiers, they are resolved and reflected to the
-  character code if possible (e.g. C-SPC -> 0)."
+  character code if possible (e.g. C-SPC -> 0).
+  
+  If the user generates an event which is not a character (i.e. a mouse
+  click or function key event), `read-char' signals an error.  As an
+  exception, switch-frame events are put off until non-character events
+  can be read.
+  If you want to read non-character events, or ignore them, call
+  `read-event' or `read-char-exclusive' instead.
+  
+  If the optional argument PROMPT is non-nil, display that as a prompt.
+  If the optional argument INHERIT-INPUT-METHOD is non-nil and some
+  input method is turned on in the current buffer, that input method
+  is used for reading a character.
+  If the optional argument SECONDS is non-nil, it should be a number
+  specifying the maximum number of seconds to wait for input.  If no
+  input arrives in that time, return nil.  SECONDS may be a
+  floating-point value."
   )
 
 (defun eval-buffer (&optional buffer printflag filename unibyte do-allow-print)
@@ -61,12 +78,16 @@
   UNIBYTE, if non-nil, specifies `load-convert-to-unibyte' for this
    invocation.
   DO-ALLOW-PRINT, if non-nil, specifies that `print' and related
-   functions should work normally even if PRINTFLAG is nil."
+   functions should work normally even if PRINTFLAG is nil.
+  
+  This function preserves the position of point."
   )
 
 (defun read-from-string (string &optional start end)
   "Read one Lisp expression which is represented as text by STRING.
   Returns a cons: (OBJECT-READ . FINAL-STRING-INDEX).
+  FINAL-STRING-INDEX is an integer giving the position of the next
+   remaining character in STRING.
   START and END optionally delimit a substring of STRING from which to read;
    they default to 0 and (length STRING) respectively."
   )
@@ -80,7 +101,9 @@
   A value of nil means discard it; anything else is stream for printing it.
   Also the fourth argument READ-FUNCTION, if non-nil, is used
   instead of `read' to read each expression.  It gets one argument
-  which is the input stream for reading characters."
+  which is the input stream for reading characters.
+  
+  This function does not move point."
   )
 
 (defun intern (string &optional obarray)
@@ -101,7 +124,41 @@
   then try FILE unmodified (the exact suffixes in the exact order are
   determined by `load-suffixes').  Environment variable references in
   FILE are replaced with their values by calling `substitute-in-file-name'.
-  This function searches the directories in `load-path'."
+  This function searches the directories in `load-path'.
+  
+  If optional second arg NOERROR is non-nil,
+  report no error if FILE doesn't exist.
+  Print messages at start and end of loading unless
+  optional third arg NOMESSAGE is non-nil (but `force-load-messages'
+  overrides that).
+  If optional fourth arg NOSUFFIX is non-nil, don't try adding
+  suffixes `.elc' or `.el' to the specified name FILE.
+  If optional fifth arg MUST-SUFFIX is non-nil, insist on
+  the suffix `.elc' or `.el'; don't accept just FILE unless
+  it ends in one of those suffixes or includes a directory name.
+  
+  If this function fails to find a file, it may look for different
+  representations of that file before trying another file.
+  It does so by adding the non-empty suffixes in `load-file-rep-suffixes'
+  to the file name.  Emacs uses this feature mainly to find compressed
+  versions of files when Auto Compression mode is enabled.
+  
+  The exact suffixes that this function tries out, in the exact order,
+  are given by the value of the variable `load-file-rep-suffixes' if
+  NOSUFFIX is non-nil and by the return value of the function
+  `get-load-suffixes' if MUST-SUFFIX is non-nil.  If both NOSUFFIX and
+  MUST-SUFFIX are nil, this function first tries out the latter suffixes
+  and then the former.
+  
+  Loading a file records its definitions, and its `provide' and
+  `require' calls, in an element of `load-history' whose
+  car is the file name loaded.  See `load-history'.
+  
+  While the file is in the process of being loaded, the variable
+  `load-in-progress' is non-nil and the variable `load-file-name'
+  is bound to the file's name.
+  
+  Return t if the file exists and loads successfully."
   )
 
 (defun mapatoms (function &optional obarray)
@@ -116,7 +173,9 @@
   file name when searching.
   If non-nil, PREDICATE is used instead of `file-readable-p'.
   PREDICATE can also be an integer to pass to the access(2) function,
-  in which case file-name-handlers are ignored."
+  in which case file-name-handlers are ignored.
+  This function will normally skip directories, so if you want it to find
+  directories, make sure the PREDICATE function returns `dir-ok' for them."
   )
 
 (defun unintern (name obarray)

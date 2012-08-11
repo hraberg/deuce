@@ -1,11 +1,11 @@
 ;;; ert-x-tests.el --- Tests for ert-x.el
 
-;; Copyright (C) 2008, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2010-2012 Free Software Foundation, Inc.
 
 ;; Author: Phil Hagelberg
-;; Author: Christian M. Ohler
+;; 	   Christian Ohler <ohler@gnu.org>
 
-;; This file is NOT part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -177,8 +177,23 @@
             (when (get-buffer buffer-name)
               (kill-buffer buffer-name)))))))))
 
+(ert-deftest ert-test-describe-test ()
+  "Tests `ert-describe-test'."
+  (save-window-excursion
+    (ert-with-buffer-renamed ("*Help*")
+      (if (< emacs-major-version 24)
+          (should (equal (should-error (ert-describe-test 'ert-describe-test))
+                         '(error "Requires Emacs 24")))
+        (ert-describe-test 'ert-test-describe-test)
+        (with-current-buffer "*Help*"
+          (let ((case-fold-search nil))
+            (should (string-match (concat
+                                   "\\`ert-test-describe-test is a test"
+                                   " defined in `ert-x-tests.elc?'\\.\n\n"
+                                   "Tests `ert-describe-test'\\.\n\\'")
+                                  (buffer-string)))))))))
 
-(ert-deftest ert-test-messages-on-log-truncation ()
+(ert-deftest ert-test-message-log-truncation ()
   :tags '(:causes-redisplay)
   (let ((test (make-ert-test
                :body (lambda ()
@@ -197,22 +212,6 @@
                          (buffer-string))
                        "c\nd\n")))
       (should (equal (ert-test-result-messages result) "a\nb\nc\nd\n")))))
-
-(ert-deftest ert-test-describe-test ()
-  "Tests `ert-describe-test'."
-  (save-window-excursion
-    (ert-with-buffer-renamed ("*Help*")
-      (if (< emacs-major-version 24)
-          (should (equal (should-error (ert-describe-test 'ert-describe-test))
-                         '(error "Requires Emacs 24")))
-        (ert-describe-test 'ert-test-describe-test)
-        (with-current-buffer "*Help*"
-          (let ((case-fold-search nil))
-            (should (string-match (concat
-                                   "\\`ert-test-describe-test is a test"
-                                   " defined in `ert-x-tests.elc?'\\.\n\n"
-                                   "Tests `ert-describe-test'\\.\n\\'")
-                                  (buffer-string)))))))))
 
 (ert-deftest ert-test-builtin-message-log-flushing ()
   "This test attempts to demonstrate that there is no way to

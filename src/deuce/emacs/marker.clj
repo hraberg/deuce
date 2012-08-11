@@ -12,10 +12,11 @@
   "Return t if there are markers pointing at POSITION in the current buffer."
   )
 
-(defun copy-marker (marker &optional type)
+(defun copy-marker (&optional marker type)
   "Return a new marker pointing at the same place as MARKER.
   If argument is a number, makes a new marker pointing
   at that position in the current buffer.
+  If MARKER is not specified, the new marker does not point anywhere.
   The optional argument TYPE specifies the insertion type of the new marker;
   see `marker-insertion-type'."
   )

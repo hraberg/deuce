@@ -82,7 +82,10 @@
   If BUFFER-OR-NAME is a string and a live buffer with that name exists,
   return that buffer.  If no such buffer exists, create a new buffer with
   that name and return it.  If BUFFER-OR-NAME starts with a space, the new
-  buffer does not keep undo information."
+  buffer does not keep undo information.
+  
+  If BUFFER-OR-NAME is a buffer instead of a string, return it as given,
+  even if it is dead.  The return value is never nil."
   )
 
 (defun overlay-start (overlay)
@@ -147,20 +150,16 @@
   become effective once more.  Also, the syntax table is set from
   `standard-syntax-table', the local keymap is set to nil,
   and the abbrev table from `fundamental-mode-abbrev-table'.
-  This function also forces redisplay of the mode line."
-  )
-
-(defun bury-buffer (&optional buffer-or-name)
-  "Put BUFFER-OR-NAME at the end of the list of all buffers.
-  There it is the least likely candidate for `other-buffer' to return;
-  thus, the least likely buffer for C-x b to select by
-  default."
-  )
-
-(defun switch-to-buffer (buffer-or-name &optional norecord)
-  "Make BUFFER-OR-NAME current and display it in selected window.
-  BUFFER-OR-NAME may be a buffer, a string (a buffer name), or
-  nil.  Return the buffer switched to."
+  This function also forces redisplay of the mode line.
+  
+  Every function to select a new major mode starts by
+  calling this function.
+  
+  As a special exception, local variables whose names have
+  a non-nil `permanent-local' property are not eliminated by this function.
+  
+  The first thing this function does is run
+  the normal hook `change-major-mode-hook'."
   )
 
 (defun overlay-end (overlay)
@@ -174,7 +173,8 @@
   )
 
 (defun overlay-put (overlay prop value)
-  "Set one property of overlay OVERLAY: give property PROP value VALUE."
+  "Set one property of overlay OVERLAY: give property PROP value VALUE.
+  VALUE will be returned."
   )
 
 (defun set-buffer (buffer-or-name)
@@ -193,9 +193,13 @@
 
 (defun buffer-list (&optional frame)
   "Return a list of all existing live buffers.
-  If the optional arg FRAME is a frame, we return the buffer list
-  in the proper order for that frame: the buffers in FRAME's `buffer-list'
-  frame parameter come first, followed by the rest of the buffers."
+  If the optional arg FRAME is a frame, we return the buffer list in the
+  proper order for that frame: the buffers show in FRAME come first,
+  followed by the rest of the buffers."
+  )
+
+(defun bury-buffer-internal (buffer)
+  "Move BUFFER to the end of the buffer list."
   )
 
 (defun previous-overlay-change (pos)
@@ -216,7 +220,18 @@
   "Kill buffer BUFFER-OR-NAME.
   The argument may be a buffer or the name of an existing buffer.
   Argument nil or omitted means kill the current buffer.  Return t if the
-  buffer is actually killed, nil otherwise."
+  buffer is actually killed, nil otherwise.
+  
+  This function calls `replace-buffer-in-windows' for cleaning up all
+  windows currently displaying the buffer to be killed.  The functions in
+  `kill-buffer-query-functions' are called with the buffer to be killed as
+  the current buffer.  If any of them returns nil, the buffer is not
+  killed.  The hook `kill-buffer-hook' is run before the buffer is
+  actually killed.  The buffer being killed will be current while the hook
+  is running.
+  
+  Any processes that have this buffer as the `process-buffer' are killed
+  with SIGHUP."
   )
 
 (defun overlays-in (beg end)
@@ -296,12 +311,15 @@
 
 (defun other-buffer (&optional buffer visible-ok frame)
   "Return most recently selected buffer other than BUFFER.
-  Buffers not visible in windows are preferred to visible buffers,
-  unless optional second argument VISIBLE-OK is non-nil.
-  If the optional third argument FRAME is non-nil, use that frame's
-  buffer list instead of the selected frame's buffer list.
-  If no other buffer exists, the buffer `*scratch*' is returned.
-  If BUFFER is omitted or nil, some interesting buffer is returned."
+  Buffers not visible in windows are preferred to visible buffers, unless
+  optional second argument VISIBLE-OK is non-nil.  Ignore the argument
+  BUFFER unless it denotes a live buffer.  If the optional third argument
+  FRAME is non-nil, use that frame's buffer list instead of the selected
+  frame's buffer list.
+  
+  The buffer is found by scanning the selected or specified frame's buffer
+  list first, followed by the list of all buffers.  If no other buffer
+  exists, return the buffer `*scratch*' (creating it if necessary)."
   )
 
 (defun overlays-at (pos)

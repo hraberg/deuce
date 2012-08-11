@@ -12,30 +12,53 @@
          code# (str "(progn " (apply str (walk/postwalk-replace env# '~emacs-lisp)) ")")]
      (:out (sh/sh "emacs/src/emacs" "-Q" "-batch" "--eval" code#))))
 
+(def symbol-delimiter "--- DEUCE DELIMITER ---")
+
 (defn read-subrs []
+  (let [symbol-delimiter symbol-delimiter]
+    (eval-in-emacs
+     (require 'cl)
+
+     (do-symbols (sym)
+                 (when
+                     (and (fboundp sym) (subrp (symbol-function sym)))
+                   (princ (describe-function sym))
+                   (princ symbol-delimiter))))))
+
+(defn read-vars []
   (eval-in-emacs
    (require 'cl)
 
    (do-symbols (sym)
-               (when
-                   (and (fboundp sym) (subrp (symbol-function sym))
-                        (princ (describe-function sym)))))))
+               (when (and (boundp sym)
+                          (eq (find-lisp-object-file-name sym 'defvar) 'C-source))
+                 (princ (describe-variable sym))))))
 
 (defn special-forms []
-  (->> (string/split (read-subrs) #"\.|\)" )
+  (->> (string/split (read-subrs) (re-pattern symbol-delimiter))
        (map #(re-find #"(\S+) is a special form in `C source code'" %))
        (remove nil?)
        (map (comp symbol second))
        set))
 
 (defn subrs []
-  (->> (string/split (read-subrs) #"[^.)]+ is (an interactive built-in function|a built-in function|a special form)\s+in\s+(`C\ssource\scode'.\n\n|`subr.el'.)")
+  (->> (string/split (read-subrs) (re-pattern symbol-delimiter))
        (remove empty?)
-       (map #(let [[decl doc] (->> (string/split % #"\n\n")
-                                   (drop-while (complement (partial re-find #"\(.*"))))
+       (map #(let [[decl & doc] (->> (string/split % #"\n\n")
+                                     (drop-while (complement (partial re-find #"\(.*"))))
                    [name & args] (string/split (subs decl 1 (dec (count decl))) #"\s+")]
-               [(symbol name) {:args (map symbol args) :doc doc}]))
+               [(symbol name) {:args (map symbol args) :doc (string/join "\n\n" doc)}]))
        (into {})))
+
+(defn vars []
+  (->> (string/split (read-vars) #"[^.)]+ is a variable defined\s+in\s+`C\ssource\scode'.\n")
+       (remove empty?)
+       ;; (map #(let [[decl doc] (->> (string/split % #"\n\n")
+       ;;                             (drop-while (complement (partial re-find #"\(.*"))))
+       ;;             [name & args] (string/split (subs decl 1 (dec (count decl))) #"\s+")]
+       ;;         [(symbol name) {:args (map symbol args) :doc doc}]))
+       ;; (into {})
+       ))
 
 (defn find-files-for-tags [tags]
   (sh/sh "./collect-tags")
@@ -46,7 +69,7 @@
          read-string
          (map #(string/replace % #"\..+$" "")))))
 
-(def subr-aliases '#{search-forward-regexp search-backward-regexp})
+(def subr-aliases '#{search-forward-regexp search-backward-regexp internal-temp-output-buffer-show})
 
 (defn generate-fn-stubs [subrs]
   (->> (map #(vector (key %) (assoc (val %) :namespace %2))
@@ -59,6 +82,7 @@
                       (symbol "1-") (symbol "1-")
                       (symbol "/=") 'slash-equals
                       '... '(&rest args)
+;                      '[VAR VALUE]... '(&rest vars-and-vals)
                       'ARGS... '(&rest args)
                       'ARGUMENTS... '(&rest arguments)})
 

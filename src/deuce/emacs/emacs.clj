@@ -26,11 +26,20 @@
 (defun kill-emacs (&optional arg)
   "Exit the Emacs job and kill it.
   If ARG is an integer, return ARG as the exit program code.
-  If ARG is a string, stuff it as keyboard input."
+  If ARG is a string, stuff it as keyboard input.
+  
+  This function is called upon receipt of the signals SIGTERM
+  or SIGHUP, and upon SIGINT in batch mode.
+  
+  The value of `kill-emacs-hook', if not void,
+  is a list of functions (of no args),
+  all of which are called before Emacs is actually killed."
   )
 
 (defun dump-emacs (filename symfile)
   "Dump current state of Emacs into executable file FILENAME.
   Take symbols from SYMFILE (presumably the file you executed to run Emacs).
-  This is used in the file `loadup.el' when building Emacs."
+  This is used in the file `loadup.el' when building Emacs.
+  
+  You must run Emacs in batch mode in order to dump it."
   )

@@ -38,18 +38,37 @@
   or a character code.  Return VALUE."
   )
 
+(defun get-unicode-property-internal (char-table ch)
+  "Return an element of CHAR-TABLE for character CH.
+  CHAR-TABLE must be what returned by `unicode-property-table-internal'."
+  )
+
 (defun set-char-table-extra-slot (char-table n value)
   "Set CHAR-TABLE's extra-slot number N to VALUE."
   )
 
+(defun unicode-property-table-internal (prop)
+  "Return a char-table for Unicode character property PROP.
+  Use `get-unicode-property-internal' and
+  `put-unicode-property-internal' instead of `aref' and `aset' to get
+  and put an element value."
+  )
+
 (defun make-char-table (purpose &optional init)
   "Return a newly created char-table, with purpose PURPOSE.
-  Each element is initialized to INIT, which defaults to nil."
+  Each element is initialized to INIT, which defaults to nil.
+  
+  PURPOSE should be a symbol.  If it has a `char-table-extra-slots'
+  property, the property's value should be an integer between 0 and 10
+  that specifies how many extra slots the char-table has.  Otherwise,
+  the char-table has no extra slot."
   )
 
 (defun set-char-table-default (char-table ch value)
   "This function is obsolete since 23.1;
-  generic characters no longer exist."
+  generic characters no longer exist.
+  
+  This function is obsolete and has no effect."
   )
 
 (defun char-table-range (char-table range)
@@ -62,4 +81,9 @@
   "Optimize CHAR-TABLE.
   TEST is the comparison function used to decide whether two entries are
   equivalent and can be merged.  It defaults to `equal'."
+  )
+
+(defun put-unicode-property-internal (char-table ch value)
+  "Set an element of CHAR-TABLE for character CH to VALUE.
+  CHAR-TABLE must be what returned by `unicode-property-table-internal'."
   )

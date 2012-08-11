@@ -3,7 +3,7 @@
  (use [deuce.emacs-lisp :only (defun)])
  (:refer-clojure :exclude []))
 
-(defun sort-charsets (lisp-object charsets)
+(defun sort-charsets (charsets)
   "Sort charset list CHARSETS by a priority of each charset.
   Return the sorted list.  CHARSETS is modified by side effects.
   See also `charset-priority-list' and `set-charset-priority'."
@@ -19,7 +19,7 @@
 
 (defun charset-after (&optional pos)
   "Return charset of a character in the current buffer at position POS.
-  If POS is nil, it defauls to the current point.
+  If POS is nil, it defaults to the current point.
   If POS is out of range, the value is nil."
   )
 
@@ -37,7 +37,10 @@
 
 (defun encode-char (ch charset &optional restriction)
   "Encode the character CH into a code-point of CHARSET.
-  Return nil if CHARSET doesn't include CH."
+  Return nil if CHARSET doesn't include CH.
+  
+  Optional argument RESTRICTION specifies a way to map CH to a
+  code-point in CCS.  Currently not supported and just ignored."
   )
 
 (defun charset-id-internal (&optional charset)
@@ -55,18 +58,30 @@
 (defun find-charset-region (beg end &optional table)
   "Return a list of charsets in the region between BEG and END.
   BEG and END are buffer positions.
-  Optional arg TABLE if non-nil is a translation table to look up."
+  Optional arg TABLE if non-nil is a translation table to look up.
+  
+  If the current buffer is unibyte, the returned list may contain
+  only `ascii', `eight-bit-control', and `eight-bit-graphic'."
   )
 
 (defun unify-charset (charset &optional unify-map deunify)
   "Unify characters of CHARSET with Unicode.
   This means reading the relevant file and installing the table defined
-  by CHARSET's `:unify-map' property."
+  by CHARSET's `:unify-map' property.
+  
+  Optional second arg UNIFY-MAP is a file name string or a vector.  It has
+  the same meaning as the `:unify-map' attribute in the function
+  `define-charset' (which see).
+  
+  Optional third argument DEUNIFY, if non-nil, means to de-unify CHARSET."
   )
 
 (defun find-charset-string (str &optional table)
   "Return a list of charsets in STR.
-  Optional arg TABLE if non-nil is a translation table to look up."
+  Optional arg TABLE if non-nil is a translation table to look up.
+  
+  If STR is unibyte, the returned list may contain
+  only `ascii', `eight-bit-control', and `eight-bit-graphic'."
   )
 
 (defun set-charset-priority (&rest charsets)
@@ -74,7 +89,11 @@
   )
 
 (defun declare-equiv-charset (dimension chars final-char charset)
-  "Declare an equivalent charset for ISO-2022 decoding."
+  "Declare an equivalent charset for ISO-2022 decoding.
+  
+  On decoding by an ISO-2022 base coding system, when a charset
+  specified by DIMENSION, CHARS, and FINAL-CHAR is designated, behave as
+  if CHARSET is designated instead."
   )
 
 (defun clear-charset-maps ()
@@ -86,7 +105,11 @@
 (defun get-unused-iso-final-char (dimension chars)
   "Return an unused ISO final char for a charset of DIMENSION and CHARS.
   DIMENSION is the number of bytes to represent a character: 1 or 2.
-  CHARS is the number of characters in a dimension: 94 or 96."
+  CHARS is the number of characters in a dimension: 94 or 96.
+  
+  This final char is for private use, thus the range is `0' (48) .. `?' (63).
+  If there's no unused final char for the specified kind of charset,
+  return nil."
   )
 
 (defun charset-priority-list (&optional highestp)
@@ -97,11 +120,21 @@
 (defun map-charset-chars (function charset &optional arg from-code to-code)
   "Call FUNCTION for all characters in CHARSET.
   FUNCTION is called with an argument RANGE and the optional 3rd
-  argument ARG."
+  argument ARG.
+  
+  RANGE is a cons (FROM .  TO), where FROM and TO indicate a range of
+  characters contained in CHARSET.
+  
+  The optional 4th and 5th arguments FROM-CODE and TO-CODE specify the
+  range of code points (in CHARSET) of target characters."
   )
 
 (defun make-char (charset &optional code1 code2 code3 code4)
-  "Return a character of CHARSET whose position codes are CODEn."
+  "Return a character of CHARSET whose position codes are CODEn.
+  
+  CODE1 through CODE4 are optional, but if you don't supply sufficient
+  position codes, it is assumed that the minimum code in each dimension
+  is specified."
   )
 
 (defun char-charset (ch &optional restriction)
@@ -113,9 +146,20 @@
 
 (defun decode-char (charset code-point &optional restriction)
   "Decode the pair of CHARSET and CODE-POINT into a character.
-  Return nil if CODE-POINT is not valid in CHARSET."
+  Return nil if CODE-POINT is not valid in CHARSET.
+  
+  CODE-POINT may be a cons (HIGHER-16-BIT-VALUE . LOWER-16-BIT-VALUE).
+  
+  Optional argument RESTRICTION specifies a way to map the pair of CCS
+  and CODE-POINT to a character.  Currently not supported and just ignored."
   )
 
 (defun iso-charset (dimension chars final-char)
-  "Return charset of ISO's specification DIMENSION, CHARS, and FINAL-CHAR."
+  "Return charset of ISO's specification DIMENSION, CHARS, and FINAL-CHAR.
+  
+  ISO 2022's designation sequence (escape sequence) distinguishes charsets
+  by their DIMENSION, CHARS, and FINAL-CHAR,
+  whereas Emacs distinguishes them by charset symbol.
+  See the documentation of the function `charset-info' for the meanings of
+  DIMENSION, CHARS, and FINAL-CHAR."
   )

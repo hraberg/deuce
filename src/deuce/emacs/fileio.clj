@@ -51,7 +51,13 @@
   UNC file names on MS-Windows.)
   An initial `~/' expands to your home directory.
   An initial `~USER/' expands to USER's home directory.
-  See also the function `substitute-in-file-name'."
+  See also the function `substitute-in-file-name'.
+  
+  For technical reasons, this function can return correct but
+  non-intuitive results for the root directory; for instance,
+  (expand-file-name \"..\" \"/\") returns \"/..\".  For this reason, use
+  (directory-file-name (file-name-directory dirname)) to traverse a
+  filesystem tree, not (expand-file-name \"..\"  dirname)."
   )
 
 (defun write-region (start end filename &optional append visit lockname mustbenew)
@@ -61,7 +67,35 @@
   specifying the part of the buffer to write.
   If START is nil, that means to use the entire buffer contents.
   If START is a string, then output that string to the file
-  instead of any buffer contents; END is ignored."
+  instead of any buffer contents; END is ignored.
+  
+  Optional fourth argument APPEND if non-nil means
+    append to existing file contents (if any).  If it is an integer,
+    seek to that offset in the file before writing.
+  Optional fifth argument VISIT, if t or a string, means
+    set the last-save-file-modtime of buffer to this file's modtime
+    and mark buffer not modified.
+  If VISIT is a string, it is a second file name;
+    the output goes to FILENAME, but the buffer is marked as visiting VISIT.
+    VISIT is also the file name to lock and unlock for clash detection.
+  If VISIT is neither t nor nil nor a string,
+    that means do not display the \"Wrote file\" message.
+  The optional sixth arg LOCKNAME, if non-nil, specifies the name to
+    use for locking and unlocking, overriding FILENAME and VISIT.
+  The optional seventh arg MUSTBENEW, if non-nil, insists on a check
+    for an existing file with the same name.  If MUSTBENEW is `excl',
+    that means to get an error if the file already exists; never overwrite.
+    If MUSTBENEW is neither nil nor `excl', that means ask for
+    confirmation before overwriting, but do go ahead and overwrite the file
+    if the user confirms.
+  
+  This does code conversion according to the value of
+  `coding-system-for-write', `buffer-file-coding-system', or
+  `file-coding-system-alist', and sets the variable
+  `last-coding-system-used' to the coding system actually used.
+  
+  This calls `write-region-annotate-functions' at the start, and
+  `write-region-post-annotation-function' at the end."
   )
 
 (defun file-exists-p (filename)
@@ -71,6 +105,15 @@
   Use `file-symlink-p' to test for such links."
   )
 
+(defun set-file-selinux-context (filename context)
+  "Set SELinux context of file named FILENAME to CONTEXT.
+  CONTEXT should be a list (USER ROLE TYPE RANGE), where the list
+  elements are strings naming the components of a SELinux context.
+  
+  This function does nothing if SELinux is disabled, or if Emacs was not
+  compiled with SELinux support."
+  )
+
 (defun do-auto-save (&optional no-message current-only)
   "Auto-save all buffers that need it.
   This is all buffers that have auto-saving enabled
@@ -78,7 +121,20 @@
   Auto-saving writes the buffer into a file
   so that your editing is not lost if the system crashes.
   This file is not the file you visited; that changes only when you save.
-  Normally we run the normal hook `auto-save-hook' before saving."
+  Normally we run the normal hook `auto-save-hook' before saving.
+  
+  A non-nil NO-MESSAGE argument means do not print any message if successful.
+  A non-nil CURRENT-ONLY argument means save only current buffer."
+  )
+
+(defun file-selinux-context (filename)
+  "Return SELinux context of file named FILENAME.
+  The return value is a list (USER ROLE TYPE RANGE), where the list
+  elements are strings naming the user, role, type, and range of the
+  file's SELinux security context.
+  
+  Return (nil nil nil nil) if the file is nonexistent or inaccessible,
+  or if SELinux is disabled, or if Emacs lacks SELinux support."
   )
 
 (defun delete-directory-internal (directory)
@@ -89,7 +145,12 @@
   "Return FILENAME's handler function for OPERATION, if it has one.
   Otherwise, return nil.
   A file name is handled if one of the regular expressions in
-  `file-name-handler-alist' matches it."
+  `file-name-handler-alist' matches it.
+  
+  If OPERATION equals `inhibit-file-name-operation', then we ignore
+  any handlers that are members of `inhibit-file-name-handlers',
+  but we still do run any other handlers.  This lets handlers
+  use the standard functions without calling themselves recursively."
   )
 
 (defun rename-file (file newname &optional ok-if-already-exists)
@@ -122,9 +183,10 @@
 
 (defun visited-file-modtime ()
   "Return the current buffer's recorded visited file modification time.
-  The value is a list of the form (HIGH LOW), like the time values
-  that `file-attributes' returns.  If the current buffer has no recorded
-  file modification time, this function returns 0.
+  The value is a list of the form (HIGH LOW), like the time values that
+  `file-attributes' returns.  If the current buffer has no recorded file
+  modification time, this function returns 0.  If the visited file
+  doesn't exist, HIGH will be -1.
   See Info node `(elisp)Modification Time' for more details."
   )
 
@@ -132,9 +194,10 @@
   "Tell Unix to finish all pending disk updates."
   )
 
-(defun verify-visited-file-modtime (buf)
+(defun verify-visited-file-modtime (&optional buf)
   "Return t if last mod time of BUF's visited file matches what BUF records.
   This means that the file has not been changed since it was visited or saved.
+  If BUF is omitted or nil, it defaults to the current buffer.
   See Info node `(elisp)Modification Time' for more details."
   )
 
@@ -161,9 +224,14 @@
   See also `file-exists-p' and `file-attributes'."
   )
 
-(defun delete-file (filename)
+(defun delete-file (filename &optional trash)
   "Delete file named FILENAME.  If it is a symlink, remove the symlink.
-  If file has multiple names, it continues to exist with the other names."
+  If file has multiple names, it continues to exist with the other names.
+  TRASH non-nil means to trash the file instead of deleting, provided
+  `delete-by-moving-to-trash' is non-nil.
+  
+  When called interactively, TRASH is t if no prefix argument is given.
+  With a prefix argument, TRASH is nil."
   )
 
 (defun file-executable-p (filename)
@@ -174,7 +242,19 @@
 (defun make-temp-name (prefix)
   "Generate temporary file name (string) starting with PREFIX (a string).
   The Emacs process number forms part of the result,
-  so there is no danger of generating a name being used by another process."
+  so there is no danger of generating a name being used by another process.
+  
+  In addition, this function makes an attempt to choose a name
+  which has no existing file.  To make this work,
+  PREFIX should be an absolute file name.
+  
+  There is a race condition between calling `make-temp-name' and creating the
+  file which opens all kinds of security holes.  For that reason, you should
+  probably use `make-temp-file' instead, except in three circumstances:
+  
+  * If you are creating the file in the user's home directory.
+  * If you are creating a directory rather than an ordinary file.
+  * If you are taking special precautions as `make-temp-file' does."
   )
 
 (defun access-file (filename string)
@@ -204,7 +284,22 @@
   If second argument VISIT is non-nil, the buffer's visited filename and
   last save file modtime are set, and it is marked unmodified.  If
   visiting and the file does not exist, visiting is completed before the
-  error is signaled."
+  error is signaled.
+  
+  The optional third and fourth arguments BEG and END specify what portion
+  of the file to insert.  These arguments count bytes in the file, not
+  characters in the buffer.  If VISIT is non-nil, BEG and END must be nil.
+  
+  If optional fifth argument REPLACE is non-nil, replace the current
+  buffer contents (in the accessible portion) with the file contents.
+  This is better than simply deleting and inserting the whole thing
+  because (1) it preserves some marker positions and (2) it puts less data
+  in the undo list.  When REPLACE is non-nil, the second return value is
+  the number of characters that replace previous buffer contents.
+  
+  This function does code conversion according to the value of
+  `coding-system-for-read' or `file-coding-system-alist', and sets the
+  variable `last-coding-system-used' to the coding system actually used."
   )
 
 (defun file-name-nondirectory (filename)
@@ -219,7 +314,11 @@
   `$FOO' where FOO is an environment variable name means to substitute
   the value of that variable.  The variable name should be terminated
   with a character not a letter, digit or underscore; otherwise, enclose
-  the entire variable name in braces."
+  the entire variable name in braces.
+  
+  If `/~' appears, all of FILENAME through that `/' is discarded.
+  If `//' appears, everything up to and including the first of
+  those `/' is discarded."
   )
 
 (defun file-directory-p (filename)
@@ -233,17 +332,20 @@
   No auto-save file will be written until the buffer changes again."
   )
 
-(defun set-file-times (filename &optional time)
-  "Set times of file FILENAME to TIME.
+(defun set-file-times (filename &optional timestamp)
+  "Set times of file FILENAME to TIMESTAMP.
   Set both access and modification times.
   Return t on success, else nil.
-  Use the current time if TIME is nil.  TIME is in the format of
+  Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
   `current-time'."
   )
 
 (defun set-file-modes (filename mode)
   "Set mode bits of file named FILENAME to MODE (an integer).
-  Only the 12 low bits of MODE are used."
+  Only the 12 low bits of MODE are used.
+  
+  Interactively, mode bits are read by `read-file-modes', which accepts
+  symbolic notation, like the `chmod' command from GNU Coreutils."
   )
 
 (defun file-accessible-directory-p (filename)
@@ -265,9 +367,31 @@
   For a Unix-syntax file name, just appends a slash."
   )
 
-(defun copy-file (file newname &optional ok-if-already-exists keep-time preserve-uid-gid)
+(defun copy-file (file newname &optional ok-if-already-exists keep-time preserve-uid-gid preserve-selinux-context)
   "Copy FILE to NEWNAME.  Both args must be strings.
-  If NEWNAME names a directory, copy FILE there."
+  If NEWNAME names a directory, copy FILE there.
+  
+  This function always sets the file modes of the output file to match
+  the input file.
+  
+  The optional third argument OK-IF-ALREADY-EXISTS specifies what to do
+  if file NEWNAME already exists.  If OK-IF-ALREADY-EXISTS is nil, we
+  signal a `file-already-exists' error without overwriting.  If
+  OK-IF-ALREADY-EXISTS is a number, we request confirmation from the user
+  about overwriting; this is what happens in interactive use with M-x.
+  Any other value for OK-IF-ALREADY-EXISTS means to overwrite the
+  existing file.
+  
+  Fourth arg KEEP-TIME non-nil means give the output file the same
+  last-modified time as the old one.  (This works on only some systems.)
+  
+  A prefix arg makes KEEP-TIME non-nil.
+  
+  If PRESERVE-UID-GID is non-nil, we try to transfer the
+  uid and gid of FILE to NEWNAME.
+  
+  If PRESERVE-SELINUX-CONTEXT is non-nil and SELinux is enabled
+  on the system, we copy the SELinux context of FILE to NEWNAME."
   )
 
 (defun file-regular-p (filename)
@@ -287,7 +411,10 @@
 (defun file-symlink-p (filename)
   "Return non-nil if file FILENAME is the name of a symbolic link.
   The value is the link target, as a string.
-  Otherwise it returns nil."
+  Otherwise it returns nil.
+  
+  This function returns t when given the name of a symlink that
+  points to a nonexistent file."
   )
 
 (defun unhandled-file-name-directory (filename)

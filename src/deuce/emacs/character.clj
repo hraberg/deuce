@@ -3,11 +3,6 @@
  (use [deuce.emacs-lisp :only (defun)])
  (:refer-clojure :exclude []))
 
-(defun char-direction (char)
-  "Return the direction of CHAR.
-  The returned value is 0 for left-to-right and 1 for right-to-left."
-  )
-
 (defun unibyte-char-to-multibyte (ch)
   "Convert the byte CH to multibyte character."
   )
@@ -32,18 +27,13 @@
   taken to occupy `tab-width' columns."
   )
 
-(defun char-bytes (char)
-  "This function is obsolete since 20.4;
-  now always returns 1."
-  )
-
 (defun char-width (char)
   "Return width of CHAR when displayed in the current buffer.
   The width is measured by how many columns it occupies on the screen.
   Tab is taken to occupy `tab-width' columns."
   )
 
-(defun characterp (object &optional ignore)
+(defun characterp (object)
   "Return non-nil if OBJECT is a character."
   )
 
@@ -57,7 +47,10 @@
   a byte value.
   Optional 2nd arg STRING, if non-nil, is a string of which first
   character is a target to get a byte value.  In this case, POSITION, if
-  non-nil, is an index of a target character in the string."
+  non-nil, is an index of a target character in the string.
+  
+  If the current buffer (or STRING) is multibyte, and the target
+  character is not ASCII nor 8-bit character, an error is signaled."
   )
 
 (defun max-char ()

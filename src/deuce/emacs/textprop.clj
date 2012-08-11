@@ -8,7 +8,11 @@
   This scans characters forward in the current buffer from POSITION till
   it finds a change in some text property, or the beginning or end of an
   overlay, and returns the position of that.
-  If none is found up to (point-max), the function returns (point-max)."
+  If none is found up to (point-max), the function returns (point-max).
+  
+  If the optional second argument LIMIT is non-nil, don't search
+  past position LIMIT; return LIMIT if nothing is found before LIMIT.
+  LIMIT is a no-op if it is greater than (point-max)."
   )
 
 (defun remove-list-of-text-properties (start end list-of-properties &optional object)
@@ -28,11 +32,14 @@
   the current buffer), POSITION is a buffer position (integer or marker).
   If OBJECT is a string, POSITION is a 0-based index into it.
   Return nil if the property is constant all the way to the end of OBJECT.
-  If the value is non-nil, it is a position greater than POSITION, never equal."
+  If the value is non-nil, it is a position greater than POSITION, never equal.
+  
+  If the optional third argument LIMIT is non-nil, don't search
+  past position LIMIT; return LIMIT if nothing is found before LIMIT."
   )
 
 (defun text-property-not-all (start end property value &optional object)
-  "Check text from START to END for property PROPERTY not equalling VALUE.
+  "Check text from START to END for property PROPERTY not equaling VALUE.
   If so, return the position of the first character whose property PROPERTY
   is not `eq' to VALUE.  Otherwise, return nil.
   If the optional fifth argument OBJECT is a buffer (or nil, which means
@@ -56,11 +63,20 @@
   a change in the PROP property, then returns the position of the change.
   If the optional third argument OBJECT is a buffer (or nil, which means
   the current buffer), POSITION is a buffer position (integer or marker).
-  If OBJECT is a string, POSITION is a 0-based index into it."
+  If OBJECT is a string, POSITION is a 0-based index into it.
+  
+  In a string, scan runs to the start of the string.
+  In a buffer, it runs to (point-min), and the value cannot be less than that.
+  
+  The property values are compared with `eq'.
+  If the property is constant all the way to the start of OBJECT, return the
+  first valid position in OBJECT.
+  If the optional fourth argument LIMIT is non-nil, don't search back past
+  position LIMIT; return LIMIT if nothing is found before reaching LIMIT."
   )
 
 (defun text-property-any (start end property value &optional object)
-  "Check text from START to END for property PROPERTY equalling VALUE.
+  "Check text from START to END for property PROPERTY equaling VALUE.
   If so, return the position of the first character whose property PROPERTY
   is `eq' to VALUE.  Otherwise return nil.
   If the optional fifth argument OBJECT is a buffer (or nil, which means
@@ -73,7 +89,14 @@
   The value is a cons cell.  Its car is the return value of `get-char-property'
   with the same arguments--that is, the value of POSITION's property
   PROP in OBJECT.  Its cdr is the overlay in which the property was
-  found, or nil, if it was found as a text property or not found at all."
+  found, or nil, if it was found as a text property or not found at all.
+  
+  OBJECT is optional and defaults to the current buffer.  OBJECT may be
+  a string, a buffer or a window.  For strings, the cdr of the return
+  value is always nil, since strings do not have overlays.  If OBJECT is
+  a window, then that window's buffer is used, but window-specific
+  overlays are considered only if they are associated with OBJECT.  If
+  POSITION is at the end of OBJECT, both car and cdr are nil."
   )
 
 (defun previous-char-property-change (position &optional limit)
@@ -81,7 +104,11 @@
   Scans characters backward in the current buffer from POSITION till it
   finds a change in some text property, or the beginning or end of an
   overlay, and returns the position of that.
-  If none is found since (point-min), the function returns (point-min)."
+  If none is found since (point-min), the function returns (point-min).
+  
+  If the optional second argument LIMIT is non-nil, don't search
+  past position LIMIT; return LIMIT if nothing is found before LIMIT.
+  LIMIT is a no-op if it is less than (point-min)."
   )
 
 (defun put-text-property (start end property value &optional object)
@@ -101,7 +128,9 @@
   If the optional fourth argument OBJECT is a buffer (or nil, which means
   the current buffer), START and END are buffer positions (integers or
   markers).  If OBJECT is a string, START and END are 0-based indices into it.
-  Return t if any property was actually removed, nil otherwise."
+  Return t if any property was actually removed, nil otherwise.
+  
+  Use `set-text-properties' if you want to remove all text properties."
   )
 
 (defun get-char-property (position prop &optional object)
@@ -121,7 +150,16 @@
   a change in the PROP property, then returns the position of the change.
   If the optional third argument OBJECT is a buffer (or nil, which means
   the current buffer), POSITION is a buffer position (integer or marker).
-  If OBJECT is a string, POSITION is a 0-based index into it."
+  If OBJECT is a string, POSITION is a 0-based index into it.
+  
+  In a string, scan runs to the end of the string.
+  In a buffer, it runs to (point-max), and the value cannot exceed that.
+  
+  The property values are compared with `eq'.
+  If the property is constant all the way to the end of OBJECT, return the
+  last valid position in OBJECT.
+  If the optional fourth argument LIMIT is non-nil, don't search
+  past position LIMIT; return LIMIT if nothing is found before LIMIT."
   )
 
 (defun next-single-property-change (position prop &optional object limit)
@@ -133,7 +171,10 @@
   If OBJECT is a string, POSITION is a 0-based index into it.
   The property values are compared with `eq'.
   Return nil if the property is constant all the way to the end of OBJECT.
-  If the value is non-nil, it is a position greater than POSITION, never equal."
+  If the value is non-nil, it is a position greater than POSITION, never equal.
+  
+  If the optional fourth argument LIMIT is non-nil, don't search
+  past position LIMIT; return LIMIT if nothing is found before LIMIT."
   )
 
 (defun get-text-property (position prop &optional object)
@@ -169,7 +210,10 @@
   If OBJECT is a string, POSITION is a 0-based index into it.
   The property values are compared with `eq'.
   Return nil if the property is constant all the way to the start of OBJECT.
-  If the value is non-nil, it is a position less than POSITION, never equal."
+  If the value is non-nil, it is a position less than POSITION, never equal.
+  
+  If the optional fourth argument LIMIT is non-nil, don't search
+  back past position LIMIT; return LIMIT if nothing is found until LIMIT."
   )
 
 (defun previous-property-change (position &optional object limit)
@@ -180,5 +224,8 @@
   the current buffer), POSITION is a buffer position (integer or marker).
   If OBJECT is a string, POSITION is a 0-based index into it.
   Return nil if the property is constant all the way to the start of OBJECT.
-  If the value is non-nil, it is a position less than POSITION, never equal."
+  If the value is non-nil, it is a position less than POSITION, never equal.
+  
+  If the optional third argument LIMIT is non-nil, don't search
+  back past position LIMIT; return LIMIT if nothing is found until LIMIT."
   )

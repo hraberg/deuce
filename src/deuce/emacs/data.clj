@@ -1,9 +1,7 @@
 (ns
  deuce.emacs.data
  (use [deuce.emacs-lisp :only (defun)])
- (:refer-clojure
-  :exclude
-  [+ * - / aset set < = > max >= <= mod atom min]))
+ (:refer-clojure :exclude [- aset set < > max >= <= mod atom min]))
 
 (defun natnump (object)
   "Return t if OBJECT is a nonnegative integer."
@@ -30,7 +28,7 @@
   If OBJECT is not a symbol, just return it.  Otherwise, follow all
   function indirections to find the final function binding and return it.
   If the final symbol in the chain is unbound, signal a void-function error.
-  Optional arg NOERROR non-nil means to return nil instead of signalling.
+  Optional arg NOERROR non-nil means to return nil instead of signaling.
   Signal a cyclic-function-indirection error if there is a loop in the
   function chain of symbols."
   )
@@ -111,10 +109,6 @@
   Both must be integers or markers."
   )
 
-(defun + (&rest numbers-or-markers)
-  "Return sum of any number of arguments, which are numbers or markers."
-  )
-
 (defun lsh (value count)
   "Return VALUE with its bits shifted left by COUNT.
   If COUNT is negative, shifting is actually to the right.
@@ -123,10 +117,6 @@
 
 (defun eq (obj1 obj2)
   "Return t if the two args are the same Lisp object."
-  )
-
-(defun * (&rest numbers-or-markers)
-  "Return product of any number of arguments, which are numbers or markers."
   )
 
 (defun - (&optional number-or-marker &rest more-numbers-or-markers)
@@ -156,11 +146,6 @@
   "Return the cdr of OBJECT if it is a cons cell, or else nil."
   )
 
-(defun / (dividend divisor &rest divisors)
-  "Return first argument divided by all the remaining arguments.
-  The arguments must be numbers or markers."
-  )
-
 (defun byteorder ()
   "Return the byteorder for the machine.
   Returns 66 (ASCII uppercase B) for big endian machines or 108 (ASCII
@@ -177,7 +162,20 @@
   Other buffers will continue to share a common default value.
   (The buffer-local value of VARIABLE starts out as the same value
   VARIABLE previously had.  If VARIABLE was void, it remains void.)
-  Return VARIABLE."
+  Return VARIABLE.
+  
+  If the variable is already arranged to become local when set,
+  this function causes a local value to exist for this buffer,
+  just as setting the variable would do.
+  
+  This function returns VARIABLE, and therefore
+    (set (make-local-variable 'VARIABLE) VALUE-EXP)
+  works.
+  
+  See also `make-variable-buffer-local'.
+  
+  Do not use `make-local-variable' to make a hook variable buffer-local.
+  Instead, use `add-hook' and specify t for the LOCAL argument."
   )
 
 (defun numberp (object)
@@ -253,15 +251,10 @@
 
 (defun cdr (list)
   "Return the cdr of LIST.  If arg is nil, return nil.
-  Error if arg is not nil and not a cons cell.  See also `cdr-safe'."
-  )
-
-(defun (symbol "slash-equals") (num1 num2)
-  "Return t if first arg is not equal to second arg.  Both must be numbers or markers."
-  )
-
-(defun = (num1 num2)
-  "Return t if two args, both numbers or markers, are equal."
+  Error if arg is not nil and not a cons cell.  See also `cdr-safe'.
+  
+  See Info node `(elisp)Cons Cells' for a discussion of related basic
+  Lisp concepts such as cdr, car, cons cell and list."
   )
 
 (defun make-variable-buffer-local (variable)
@@ -271,7 +264,12 @@
   in which case the default value is in effect.
   Note that binding the variable with `let', or setting it while
   a `let'-style binding made in this buffer is in effect,
-  does not make the variable buffer-local.  Return VARIABLE."
+  does not make the variable buffer-local.  Return VARIABLE.
+  
+  In most cases it is better to use `make-local-variable',
+  which makes a variable local in just one buffer.
+  
+  The function `default-value' gets the default value and `set-default' sets it."
   )
 
 (defun char-or-string-p (object)
@@ -381,7 +379,10 @@
 
 (defun car (list)
   "Return the car of LIST.  If arg is nil, return nil.
-  Error if arg is not nil and not a cons cell.  See also `car-safe'."
+  Error if arg is not nil and not a cons cell.  See also `car-safe'.
+  
+  See Info node `(elisp)Cons Cells' for a discussion of related basic
+  Lisp concepts such as car, cdr, cons cell and list."
   )
 
 (defun bool-vector-p (object)
@@ -421,7 +422,25 @@
 
 (defun make-variable-frame-local (variable)
   "This function is obsolete since 22.2;
-  explicitly check for a frame-parameter instead."
+  explicitly check for a frame-parameter instead.
+  
+  Enable VARIABLE to have frame-local bindings.
+  This does not create any frame-local bindings for VARIABLE,
+  it just makes them possible.
+  
+  A frame-local binding is actually a frame parameter value.
+  If a frame F has a value for the frame parameter named VARIABLE,
+  that also acts as a frame-local binding for VARIABLE in F--
+  provided this function has been called to enable VARIABLE
+  to have frame-local bindings at all.
+  
+  The only way to create a frame-local binding for VARIABLE in a frame
+  is to set the VARIABLE frame parameter of that frame.  See
+  `modify-frame-parameters' for how to set frame parameters.
+  
+  Note that since Emacs 23.1, variables cannot be both buffer-local and
+  frame-local any more (buffer-local bindings used to take precedence over
+  frame-local bindings)."
   )
 
 (defun number-to-string (number)
@@ -442,7 +461,11 @@
 (defun string-to-number (string &optional base)
   "Parse STRING as a decimal number and return the number.
   This parses both integers and floating point numbers.
-  It ignores leading spaces and tabs, and all trailing chars."
+  It ignores leading spaces and tabs, and all trailing chars.
+  
+  If BASE, interpret STRING as a number in that base.  If BASE isn't
+  present, base 10 is used.  BASE must be between 2 and 16 (inclusive).
+  If the base used is not 10, STRING is always parsed as integer."
   )
 
 (defun variable-binding-locus (variable)
