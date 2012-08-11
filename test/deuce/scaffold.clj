@@ -73,8 +73,10 @@
 
 (def subr-aliases '#{search-forward-regexp search-backward-regexp internal-temp-output-buffer-show})
 
+(def ns-overrides '{+ "data" / "data" * "data" = "data"})
+
 (defn generate-fn-stubs [subrs]
-  (->> (map #(vector (key %) (assoc (val %) :namespace %2))
+  (->> (map #(vector (key %) (assoc (val %) :namespace (get ns-overrides (key %) %2)))
             subrs
             (find-files-for-tags (map name (keys subrs))))
        (into {})

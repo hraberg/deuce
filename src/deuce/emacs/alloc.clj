@@ -1,7 +1,7 @@
 (ns
  deuce.emacs.alloc
  (:use [deuce.emacs-lisp :only (defun defvar)])
- (:refer-clojure :exclude [* vector cons = list]))
+ (:refer-clojure :exclude [vector cons list]))
 
 (defvar purify-flag nil
   "Non-nil means loading Lisp code in order to dump an executable.
@@ -35,13 +35,13 @@
   "*Number of bytes of consing between garbage collections.
   Garbage collection can happen automatically once this many bytes have been
   allocated since the last garbage collection.  All data types count.
-
+  
   Garbage collection happens automatically only when `eval' is called.
-
+  
   By binding this temporarily to a large number, you can effectively
   prevent garbage collection during a part of the program.
   See also `gc-cons-percentage'.
-
+  
   You can customize this variable.")
 
 (defvar memory-signal-data nil
@@ -63,7 +63,7 @@
 
 (defvar garbage-collection-messages nil
   "Non-nil means display messages at start and end of garbage collection.
-
+  
   You can customize this variable.")
 
 (defvar pure-bytes-used nil
@@ -148,10 +148,6 @@
 
 (defun (symbol "slash-equals") (num1 num2)
   "Return t if first arg is not equal to second arg.  Both must be numbers or markers."
-  )
-
-(defun = (num1 num2)
-  "Return t if two args, both numbers or markers, are equal."
   )
 
 (defun make-symbol (name)
