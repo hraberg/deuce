@@ -35,13 +35,13 @@
   "*Number of bytes of consing between garbage collections.
   Garbage collection can happen automatically once this many bytes have been
   allocated since the last garbage collection.  All data types count.
-  
+
   Garbage collection happens automatically only when `eval' is called.
-  
+
   By binding this temporarily to a large number, you can effectively
   prevent garbage collection during a part of the program.
   See also `gc-cons-percentage'.
-  
+
   You can customize this variable.")
 
 (defvar memory-signal-data nil
@@ -63,7 +63,7 @@
 
 (defvar garbage-collection-messages nil
   "Non-nil means display messages at start and end of garbage collection.
-  
+
   You can customize this variable.")
 
 (defvar pure-bytes-used nil
@@ -113,10 +113,6 @@
   MISCS include overlays, markers, and some internal types.
   Frames, windows, buffers, and subprocesses count as vectors
     (but the contents of a buffer's text do not count here)."
-  )
-
-(defun * (&rest numbers-or-markers)
-  "Return product of any number of arguments, which are numbers or markers."
   )
 
 (defun vector (&rest objects)
