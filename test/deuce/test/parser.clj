@@ -1,7 +1,6 @@
 (ns deuce.test.parser
   (use [clojure.test])
-  (require [deuce.emacs-lisp]
-           [clojure.string :as string]
+  (require [clojure.string :as string]
            [clojure.java.io :as io])
   (import [java.util Scanner]
           [java.io StringReader StreamTokenizer]
@@ -16,10 +15,6 @@
 (declare tokenize)
 
 (def ^Pattern re-str #"(?s)([^\"\\]*(?:\\.[^\"\\]*)*)\"")
-
-(def special-forms (->> (ns-map 'deuce.emacs-lisp)
-                        (filter (comp :clojure-special-form meta val))
-                        (into {})))
 
 (defn tokenize-all [^Scanner sc]
   (take-while identity (repeatedly (partial tokenize sc))))
@@ -53,9 +48,7 @@
       (cond
        (.hasNextLong sc) (.nextLong sc)
        (.hasNextDouble sc) (.nextDouble sc)
-       (.hasNext sc) (let [s (.next sc)]
-                       (if (special-forms (symbol s))
-                         (symbol "deuce.emacs-lisp" s) (symbol s)))))))
+       (.hasNext sc) (symbol (.next sc))))))
 
 (defn parse [r]
   (tokenize-all (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))

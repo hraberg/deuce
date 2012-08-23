@@ -26,4 +26,6 @@
             (for [[a e] (partition 2 (interleave parts expected))]
               (if (and (symbol? e) (isa? (resolve e) Throwable))
                 `(is (~'thrown? ~e (emacs ~@a)))
-                `(is ((if (fn? ~e) ~e #{~e}) (emacs ~@a))))))))
+                (if (and (symbol? e) (resolve e))
+                  `(is (~(resolve e) (emacs ~@a)))
+                  `(is (= ~e (emacs ~@a)))))))))

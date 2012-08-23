@@ -7,15 +7,22 @@
 (def t true)
 (create-ns 'deuce.emacs-lisp.globals)
 
+(defn clojure-special-forms []
+  (->> (ns-map 'deuce.emacs-lisp)
+       (filter (comp :clojure-special-form meta val))
+       (into {})))
+
 ;; These helper fns shouldn't be here, they're really defined elsewhere:
 
 ;; defined in eval.clj
 (c/defmacro eval [body]
   (c/let [vars (keys &env)
           qualify-globals (fn [form]
-                            (if (c/and (symbol? form)
-                                       (ns-resolve 'deuce.emacs-lisp.globals form))
-                              (symbol "deuce.emacs-lisp.globals" (name form))
+                            (if-let [s (c/and (symbol? form)
+                                              (c/or
+                                               ((clojure-special-forms) form)
+                                               (ns-resolve 'deuce.emacs-lisp.globals form)))]
+                              (symbol (-> s meta :ns str) (-> s meta :name str))
                               form))]
          `(binding [*ns* (the-ns 'deuce.emacs-lisp)]
             (c/let [locals# (zipmap '~vars ~(vec vars))
@@ -122,14 +129,15 @@
   [& sym-vals]
   `(do
      ~@(for [[s v] (partition 2 sym-vals)]
-         `(c/let [v# ~v]
-                 (if (instance? clojure.lang.Atom ~s)
-                   (reset! ~s v#)
-                   (c/let [var# (resolve '~s)]
-                          (if (contains? (get-thread-bindings) var#)
-                            (var-set var# v#)
-                            (alter-var-root var# (constantly v#))))
-                   )))))
+         (if (contains? &env s)
+           `(reset! ~s ~v)
+           `(c/let [v# ~v]
+                   (if-let [var# (resolve '~s)]
+                     (if (contains? (get-thread-bindings) var#)
+                       (var-set var# v#)
+                       (alter-var-root var# (constantly v#)))
+                     (do (defvar ~s v#)
+                         v#)))))))
 
 (c/defmacro ^:clojure-special-form quote
   "Return the argument, without evaluating it.  `(quote x)' yields `x'.
@@ -145,6 +153,29 @@
   [arg]
   `(quote ~arg))
 
+(c/defmacro ^:private let-helper [can-refer? varlist & body]
+  (c/let [{:keys [lexical dynamic]} (->> (if (every? list? varlist) varlist [varlist])
+                                         (group-by (comp #(if (namespace %) :dynamic :lexical) first)))
+          lexical-vars (into {} (map vec lexical))
+          dynamic-vars (into {} (map vec dynamic))
+          fix-lexical-setq (fn [form] (if (c/and (list? form) (= 'setq (first form)) (list? (second form)))
+                                        (list 'setq (-> form second second) (last form))
+                                        form))
+          body (w/postwalk fix-lexical-setq
+                           (w/postwalk-replace (zipmap (keys lexical-vars)
+                                                       (map #(list 'deref %) (keys lexical-vars))) body))
+          all-vars (map first varlist)
+          temps (zipmap all-vars (repeatedly #(gensym "local")))
+          lexical-vars (if can-refer? lexical-vars (select-keys temps (keys lexical-vars)))
+          dynamic-vars (if can-refer? dynamic-vars (select-keys temps (keys dynamic-vars)))]
+         `(c/let ~(if can-refer? [] (vec (interleave (map temps (map first varlist)) (map second varlist))))
+                 ~((fn build-let [[v & vs]]
+                     (if v
+                       (if-let [local (lexical-vars v)]
+                         `(c/let [~v (atom ~local)] ~(build-let vs))
+                         `(c/binding [~v ~(dynamic-vars v)] ~(build-let vs)))
+                       `(do ~@body))) all-vars))))
+
 (c/defmacro let
   "Bind variables according to VARLIST then eval BODY.
   The value of the last form in BODY is returned.
@@ -153,17 +184,7 @@
   All the VALUEFORMs are evalled before any symbols are bound."
   {:arglists '([VARLIST BODY...])}
   [varlist & body]
-  (c/let [{:keys [lexical dynamic]} (->> (if (every? list? varlist) varlist [varlist])
-                                         (group-by (comp #(if (namespace %) :dynamic :lexical) first)))
-          lexical-vars (map first lexical)
-          fix-lexical-setq (fn [form] (if (c/and (list? form) (= 'setq (first form)) (list? (second form)))
-                                        (list 'setq (-> form second second) (last form))
-                                        form))]
-         `(c/binding [~@(apply concat dynamic)]
-                     (c/let [~@(apply concat (map (fn [[l r]] [l (list 'atom r)]) lexical))]
-                            ~@(w/postwalk fix-lexical-setq
-                                          (w/postwalk-replace (zipmap lexical-vars
-                                                           (map #(list 'deref %) lexical-vars)) body))))))
+  `(let-helper false ~varlist ~@body))
 
 (c/defmacro defconst
   "Define SYMBOL as a constant variable.
@@ -298,7 +319,7 @@
   Each VALUEFORM can refer to the symbols already bound by this VARLIST."
   {:arglists '([VARLIST BODY...])}
   [varlist & body]
-  `(let ~varlist ~@body))
+  `(let-helper true ~varlist ~@body))
 
 (c/defmacro defvar
   "Define SYMBOL as a variable, and return SYMBOL.
