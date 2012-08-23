@@ -4,7 +4,7 @@
 ;; "11.9.3 Lexical Binding"[1]
 
 ;; Uses normal Clojure let, if the var isn't already globally bound.
-;; As let can be
+;; As vars introduced by let can be reassigned, they're represened as atoms locally.
 
 ;; [1] http://www.gnu.org/software/emacs/manual/html_node/elisp/Lexical-Binding.html
 
