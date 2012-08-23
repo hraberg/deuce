@@ -24,6 +24,6 @@
         parts (cons (first parts) (map rest (next parts)))]
     (concat `(deftest ~name)
             (for [[a e] (partition 2 (interleave parts expected))]
-              (if (and (symbol? e) (instance? Throwable (resolve e)))
+              (if (and (symbol? e) (isa? (resolve e) Throwable))
                 `(is (~'thrown? ~e (emacs ~@a)))
                 `(is ((if (fn? ~e) ~e #{~e}) (emacs ~@a))))))))

@@ -15,8 +15,8 @@
      (let ((x 1))
        (+ x 3))      ⇒ 4
 
-     (defun getx ()  ⇒ getx
-       x)
+     (defun getx ()
+       x)            ⇒ 'getx
 
      (let ((x 1))
        (getx))       ⇒ Exception)
