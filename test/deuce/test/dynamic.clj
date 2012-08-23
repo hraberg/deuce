@@ -9,15 +9,15 @@
 
 (repl example-1
 
-      (defvar x -99)
+      (defvar x -99) ⇒ 'x
 
       (defun getx ()
-        x)
+        x)           ⇒ 'getx
 
       (let ((x 1))
-        (getx))     ⇒ 1
+        (getx))      ⇒ 1
 
-      (getx)        ⇒ -99)
+      (getx)         ⇒ -99)
 
 
 (repl example-2
@@ -29,6 +29,6 @@
 
       (let ((x 1))
         (addx)
-        (addx))     ⇒ 3
+        (addx))      ⇒ 3
 
-      (addx)        ⇒ -98)
+      (addx)         ⇒ -98)
