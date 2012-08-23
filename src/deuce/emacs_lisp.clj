@@ -1,11 +1,21 @@
 (ns deuce.emacs-lisp
-    (require [clojure.core :as c])
-    (require [clojure.walk :as walk])
-    (:refer-clojure :exclude [defmacro and or cond let while])
-    (import [deuce EmacsLispError]))
+  (require [clojure.core :as c]
+           [clojure.walk :as w])
+  (:refer-clojure :exclude [defmacro and or cond let while eval])
+  (import [deuce EmacsLispError]))
 
 (def t true)
 (create-ns 'deuce.emacs-lisp.globals)
+
+(defn ^:private qualify-globals [form]
+  (if (c/and (symbol? form)
+           (ns-resolve 'deuce.emacs-lisp.globals form))
+    (symbol "deuce.emacs-lisp.globals" (name form))
+    form))
+
+(defn eval [body]
+  (binding [*ns* (the-ns 'deuce.emacs-lisp)]
+    (c/eval (w/postwalk qualify-globals body))))
 
 (c/defmacro defun
   "Define NAME as a function.
@@ -22,9 +32,8 @@
           arglist (concat arglist (when &optional ['& (vec optional-args)]))
           [[interactive] body] (split-with #(c/and (list? %)
                                                    (= 'interactive (first %))) body)]
-         `(do (defn ~name ~(vec arglist) ~@body)
-              (alter-meta! (var ~name) merge {:doc ~(apply str docstring)})
-              ~name)))
+         `(do (defn ~name ~(apply str docstring) ~(vec arglist) ~@body)
+              '~name)))
 
 (c/defmacro unwind-protect
   "Do BODYFORM, protecting with UNWINDFORMS.
@@ -67,11 +76,11 @@
   `(try
      ~bodyform
      (catch EmacsLispError e#
-       (let [~(if var var (gensym "_")) (.data e#)]
-         (case (.symbol e#)
-           ~@(apply concat (for [[c & h] handlers]
-                             `[~c (do ~@h)]))
-           (throw e#))))))
+       (c/let [~(if var var (gensym "_")) (.data e#)]
+              (case (.symbol e#)
+                ~@(apply concat (for [[c & h] handlers]
+                                  `[~c (do ~@h)]))
+                (throw e#))))))
 
 (c/defmacro cond
   "Try each clause until one succeeds.
@@ -98,9 +107,11 @@
   [& sym-vals]
   `(do
      ~@(for [[s v] (partition 2 sym-vals)]
-         `(c/let [v# ~v]
-                 (intern (create-ns 'deuce.emacs-lisp.globals) '~s v#)
-                 v#))))
+         `(c/let [v# ~v
+                  var# (var ~s)]
+                 (if (contains? (get-thread-bindings) var#)
+                   (var-set var# v#)
+                   (alter-var-root var# (constantly v#)))))))
 
 (c/defmacro ^:clojure-special-form quote
   "Return the argument, without evaluating it.  `(quote x)' yields `x'.
@@ -124,7 +135,7 @@
   All the VALUEFORMs are evalled before any symbols are bound."
   {:arglists '([VARLIST BODY...])}
   [varlist & body]
-  `(c/let [~@(if (every? list? varlist) (apply concat varlist) varlist)]
+  `(c/binding [~@(if (every? list? varlist) (apply concat varlist) varlist)]
           ~@body))
 
 (c/defmacro defconst
@@ -144,10 +155,13 @@
   The optional DOCSTRING specifies the variable's documentation string."
   {:arglists '([SYMBOL INITVALUE [DOCSTRING]])}
   [symbol initvalue & [docstring]]
-  `(do
-     (-> (intern (create-ns 'deuce.emacs-lisp.globals) '~symbol ~initvalue)
-         (alter-meta! merge {:doc ~(apply str docstring)}))
-     '~symbol))
+  (c/let [symbol (c/symbol (name symbol))]
+         `(do
+            (-> (intern (create-ns 'deuce.emacs-lisp.globals)
+                        '~symbol
+                        ~initvalue)
+                (alter-meta! merge {:doc ~(apply str docstring)}))
+            '~symbol)))
 
 (c/defmacro prog1
   "Eval FIRST and BODY sequentially; return value from FIRST.
@@ -287,10 +301,15 @@
   option if its DOCSTRING starts with *, but this behavior is obsolete."
   {:arglists '([SYMBOL &optional INITVALUE DOCSTRING])}
   [symbol & [initvalue docstring]]
-  `(do
-     (-> (intern (create-ns 'deuce.emacs-lisp.globals) '~symbol ~initvalue)
-         (alter-meta! merge {:doc ~(apply str docstring)}))
-     '~symbol))
+  (c/let [symbol (c/symbol (name symbol))]
+         `(do
+            (->
+             (intern (create-ns 'deuce.emacs-lisp.globals)
+                     '~symbol
+                     ~initvalue)
+             .setDynamic
+             (alter-meta! merge {:doc ~(apply str docstring)}))
+            '~symbol)))
 
 (defun ^:clojure-special-form throw (tag value)
   "Throw to the catch for TAG and return VALUE from it.
