@@ -24,7 +24,7 @@ It is meant to ensure that Lanterna can handle the UI updates Emacs requires.
 
     lein run -m deuce.test.parser
 
-It can read all the .el files under emacs/lisp, but the actual representation as Clojure forms will probably change.
+It can read all the `.el` files under `emacs/lisp`, but the actual representation as Clojure forms will probably change.
 
 [`parser.cjl`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/parser.clj).
 
