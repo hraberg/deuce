@@ -3,8 +3,7 @@
 
 ;; This is a way to represent the examples from "11.9.1 Dynamic Binding"[1] in Clojure.
 
-;; Uses binding + var-set/alter-var-root, but not sure about this approach - at least it works.
-;; deuce.emacs-lisp attempts to compile setq to intern, but that's not enough, as Emacs Lisp variables are both mutable and rebindable.
+;; Uses binding + var-set/alter-var-root, but not sure about this approach - at least it works for this example.
 
 ;; [1] http://www.gnu.org/software/emacs/manual/html_node/elisp/Dynamic-Binding.html
 
