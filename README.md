@@ -12,7 +12,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 **The [clojure-lanterna](https://github.com/sjl/clojure-lanterna/) screen test**
 
-   lein trampoline run -m deuce.test.terminal
+    lein trampoline run -m deuce.test.terminal
 
 This is *NOT* Emacs, Deuce or anything close like it, even though it looks like it at first sight.
 It is meant to ensure that Lanterna can handle the UI updates Emacs requires.
@@ -22,7 +22,7 @@ It is meant to ensure that Lanterna can handle the UI updates Emacs requires.
 
 **The Emacs Lisp parser**
 
-   lein run -m deuce.test.parser
+    lein run -m deuce.test.parser
 
 It can read all the .el files under emacs/lisp, but the actual representation as Clojure forms will probably change.
 
