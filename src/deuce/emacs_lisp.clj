@@ -9,7 +9,7 @@
 
 (defn ^:private qualify-globals [form]
   (if (c/and (symbol? form)
-           (ns-resolve 'deuce.emacs-lisp.globals form))
+             (ns-resolve 'deuce.emacs-lisp.globals form))
     (symbol "deuce.emacs-lisp.globals" (name form))
     form))
 
