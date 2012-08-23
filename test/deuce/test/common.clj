@@ -10,5 +10,5 @@
         expected (map first (next parts))
         parts (cons (first parts) (map rest (next parts)))]
     (concat `(deftest ~name)
-          (for [[a e] (partition 2 (interleave parts expected))]
-            `(is (= (emacs ~@a) ~e))))))
+            (for [[a e] (partition 2 (interleave parts expected))]
+              `(is (= (emacs ~@a) ~e))))))
