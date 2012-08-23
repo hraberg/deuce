@@ -1,6 +1,5 @@
 (ns deuce.test.dynamic
-  (require [deuce.emacs-lisp :as el])
-  (use [clojure.test]))
+  (use [deuce.test.common]))
 
 ;; This is a way to represent the examples from "11.9.1 Dynamic Binding"[1] in Clojure.
 
@@ -9,42 +8,28 @@
 
 ;; [1] http://www.gnu.org/software/emacs/manual/html_node/elisp/Dynamic-Binding.html
 
-(defmacro emacs [& body]
-  `(last (map el/eval '~body)))
+(repl example-1
 
-(deftest example-1
-  (are [lisp result] (= result lisp)
+      (defvar x -99)
 
-       (emacs
-        (defvar x -99)  ; x receives an initial value of -99.
+      (defun getx ()
+        x)
 
-        (defun getx ()
-          x)            ; x is used ``free'' in this function.
+      (let ((x 1))
+        (getx))     ⇒ 1
 
-        (let ((x 1))    ; x is dynamically bound.
-          (getx)))
-       1
+      (getx)        ⇒ -99)
 
-       ;; After the let form finishes, x reverts to its
-       ;; previous value, which is -99.
-       (emacs (getx))
-       -99))
 
-(deftest example-2
-  (are [lisp result] (= result lisp)
+(repl example-2
 
-       (emacs
-        (defvar x -99) ; x receives an initial value of -99.
+      (defvar x -99)
 
-        (defun addx ()
-          (setq x (+ 1 x)))
+      (defun addx ()
+        (setq x (+ 1 x)))
 
-        (let ((x 1))
-          (addx)
-          (addx)))
-       3               ; The two addx calls add to x twice.
+      (let ((x 1))
+        (addx)
+        (addx))     ⇒ 3
 
-       ;; After the let form finishes, x reverts to its
-       ;; previous value, which is -99.
-       (emacs (addx))
-       -98))
+      (addx)        ⇒ -98)
