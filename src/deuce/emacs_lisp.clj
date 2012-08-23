@@ -157,12 +157,12 @@
                                          (group-by (comp #(if (namespace %) :dynamic :lexical) first)))
           lexical-vars (map first lexical)
           fix-lexical-setq (fn [form] (if (c/and (list? form) (= 'setq (first form)) (list? (second form)))
-                                (list 'setq (-> form second second) (last form))
-                                form))]
+                                        (list 'setq (-> form second second) (last form))
+                                        form))]
          `(c/binding [~@(apply concat dynamic)]
                      (c/let [~@(apply concat (map (fn [[l r]] [l (list 'atom r)]) lexical))]
                             ~@(w/postwalk fix-lexical-setq
-                               (w/postwalk-replace (zipmap lexical-vars
+                                          (w/postwalk-replace (zipmap lexical-vars
                                                            (map #(list 'deref %) lexical-vars)) body))))))
 
 (c/defmacro defconst
