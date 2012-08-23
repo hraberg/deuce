@@ -2,15 +2,12 @@
   (require [deuce.emacs-lisp :as el])
   (use [clojure.test]))
 
-;; This is a way to represent the examples from "11.9.1 Dynamic Binding" in Clojure.
+;; This is a way to represent the examples from "11.9.1 Dynamic Binding"[1] in Clojure.
 
 ;; Uses binding + var-set/alter-var-root, but not sure about this approach - at least it works.
 ;; deuce.emacs-lisp attempts to compile setq to intern, but that's not enough, as Emacs Lisp variables are both mutable and rebindable.
 
 ;; [1] http://www.gnu.org/software/emacs/manual/html_node/elisp/Dynamic-Binding.html
-
-;; (alias 'eg 'deuce.emacs-lisp.globals)
-;; (el/defvar x)
 
 (defmacro emacs [& body]
   `(last (map el/eval '~body)))
@@ -49,6 +46,5 @@
 
        ;; After the let form finishes, x reverts to its
        ;; previous value, which is -99.
-
        (emacs (addx))
        -98))
