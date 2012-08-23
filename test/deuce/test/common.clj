@@ -13,10 +13,12 @@
 
 (defn with-fresh-emacs []
   (use-fixtures :each (fn [t]
-                        (let [fns (set (keys (ns-publics 'deuce.emacs-lisp)))]
+                        (let [fns (set (keys (ns-publics 'deuce.emacs-lisp)))
+                              clear #(do (remove-vars 'deuce.emacs-lisp (remove fns (keys (ns-publics 'deuce.emacs-lisp.globals))))
+                                         (clear-globals))]
+                          (clear)
                           (t)
-                          (remove-vars 'deuce.emacs-lisp (remove fns (keys (ns-publics 'deuce.emacs-lisp.globals))))
-                          (clear-globals)))))
+                          (clear)))))
 
 (defmacro repl [name & body]
   (let [parts (remove '#{[⇒]} (partition-by '#{⇒} body))
