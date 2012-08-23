@@ -8,6 +8,34 @@
 
 Also - there's a risk I'll give up, far before reaching the current benchmark of JVM Emacsen: [JEmacs](http://per.bothner.com/papers/Freenix00/Freenix00.html).
 
+### What is there to see?
+
+**The [clojure-lanterna](https://github.com/sjl/clojure-lanterna/) screen test**
+
+   lein trampoline run -m deuce.test.terminal
+
+This is *NOT* Emacs, Deuce or anything close like it, even though it looks like it at first sight.
+It is meant to ensure that Lanterna can handle the UI updates Emacs requires.
+
+[`terminal.cjl`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/terminal.clj).
+
+
+**The Emacs Lisp parser**
+
+   lein run -m deuce.test.parser
+
+It can read all the .el files under emacs/lisp, but the actual representation as Clojure forms will probably change.
+
+[`parser.cjl`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/parser.clj).
+
+
+**Emacs Lisp**
+
+The Clojure macros that backs Emacs Lisp lives in [`deuce.emacs-lisp`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs_lisp.clj).
+The exact evaluation model haven't been decided, but as Emacs Lisp is a Lisp 2, there will be a namespace for functions and one for variabels (currently called `deuce.emacs-lisp.globals`).
+
+[`dynamic.cjl`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/dynamic.clj). is a first stab at evaluating some Emacs Lisp.
+
 
 ### Preparing Emacs
 
