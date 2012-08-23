@@ -7,15 +7,30 @@
 (def t true)
 (create-ns 'deuce.emacs-lisp.globals)
 
-(defn ^:private qualify-globals [form]
-  (if (c/and (symbol? form)
-             (ns-resolve 'deuce.emacs-lisp.globals form))
-    (symbol "deuce.emacs-lisp.globals" (name form))
-    form))
+;; These helper fns shouldn't be here, they're really defined elsewhere:
 
-(defn eval [body]
-  (binding [*ns* (the-ns 'deuce.emacs-lisp)]
-    (c/eval (w/postwalk qualify-globals body))))
+;; defined in eval.clj
+(c/defmacro eval [body]
+  (c/let [vars (keys &env)
+          qualify-globals (fn [form]
+                            (if (c/and (symbol? form)
+                                       (ns-resolve 'deuce.emacs-lisp.globals form))
+                              (symbol "deuce.emacs-lisp.globals" (name form))
+                              form))]
+         `(binding [*ns* (the-ns 'deuce.emacs-lisp)]
+            (c/let [locals# (zipmap '~vars ~(vec vars))
+                    body# (w/postwalk-replace locals# ~body)
+                    body# (w/postwalk ~qualify-globals body#)]
+                   (c/eval body#)))))
+
+;; defined in eval.clj
+(defn funcall [f & args]
+  (apply f args))
+
+;; defined in subr.el
+(c/defmacro lambda [args & body]
+  `(fn ~(vec args) ~@body))
+
 
 (c/defmacro defun
   "Define NAME as a function.
@@ -32,7 +47,7 @@
           arglist (concat arglist (when &optional ['& (vec optional-args)]))
           [[interactive] body] (split-with #(c/and (list? %)
                                                    (= 'interactive (first %))) body)]
-         `(do (defn ~name ~(apply str docstring) ~(vec arglist) ~@body)
+         `(do (defn ~name ~(apply str docstring) ~(vec arglist) (eval '~@body))
               '~name)))
 
 (c/defmacro unwind-protect
@@ -107,11 +122,14 @@
   [& sym-vals]
   `(do
      ~@(for [[s v] (partition 2 sym-vals)]
-         `(c/let [v# ~v
-                  var# (var ~s)]
-                 (if (contains? (get-thread-bindings) var#)
-                   (var-set var# v#)
-                   (alter-var-root var# (constantly v#)))))))
+         `(c/let [v# ~v]
+                 (if (instance? clojure.lang.Atom ~s)
+                   (reset! ~s v#)
+                   (c/let [var# (resolve '~s)]
+                          (if (contains? (get-thread-bindings) var#)
+                            (var-set var# v#)
+                            (alter-var-root var# (constantly v#))))
+                   )))))
 
 (c/defmacro ^:clojure-special-form quote
   "Return the argument, without evaluating it.  `(quote x)' yields `x'.
@@ -135,8 +153,17 @@
   All the VALUEFORMs are evalled before any symbols are bound."
   {:arglists '([VARLIST BODY...])}
   [varlist & body]
-  `(c/binding [~@(if (every? list? varlist) (apply concat varlist) varlist)]
-          ~@body))
+  (c/let [{:keys [lexical dynamic]} (->> (if (every? list? varlist) varlist [varlist])
+                                         (group-by (comp #(if (namespace %) :dynamic :lexical) first)))
+          lexical-vars (map first lexical)
+          fix-lexical-setq (fn [form] (if (c/and (list? form) (= 'setq (first form)) (list? (second form)))
+                                (list 'setq (-> form second second) (last form))
+                                form))]
+         `(c/binding [~@(apply concat dynamic)]
+                     (c/let [~@(apply concat (map (fn [[l r]] [l (list 'atom r)]) lexical))]
+                            ~@(w/postwalk fix-lexical-setq
+                               (w/postwalk-replace (zipmap lexical-vars
+                                                           (map #(list 'deref %) lexical-vars)) body))))))
 
 (c/defmacro defconst
   "Define SYMBOL as a constant variable.

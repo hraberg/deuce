@@ -7,6 +7,8 @@
 
 ;; [1] http://www.gnu.org/software/emacs/manual/html_node/elisp/Dynamic-Binding.html
 
+(with-fresh-emacs)
+
 (repl example-1
 
       (defvar x -99) ⇒ 'x
