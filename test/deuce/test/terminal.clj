@@ -6,7 +6,7 @@
 
 ;;   lein trampoline run -m deuce.test.terminal
 
-;; Press Ctrl-x-c (Ctrl-c seems to be captured) to exit. M-x for minibuffer
+;; Press C-c C-x to exit. M-x for minibuffer
 ;; You can type text (insert mode) and move the cursor around. The line number changes on the mode line.
 
 ;; This is *NOT* Emacs, Deuce or anything close like it, even though it looks like it at first sight.
