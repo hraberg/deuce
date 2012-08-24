@@ -132,7 +132,7 @@
   (char (- (int c) 96)))
 
 (defn ctrl-char? [c]
-  (<= (int c) (int \)))
+  (Character/isISOControl c))
 
 (defn from-ctrl-char [c]
   (when (<= (int c) (int \))
