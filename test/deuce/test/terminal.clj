@@ -1,5 +1,6 @@
 (ns deuce.test.terminal
-  (require [lanterna.screen :as s]))
+  (require [lanterna.screen :as s])
+  (import [sun.misc Signal SignalHandler]))
 
 ;; This is a clojure-lanterna[1] UI spike.
 
@@ -176,8 +177,8 @@
   (case prefix
     \ (case k
           \ (prompt-exit)
-          \c (prompt-exit) ;; Hack as Ctrl-c doesn't capture
           (mini-buffer (format "C-x %s is undefined" (to-readable-char k))))
+    \ (mini-buffer (format "C-x %s is undefined" (to-readable-char k)))
     :escape (case k
               \x (activate-mini-buffer [cx cy])
               nil)
@@ -194,6 +195,7 @@
              (clear-mini-buffer)
              (case k
                \ (start-chord "C-x-" \)
+               \ (start-chord "C-c-" \)
                :down (when (< cy (- height 3))
                        (move-cursor cx (inc cy)))
                :up (when (> cy 1)
@@ -212,13 +214,18 @@
                  (puts cx cy k)
                  (move-cursor (inc cx) cy)))))))
 
-(defn shutdown-hook []
-  (Thread. #(while @running (Thread/sleep 100))))
+(defn handle-ctrl-c []
+  (-> (Runtime/getRuntime) (.addShutdownHook (Thread. #(while @running (Thread/sleep 100)))))
+  (Signal/handle (Signal. "INT")
+                 (proxy [SignalHandler] []
+                   (handle [s]
+                     (key-press \)
+                     (refresh)))))
 
 (defn -main [& [screen-type]]
   (def screen (s/get-screen (read-string (or screen-type ":text"))))
   (s/add-resize-listener screen resize-screen)
-  (-> (Runtime/getRuntime) (.addShutdownHook (shutdown-hook)))
+  (handle-ctrl-c)
   (s/in-screen screen
                (->> (repeatedly #(s/get-key screen))
                     (remove nil?)
