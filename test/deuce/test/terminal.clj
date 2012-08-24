@@ -213,7 +213,7 @@
                  (move-cursor (inc cx) cy)))))))
 
 (defn shutdown-hook []
-  (Thread. #(let [] (while @running (Thread/sleep 100)))))
+  (Thread. #(while @running (Thread/sleep 100))))
 
 (defn -main [& [screen-type]]
   (def screen (s/get-screen (read-string (or screen-type ":text"))))
