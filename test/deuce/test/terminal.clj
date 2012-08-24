@@ -127,6 +127,25 @@
   (apply move-cursor @mini-buffer-active)
   (reset! mini-buffer-active nil))
 
+(defn handle-mini-buffer [k [cx cy]]
+  (let [[width height] @size]
+    (case k
+      :down nil
+      :up nil
+      :right (when (< cx width)
+               (move-cursor (inc cx) cy))
+      :left (when (> cx 0)
+              (move-cursor (dec cx) cy))
+      :enter (deactivate-mini-buffer)
+      :backspace (when (> cx 1)
+                   (puts (dec  cx) cy " ")
+                   (move-cursor (dec cx) cy))
+      :escape (do (deactivate-mini-buffer)
+                  (mini-buffer "Quit"))
+      (do
+        (puts cx cy k)
+        (move-cursor (inc cx) cy)))))
+
 (def key-state (atom nil))
 
 (defn to-ctrl-char [c]
@@ -170,23 +189,7 @@
     (cond
      @current-prompt (handle-prompt k @current-prompt)
      @key-state (handle-chord @key-state k [cx cy])
-     @mini-buffer-active (do
-                           (case k
-                             :down nil
-                             :up nil
-                             :right (when (< cx width)
-                                      (move-cursor (inc cx) cy))
-                             :left (when (> cx 0)
-                                     (move-cursor (dec cx) cy))
-                             :enter (deactivate-mini-buffer)
-                             :backspace (when (> cx 1)
-                                          (puts (dec  cx) cy " ")
-                                          (move-cursor (dec cx) cy))
-                             :escape (do (deactivate-mini-buffer)
-                                         (mini-buffer "Quit"))
-                             (do
-                               (puts cx cy k)
-                               (move-cursor (inc cx) cy))))
+     @mini-buffer-active (handle-mini-buffer k [cx cy])
      :else (do
              (clear-mini-buffer)
              (case k
