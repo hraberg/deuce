@@ -172,17 +172,16 @@
 (defn end-chord []
   (start-chord nil nil))
 
+(declare key-press)
+
 (defn handle-chord [prefix k [cx cy]]
   (end-chord)
-  (case prefix
-    \ (case k
-          \ (prompt-exit)
-          (mini-buffer (format "C-x %s is undefined" (to-readable-char k))))
-    \ (mini-buffer (format "C-x %s is undefined" (to-readable-char k)))
-    :escape (case k
-              \x (activate-mini-buffer [cx cy])
-              nil)
-    nil))
+  (case [prefix k]
+    [\ \] (prompt-exit)
+    [:escape \x] (activate-mini-buffer [cx cy])
+    (if (= :escape prefix)
+      (key-press k)
+      (mini-buffer (format "%s %s is undefined" (to-readable-char prefix) (to-readable-char k))))))
 
 (defn key-press [k]
   (let [[width height] @size
