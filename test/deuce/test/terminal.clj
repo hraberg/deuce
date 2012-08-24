@@ -95,8 +95,7 @@
   (s/redraw screen))
 
 (defn refresh [& _]
-  (s/redraw screen)
-  (Thread/yield))
+  (s/redraw screen))
 
 (def running (atom true))
 
@@ -205,7 +204,7 @@
                        (move-cursor (dec cx) cy))
                :enter (when (< cy (- height 3))
                         (move-cursor 0 (inc cy)))
-               :backspace (when (> cx 1)
+               :backspace (when (> cx 0)
                             (puts (dec  cx) cy " ")
                             (move-cursor (dec cx) cy))
                :escape (start-chord "" :escape)
@@ -214,19 +213,26 @@
                  (move-cursor (inc cx) cy)))))))
 
 (defn handle-ctrl-c []
-  (-> (Runtime/getRuntime) (.addShutdownHook (Thread. #(while @running (Thread/sleep 100)))))
   (Signal/handle (Signal. "INT")
                  (proxy [SignalHandler] []
                    (handle [s]
                      (key-press \)
                      (refresh)))))
 
+(defn get-key-blocking [timeout]
+  (let [k (s/get-key screen)]
+    (if (nil? k)
+      (do
+        (Thread/sleep timeout)
+        (recur timeout))
+      k)))
+
 (defn -main [& [screen-type]]
   (def screen (s/get-screen (read-string (or screen-type ":text"))))
   (s/add-resize-listener screen resize-screen)
   (handle-ctrl-c)
   (s/in-screen screen
-               (->> (repeatedly #(s/get-key screen))
+               (->> (repeatedly #(get-key-blocking 5))
                     (remove nil?)
                     (map key-press)
                     (take-while (complement #{:exit}))
