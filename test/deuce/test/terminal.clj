@@ -98,6 +98,9 @@
 
 (def running (atom true))
 
+(defn exit []
+  (reset! running false) (s/stop screen))
+
 (defn key-press [k]
   (let [[width height] @size
         [cx cy] (cursor-position)]
@@ -122,8 +125,7 @@
         :backspace (when (> cx 1)
                      (puts (dec  cx) cy " ")
                      (move-cursor (dec cx) cy))
-        :escape (do (reset! running false)
-                    (s/stop screen)
+        :escape (do (exit)
                     :escape)
         (do
           (puts cx cy k)
@@ -131,10 +133,9 @@
 
 (defn shutdown-hook []
   (doto (Thread. #(let []
-                    (prompt "Active processes exists; kill them and exit anyway? (y or n)"
-                            (fn [] (reset! running false) (s/stop screen)))
+                    (prompt "Active processes exists; kill them and exit anyway? (y or n)" exit)
                     (s/redraw screen)
-                    (while @running (Thread/sleep 200))))
+                    (while @running (Thread/sleep 100))))
     (.setDaemon true)))
 
 (defn -main [& [screen-type]]
