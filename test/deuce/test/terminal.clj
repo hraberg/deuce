@@ -220,12 +220,10 @@
                      (refresh)))))
 
 (defn get-key-blocking [timeout]
-  (let [k (s/get-key screen)]
-    (if (nil? k)
+  (or (s/get-key screen)
       (do
         (Thread/sleep timeout)
-        (recur timeout))
-      k)))
+        (recur timeout))))
 
 (defn -main [& [screen-type]]
   (def screen (s/get-screen (read-string (or screen-type ":text"))))
