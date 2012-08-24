@@ -5,7 +5,8 @@
 
 ;;   lein trampoline run -m deuce.test.terminal
 
-;; Press Esc to exit. You can type text (insert mode) and move the cursor around. The "minibuffer" line number changes.
+;; Press Ctrl-x-c (Ctrl-c seems to be captured) to exit. M-x for minibuffer
+;; You can type text (insert mode) and move the cursor around. The "minibuffer" line number changes.
 
 ;; This is *NOT* Emacs, Deuce or anything close like it, even though it looks like it at first sight.
 ;; It is meant to ensure that Lanterna can handle the UI updates Emacs requires.
