@@ -39,19 +39,34 @@
   (doseq [y (range 0 height)]
     (line y)))
 
-(defn mini-buffer [line]
+(defn mode-line [line]
   (let [[width height] @size
         text"-UUU:----F1  *scratch*      All L%-6d     (Lisp Interaction)%s"
         padding (apply str (repeat (- width (count text)) "-"))]
     (puts 0 (- height 2) (format text line padding) reverse-video)))
 
+(def current-prompt (atom nil))
+
+(defn mini-buffer [line]
+  (let [[width height] @size]
+    (puts 0 (- height 1) line)))
+
+(defn clear-mini-buffer []
+  (reset! current-prompt nil)
+  (let [[width height] @size]
+    (line (- height 1))))
+
 (defn move-cursor [x y]
   (s/move-cursor screen x y)
-  (mini-buffer y))
+  (mode-line y))
 
 (defn cursor-position []
   [(.getColumn (.getCursorPosition screen))
    (.getRow (.getCursorPosition screen))])
+
+(defn prompt [line fn]
+  (mini-buffer line)
+  (reset! current-prompt fn))
 
 (defn scratch [_ height]
   (line 0 reverse-video)
@@ -77,38 +92,60 @@
   (scratch width height)
   (s/redraw screen))
 
-(defn refresh []
+(defn refresh [& _]
   (s/redraw screen)
   (Thread/yield))
+
+(def running (atom true))
 
 (defn key-press [k]
   (let [[width height] @size
         [cx cy] (cursor-position)]
-    (case k
-      :down (when (< cy (- height 3))
-              (move-cursor cx (inc cy)))
-      :up (when (> cy 1)
-            (move-cursor cx (dec cy)))
-      :right (when (< cx height)
-               (move-cursor (inc cx) cy))
-      :left (when (> cx 0)
-              (move-cursor (dec cx) cy))
-      :enter (when (< cy (- height 3))
-               (move-cursor 0 (inc cy)))
-      :backspace (when (> cx 1)
-                   (puts (dec  cx) cy " ")
-                   (move-cursor (dec cx) cy))
+    (if-let [f @current-prompt]
       (do
-        (puts cx cy k)
-        (move-cursor (inc cx) cy)))))
+        (case (str k)
+          "y" (do (clear-mini-buffer)
+                  (f))
+          "n" (clear-mini-buffer)
+          nil))
+      (case k
+        :down (when (< cy (- height 3))
+                (move-cursor cx (inc cy)))
+        :up (when (> cy 1)
+              (move-cursor cx (dec cy)))
+        :right (when (< cx height)
+                 (move-cursor (inc cx) cy))
+        :left (when (> cx 0)
+                (move-cursor (dec cx) cy))
+        :enter (when (< cy (- height 3))
+                 (move-cursor 0 (inc cy)))
+        :backspace (when (> cx 1)
+                     (puts (dec  cx) cy " ")
+                     (move-cursor (dec cx) cy))
+        :escape (do (reset! running false)
+                    (s/stop screen)
+                    :escape)
+        (do
+          (puts cx cy k)
+          (move-cursor (inc cx) cy))))))
+
+(defn shutdown-hook []
+  (doto (Thread. #(let []
+                    (prompt "Active processes exists; kill them and exit anyway? (y or n)"
+                            (fn [] (reset! running false) (s/stop screen)))
+                    (s/redraw screen)
+                    (while @running (Thread/sleep 200))))
+    (.setDaemon true)))
 
 (defn -main [& [screen-type]]
   (def screen (s/get-screen (read-string (or screen-type ":text"))))
   (s/add-resize-listener screen resize-screen)
+  (-> (Runtime/getRuntime) (.addShutdownHook (shutdown-hook)))
   (s/in-screen screen
-               (->> (interleave (repeatedly #(s/get-key screen))
-                                (repeatedly refresh))
+               (->> (repeatedly #(s/get-key screen))
                     (remove nil?)
-                    (take-while (complement #{:escape}))
                     (map key-press)
-                    dorun)))
+                    (map refresh)
+                    (take-while (complement #{:escape}))
+                    dorun))
+  (System/exit 0))

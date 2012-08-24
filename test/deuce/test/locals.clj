@@ -16,7 +16,7 @@
 
       (let ((y 1)
             (z y))
-        (list y z)) ⇒ '(1 2))
+        (list y z)) ⇒ [1 2])
 
 (repl example-2
 
@@ -24,4 +24,4 @@
 
      (let* ((y 1)
             (z y))
-        (list y z)) ⇒ '(1 1))
+        (list y z)) ⇒ [1 1])
