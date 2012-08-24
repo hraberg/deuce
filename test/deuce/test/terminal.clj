@@ -125,18 +125,16 @@
         :backspace (when (> cx 1)
                      (puts (dec  cx) cy " ")
                      (move-cursor (dec cx) cy))
-        :escape (do (exit)
-                    :escape)
+        :escape (do (exit) :exit)
         (do
           (puts cx cy k)
           (move-cursor (inc cx) cy))))))
 
 (defn shutdown-hook []
-  (doto (Thread. #(let []
-                    (prompt "Active processes exists; kill them and exit anyway? (y or n)" exit)
-                    (s/redraw screen)
-                    (while @running (Thread/sleep 100))))
-    (.setDaemon true)))
+  (Thread. #(let []
+              (prompt "Active processes exists; kill them and exit anyway? (y or n)" exit)
+              (s/redraw screen)
+              (while @running (Thread/sleep 100)))))
 
 (defn -main [& [screen-type]]
   (def screen (s/get-screen (read-string (or screen-type ":text"))))
@@ -146,7 +144,7 @@
                (->> (repeatedly #(s/get-key screen))
                     (remove nil?)
                     (map key-press)
+                    (take-while (complement #{:exit}))
                     (map refresh)
-                    (take-while (complement #{:escape}))
                     dorun))
   (System/exit 0))
