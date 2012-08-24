@@ -113,6 +113,19 @@
     "n" (clear-mini-buffer)
     nil))
 
+(def mini-buffer-active (atom nil))
+
+(defn activate-mini-buffer [cursor-position]
+  (reset! mini-buffer-active cursor-position)
+  (mini-buffer "M-x")
+  (let [[_ height] @size]
+    (move-cursor 4 (- height 1))))
+
+(defn deactivate-mini-buffer []
+  (clear-mini-buffer)
+  (apply move-cursor @mini-buffer-active)
+  (reset! mini-buffer-active nil))
+
 (def key-state (atom nil))
 
 (defn to-ctrl-char [c]
@@ -138,18 +151,41 @@
 (defn end-chord []
   (start-chord nil nil))
 
-(defn handle-chord [prefix k]
+(defn handle-chord [prefix k [cx cy]]
   (end-chord)
-  (case k
-    \ (prompt-exit)
-    (mini-buffer (format "C-x %s is undefined" (to-readable-char k)))))
+  (case prefix
+    \ (case k
+          \ (prompt-exit)
+          \c (prompt-exit) ;; Hack as Ctrl-c doesn't capture
+          (mini-buffer (format "C-x %s is undefined" (to-readable-char k))))
+    :escape (case k
+              \x (activate-mini-buffer [cx cy])
+              nil)
+    nil))
 
 (defn key-press [k]
   (let [[width height] @size
         [cx cy] (cursor-position)]
     (cond
      @current-prompt (handle-prompt k @current-prompt)
-     (= \ @key-state) (handle-chord @key-state k)
+     @key-state (handle-chord @key-state k [cx cy])
+     @mini-buffer-active (do
+                           (case k
+                             :down nil
+                             :up nil
+                             :right (when (< cx width)
+                                      (move-cursor (inc cx) cy))
+                             :left (when (> cx 0)
+                                     (move-cursor (dec cx) cy))
+                             :enter (deactivate-mini-buffer)
+                             :backspace (when (> cx 1)
+                                          (puts (dec  cx) cy " ")
+                                          (move-cursor (dec cx) cy))
+                             :escape (do (deactivate-mini-buffer)
+                                         (mini-buffer "Quit"))
+                             (do
+                               (puts cx cy k)
+                               (move-cursor (inc cx) cy))))
      :else (do
              (clear-mini-buffer)
              (case k
@@ -158,7 +194,7 @@
                        (move-cursor cx (inc cy)))
                :up (when (> cy 1)
                      (move-cursor cx (dec cy)))
-               :right (when (< cx height)
+               :right (when (< cx width)
                         (move-cursor (inc cx) cy))
                :left (when (> cx 0)
                        (move-cursor (dec cx) cy))
@@ -167,7 +203,7 @@
                :backspace (when (> cx 1)
                             (puts (dec  cx) cy " ")
                             (move-cursor (dec cx) cy))
-               :escape (prompt-exit)
+               :escape (start-chord "" :escape)
                (do
                  (puts cx cy k)
                  (move-cursor (inc cx) cy)))))))
