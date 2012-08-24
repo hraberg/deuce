@@ -233,7 +233,6 @@
   (handle-ctrl-c)
   (s/in-screen screen
                (->> (repeatedly #(get-key-blocking 5))
-                    (remove nil?)
                     (map key-press)
                     (take-while (complement #{:exit}))
                     (map refresh)
