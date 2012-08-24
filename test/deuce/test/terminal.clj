@@ -99,42 +99,81 @@
 (def running (atom true))
 
 (defn exit []
-  (reset! running false) (s/stop screen))
+  (reset! running false)
+  (s/stop screen)
+  :exit)
+
+(defn prompt-exit []
+  (prompt "Active processes exists; kill them and exit anyway? (y or n)" exit))
+
+(defn handle-prompt [k f]
+  (case (str k)
+    "y" (do (clear-mini-buffer)
+            (f))
+    "n" (clear-mini-buffer)
+    nil))
+
+(def key-state (atom nil))
+
+(defn to-ctrl-char [c]
+  (char (- (int c) 96)))
+
+(defn ctrl-char? [c]
+  (<= (int c) (int \)))
+
+(defn from-ctrl-char [c]
+  (when (<= (int c) (int \))
+    (char (+ (int c) 96))))
+
+(defn to-readable-char [c]
+  (condp some [c]
+    keyword? (format "<%s>" (name c))
+    ctrl-char? (str "C-" (from-ctrl-char c))
+    c))
+
+(defn start-chord [l k]
+  (reset! key-state k)
+  (mini-buffer l))
+
+(defn end-chord []
+  (start-chord nil nil))
+
+(defn handle-chord [prefix k]
+  (end-chord)
+  (case k
+    \ (prompt-exit)
+    (mini-buffer (format "C-x %s is undefined" (to-readable-char k)))))
 
 (defn key-press [k]
   (let [[width height] @size
         [cx cy] (cursor-position)]
-    (if-let [f @current-prompt]
-      (do
-        (case (str k)
-          "y" (do (clear-mini-buffer)
-                  (f))
-          "n" (clear-mini-buffer)
-          nil))
-      (case k
-        :down (when (< cy (- height 3))
-                (move-cursor cx (inc cy)))
-        :up (when (> cy 1)
-              (move-cursor cx (dec cy)))
-        :right (when (< cx height)
-                 (move-cursor (inc cx) cy))
-        :left (when (> cx 0)
-                (move-cursor (dec cx) cy))
-        :enter (when (< cy (- height 3))
-                 (move-cursor 0 (inc cy)))
-        :backspace (when (> cx 1)
-                     (puts (dec  cx) cy " ")
-                     (move-cursor (dec cx) cy))
-        :escape (do (exit) :exit)
-        (do
-          (puts cx cy k)
-          (move-cursor (inc cx) cy))))))
+    (cond
+     @current-prompt (handle-prompt k @current-prompt)
+     (= \ @key-state) (handle-chord @key-state k)
+     :else (do
+             (clear-mini-buffer)
+             (case k
+               \ (start-chord "C-x-" \)
+               :down (when (< cy (- height 3))
+                       (move-cursor cx (inc cy)))
+               :up (when (> cy 1)
+                     (move-cursor cx (dec cy)))
+               :right (when (< cx height)
+                        (move-cursor (inc cx) cy))
+               :left (when (> cx 0)
+                       (move-cursor (dec cx) cy))
+               :enter (when (< cy (- height 3))
+                        (move-cursor 0 (inc cy)))
+               :backspace (when (> cx 1)
+                            (puts (dec  cx) cy " ")
+                            (move-cursor (dec cx) cy))
+               :escape (prompt-exit)
+               (do
+                 (puts cx cy k)
+                 (move-cursor (inc cx) cy)))))))
 
 (defn shutdown-hook []
-  (Thread. #(let []
-              (prompt "Active processes exists; kill them and exit anyway? (y or n)" exit)
-              (s/redraw screen)
-              (while @running (Thread/sleep 100)))))
+  (Thread. #(let [] (while @running (Thread/sleep 100)))))
 
 (defn -main [& [screen-type]]
   (def screen (s/get-screen (read-string (or screen-type ":text"))))
