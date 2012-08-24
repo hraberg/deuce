@@ -7,7 +7,7 @@
 (def t true)
 (create-ns 'deuce.emacs-lisp.globals)
 
-(defn clojure-special-forms []
+(defn ^:private clojure-special-forms []
   (->> (ns-map 'deuce.emacs-lisp)
        (filter (comp :clojure-special-form meta val))
        (into {})))
@@ -127,17 +127,19 @@
   The return value of the `setq' form is the value of the last VAL."
   {:arglists '([[SYM VAL]...])}
   [& sym-vals]
-  `(do
-     ~@(for [[s v] (partition 2 sym-vals)]
-         (if (contains? &env s)
-           `(reset! ~s ~v)
-           `(c/let [v# ~v]
-                   (if-let [var# (resolve '~s)]
-                     (if (contains? (get-thread-bindings) var#)
-                       (var-set var# v#)
-                       (alter-var-root var# (constantly v#)))
-                     (do (defvar ~s v#)
-                         v#)))))))
+    `(c/let
+      ~(reduce into []
+               (for [[s v] (partition 2 sym-vals)]
+                 [(symbol (name  s))
+                  (if (contains? &env s)
+                    `(reset! ~s ~v)
+                    `(if-let [var# (resolve '~s)]
+                       (if (contains? (get-thread-bindings) var#)
+                         (var-set var# ~v)
+                         (alter-var-root var# (constantly ~v)))
+                       (do (defvar ~s ~v)
+                           ~v)))]))
+      ~(last (butlast sym-vals))))
 
 (c/defmacro ^:clojure-special-form quote
   "Return the argument, without evaluating it.  `(quote x)' yields `x'.
