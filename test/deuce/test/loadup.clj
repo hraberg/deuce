@@ -6,7 +6,7 @@
 ;; These are the first few lines of <deuce>/emacs/lisp/loadup.el as a test.
 ;; The state after loadup is dumped into Emacs itself during the build of GNU Emacs.
 
-;; In Deuce, this may eventually happen (as an optimization), but this is basically represents the Emacs boot.
+;; In Deuce, this may eventually happen (as an optimization), but this basically represents the Emacs boot.
 
 ;; [1] http://www.gnu.org/software/emacs/manual/html_node/elisp/Building-Emacs.html
 
