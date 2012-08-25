@@ -1,7 +1,7 @@
 (ns deuce.test.dynamic
   (use [deuce.test.common]))
 
-;; This is a way to represent the examples from "11.9.1 Dynamic Binding"[1] in Clojure.
+;; "11.9.1 Dynamic Binding"[1]
 
 ;; Uses binding + var-set/alter-var-root, but not sure about this approach - at least it works for this example.
 

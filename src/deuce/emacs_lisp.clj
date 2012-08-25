@@ -1,7 +1,7 @@
 (ns deuce.emacs-lisp
   (require [clojure.core :as c]
            [clojure.walk :as w])
-  (:refer-clojure :exclude [defmacro and or cond let while eval])
+  (:refer-clojure :exclude [defmacro and or cond let while eval set])
   (import [deuce EmacsLispError]))
 
 (def t true)
@@ -14,25 +14,34 @@
 
 ;; These helper fns shouldn't be here, they're really defined elsewhere:
 
+(defn ^:private cleanup-clojure [x]
+  (if (symbol? x) (symbol (name x)) x))
+
+(defn qualify-globals [form]
+  (if-let [s (c/and (symbol? form)
+                    (c/or
+                     ((clojure-special-forms) form)
+                     (ns-resolve 'deuce.emacs-lisp.globals form)))]
+    (symbol (-> s meta :ns str) (-> s meta :name str))
+    form))
+
 ;; defined in eval.clj
 (c/defmacro eval [body]
-  (c/let [vars (keys &env)
-          qualify-globals (fn [form]
-                            (if-let [s (c/and (symbol? form)
-                                              (c/or
-                                               ((clojure-special-forms) form)
-                                               (ns-resolve 'deuce.emacs-lisp.globals form)))]
-                              (symbol (-> s meta :ns str) (-> s meta :name str))
-                              form))]
+  (c/let [vars (keys &env)]
          `(binding [*ns* (the-ns 'deuce.emacs-lisp)]
             (c/let [locals# (zipmap '~vars ~(vec vars))
                     body# (w/postwalk-replace locals# ~body)
                     body# (w/postwalk ~qualify-globals body#)]
-                   (c/eval body#)))))
+                   (~cleanup-clojure (c/eval body#))))))
 
 ;; defined in eval.clj
 (defn funcall [f & args]
   (apply f args))
+
+;; defined in data.clj
+(declare setq)
+(defn set [symbol newval]
+  (eval `(setq ~symbol '~newval)))
 
 ;; defined in subr.el
 (c/defmacro lambda [args & body]
@@ -127,19 +136,19 @@
   The return value of the `setq' form is the value of the last VAL."
   {:arglists '([[SYM VAL]...])}
   [& sym-vals]
-    `(c/let
-      ~(reduce into []
-               (for [[s v] (partition 2 sym-vals)]
-                 [(symbol (name  s))
-                  (if (contains? &env s)
-                    `(reset! ~s ~v)
-                    `(if-let [var# (resolve '~s)]
-                       (if (contains? (get-thread-bindings) var#)
-                         (var-set var# ~v)
-                         (alter-var-root var# (constantly ~v)))
-                       (do (defvar ~s ~v)
-                           ~v)))]))
-      ~(last (butlast sym-vals))))
+  `(c/let
+    ~(reduce into []
+             (for [[s v] (partition 2 sym-vals)]
+               [(symbol (name  s))
+                (if (contains? &env s)
+                  `(reset! ~s ~v)
+                  `(if-let [var# (resolve '~s)]
+                     (if (contains? (get-thread-bindings) var#)
+                       (var-set var# ~v)
+                       (alter-var-root var# (constantly ~v)))
+                     (do (defvar ~s ~v)
+                         ~v)))]))
+    ~(last (butlast sym-vals))))
 
 (c/defmacro ^:clojure-special-form quote
   "Return the argument, without evaluating it.  `(quote x)' yields `x'.

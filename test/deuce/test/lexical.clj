@@ -1,4 +1,4 @@
-(ns deuce.test.dynamic
+(ns deuce.test.lexical
   (use [deuce.test.common]))
 
 ;; "11.9.3 Lexical Binding"[1]

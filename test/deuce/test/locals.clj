@@ -1,4 +1,4 @@
-(ns deuce.test.dynamic
+(ns deuce.test.locals
   (use [deuce.test.common]))
 
 ;; "11.3 Local Variables"[1]
