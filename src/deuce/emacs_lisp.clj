@@ -165,8 +165,9 @@
   `(quote ~arg))
 
 (c/defmacro ^:private let-helper [can-refer? varlist & body]
-  (c/let [{:keys [lexical dynamic]} (->> (if (every? list? varlist) varlist [varlist])
-                                         (group-by (comp #(if (namespace %) :dynamic :lexical) first)))
+  (c/let [varlist (if (every? list? varlist) varlist [varlist])
+          varlist (if (= 1 (count (last varlist))) (concat (butlast varlist) [(concat (last varlist) [nil])]) varlist)
+          {:keys [lexical dynamic]} (group-by (comp #(if (namespace %) :dynamic :lexical) first) varlist)
           lexical-vars (into {} (map vec lexical))
           dynamic-vars (into {} (map vec dynamic))
           fix-lexical-setq (fn [form] (if (c/and (list? form) (= 'setq (first form)) (list? (second form)))
@@ -370,10 +371,12 @@
              (alter-meta! merge {:doc ~(apply str docstring)}))
             '~symbol)))
 
-(defun ^:clojure-special-form throw (tag value)
+(c/defmacro ^:clojure-special-form throw
   "Throw to the catch for TAG and return VALUE from it.
   Both TAG and VALUE are evalled."
-  (throw (EmacsLispError. tag value)))
+  {:arglists '([TAG VALUE])}
+  [tag value]
+  `(throw (EmacsLispError. ~tag ~value)))
 
 (c/defmacro ^:clojure-special-form catch
   "Eval BODY allowing nonlocal exits using `throw'.
@@ -386,9 +389,9 @@
   {:arglists '([TAG BODY...])}
   [tag & body]
   `(try
-     ~body
+     ~@body
      (catch EmacsLispError e#
-       (if (= ~tag (.symbol e#))
+       (if (= '~(if (list? tag) (eval tag) tag) (.symbol e#) (.symbol e#))
          (.data e#)
          (throw e#)))))
 
