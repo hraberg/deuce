@@ -34,7 +34,9 @@ It can read all the `.el` files under `emacs/lisp`, but the actual representatio
 The Clojure macros that backs Emacs Lisp lives in [`deuce.emacs-lisp`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs_lisp.clj).
 The exact evaluation model haven't been decided, but as Emacs Lisp is a Lisp 2, there will be a namespace for functions and one for variabels (currently called `deuce.emacs-lisp.globals`).
 
-[`dynamic.cjl`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/dynamic.clj), [`lexical.clj`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/lexical.clj) and [`locals.clj`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/locals.clj) is a first stab at evaluating some Emacs Lisp.
+[`dynamic.cjl`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/dynamic.clj), [`lexical.clj`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/lexical.clj) and [`locals.clj`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/locals.clj) is a first stab at evaluating some Emacs Lisp. See [`deuce.test`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/) for more.
+
+A test representing a tiny fraction of `loadup.el`, [`loadup.clj`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/loadup.clj).
 
 
 ### Preparing Emacs

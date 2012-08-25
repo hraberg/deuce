@@ -435,7 +435,7 @@
   key, value, one of key or value, or both key and value, depending on
   WEAK.  WEAK t is equivalent to `key-and-value'.  Default value of WEAK
   is nil."
-  )
+  (apply hash-map keyword-args))
 
 (defun rassoc (key list)
   "Return non-nil if KEY is `equal' to the cdr of an element of LIST.

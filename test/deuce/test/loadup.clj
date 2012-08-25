@@ -33,12 +33,12 @@
                                 (expand-file-name "emacs-lisp" dir)
                                 (expand-file-name "language" dir)
                                 (expand-file-name "international" dir)
-                                (expand-file-name "textmodes" dir)))))
+                                (expand-file-name "textmodes" dir))))) ⇒ list?
       (if (eq t purify-flag)
         ;; Hash consing saved around 11% of pure space in my tests.
-        (setq purify-flag (make-hash-table :test 'equal)))
+        (setq purify-flag (make-hash-table :test 'equal)))             ⇒ nil
 
       (message "Using load-path %s" load-path)
       -| "Using load-path .*lisp.*lisp/emacs-lisp.*lisp/language.*lisp/international.*lisp/textmodes"
 
-      (length load-path)  ⇒ 5)
+      (length load-path)                                               ⇒ 5)

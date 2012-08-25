@@ -131,7 +131,7 @@
 
 (defun eq (obj1 obj2)
   "Return t if the two args are the same Lisp object."
-  )
+  (identical? obj1 obj2))
 
 (defun * (&rest numbers-or-markers)
   "Return product of any number of arguments, which are numbers or markers."
