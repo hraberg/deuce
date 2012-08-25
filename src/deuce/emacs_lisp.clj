@@ -12,18 +12,18 @@
        (filter (comp :clojure-special-form meta val))
        (into {})))
 
-;; These helper fns shouldn't be here, they're really defined elsewhere:
-
 (defn ^:private cleanup-clojure [x]
   (if (symbol? x) (symbol (name x)) x))
 
-(defn qualify-globals [form]
+(defn ^:private qualify-globals [form]
   (if-let [s (c/and (symbol? form)
                     (c/or
                      ((clojure-special-forms) form)
                      (ns-resolve 'deuce.emacs-lisp.globals form)))]
     (symbol (-> s meta :ns str) (-> s meta :name str))
     form))
+
+;; These helper fns shouldn't be here, they're really defined elsewhere:
 
 ;; defined in eval.clj
 (c/defmacro eval [body]
