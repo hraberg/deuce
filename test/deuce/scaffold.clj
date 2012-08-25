@@ -59,8 +59,7 @@
                    [doc & _] (string/split doc #"\n\nValue:")
                    [name & _] (string/split decl #"\s+")]
                [(symbol name) {:doc doc}]))
-       (into {})
-       ))
+       (into {})))
 
 (defn find-files-for-tags [tags]
   (sh/sh "./collect-tags")
@@ -92,6 +91,7 @@
 (defn print-fn-stubs [namespace fns vars]
   (pprint/pprint (list 'ns namespace
                        (list :use ['deuce.emacs-lisp :only '(defun defvar)])
+                       (list :require ['clojure.core :as 'c])
                        (list :refer-clojure :exclude
                              (vec (intersection (set (keys (ns-publics 'clojure.core)))
                                                 (set (keys fns)))))))
@@ -108,7 +108,7 @@
 
   (doseq [[f {:keys [args doc]}] fns]
     (println)
-    (println (str "(defun " (if (illegal-symbols f) (str "(clojure.core/symbol \"" (str (illegal-symbols f)) "\")") f)
+    (println (str "(defun " (if (illegal-symbols f) (str "(c/symbol \"" (str (illegal-symbols f)) "\")") f)
                   " " (pr-str (->> (replace illegal-symbols args)
                                    flatten
                                    (map (comp symbol string/lower-case))))))

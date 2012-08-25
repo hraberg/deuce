@@ -24,8 +24,6 @@
     (symbol (-> s meta :ns str) (-> s meta :name str))
     form))
 
-;; These helper fns shouldn't be here, they're really defined elsewhere:
-
 ;; defined in eval.clj
 (c/defmacro eval [body]
   (c/let [vars (keys &env)]
@@ -35,34 +33,9 @@
                     body# (w/postwalk ~qualify-globals body#)]
                    (~cleanup-clojure (c/eval body#))))))
 
-;; defined in eval.clj
-(defn funcall [f & args]
-  (apply f args))
-
-;; defined in data.clj
-(declare setq)
-(defn set [symbol newval]
-  (eval `(setq ~symbol '~newval)))
-
 ;; defined in subr.el
 (c/defmacro lambda [args & body]
   `(fn ~(vec args) ~@body))
-
-;; defined in data.clj
-(defn / [dividend divisor & divisors]
-  (if (zero? divisor)
-    (throw (EmacsLispError. 'arith-error nil))
-    (c/reduce / (c/let [r (clojure.core// dividend divisor)]
-                       (if (ratio? r) (long r) r))
-              divisors)))
-
-;; defined in data.clj
-(defn + [& numbers-or-markers]
-  (apply c/+ numbers-or-markers))
-
-;; defined in alloc.clj
-(defn list [& objects]
-  (apply c/list objects))
 
 (c/defmacro defun
   "Define NAME as a function.
@@ -78,8 +51,9 @@
                                               (partition-by '#{&optional} arglist))
           arglist (concat arglist (when &optional ['& (vec optional-args)]))
           [[interactive] body] (split-with #(c/and (list? %)
-                                                   (= 'interactive (first %))) body)]
-         `(do (defn ~name ~(apply str docstring) ~(vec arglist) (eval '~@body))
+                                                   (= 'interactive (first %))) body)
+          emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)]
+         `(do (defn ~name ~(apply str docstring) ~(vec arglist) ~(if emacs-lisp? `(eval '~@body) `(do ~@body)))
               '~name)))
 
 (c/defmacro unwind-protect
@@ -543,3 +517,38 @@
   Executes BODY just like `progn'."
   {:arglists '([&rest BODY])}
   [& body])
+
+;; These helper fns shouldn't be here, they're really defined elsewhere:
+
+;; defined in eval.clj
+(defun funcall (function &rest arguments)
+  "Call first argument as a function, passing remaining arguments to it.
+  Return the value that function returns.
+  Thus, (funcall 'cons 'x 'y) returns (x . y)."
+  (apply function arguments))
+
+;; defined in data.clj
+(defun set (symbol newval)
+  "Set SYMBOL's value to NEWVAL, and return NEWVAL."
+  (eval `(setq ~symbol '~newval)))
+
+;; defined in data.clj
+(defun / (dividend divisor &rest divisors)
+  "Return first argument divided by all the remaining arguments.
+  The arguments must be numbers or markers."
+  (if (zero? divisor)
+    (throw (EmacsLispError. 'arith-error nil))
+    (c/reduce / (c/let [r (clojure.core// dividend divisor)]
+                       (if (ratio? r) (long r) r))
+              divisors)))
+
+;; defined in data.clj
+(defun + (&rest numbers-or-markers)
+  "Return sum of any number of arguments, which are numbers or markers."
+  (apply c/+ numbers-or-markers))
+
+;; defined in alloc.clj
+(defun list (&rest objects)
+  "Return a newly created list with specified arguments as elements.
+  Any number of arguments, even zero arguments, are allowed."
+  (apply c/list objects))
