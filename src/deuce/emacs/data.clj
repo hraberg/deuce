@@ -87,7 +87,7 @@
   interned in the initial obarray."
   )
 
-(defun (symbol "1+") (number)
+(defun (clojure.core/symbol "1+") (number)
   "Return NUMBER plus one.  NUMBER may be a number or a marker.
   Markers are converted to integers."
   )
@@ -184,17 +184,17 @@
   (The buffer-local value of VARIABLE starts out as the same value
   VARIABLE previously had.  If VARIABLE was void, it remains void.)
   Return VARIABLE.
-  
+
   If the variable is already arranged to become local when set,
   this function causes a local value to exist for this buffer,
   just as setting the variable would do.
-  
+
   This function returns VARIABLE, and therefore
     (set (make-local-variable 'VARIABLE) VALUE-EXP)
   works.
-  
+
   See also `make-variable-buffer-local'.
-  
+
   Do not use `make-local-variable' to make a hook variable buffer-local.
   Instead, use `add-hook' and specify t for the LOCAL argument."
   )
@@ -273,7 +273,7 @@
 (defun cdr (list)
   "Return the cdr of LIST.  If arg is nil, return nil.
   Error if arg is not nil and not a cons cell.  See also `cdr-safe'.
-  
+
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as cdr, car, cons cell and list."
   )
@@ -290,10 +290,10 @@
   Note that binding the variable with `let', or setting it while
   a `let'-style binding made in this buffer is in effect,
   does not make the variable buffer-local.  Return VARIABLE.
-  
+
   In most cases it is better to use `make-local-variable',
   which makes a variable local in just one buffer.
-  
+
   The function `default-value' gets the default value and `set-default' sets it."
   )
 
@@ -405,7 +405,7 @@
 (defun car (list)
   "Return the car of LIST.  If arg is nil, return nil.
   Error if arg is not nil and not a cons cell.  See also `car-safe'.
-  
+
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as car, cdr, cons cell and list."
   )
@@ -428,7 +428,7 @@
   Both X and Y must be numbers or markers."
   )
 
-(defun (symbol "1-") (number)
+(defun (clojure.core/symbol "1-") (number)
   "Return NUMBER minus one.  NUMBER may be a number or a marker.
   Markers are converted to integers."
   )
@@ -448,21 +448,21 @@
 (defun make-variable-frame-local (variable)
   "This function is obsolete since 22.2;
   explicitly check for a frame-parameter instead.
-  
+
   Enable VARIABLE to have frame-local bindings.
   This does not create any frame-local bindings for VARIABLE,
   it just makes them possible.
-  
+
   A frame-local binding is actually a frame parameter value.
   If a frame F has a value for the frame parameter named VARIABLE,
   that also acts as a frame-local binding for VARIABLE in F--
   provided this function has been called to enable VARIABLE
   to have frame-local bindings at all.
-  
+
   The only way to create a frame-local binding for VARIABLE in a frame
   is to set the VARIABLE frame parameter of that frame.  See
   `modify-frame-parameters' for how to set frame parameters.
-  
+
   Note that since Emacs 23.1, variables cannot be both buffer-local and
   frame-local any more (buffer-local bindings used to take precedence over
   frame-local bindings)."
@@ -487,7 +487,7 @@
   "Parse STRING as a decimal number and return the number.
   This parses both integers and floating point numbers.
   It ignores leading spaces and tabs, and all trailing chars.
-  
+
   If BASE, interpret STRING as a number in that base.  If BASE isn't
   present, base 10 is used.  BASE must be between 2 and 16 (inclusive).
   If the base used is not 10, STRING is always parsed as integer."

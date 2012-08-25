@@ -1,10 +1,11 @@
 (ns deuce.emacs-lisp
   (require [clojure.core :as c]
            [clojure.walk :as w])
-  (:refer-clojure :exclude [defmacro and or cond let while eval set /])
+  (:refer-clojure :exclude [defmacro and or cond let while eval set / + list])
   (import [deuce EmacsLispError]))
 
 (def t true)
+(create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
 
 (defn ^:private clojure-special-forms []
@@ -28,7 +29,7 @@
 ;; defined in eval.clj
 (c/defmacro eval [body]
   (c/let [vars (keys &env)]
-         `(binding [*ns* (the-ns 'deuce.emacs-lisp)]
+         `(binding [*ns* (the-ns 'deuce.emacs)]
             (c/let [locals# (zipmap '~vars ~(vec vars))
                     body# (w/postwalk-replace locals# ~body)
                     body# (w/postwalk ~qualify-globals body#)]
@@ -47,13 +48,21 @@
 (c/defmacro lambda [args & body]
   `(fn ~(vec args) ~@body))
 
-;; defined in data.el
+;; defined in data.clj
 (defn / [dividend divisor & divisors]
   (if (zero? divisor)
     (throw (EmacsLispError. 'arith-error nil))
     (c/reduce / (c/let [r (clojure.core// dividend divisor)]
                        (if (ratio? r) (long r) r))
               divisors)))
+
+;; defined in data.clj
+(defn + [& numbers-or-markers]
+  (apply c/+ numbers-or-markers))
+
+;; defined in alloc.clj
+(defn list [& objects]
+  (apply c/list objects))
 
 (c/defmacro defun
   "Define NAME as a function.
@@ -171,18 +180,18 @@
   [arg]
   `(quote ~arg))
 
-(c/defmacro ^:private let-helper [can-refer? varlist & body]
+(c/defmacro let-helper* [can-refer? varlist & body]
   (c/let [varlist (if (every? list? varlist) varlist [varlist])
           varlist (if (= 1 (count (last varlist))) (concat (butlast varlist) [(concat (last varlist) [nil])]) varlist)
           {:keys [lexical dynamic]} (group-by (comp #(if (namespace %) :dynamic :lexical) first) varlist)
           lexical-vars (into {} (map vec lexical))
           dynamic-vars (into {} (map vec dynamic))
           fix-lexical-setq (fn [form] (if (c/and (list? form) (= 'setq (first form)) (list? (second form)))
-                                        (list 'setq (-> form second second) (last form))
+                                        (c/list 'setq (-> form second second) (last form))
                                         form))
           body (w/postwalk fix-lexical-setq
                            (w/postwalk-replace (zipmap (keys lexical-vars)
-                                                       (map #(list 'deref %) (keys lexical-vars))) body))
+                                                       (map #(c/list 'clojure.core/deref %) (keys lexical-vars))) body))
           all-vars (map first varlist)
           temps (zipmap all-vars (repeatedly #(gensym "local")))
           lexical-vars (if can-refer? lexical-vars (select-keys temps (keys lexical-vars)))
@@ -203,7 +212,7 @@
   All the VALUEFORMs are evalled before any symbols are bound."
   {:arglists '([VARLIST BODY...])}
   [varlist & body]
-  `(let-helper false ~varlist ~@body))
+  `(let-helper* false ~varlist ~@body))
 
 (c/defmacro defconst
   "Define SYMBOL as a constant variable.
@@ -338,7 +347,7 @@
   Each VALUEFORM can refer to the symbols already bound by this VARLIST."
   {:arglists '([VARLIST BODY...])}
   [varlist & body]
-  `(let-helper true ~varlist ~@body))
+  `(let-helper* true ~varlist ~@body))
 
 (c/defmacro defvar
   "Define SYMBOL as a variable, and return SYMBOL.

@@ -1,5 +1,6 @@
 (ns deuce.test.common
-  (require [deuce.emacs-lisp :as el])
+  (require [deuce.emacs-lisp :as el]
+           [deuce.emacs])
   (use [clojure.test]))
 
 (defmacro emacs [& body]
@@ -8,14 +9,12 @@
 (defn remove-vars [ns vars]
   (dorun (map #(ns-unmap ns %) vars)))
 
-(defn clear-globals []
-  (remove-vars 'deuce.emacs-lisp.globals (keys (ns-publics 'deuce.emacs-lisp.globals))))
+(defn clear-publics [ns]
+  (remove-vars ns (keys (ns-publics ns))))
 
 (defn with-fresh-emacs []
   (use-fixtures :each (fn [t]
-                        (let [fns (set (keys (ns-publics 'deuce.emacs-lisp)))
-                              clear #(do (remove-vars 'deuce.emacs-lisp (remove fns (keys (ns-publics 'deuce.emacs-lisp.globals))))
-                                         (clear-globals))]
+                        (let [clear #(dorun (map clear-publics '[deuce.emacs deuce.emacs-lisp.globals]))]
                           (clear)
                           (t)
                           (clear)))))

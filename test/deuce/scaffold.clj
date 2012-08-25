@@ -108,7 +108,7 @@
 
   (doseq [[f {:keys [args doc]}] fns]
     (println)
-    (println (str "(defun " (if (illegal-symbols f) (str "(symbol \"" (str (illegal-symbols f)) "\")") f)
+    (println (str "(defun " (if (illegal-symbols f) (str "(clojure.core/symbol \"" (str (illegal-symbols f)) "\")") f)
                   " " (pr-str (->> (replace illegal-symbols args)
                                    flatten
                                    (map (comp symbol string/lower-case))))))
