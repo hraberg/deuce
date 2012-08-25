@@ -12,36 +12,36 @@
 
 (repl example-1
 
-      (setq x (+ 1 2))    ⇒ 3
+      (setq x (+ 1 2))  ⇒ 3
 
-      x                  ⇒ 3
+      x                 ⇒ 3
 
       (let ((x 5))
         (setq x 6)
-        x)               ⇒ 6
+        x)              ⇒ 6
 
-      x                  ⇒ 3
+      x                 ⇒ 3
 
       (setq x 10
-            y (+ 1 x))    ⇒ 11)
+            y (+ 1 x))  ⇒ 11)
 
 
 (repl example-2
 
-      (set one 1)         ⇒ Exception
+      (set one 1)       ⇒ Exception
 
-      (set 'one 1)        ⇒ 1
+      (set 'one 1)      ⇒ 1
 
-      (set 'two 'one)     ⇒ 'one
+      (set 'two 'one)   ⇒ 'one
 
-      (set two 2)         ⇒ 2
+      (set two 2)       ⇒ 2
 
-      one                 ⇒ 2
+      one               ⇒ 2
 
       (let ((one 1))
          (set 'one 3)
-         one)              ⇒ 3
+         one)           ⇒ 3
 
-      one                  ⇒ 2
+      one               ⇒ 2
 
-      (set '(x y) 'z)       ⇒ Exception)
+      (set '(x y) 'z)   ⇒ Exception)
