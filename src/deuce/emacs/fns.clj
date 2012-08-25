@@ -1,5 +1,6 @@
 (ns
  deuce.emacs.fns
+ (require [clojure.core :as c])
  (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure
   :exclude
@@ -9,10 +10,10 @@
   "*Non-nil means mouse commands use dialog boxes to ask questions.
   This applies to `y-or-n-p' and `yes-or-no-p' questions asked by commands
   invoked by mouse clicks and mouse menu items.
-  
+
   On some platforms, file selection dialogs are also enabled if this is
   non-nil.
-  
+
   You can customize this variable.")
 
 (defvar use-file-dialog nil
@@ -21,7 +22,7 @@
   they are initiated from the keyboard.  If `use-dialog-box' is nil,
   that disables the use of a file dialog, regardless of the value of
   this variable.
-  
+
   You can customize this variable.")
 
 (defvar features nil
@@ -44,12 +45,12 @@
   "Return a multibyte string with the same individual bytes as STRING.
   If STRING is multibyte, the result is STRING itself.
   Otherwise it is a newly created string, with no text properties.
-  
+
   If STRING is unibyte and contains an individual 8-bit byte (i.e. not
   part of a correct utf-8 sequence), it is converted to the corresponding
   multibyte character of charset `eight-bit'.
   See also `string-to-multibyte'.
-  
+
   Beware, this often doesn't really do what you think it does.
   It is similar to (decode-coding-string STRING 'utf-8-emacs).
   If you're not sure, whether to use `string-as-multibyte' or
@@ -101,10 +102,10 @@
   In string STR1, skip the first START1 characters and stop at END1.
   In string STR2, skip the first START2 characters and stop at END2.
   END1 and END2 default to the full lengths of the respective strings.
-  
+
   Case is significant in this comparison if IGNORE-CASE is nil.
   Unibyte strings are converted to multibyte for comparison.
-  
+
   The value is t if the strings (or specified portions) match.
   If string STR1 is less, the value is a negative number N;
     - 1 - N is the number of characters that match at the beginning.
@@ -125,11 +126,11 @@
   "Return the secure hash of OBJECT, a buffer or string.
   ALGORITHM is a symbol specifying the hash to use:
   md5, sha1, sha224, sha256, sha384 or sha512.
-  
+
   The two optional arguments START and END are positions specifying for
   which part of OBJECT to compute the hash.  If nil or omitted, uses the
   whole OBJECT.
-  
+
   If BINARY is non-nil, returns a string in binary form."
   )
 
@@ -153,29 +154,29 @@
 
 (defun md5 (object &optional start end coding-system noerror)
   "Return MD5 message digest of OBJECT, a buffer or string.
-  
+
   A message digest is a cryptographic checksum of a document, and the
   algorithm to calculate it is defined in RFC 1321.
-  
+
   The two optional arguments START and END are character positions
   specifying for which part of OBJECT the message digest should be
   computed.  If nil or omitted, the digest is computed for the whole
   OBJECT.
-  
+
   The MD5 message digest is computed from the result of encoding the
   text in a coding system, not directly from the internal Emacs form of
   the text.  The optional fourth argument CODING-SYSTEM specifies which
   coding system to encode the text with.  It should be the same coding
   system that you used or will use when actually writing the text into a
   file.
-  
+
   If CODING-SYSTEM is nil or omitted, the default depends on OBJECT.  If
   OBJECT is a buffer, the default for CODING-SYSTEM is whatever coding
   system would be chosen by default for writing this text into a file.
-  
+
   If OBJECT is a string, the most preferred coding system (see the
   command `prefer-coding-system') is used.
-  
+
   If NOERROR is non-nil, silently assume the `raw-text' coding if the
   guesswork fails.  Normally, an error is signaled in such case."
   )
@@ -202,21 +203,21 @@
 (defun locale-info (item)
   "Access locale data ITEM for the current C locale, if available.
   ITEM should be one of the following:
-  
+
   `codeset', returning the character set as a string (locale item CODESET);
-  
+
   `days', returning a 7-element vector of day names (locale items DAY_n);
-  
+
   `months', returning a 12-element vector of month names (locale items MON_n);
-  
+
   `paper', returning a list (WIDTH HEIGHT) for the default paper size,
     both measured in millimeters (locale items PAPER_WIDTH, PAPER_HEIGHT).
-  
+
   If the system can't provide such information through a call to
   `nl_langinfo', or if ITEM isn't from the list above, return nil.
-  
+
   See also Info node `(libc)Locales'.
-  
+
   The data read from the system are decoded using `locale-coding-system'."
   )
 
@@ -224,10 +225,10 @@
   "Return a multibyte string with the same individual chars as STRING.
   If STRING is multibyte, the result is STRING itself.
   Otherwise it is a newly created string, with no text properties.
-  
+
   If STRING is unibyte and contains an 8-bit byte, it is converted to
   the corresponding multibyte character of charset `eight-bit'.
-  
+
   This differs from `string-as-multibyte' by converting each byte of a correct
   utf-8 sequence to an eight-bit character, not just bytes that don't form a
   correct sequence."
@@ -268,7 +269,7 @@
   TO may be nil or omitted; then the substring runs to the end of STRING.
   If FROM is nil or omitted, the substring starts at the beginning of STRING.
   If FROM or TO is negative, it counts from the end.
-  
+
   With one argument, just copy STRING without its properties."
   )
 
@@ -305,10 +306,10 @@
   "Ask user a yes-or-no question.  Return t if answer is yes.
   PROMPT is the string to display to ask the question.  It should end in
   a space; `yes-or-no-p' adds \"(yes or no) \" to it.
-  
+
   The user must confirm the answer with RET, and can edit it until it
   has been confirmed.
-  
+
   Under a windowing system a dialog box will be used if `last-nonmenu-event'
   is nil, and `use-dialog-box' is non-nil."
   )
@@ -367,16 +368,16 @@
 
 (defun load-average (&optional use-floats)
   "Return list of 1 minute, 5 minute and 15 minute load averages.
-  
+
   Each of the three load averages is multiplied by 100, then converted
   to integer.
-  
+
   When USE-FLOATS is non-nil, floats will be used instead of integers.
   These floats are not multiplied by 100.
-  
+
   If the 5-minute or 15-minute load averages are not available, return a
   shortened list, containing only those averages which are available.
-  
+
   An error is thrown if the load average can't be obtained.  In some
   cases making it work would require Emacs being installed setuid or
   setgid so that it can read kernel information, and that usually isn't
@@ -406,27 +407,27 @@
 
 (defun make-hash-table (&rest keyword-args)
   "Create and return a new hash table.
-  
+
   Arguments are specified as keyword/argument pairs.  The following
   arguments are defined:
-  
+
   :test TEST -- TEST must be a symbol that specifies how to compare
   keys.  Default is `eql'.  Predefined are the tests `eq', `eql', and
   `equal'.  User-supplied test and hash functions can be specified via
   `define-hash-table-test'.
-  
+
   :size SIZE -- A hint as to how many elements will be put in the table.
   Default is 65.
-  
+
   :rehash-size REHASH-SIZE - Indicates how to expand the table when it
   fills up.  If REHASH-SIZE is an integer, increase the size by that
   amount.  If it is a float, it must be > 1.0, and the new size is the
   old size multiplied by that factor.  Default is 1.5.
-  
+
   :rehash-threshold THRESHOLD -- THRESHOLD must a float > 0, and <= 1.0.
   Resize the hash table when the ratio (number of entries / table size)
   is greater than or equal to THRESHOLD.  Default is 0.8.
-  
+
   :weakness WEAK -- WEAK must be one of nil, t, `key', `value',
   `key-or-value', or `key-and-value'.  If WEAK is not nil, the table
   returned is a weak table.  Key/value pairs are removed from a weak
@@ -449,7 +450,7 @@
   Numbers are compared by value, but integers cannot equal floats.
    (Use `=' if you want integers and floats to be able to be equal.)
   Symbols must match exactly."
-  )
+  (= o1 o2))
 
 (defun nreverse (list)
   "Reverse LIST by modifying cdr pointers.
@@ -483,7 +484,7 @@
 (defun nth (n list)
   "Return the Nth element of LIST.
   N counts from zero.  If LIST is not that long, nil is returned."
-  )
+  (c/nth list n nil))
 
 (defun string-to-unibyte (string)
   "Return a unibyte string with the same individual chars as STRING.
@@ -505,7 +506,7 @@
   If the string contains multibyte characters, this is not necessarily
   the number of bytes in the string; it is the number of characters.
   To get the number of bytes, use `string-bytes'."
-  )
+  (count sequence))
 
 (defun memq (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
@@ -528,10 +529,10 @@
 
 (defun define-hash-table-test (name test hash)
   "Define a new hash table test with name NAME, a symbol.
-  
+
   In hash tables created with NAME specified as test, use TEST to
   compare keys, and HASH for computing hash codes of keys.
-  
+
   TEST must be a function taking two arguments and returning non-nil if
   both arguments are the same.  HASH must be a function taking one
   argument and return an integer that is the hash code of the argument.
@@ -609,7 +610,7 @@
   zero-indexed: 0 means the first character of STRING.  Negative values
   are counted from the end of STRING.  If TO is nil, the substring runs
   to the end of STRING.
-  
+
   The STRING argument may also be a vector.  In that case, the return
   value is a new vector that contains the elements between index FROM
   (inclusive) and index TO (exclusive) of that vector argument."
@@ -617,7 +618,7 @@
 
 (defun featurep (feature &optional subfeature)
   "Return t if FEATURE is present in this Emacs.
-  
+
   Use this to conditionalize execution of lisp code based on the
   presence or absence of Emacs or environment extensions.
   Use `provide' to declare that a feature is available.  This function

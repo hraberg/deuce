@@ -1,5 +1,6 @@
 (ns
  deuce.emacs.editfns
+ (require [clojure.core :as c])
  (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude [format]))
 
@@ -30,7 +31,7 @@
 
 (defvar user-full-name nil
   "The full name of the user logged in.
-  
+
   You can customize this variable.")
 
 (defun byte-to-position (bytepos)
@@ -67,7 +68,7 @@
   most significant 16 bits of the seconds, while the second has the
   least significant 16 bits.  The third integer gives the microsecond
   count.
-  
+
   The microsecond count is zero on systems that do not provide
   resolution finer than a second."
   )
@@ -94,7 +95,7 @@
 (defun insert-before-markers-and-inherit (&rest args)
   "Insert text at point, relocating markers and inheriting properties.
   Point and markers move forward to end up after the inserted text.
-  
+
   If the current buffer is multibyte, unibyte strings are converted
   to multibyte for insertion (see `unibyte-char-to-multibyte').
   If the current buffer is unibyte, multibyte strings are converted
@@ -115,10 +116,10 @@
   "Format a string out of a format-string and arguments.
   The first argument is a format control string.
   The other arguments are substituted into it to make the result, a string.
-  
+
   The format control string may contain %-sequences meaning to substitute
   the next available argument:
-  
+
   %s means print a string argument.  Actually, prints any object, with `princ'.
   %d means print as number in decimal (%o octal, %x hex).
   %X is like %x, but uses upper case.
@@ -128,36 +129,36 @@
     or decimal-point notation, whichever uses fewer characters.
   %c means print a number as a single character.
   %S means print any object as an s-expression (using `prin1').
-  
+
   The argument used for %d, %o, %x, %e, %f, %g or %c must be a number.
   Use %% to put a single % into the output.
-  
+
   A %-sequence may contain optional flag, width, and precision
   specifiers, as follows:
-  
+
     %<flags><width><precision>character
-  
+
   where flags is [+ #-0]+, width is [0-9]+, and precision is .[0-9]+
-  
+
   The + flag character inserts a + before any positive number, while a
   space inserts a space before any positive number; these flags only
   affect %d, %e, %f, and %g sequences, and the + flag takes precedence.
   The # flag means to use an alternate display form for %o, %x, %X, %e,
   %f, and %g sequences.  The - and 0 flags affect the width specifier,
   as described below.
-  
+
   The width specifier supplies a lower limit for the length of the
   printed representation.  The padding, if any, normally goes on the
   left, but it goes on the right if the - flag is present.  The padding
   character is normally a space, but it is 0 if the 0 flag is present.
   The 0 flag is ignored if the - flag is present, or the format sequence
   is something other than %d, %e, %f, and %g.
-  
+
   For %e, %f, and %g sequences, the number after the \".\" in the
   precision specifier says how many decimal places to show; if zero, the
   decimal point itself is omitted.  For %s and %S, the precision
   specifier truncates the string to the given width."
-  )
+  (apply c/format string objects))
 
 (defun user-uid ()
   "Return the effective uid of Emacs.
@@ -168,7 +169,7 @@
   "Set the local time zone using TZ, a string specifying a time zone rule.
   If TZ is nil, use implementation-defined default time zone information.
   If TZ is t, use Universal Time.
-  
+
   Instead of calling this function, you typically want (setenv \"TZ\" TZ).
   That changes both the environment of the Emacs process and the
   variable `process-environment', whereas `set-time-zone-rule' affects
@@ -180,7 +181,7 @@
   Point and before-insertion markers move forward to end up
    after the inserted text.
   Any other markers at the point of insertion remain before the text.
-  
+
   If the current buffer is multibyte, unibyte strings are converted
   to multibyte for insertion (see `unibyte-char-to-multibyte').
   If the current buffer is unibyte, multibyte strings are converted
@@ -216,17 +217,17 @@
   be a string or t (as from `set-time-zone-rule'), or it can be a list
   (as from `current-time-zone') or an integer (as from `decode-time')
   applied without consideration for daylight saving time.
-  
+
   You can pass more than 7 arguments; then the first six arguments
   are used as SECOND through YEAR, and the *last* argument is used as ZONE.
   The intervening arguments are ignored.
   This feature lets (apply 'encode-time (decode-time ...)) work.
-  
+
   Out-of-range values for SECOND, MINUTE, HOUR, DAY, or MONTH are allowed;
   for example, a DAY of 0 means the day preceding the given month.
   Year numbers less than 100 are treated just like other year numbers.
   If you want them to stand for years in this century, you must do that yourself.
-  
+
   Years before 1970 are not guaranteed to work.  On some systems,
   year values as low as 1901 do work."
   )
@@ -276,16 +277,16 @@
   "Return the character position of the last character on the current line.
   With argument N not nil or 1, move forward N - 1 lines first.
   If scan reaches end of buffer, return that position.
-  
+
   The returned position is of the last character in the logical order,
   i.e. the character whose buffer position is the largest one.
-  
+
   This function constrains the returned position to the current field
   unless that would be on a different line than the original,
   unconstrained result.  If N is nil or 1, and a rear-sticky field ends
   at point, the scan stops as soon as it starts.  To ignore field
   boundaries bind `inhibit-field-text-motion' to t.
-  
+
   This function does not move point."
   )
 
@@ -295,7 +296,7 @@
   but is not deleted; if you save the buffer in a file, the invisible
   text is included in the file.  C-x n w makes all visible again.
   See also `save-restriction'.
-  
+
   When calling from a program, pass two arguments; positions (integers
   or markers) bounding the text that should remain visible."
   )
@@ -306,7 +307,7 @@
   most significant 16 bits of the seconds, while the second has the
   least significant 16 bits.  The third integer gives the microsecond
   count.
-  
+
   On systems that can't determine the run time, `get-internal-run-time'
   does the same thing as `current-time'.  The microsecond count is zero
   on systems that do not provide resolution finer than a second."
@@ -357,16 +358,16 @@
   "Return the character position of the first character on the current line.
   With argument N not nil or 1, move forward N - 1 lines first.
   If scan reaches end of buffer, return that position.
-  
+
   The returned position is of the first character in the logical order,
   i.e. the one that has the smallest character position.
-  
+
   This function constrains the returned position to the current field
   unless that would be on a different line than the original,
   unconstrained result.  If N is nil or 1, and a front-sticky field
   starts at point, the scan stops as soon as it starts.  To ignore field
   boundaries bind `inhibit-field-text-motion' to t.
-  
+
   This function does not move point."
   )
 
@@ -406,7 +407,7 @@
   This is based on the effective uid, not the real uid.
   Also, if the environment variables LOGNAME or USER are set,
   that determines the value of this function.
-  
+
   If optional argument UID is an integer or a float, return the login name
   of the user with that uid, or nil if there is no such user."
   )
@@ -423,7 +424,7 @@
   Otherwise, use the echo area.
   The first argument is a format control string, and the rest are data
   to be formatted under control of the string.  See `format' for details.
-  
+
   If the first argument is nil or the empty string, clear any existing
   message; let the minibuffer contents show."
   )
@@ -443,7 +444,7 @@
   The format is `Sun Sep 16 01:03:52 1973'.
   However, see also the functions `decode-time' and `format-time-string'
   which provide a much more powerful and general facility.
-  
+
   If SPECIFIED-TIME is given, it is a time to format instead of the
   current time.  The argument should have the form (HIGH LOW . IGNORED).
   Thus, you can use times obtained from `current-time' and from
@@ -454,11 +455,11 @@
 (defun constrain-to-field (new-pos old-pos &optional escape-from-edge only-in-line inhibit-capture-property)
   "Return the position closest to NEW-POS that is in the same field as OLD-POS.
   A field is a region of text with the same `field' property.
-  
+
   If NEW-POS is nil, then use the current point instead, and move point
   to the resulting constrained position, in addition to returning that
   position.
-  
+
   If OLD-POS is at the boundary of two fields, then the allowable
   positions for NEW-POS depends on the value of the optional argument
   ESCAPE-FROM-EDGE: If ESCAPE-FROM-EDGE is nil, then NEW-POS is
@@ -468,16 +469,16 @@
   fields.  Additionally, if two fields are separated by another field with
   the special value `boundary', then any point within this special field is
   also considered to be `on the boundary'.
-  
+
   If the optional argument ONLY-IN-LINE is non-nil and constraining
   NEW-POS would move it to a different line, NEW-POS is returned
   unconstrained.  This useful for commands that move by line, like
   C-n or M-x beginning-of-line, which should generally respect field boundaries
   only in the case where they can still move to the right line.
-  
+
   If the optional argument INHIBIT-CAPTURE-PROPERTY is non-nil, and OLD-POS has
   a non-nil property of that name, then any field boundaries are ignored.
-  
+
   Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil."
   )
 
@@ -512,7 +513,7 @@
   (HIGH LOW . IGNORED).  Thus, you can use times obtained from
   `current-time' and from `file-attributes'.  SPECIFIED-TIME can also
   have the form (HIGH . LOW), but this is considered obsolete.
-  
+
   Some operating systems cannot provide all this information to Emacs;
   in this case, `current-time-zone' returns a list containing nil for
   the data it can't find."
@@ -521,7 +522,7 @@
 (defun insert-before-markers (&rest args)
   "Insert strings or characters at point, relocating markers after the text.
   Point and markers move forward to end up after the inserted text.
-  
+
   If the current buffer is multibyte, unibyte strings are converted
   to multibyte for insertion (see `unibyte-char-to-multibyte').
   If the current buffer is unibyte, multibyte strings are converted
@@ -548,17 +549,17 @@
   "Transpose region STARTR1 to ENDR1 with STARTR2 to ENDR2.
   The regions should not be overlapping, because the size of the buffer is
   never changed in a transposition.
-  
+
   Optional fifth arg LEAVE-MARKERS, if non-nil, means don't update
   any markers that happen to be located in the regions.
-  
+
   Transposing beyond buffer boundaries is an error."
   )
 
 (defun goto-char (position)
   "Set point to POSITION, a number or marker.
   Beginning of buffer is position (point-min), end is (point-max).
-  
+
   The return value is POSITION."
   )
 
@@ -591,7 +592,7 @@
   as Universal Time; nil means describe TIME in the local time zone.
   The value is a copy of FORMAT-STRING, but with certain constructs replaced
   by text that describes the specified date and time in TIME:
-  
+
   %Y is the year, %y within the century, %C the century.
   %G is the year corresponding to the ISO week, %g within the century.
   %m is the numeric month.
@@ -602,7 +603,7 @@
   %U is the week number starting on Sunday, %W starting on Monday,
    %V according to ISO 8601.
   %j is the day of the year.
-  
+
   %H is the hour on a 24-hour clock, %I is on a 12-hour clock, %k is like %H
    only blank-padded, %l is like %I blank-padded.
   %p is the locale's equivalent of either AM or PM.
@@ -611,16 +612,16 @@
   %N is the nanosecond, %6N the microsecond, %3N the millisecond, etc.
   %Z is the time zone name, %z is the numeric form.
   %s is the number of seconds since 1970-01-01 00:00:00 +0000.
-  
+
   %c is the locale's date and time format.
   %x is the locale's \"preferred\" date format.
   %D is like \"%m/%d/%y\".
-  
+
   %R is like \"%H:%M\", %T is like \"%H:%M:%S\", %r is like \"%I:%M:%S %p\".
   %X is the locale's \"preferred\" time format.
-  
+
   Finally, %n is a newline, %t is a tab, %% is a literal %.
-  
+
   Certain flags and modifiers are available with some format controls.
   The flags are `_', `-', `^' and `#'.  For certain characters X,
   %_X is like %X, but padded with blanks; %-X is like %X,
@@ -632,7 +633,7 @@
   The modifiers are `E' and `O'.  For certain characters X,
   %EX is a locale's alternative version of %X;
   %OX is like %X, but uses the locale's number symbols.
-  
+
   For example, to produce full ISO 8601 format, use \"%Y-%m-%dT%T%z\"."
   )
 
@@ -640,10 +641,10 @@
   "Insert COUNT (second arg) copies of BYTE (first arg).
   Both arguments are required.
   BYTE is a number of the range 0..255.
-  
+
   If BYTE is 128..255 and the current buffer is multibyte, the
   corresponding eight-bit character is inserted.
-  
+
   Point, and before-insertion markers, are relocated as in the function `insert'.
   The optional third arg INHERIT, if non-nil, says to inherit text properties
   from adjoining text, if those properties are sticky."
@@ -655,7 +656,7 @@
   +N if first string is greater after N-1 chars, or 0 if strings match.
   Each substring is represented as three arguments: BUFFER, START and END.
   That makes six args in all, three for each substring.
-  
+
   The value of `case-fold-search' in the current buffer
   determines whether case is significant or ignored."
   )
@@ -670,7 +671,7 @@
   "Return the full name of the user logged in, as a string.
   If the full name corresponding to Emacs's userid is not known,
   return \"unknown\".
-  
+
   If optional argument UID is an integer or float, return the full name
   of the user with that uid, or nil if there is no such user.
   If UID is a string, return the full name of the user with that login
@@ -682,29 +683,29 @@
   The message also goes into the `*Messages*' buffer.
   (In keyboard macros, that's all it does.)
   Return the message.
-  
+
   The first argument is a format control string, and the rest are data
   to be formatted under control of the string.  See `format' for details.
-  
+
   Note: Use (message \"%s\" VALUE) to print the value of expressions and
   variables to avoid accidentally interpreting `%' as format specifiers.
-  
+
   If the first argument is nil or the empty string, the function clears
   any existing message; this lets the minibuffer contents show.  See
   also `current-message'."
-  )
+  (println (apply format format-string args)))
 
 (defun insert (&rest args)
   "Insert the arguments, either strings or characters, at point.
   Point and before-insertion markers move forward to end up
    after the inserted text.
   Any other markers at the point of insertion remain before the text.
-  
+
   If the current buffer is multibyte, unibyte strings are converted
   to multibyte for insertion (see `string-make-multibyte').
   If the current buffer is unibyte, multibyte strings are converted
   to unibyte for insertion (see `string-make-unibyte').
-  
+
   When operating on binary data, it may be necessary to preserve the
   original bytes of a unibyte string when inserting it into a multibyte
   buffer; to accomplish this, apply `string-as-multibyte' to the string
@@ -716,7 +717,7 @@
   The two arguments START and END are character positions;
   they can be in either order.
   The string returned is multibyte if the buffer is multibyte.
-  
+
   This function copies the text properties of that part of the buffer
   into the result string; if you don't want the text properties,
   use `buffer-substring-no-properties' instead."
@@ -733,7 +734,7 @@
   (HIGH LOW) or (HIGH LOW USEC). Thus, you can use times obtained from
   `current-time' and from `file-attributes'.  SPECIFIED-TIME can also
   have the form (HIGH . LOW), but this is considered obsolete.
-  
+
   WARNING: Since the result is floating point, it may not be exact.
   If precise time stamps are required, use either `current-time',
   or (if you need time as a string) `format-time-string'."
@@ -744,7 +745,7 @@
   If a dialog box is not available, use the echo area.
   The first argument is a format control string, and the rest are data
   to be formatted under control of the string.  See `format' for details.
-  
+
   If the first argument is nil or the empty string, clear any existing
   message; let the minibuffer contents show."
   )

@@ -1,5 +1,7 @@
 (ns
  deuce.emacs.fileio
+ (require [clojure.core :as c]
+          [clojure.java.io :as io])
  (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
 
@@ -24,7 +26,7 @@
   `move-file-to-trash' instead of deleting files outright.
   This includes interactive calls to `delete-file' and
   `delete-directory' and the Dired deletion commands.
-  
+
   You can customize this variable.")
 
 (defvar auto-save-list-file-name nil
@@ -36,7 +38,7 @@
 (defvar default-file-name-coding-system nil
   "Default coding system for encoding file names.
   This variable is used only when `file-name-coding-system' is nil.
-  
+
   This variable is set/changed by the command `set-language-environment'.
   User should not set this variable manually,
   instead use `file-name-coding-system' to get a constant encoding
@@ -58,7 +60,7 @@
 (defvar auto-save-visited-file-name nil
   "Non-nil says auto-save a buffer in the file it is visiting, when practical.
   Normally auto-save files are written under other names.
-  
+
   You can customize this variable.")
 
 (defvar write-region-annotate-functions nil
@@ -70,16 +72,16 @@
   inserted at the specified positions of the file being written (1 means to
   insert before the first byte written).  The POSITIONs must be sorted into
   increasing order.
-  
+
   If there are several annotation functions, the lists returned by these
   functions are merged destructively.  As each annotation function runs,
   the variable `write-region-annotations-so-far' contains a list of all
   annotations returned by previous annotation functions.
-  
+
   An annotation function can return with a different buffer current.
   Doing so removes the annotations returned by previous functions, and
   resets START and END to `point-min' and `point-max' of the new buffer.
-  
+
   After `write-region' completes, Emacs calls the function stored in
   `write-region-post-annotation-function', once for each buffer that was
   current when building the annotations (i.e., at least once), with that
@@ -92,15 +94,15 @@
   whose match starts last in the file name gets precedence.  The
   function `find-file-name-handler' checks this list for a handler for
   its argument.
-  
+
   HANDLER should be a function.  The first argument given to it is the
   name of the I/O primitive to be handled; the remaining arguments are
   the arguments that were passed to that primitive.  For example, if you
   do (file-exists-p FILENAME) and FILENAME is handled by HANDLER, then
   HANDLER is called like this:
-  
+
     (funcall HANDLER 'file-exists-p FILENAME)
-  
+
   Note that HANDLER must be able to handle all I/O primitives; if it has
   nothing special to do for a primitive, it should reinvoke the
   primitive to handle the operation \"the usual way\".
@@ -182,13 +184,15 @@
   An initial `~/' expands to your home directory.
   An initial `~USER/' expands to USER's home directory.
   See also the function `substitute-in-file-name'.
-  
+
   For technical reasons, this function can return correct but
   non-intuitive results for the root directory; for instance,
   (expand-file-name \"..\" \"/\") returns \"/..\".  For this reason, use
   (directory-file-name (file-name-directory dirname)) to traverse a
   filesystem tree, not (expand-file-name \"..\"  dirname)."
-  )
+  (.getAbsolutePath (if default-directory
+                      (io/file default-directory name)
+                      (io/file name))))
 
 (defun write-region (start end filename &optional append visit lockname mustbenew)
   "Write current region into specified file.
@@ -198,7 +202,7 @@
   If START is nil, that means to use the entire buffer contents.
   If START is a string, then output that string to the file
   instead of any buffer contents; END is ignored.
-  
+
   Optional fourth argument APPEND if non-nil means
     append to existing file contents (if any).  If it is an integer,
     seek to that offset in the file before writing.
@@ -218,12 +222,12 @@
     If MUSTBENEW is neither nil nor `excl', that means ask for
     confirmation before overwriting, but do go ahead and overwrite the file
     if the user confirms.
-  
+
   This does code conversion according to the value of
   `coding-system-for-write', `buffer-file-coding-system', or
   `file-coding-system-alist', and sets the variable
   `last-coding-system-used' to the coding system actually used.
-  
+
   This calls `write-region-annotate-functions' at the start, and
   `write-region-post-annotation-function' at the end."
   )
@@ -239,7 +243,7 @@
   "Set SELinux context of file named FILENAME to CONTEXT.
   CONTEXT should be a list (USER ROLE TYPE RANGE), where the list
   elements are strings naming the components of a SELinux context.
-  
+
   This function does nothing if SELinux is disabled, or if Emacs was not
   compiled with SELinux support."
   )
@@ -252,7 +256,7 @@
   so that your editing is not lost if the system crashes.
   This file is not the file you visited; that changes only when you save.
   Normally we run the normal hook `auto-save-hook' before saving.
-  
+
   A non-nil NO-MESSAGE argument means do not print any message if successful.
   A non-nil CURRENT-ONLY argument means save only current buffer."
   )
@@ -262,7 +266,7 @@
   The return value is a list (USER ROLE TYPE RANGE), where the list
   elements are strings naming the user, role, type, and range of the
   file's SELinux security context.
-  
+
   Return (nil nil nil nil) if the file is nonexistent or inaccessible,
   or if SELinux is disabled, or if Emacs lacks SELinux support."
   )
@@ -276,7 +280,7 @@
   Otherwise, return nil.
   A file name is handled if one of the regular expressions in
   `file-name-handler-alist' matches it.
-  
+
   If OPERATION equals `inhibit-file-name-operation', then we ignore
   any handlers that are members of `inhibit-file-name-handlers',
   but we still do run any other handlers.  This lets handlers
@@ -359,7 +363,7 @@
   If file has multiple names, it continues to exist with the other names.
   TRASH non-nil means to trash the file instead of deleting, provided
   `delete-by-moving-to-trash' is non-nil.
-  
+
   When called interactively, TRASH is t if no prefix argument is given.
   With a prefix argument, TRASH is nil."
   )
@@ -373,15 +377,15 @@
   "Generate temporary file name (string) starting with PREFIX (a string).
   The Emacs process number forms part of the result,
   so there is no danger of generating a name being used by another process.
-  
+
   In addition, this function makes an attempt to choose a name
   which has no existing file.  To make this work,
   PREFIX should be an absolute file name.
-  
+
   There is a race condition between calling `make-temp-name' and creating the
   file which opens all kinds of security holes.  For that reason, you should
   probably use `make-temp-file' instead, except in three circumstances:
-  
+
   * If you are creating the file in the user's home directory.
   * If you are creating a directory rather than an ordinary file.
   * If you are taking special precautions as `make-temp-file' does."
@@ -415,18 +419,18 @@
   last save file modtime are set, and it is marked unmodified.  If
   visiting and the file does not exist, visiting is completed before the
   error is signaled.
-  
+
   The optional third and fourth arguments BEG and END specify what portion
   of the file to insert.  These arguments count bytes in the file, not
   characters in the buffer.  If VISIT is non-nil, BEG and END must be nil.
-  
+
   If optional fifth argument REPLACE is non-nil, replace the current
   buffer contents (in the accessible portion) with the file contents.
   This is better than simply deleting and inserting the whole thing
   because (1) it preserves some marker positions and (2) it puts less data
   in the undo list.  When REPLACE is non-nil, the second return value is
   the number of characters that replace previous buffer contents.
-  
+
   This function does code conversion according to the value of
   `coding-system-for-read' or `file-coding-system-alist', and sets the
   variable `last-coding-system-used' to the coding system actually used."
@@ -445,7 +449,7 @@
   the value of that variable.  The variable name should be terminated
   with a character not a letter, digit or underscore; otherwise, enclose
   the entire variable name in braces.
-  
+
   If `/~' appears, all of FILENAME through that `/' is discarded.
   If `//' appears, everything up to and including the first of
   those `/' is discarded."
@@ -473,7 +477,7 @@
 (defun set-file-modes (filename mode)
   "Set mode bits of file named FILENAME to MODE (an integer).
   Only the 12 low bits of MODE are used.
-  
+
   Interactively, mode bits are read by `read-file-modes', which accepts
   symbolic notation, like the `chmod' command from GNU Coreutils."
   )
@@ -500,10 +504,10 @@
 (defun copy-file (file newname &optional ok-if-already-exists keep-time preserve-uid-gid preserve-selinux-context)
   "Copy FILE to NEWNAME.  Both args must be strings.
   If NEWNAME names a directory, copy FILE there.
-  
+
   This function always sets the file modes of the output file to match
   the input file.
-  
+
   The optional third argument OK-IF-ALREADY-EXISTS specifies what to do
   if file NEWNAME already exists.  If OK-IF-ALREADY-EXISTS is nil, we
   signal a `file-already-exists' error without overwriting.  If
@@ -511,15 +515,15 @@
   about overwriting; this is what happens in interactive use with M-x.
   Any other value for OK-IF-ALREADY-EXISTS means to overwrite the
   existing file.
-  
+
   Fourth arg KEEP-TIME non-nil means give the output file the same
   last-modified time as the old one.  (This works on only some systems.)
-  
+
   A prefix arg makes KEEP-TIME non-nil.
-  
+
   If PRESERVE-UID-GID is non-nil, we try to transfer the
   uid and gid of FILE to NEWNAME.
-  
+
   If PRESERVE-SELINUX-CONTEXT is non-nil and SELinux is enabled
   on the system, we copy the SELinux context of FILE to NEWNAME."
   )
@@ -542,7 +546,7 @@
   "Return non-nil if file FILENAME is the name of a symbolic link.
   The value is the link target, as a string.
   Otherwise it returns nil.
-  
+
   This function returns t when given the name of a symlink that
   points to a nonexistent file."
   )

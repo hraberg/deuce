@@ -1,6 +1,8 @@
 (ns
  deuce.emacs.data
- (:use [deuce.emacs-lisp :only (defun defvar)])
+ (require [clojure.core :as c])
+ (import [deuce EmacsLispError])
+ (:use [deuce.emacs-lisp :only (defun defvar setq)])
  (:refer-clojure
   :exclude
   [+ * - / aset set < = > max >= <= mod atom min]))
@@ -119,7 +121,7 @@
 
 (defun + (&rest numbers-or-markers)
   "Return sum of any number of arguments, which are numbers or markers."
-  )
+  (apply c/+ numbers-or-markers))
 
 (defun lsh (value count)
   "Return VALUE with its bits shifted left by COUNT.
@@ -165,7 +167,11 @@
 (defun / (dividend divisor &rest divisors)
   "Return first argument divided by all the remaining arguments.
   The arguments must be numbers or markers."
-  )
+  (if (zero? divisor)
+    (throw (EmacsLispError. 'arith-error nil))
+    (c/reduce / (c/let [r (clojure.core// dividend divisor)]
+                       (if (ratio? r) (long r) r))
+              divisors)))
 
 (defun byteorder ()
   "Return the byteorder for the machine.
@@ -256,7 +262,7 @@
 
 (defun set (symbol newval)
   "Set SYMBOL's value to NEWVAL, and return NEWVAL."
-  )
+  (eval `(setq ~symbol '~newval)))
 
 (defun < (num1 num2)
   "Return t if first arg is less than second arg.  Both must be numbers or markers."
@@ -408,7 +414,7 @@
 
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as car, cdr, cons cell and list."
-  )
+  (c/first list))
 
 (defun bool-vector-p (object)
   "Return t if OBJECT is a bool-vector."

@@ -1,5 +1,6 @@
 (ns
  deuce.emacs.eval
+ (require [clojure.core :as c])
  (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude [apply eval]))
 
@@ -20,13 +21,13 @@
 
 (defvar max-lisp-eval-depth nil
   "*Limit on depth in `eval', `apply' and `funcall' before error.
-  
+
   This limit serves to catch infinite recursions for you before they cause
   actual stack overflow in C, which would be fatal for Emacs.
   You can safely make it considerably larger than its default value,
   if that proves inconveniently small.  However, if you increase it too far,
   Emacs could overflow the real C stack, and crash.
-  
+
   You can customize this variable.")
 
 (defvar macro-declaration-function nil
@@ -64,13 +65,13 @@
   and just returns to top level.
   This overrides the variable `debug-on-error'.
   It does not apply to errors handled by `condition-case'.
-  
+
   You can customize this variable.")
 
 (defvar debug-on-quit nil
   "*Non-nil means enter debugger if quit is signaled (C-g, for example).
   Does not apply if quit is handled by a `condition-case'.
-  
+
   You can customize this variable.")
 
 (defvar debug-on-error nil
@@ -83,7 +84,7 @@
   is temporarily non-nil if `eval-expression-debug-on-error' is non-nil.
   The command `toggle-debug-on-error' toggles this.
   See also the variable `debug-on-quit'.
-  
+
   You can customize this variable.")
 
 (defvar debugger-may-continue nil
@@ -98,18 +99,18 @@
   You can safely use a value considerably larger than the default value,
   if that proves inconveniently small.  However, if you increase it too far,
   Emacs could run out of memory trying to make the stack bigger.
-  
+
   You can customize this variable.")
 
 (defun user-variable-p (variable)
   "Return t if VARIABLE is intended to be set and modified by users.
   (The alternative is a variable used internally in a Lisp program.)
-  
+
   This function returns t if (i) the first character of its
   documentation is `*', or (ii) it is customizable (its property list
   contains a non-nil value of `standard-value' or `custom-autoload'), or
   (iii) it is an alias for a user variable.
-  
+
   But condition (i) is considered obsolete, so for most purposes this is
   equivalent to `custom-variable-p'."
   )
@@ -146,12 +147,12 @@
 (defun signal (error-symbol data)
   "Signal an error.  Args are ERROR-SYMBOL and associated DATA.
   This function does not return.
-  
+
   An error symbol is a symbol with an `error-conditions' property
   that is a list of condition names.
   A handler for any of those names will get to handle this signal.
   The symbol `error' should normally be one of them.
-  
+
   DATA should be a list.  Its elements are printed as part of the error message.
   See Info anchor `(elisp)Definition of signal' for some details on how this
   error message is constructed.
@@ -167,13 +168,13 @@
   If KIND is `any', on the other hand, it will return t for any kind of
   interactive call, including being called as the binding of a key, or
   from a keyboard macro, or in `noninteractive' mode.
-  
+
   The only known proper use of `interactive' for KIND is in deciding
   whether to display a helpful message, or how to display it.  If you're
   thinking of using it for any other purpose, it is quite likely that
   you're making a mistake.  Think: what do you want to do when the
   command is called from a keyboard macro?
-  
+
   This function is meant for implementing advice and other
   function-modifying features.  Instead of using this, it is sometimes
   cleaner to give your function an extra optional argument whose
@@ -191,7 +192,7 @@
   with the given arguments ARGS.
   It is best not to depend on the value returned by `run-hook-with-args',
   as that may change.
-  
+
   Do not use `make-local-variable' to make a hook variable buffer-local.
   Instead, use `add-hook' and specify t for the LOCAL argument."
   )
@@ -200,7 +201,7 @@
   "Call first argument as a function, passing remaining arguments to it.
   Return the value that function returns.
   Thus, (funcall 'cons 'x 'y) returns (x . y)."
-  )
+   (c/apply function arguments))
 
 (defun run-hook-wrapped (hook wrap-function &rest args)
   "Run HOOK, passing each function through WRAP-FUNCTION.
@@ -213,19 +214,19 @@
 (defun interactive-p ()
   "This function is obsolete since 23.2;
   use `called-interactively-p' instead.
-  
+
   Return t if the containing function was run directly by user input.
   This means that the function was called with `call-interactively'
   (which includes being called as the binding of a key)
   and input is currently coming from the keyboard (not a keyboard macro),
   and Emacs is not running in batch mode (`noninteractive' is nil).
-  
+
   The only known proper use of `interactive-p' is in deciding whether to
   display a helpful message, or how to display it.  If you're thinking
   of using it for any other purpose, it is quite likely that you're
   making a mistake.  Think: what do you want to do when the command is
   called from a keyboard macro?
-  
+
   To test whether your function was called with `call-interactively',
   either (i) add an extra optional argument and give it an `interactive'
   spec that specifies non-nil unconditionally (such as \"p\"); or (ii)
@@ -253,7 +254,7 @@
   with the given arguments ARGS, until one of them
   returns a non-nil value.  Then we return that value.
   However, if they all return nil, we return nil.
-  
+
   Do not use `make-local-variable' to make a hook variable buffer-local.
   Instead, use `add-hook' and specify t for the LOCAL argument."
   )
@@ -277,7 +278,7 @@
   If it is a list of functions, those functions are called, in order,
   with the given arguments ARGS, until one of them returns nil.
   Then we return nil.  However, if they all return non-nil, we return non-nil.
-  
+
   Do not use `make-local-variable' to make a hook variable buffer-local.
   Instead, use `add-hook' and specify t for the LOCAL argument."
   )
@@ -296,10 +297,10 @@
   or a list of functions to be called to run the hook.
   If the value is a function, it is called with no arguments.
   If it is a list, the elements are called, in order, with no arguments.
-  
+
   Major modes should not use this function directly to run their mode
   hook; they should use `run-mode-hooks' instead.
-  
+
   Do not use `make-local-variable' to make a hook variable buffer-local.
   Instead, use `add-hook' and specify t for the LOCAL argument."
   )
@@ -331,14 +332,14 @@
   This means it contains a description for how to read arguments to give it.
   The value is nil for an invalid function or a symbol with no function
   definition.
-  
+
   Interactively callable functions include strings and vectors (treated
   as keyboard macros), lambda-expressions that contain a top-level call
   to `interactive', autoload definitions made by `autoload' with non-nil
   fourth argument, and some of the built-in functions of Lisp.
-  
+
   Also, a symbol satisfies `commandp' if its function definition does so.
-  
+
   If the optional argument FOR-CALL-INTERACTIVELY is non-nil,
   then strings and vectors are not accepted."
   )

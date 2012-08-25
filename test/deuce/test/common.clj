@@ -9,24 +9,38 @@
 (defn remove-vars [ns vars]
   (dorun (map #(ns-unmap ns %) vars)))
 
-(defn clear-publics [ns]
-  (remove-vars ns (keys (ns-publics ns))))
+(defn clear-publics [ns keep]
+  (remove-vars ns (remove keep (keys (ns-publics ns)))))
 
 (defn with-fresh-emacs []
   (use-fixtures :each (fn [t]
-                        (let [clear #(dorun (map clear-publics '[deuce.emacs deuce.emacs-lisp.globals]))]
-                          (clear)
+                        (let [[fns vars] (map ns-map '[deuce.emacs deuce.emacs-lisp.globals])
+                              previous-vars (->> (ns-map 'deuce.emacs-lisp.globals)
+                                                 (filter (comp var? val))
+                                                 (map (fn [[n v]] [n (deref v)]))
+                                                 (into {}))]
+
                           (t)
-                          (clear)))))
+
+                          (clear-publics 'deuce.emacs fns)
+                          (clear-publics 'deuce.emacs-lisp.globals vars)
+                          (->> previous-vars
+                               (map (fn [[n v]] (alter-var-root (ns-resolve 'deuce.emacs-lisp.globals n)
+                                                                (constantly v))))
+                               doall)))))
 
 (defmacro repl [name & body]
-  (let [parts (remove '#{[⇒]} (partition-by '#{⇒} body))
+  (let [parts (partition-by '#{⇒ -|} body)
+        ops (filter '#{⇒ -|} body)
+        parts (remove '#{[⇒] [-|]} parts)
         expected (map first (next parts))
         parts (cons (first parts) (map rest (next parts)))]
     (concat `(deftest ~name)
-            (for [[a e] (partition 2 (interleave parts expected))]
+            (for [[a op e] (partition 3 (interleave parts ops expected))]
               (if (and (symbol? e) (isa? (resolve e) Throwable))
                 `(is (~'thrown? ~e (emacs ~@a)))
-                (if (and (symbol? e) (resolve e))
-                  `(is (~(resolve e) (emacs ~@a)))
-                  `(is (= ~e (emacs ~@a)))))))))
+                (if (= '-| op)
+                  `(is (re-find (re-pattern ~e) (with-out-str (emacs ~@a))))
+                  (if (and (symbol? e) (resolve e))
+                    `(is (~(resolve e) (emacs ~@a)))
+                    `(is (= ~e (emacs ~@a))))))))))

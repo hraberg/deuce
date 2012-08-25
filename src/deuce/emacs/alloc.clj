@@ -1,5 +1,6 @@
 (ns
  deuce.emacs.alloc
+ (require [clojure.core :as c])
  (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude [vector cons list]))
 
@@ -185,4 +186,4 @@
 (defun list (&rest objects)
   "Return a newly created list with specified arguments as elements.
   Any number of arguments, even zero arguments, are allowed."
-  )
+  (apply c/list objects))

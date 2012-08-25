@@ -24,7 +24,7 @@
     (symbol (-> s meta :ns str) (-> s meta :name str))
     form))
 
-;; defined in eval.clj
+;; defined as fn in eval.clj
 (c/defmacro eval [body]
   (c/let [vars (keys &env)]
          `(binding [*ns* (the-ns 'deuce.emacs)]
@@ -517,38 +517,3 @@
   Executes BODY just like `progn'."
   {:arglists '([&rest BODY])}
   [& body])
-
-;; These helper fns shouldn't be here, they're really defined elsewhere:
-
-;; defined in eval.clj
-(defun funcall (function &rest arguments)
-  "Call first argument as a function, passing remaining arguments to it.
-  Return the value that function returns.
-  Thus, (funcall 'cons 'x 'y) returns (x . y)."
-  (apply function arguments))
-
-;; defined in data.clj
-(defun set (symbol newval)
-  "Set SYMBOL's value to NEWVAL, and return NEWVAL."
-  (eval `(setq ~symbol '~newval)))
-
-;; defined in data.clj
-(defun / (dividend divisor &rest divisors)
-  "Return first argument divided by all the remaining arguments.
-  The arguments must be numbers or markers."
-  (if (zero? divisor)
-    (throw (EmacsLispError. 'arith-error nil))
-    (c/reduce / (c/let [r (clojure.core// dividend divisor)]
-                       (if (ratio? r) (long r) r))
-              divisors)))
-
-;; defined in data.clj
-(defun + (&rest numbers-or-markers)
-  "Return sum of any number of arguments, which are numbers or markers."
-  (apply c/+ numbers-or-markers))
-
-;; defined in alloc.clj
-(defun list (&rest objects)
-  "Return a newly created list with specified arguments as elements.
-  Any number of arguments, even zero arguments, are allowed."
-  (apply c/list objects))

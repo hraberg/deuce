@@ -26,9 +26,9 @@
       #"[)\]]" nil
       #"\(" (apply list (tokenize-all sc))
       #"\[" (vec (tokenize-all sc))
-      #"," (list (if (find #"@" 1) 'unquote-splicing 'unquote) (tokenize sc))
+      #"," (list (if (find #"@" 1) (symbol "\\,@") (symbol "\\,")) (tokenize sc))
       #"'" (list 'quote (tokenize sc))
-      #"`" (list 'syntax-quote (tokenize sc))
+      #"`" (list '\` (tokenize sc))
       #":" (keyword (.next sc))
       #"\?" (symbol (str \? (.next sc)))
       #"\"" (.sval (doto (StreamTokenizer. (StringReader. (str \" (find re-str 0))))
