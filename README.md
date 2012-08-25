@@ -36,7 +36,7 @@ The exact evaluation model haven't been decided, but as Emacs Lisp is a Lisp 2, 
 
 [`dynamic.cjl`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/dynamic.clj), [`lexical.clj`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/lexical.clj) and [`locals.clj`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/locals.clj) is a first stab at evaluating some Emacs Lisp. See [`deuce.test`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/) for more.
 
-A test representing a tiny fraction of `loadup.el`, [`loadup.clj`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/loadup.clj).
+A test representing a tiny fraction of [`loadup.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/loadup.el), [`loadup.clj`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/loadup.clj).
 
 
 ### Preparing Emacs
