@@ -1,7 +1,7 @@
 (ns deuce.emacs-lisp
   (require [clojure.core :as c]
            [clojure.walk :as w])
-  (:refer-clojure :exclude [defmacro and or cond let while eval set])
+  (:refer-clojure :exclude [defmacro and or cond let while eval set /])
   (import [deuce EmacsLispError]))
 
 (def t true)
@@ -47,6 +47,13 @@
 (c/defmacro lambda [args & body]
   `(fn ~(vec args) ~@body))
 
+;; defined in data.el
+(defn / [dividend divisor & divisors]
+  (if (zero? divisor)
+    (throw (EmacsLispError. 'arith-error nil))
+    (c/reduce / (c/let [r (clojure.core// dividend divisor)]
+                       (if (ratio? r) (long r) r))
+              divisors)))
 
 (c/defmacro defun
   "Define NAME as a function.

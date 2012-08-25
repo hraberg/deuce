@@ -16,7 +16,9 @@ public class EmacsLispError extends RuntimeException {
     }
 
     public String getMessage() {
-        return String.format("Lisp error: (no-catch %s %s)", symbol, data);
+        if (data != null)
+            return String.format("Lisp error: (no-catch %s %s)", symbol, data);
+        return String.format("Lisp error: (%s)", data);
     }
 
     public String toString() {
