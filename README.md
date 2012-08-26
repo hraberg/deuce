@@ -43,7 +43,7 @@ A test representing a tiny fraction of [`loadup.el`](https://github.com/emacsmir
 
 The target version of Emacs is 24.1. It's assumed to live under `emacs`. `configure-emacs` will download it if not.
 
-#### Glibc and C11 have dropped 'gets' module.
+**Glibc and C11 have dropped 'gets' module**
 
 If your build of emacs fails due to an undefined 'gets', apply the following patch:
 
