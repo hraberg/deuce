@@ -41,4 +41,15 @@
       (message "Using load-path %s" load-path)
       -| "Using load-path .*lisp.*lisp/emacs-lisp.*lisp/language.*lisp/international.*lisp/textmodes"
 
-      (length load-path)                                               ⇒ 5)
+      (length load-path)                                               ⇒ 5
+
+
+      (if (or (member (nth 3 command-line-args) '("dump" "bootstrap"))
+              (member (nth 4 command-line-args) '("dump" "bootstrap")))
+        ;; To reduce the size of dumped Emacs, we avoid making huge
+        ;; char-tables.
+        (setq inhibit-load-charset-map t))
+
+      ;; We don't want to have any undo records in the dumped Emacs.
+      (set-buffer "*scratch*")
+      (setq buffer-undo-list t)                                       ⇒ true)
