@@ -1,0 +1,105 @@
+Fix compilation with glibc-2.16.
+https://bugs.gentoo.org/424755
+
+Patch backported from gnulib upstream:
+
+From 66712c23388e93e5c518ebc8515140fa0c807348 Mon Sep 17 00:00:00 2001
+From: Eric Blake <eblake@redhat.com>
+Date: Thu, 29 Mar 2012 13:30:41 -0600
+Subject: [PATCH 1/1] stdio: don't assume gets any more
+
+Gnulib intentionally does not have a gets module, and now that C11
+and glibc have dropped it, we should be more proactive about warning
+any user on a platform that still has a declaration of this dangerous
+interface.
+
+--- emacs-24.1-orig/lib/gnulib.mk
++++ emacs-24.1/lib/gnulib.mk
+@@ -599,7 +624,6 @@
+ 	      -e 's/@''GNULIB_GETCHAR''@/$(GNULIB_GETCHAR)/g' \
+ 	      -e 's/@''GNULIB_GETDELIM''@/$(GNULIB_GETDELIM)/g' \
+ 	      -e 's/@''GNULIB_GETLINE''@/$(GNULIB_GETLINE)/g' \
+-	      -e 's/@''GNULIB_GETS''@/$(GNULIB_GETS)/g' \
+ 	      -e 's/@''GNULIB_OBSTACK_PRINTF''@/$(GNULIB_OBSTACK_PRINTF)/g' \
+ 	      -e 's/@''GNULIB_OBSTACK_PRINTF_POSIX''@/$(GNULIB_OBSTACK_PRINTF_POSIX)/g' \
+ 	      -e 's/@''GNULIB_PCLOSE''@/$(GNULIB_PCLOSE)/g' \
+--- emacs-24.1-orig/lib/stdio.in.h
++++ emacs-24.1/lib/stdio.in.h
+@@ -699,22 +699,11 @@
+ # endif
+ #endif
+ 
+-#if @GNULIB_GETS@
+-# if @REPLACE_STDIO_READ_FUNCS@ && @GNULIB_STDIO_H_NONBLOCKING@
+-#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+-#   undef gets
+-#   define gets rpl_gets
+-#  endif
+-_GL_FUNCDECL_RPL (gets, char *, (char *s) _GL_ARG_NONNULL ((1)));
+-_GL_CXXALIAS_RPL (gets, char *, (char *s));
+-# else
+-_GL_CXXALIAS_SYS (gets, char *, (char *s));
+-#  undef gets
+-# endif
+-_GL_CXXALIASWARN (gets);
+ /* It is very rare that the developer ever has full control of stdin,
+-   so any use of gets warrants an unconditional warning.  Assume it is
+-   always declared, since it is required by C89.  */
++   so any use of gets warrants an unconditional warning; besides, C11
++   removed it.  */
++#undef gets
++#if HAVE_RAW_DECL_GETS
+ _GL_WARN_ON_USE (gets, "gets is a security hole - use fgets instead");
+ #endif
+ 
+@@ -1054,9 +1043,9 @@
+ # endif
+ #endif
+ 
+-/* Some people would argue that sprintf should be handled like gets
+-   (for example, OpenBSD issues a link warning for both functions),
+-   since both can cause security holes due to buffer overruns.
++/* Some people would argue that all sprintf uses should be warned about
++   (for example, OpenBSD issues a link warning for it),
++   since it can cause security holes due to buffer overruns.
+    However, we believe that sprintf can be used safely, and is more
+    efficient than snprintf in those safe cases; and as proof of our
+    belief, we use sprintf in several gnulib modules.  So this header
+--- emacs-24.1-orig/m4/stdio_h.m4
++++ emacs-24.1/m4/stdio_h.m4
+@@ -1,4 +1,4 @@
+-# stdio_h.m4 serial 40
++# stdio_h.m4 serial 41
+ dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
+ dnl This file is free software; the Free Software Foundation
+ dnl gives unlimited permission to copy and/or distribute it,
+@@ -18,7 +18,6 @@
+   GNULIB_GETC=1
+   GNULIB_GETCHAR=1
+   GNULIB_FGETS=1
+-  GNULIB_GETS=1
+   GNULIB_FREAD=1
+   dnl This ifdef is necessary to avoid an error "missing file lib/stdio-read.c"
+   dnl "expected source file, required through AC_LIBSOURCES, not found". It is
+@@ -72,10 +71,10 @@
+ 
+   dnl Check for declarations of anything we want to poison if the
+   dnl corresponding gnulib module is not in use, and which is not
+-  dnl guaranteed by C89.
++  dnl guaranteed by both C89 and C11.
+   gl_WARN_ON_USE_PREPARE([[#include <stdio.h>
+-    ]], [dprintf fpurge fseeko ftello getdelim getline pclose popen renameat
+-    snprintf tmpfile vdprintf vsnprintf])
++    ]], [dprintf fpurge fseeko ftello getdelim getline gets pclose popen
++    renameat snprintf tmpfile vdprintf vsnprintf])
+ ])
+ 
+ AC_DEFUN([gl_STDIO_MODULE_INDICATOR],
+@@ -113,7 +112,6 @@
+   GNULIB_GETCHAR=0;              AC_SUBST([GNULIB_GETCHAR])
+   GNULIB_GETDELIM=0;             AC_SUBST([GNULIB_GETDELIM])
+   GNULIB_GETLINE=0;              AC_SUBST([GNULIB_GETLINE])
+-  GNULIB_GETS=0;                 AC_SUBST([GNULIB_GETS])
+   GNULIB_OBSTACK_PRINTF=0;       AC_SUBST([GNULIB_OBSTACK_PRINTF])
+   GNULIB_OBSTACK_PRINTF_POSIX=0; AC_SUBST([GNULIB_OBSTACK_PRINTF_POSIX])
+   GNULIB_PCLOSE=0;               AC_SUBST([GNULIB_PCLOSE])
