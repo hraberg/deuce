@@ -43,12 +43,6 @@ A test representing a tiny fraction of [`loadup.el`](https://github.com/emacsmir
 
 The target version of Emacs is 24.1. It's assumed to live under `emacs`. `configure-emacs` will download it if not.
 
-**Glibc and C11 have dropped 'gets' module**
-
-If your build of emacs fails due to an undefined 'gets', apply the following patch:
-
-    patch -d emacs -p1 < 04_all_gnulib-gets.patch
-
 For a minimal [Emacs build](http://www.gnu.org/software/emacs/manual/html_node/elisp/Building-Emacs.html):
 
     ./configure-emacs # downloads emacs-24.1.tar.bz if needed
@@ -72,6 +66,12 @@ The above should output:
 *The task at hand is to get rid of the bare impure Emacs, replace it with Clojure and the JVM, while keeping Emacs Lisp running.*
 
 Clojure will be a first class citizen along Emacs Lisp in this new world. There may be ways to get this build even smaller, haven't looked into it yet.
+
+**Glibc and C11 have dropped 'gets' module**
+
+If your build of emacs fails due to an undefined `gets`, apply the following patch:
+
+    patch -d emacs -p1 < 04_all_gnulib-gets.patch
 
 
 #### Tags
