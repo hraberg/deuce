@@ -69,7 +69,7 @@ Clojure will be a first class citizen along Emacs Lisp in this new world. There 
 
 **Glibc and C11 have dropped 'gets' module**
 
-If your build of emacs fails due to an undefined `gets`, apply the following patch:
+If your build of emacs fails due to an undefined `gets`, try applying the following patch:
 
     patch -d emacs -p1 < 04_all_gnulib-gets.patch
 
