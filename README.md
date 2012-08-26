@@ -14,6 +14,14 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 The target version of Emacs is 24.1. It's assumed to live under `emacs`. `configure-emacs` will download it if not.
 
 
+*** Glibc and C11 have dropped 'gets' module.
+
+If your build of emacs fails due to an undefined 'gets', apply the following patch to the emacs folder.
+
+'''
+patch -p1 < 04_all_gnulib-gets.patch
+'''
+
 For a minimal [Emacs build](http://www.gnu.org/software/emacs/manual/html_node/elisp/Building-Emacs.html):
 
     ./configure-emacs # downloads emacs-24.1.tar.bz if needed
