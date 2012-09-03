@@ -1,6 +1,7 @@
 (ns
  deuce.emacs.floatfns
- (:use [deuce.emacs-lisp :only (defun defvar)])
+ (use [deuce.emacs-lisp :only (defun defvar)])
+ (require [clojure.core :as c])
  (:refer-clojure :exclude [float]))
 
 (defun ftruncate (arg)

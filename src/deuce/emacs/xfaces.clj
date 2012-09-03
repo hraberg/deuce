@@ -1,6 +1,7 @@
 (ns
  deuce.emacs.xfaces
- (:use [deuce.emacs-lisp :only (defun defvar)])
+ (use [deuce.emacs-lisp :only (defun defvar)])
+ (require [clojure.core :as c])
  (:refer-clojure :exclude []))
 
 (defvar face-font-rescale-alist nil

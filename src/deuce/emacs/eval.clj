@@ -1,7 +1,7 @@
 (ns
  deuce.emacs.eval
+ (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c])
- (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude [apply eval]))
 
 (defvar debugger nil
@@ -175,11 +175,10 @@
   you're making a mistake.  Think: what do you want to do when the
   command is called from a keyboard macro?
 
-  This function is meant for implementing advice and other
-  function-modifying features.  Instead of using this, it is sometimes
-  cleaner to give your function an extra optional argument whose
-  `interactive' spec specifies non-nil unconditionally (\"p\" is a good
-  way to do this), or via (not (or executing-kbd-macro noninteractive))."
+  Instead of using this function, it is sometimes cleaner to give your
+  function an extra optional argument whose `interactive' spec specifies
+  non-nil unconditionally (\"p\" is a good way to do this), or via
+  (not (or executing-kbd-macro noninteractive))."
   )
 
 (defun run-hook-with-args (hook &rest args)
@@ -201,7 +200,7 @@
   "Call first argument as a function, passing remaining arguments to it.
   Return the value that function returns.
   Thus, (funcall 'cons 'x 'y) returns (x . y)."
-   (c/apply function arguments))
+  (c/apply function arguments))
 
 (defun run-hook-wrapped (hook wrap-function &rest args)
   "Run HOOK, passing each function through WRAP-FUNCTION.

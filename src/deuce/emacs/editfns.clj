@@ -1,7 +1,7 @@
 (ns
  deuce.emacs.editfns
+ (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c])
- (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude [format]))
 
 (defvar buffer-access-fontified-property nil

@@ -1,6 +1,7 @@
 (ns
  deuce.emacs.cmds
- (:use [deuce.emacs-lisp :only (defun defvar)])
+ (use [deuce.emacs-lisp :only (defun defvar)])
+ (require [clojure.core :as c])
  (:refer-clojure :exclude []))
 
 (defvar post-self-insert-hook nil

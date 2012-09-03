@@ -1,6 +1,7 @@
 (ns
  deuce.emacs.terminal
- (:use [deuce.emacs-lisp :only (defun defvar)])
+ (use [deuce.emacs-lisp :only (defun defvar)])
+ (require [clojure.core :as c])
  (:refer-clojure :exclude []))
 
 (defvar delete-terminal-functions nil

@@ -1,7 +1,7 @@
 (ns
  deuce.emacs.fns
+ (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c])
- (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure
   :exclude
   [concat assoc reverse nth identity require get sort]))

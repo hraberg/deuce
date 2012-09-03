@@ -1,8 +1,8 @@
 (ns
  deuce.emacs.data
+ (use [deuce.emacs-lisp :only (defun defvar setq)])
  (require [clojure.core :as c])
  (import [deuce EmacsLispError])
- (:use [deuce.emacs-lisp :only (defun defvar setq)])
  (:refer-clojure
   :exclude
   [+ * - / aset set < = > max >= <= mod atom min]))
@@ -170,7 +170,7 @@
   (if (zero? divisor)
     (throw (EmacsLispError. 'arith-error nil))
     (c/reduce / (c/let [r (clojure.core// dividend divisor)]
-                       (if (ratio? r) (long r) r))
+                  (if (ratio? r) (long r) r))
               divisors)))
 
 (defun byteorder ()

@@ -1,8 +1,8 @@
 (ns
  deuce.emacs.fileio
+ (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c]
           [clojure.java.io :as io])
- (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude []))
 
 (defvar file-name-coding-system nil

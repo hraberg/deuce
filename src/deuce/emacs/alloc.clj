@@ -1,7 +1,7 @@
 (ns
  deuce.emacs.alloc
+ (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c])
- (:use [deuce.emacs-lisp :only (defun defvar)])
  (:refer-clojure :exclude [vector cons list]))
 
 (defvar purify-flag nil

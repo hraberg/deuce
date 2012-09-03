@@ -1,6 +1,7 @@
 (ns
  deuce.emacs.emacs
- (:use [deuce.emacs-lisp :only (defun defvar)])
+ (use [deuce.emacs-lisp :only (defun defvar)])
+ (require [clojure.core :as c])
  (:refer-clojure :exclude []))
 
 (defvar emacs-version nil
@@ -59,14 +60,14 @@
   Each element is a list (LIBRARY FILE...), where the car is a symbol
   representing a supported external library, and the rest are strings giving
   alternate filenames for that library.
-
+  
   Emacs tries to load the library from the files in the order they appear on
   the list; if none is loaded, the running session of Emacs won't have access
   to that library.
-
+  
   Note that image types `pbm' and `xbm' do not need entries in this variable
   because they do not depend on external libraries and are always available.
-
+  
   Also note that this is not a generic facility for accessing external
   libraries; only those already known by Emacs will be loaded.")
 
@@ -91,7 +92,7 @@
   in other similar situations), functions placed on this hook should not
   expect to be able to interact with the user.  To ask for confirmation,
   see `kill-emacs-query-functions' instead.
-
+  
   Before Emacs 24.1, the hook was not run in batch mode, i.e., if
   `noninteractive' was non-nil.")
 
@@ -129,10 +130,10 @@
   "Exit the Emacs job and kill it.
   If ARG is an integer, return ARG as the exit program code.
   If ARG is a string, stuff it as keyboard input.
-
+  
   This function is called upon receipt of the signals SIGTERM
   or SIGHUP, and upon SIGINT in batch mode.
-
+  
   The value of `kill-emacs-hook', if not void,
   is a list of functions (of no args),
   all of which are called before Emacs is actually killed."
@@ -142,6 +143,6 @@
   "Dump current state of Emacs into executable file FILENAME.
   Take symbols from SYMFILE (presumably the file you executed to run Emacs).
   This is used in the file `loadup.el' when building Emacs.
-
+  
   You must run Emacs in batch mode in order to dump it."
   )
