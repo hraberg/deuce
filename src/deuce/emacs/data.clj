@@ -81,7 +81,7 @@
 
 (defun symbol-value (symbol)
   "Return SYMBOL's value.  Error if that is void."
-  )
+  @(ns-resolve 'deuce.emacs-lisp.globals symbol))
 
 (defun keywordp (object)
   "Return t if OBJECT is a keyword.
@@ -401,7 +401,7 @@
 
 (defun symbol-function (symbol)
   "Return SYMBOL's function definition.  Error if that is void."
-  )
+  @(ns-resolve 'deuce.emacs (c/symbol (name symbol))))
 
 (defun kill-local-variable (variable)
   "Make VARIABLE no longer have a separate value in the current buffer.

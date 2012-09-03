@@ -1,7 +1,8 @@
 (ns
  deuce.emacs.buffer
  (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
+ (require [clojure.core :as c]
+          [deuce.emacs.data :as d])
  (:refer-clojure :exclude []))
 
 (defvar before-change-functions nil
@@ -10,11 +11,11 @@
   the beginning and end of the range of old text to be changed.
   (For an insertion, the beginning and end are at the same place.)
   No information is given about the length of the text after the change.
-  
+
   Buffer changes made while executing the `before-change-functions'
   don't call any before-change or after-change functions.
   That's because `inhibit-modification-hooks' is temporarily set non-nil.
-  
+
   If an unhandled error happens in running these functions,
   the variable's value remains nil.  That prevents the error
   from happening repeatedly and making Emacs nonfunctional.")
@@ -35,23 +36,23 @@
 (defvar transient-mark-mode nil
   "Non-nil if Transient Mark mode is enabled.
   See the command `transient-mark-mode' for a description of this minor mode.
-  
+
   Non-nil also enables highlighting of the region whenever the mark is active.
   The variable `highlight-nonselected-windows' controls whether to highlight
   all windows or just the selected window.
-  
+
   Lisp programs may give this variable certain special values:
-  
+
   - A value of `lambda' enables Transient Mark mode temporarily.
     It is disabled again after any subsequent action that would
     normally deactivate the mark (e.g. buffer modification).
-  
+
   - A value of (only . OLDVAL) enables Transient Mark mode
     temporarily.  After any subsequent point motion command that is
     not shift-translated, or any other action that would normally
     deactivate the mark (e.g. buffer modification), the value of
     `transient-mark-mode' is set to OLDVAL.
-  
+
   You can customize this variable.")
 
 (defvar buffer-display-count nil
@@ -62,7 +63,7 @@
   "*Position of this buffer's vertical scroll bar.
   The value takes effect whenever you tell a window to display this buffer;
   for instance, with `set-window-buffer' or when `display-buffer' displays it.
-  
+
   A value of `left' or `right' means put the vertical scroll bar at that side
   of the window; a value of nil means don't show any vertical scroll bars.
   A value of t (the default) means do whatever the window's frame specifies.")
@@ -73,7 +74,7 @@
 
 (defvar cache-long-line-scans nil
   "Non-nil means that Emacs should use caches to handle long lines more quickly.
-  
+
   Normally, the line-motion functions work by scanning the buffer for
   newlines.  Columnar operations (like `move-to-column' and
   `compute-motion') also work by scanning the buffer, summing character
@@ -81,19 +82,19 @@
   buffer's lines are very long (say, more than 500 characters), these
   motion functions will take longer to execute.  Emacs may also take
   longer to update the display.
-  
+
   If `cache-long-line-scans' is non-nil, these motion functions cache the
   results of their scans, and consult the cache to avoid rescanning
   regions of the buffer until the text is modified.  The caches are most
   beneficial when they prevent the most searching---that is, when the
   buffer contains long lines and large regions of characters with the
   same, fixed screen width.
-  
+
   When `cache-long-line-scans' is non-nil, processing short lines will
   become slightly slower (because of the overhead of consulting the
   cache), and the caches will use memory roughly proportional to the
   number of newlines and characters whose screen width varies.
-  
+
   The caches require no explicit maintenance; their accuracy is
   maintained internally by the Emacs primitives.  Enabling or disabling
   the cache should not affect the behavior of any of the motion
@@ -116,42 +117,42 @@
 (defvar buffer-undo-list nil
   "List of undo entries in current buffer.
   Recent changes come first; older changes follow newer.
-  
+
   An entry (BEG . END) represents an insertion which begins at
   position BEG and ends at position END.
-  
+
   An entry (TEXT . POSITION) represents the deletion of the string TEXT
   from (abs POSITION).  If POSITION is positive, point was at the front
   of the text being deleted; if negative, point was at the end.
-  
+
   An entry (t HIGH . LOW) indicates that the buffer previously had
   \"unmodified\" status.  HIGH and LOW are the high and low 16-bit portions
   of the visited file's modification time, as of that time.  If the
   modification time of the most recent save is different, this entry is
   obsolete.
-  
+
   An entry (nil PROPERTY VALUE BEG . END) indicates that a text property
   was modified between BEG and END.  PROPERTY is the property name,
   and VALUE is the old value.
-  
+
   An entry (apply FUN-NAME . ARGS) means undo the change with
   (apply FUN-NAME ARGS).
-  
+
   An entry (apply DELTA BEG END FUN-NAME . ARGS) supports selective undo
   in the active region.  BEG and END is the range affected by this entry
   and DELTA is the number of bytes added or deleted in that range by
   this change.
-  
+
   An entry (MARKER . DISTANCE) indicates that the marker MARKER
   was adjusted in position by the offset DISTANCE (an integer).
-  
+
   An entry of the form POSITION indicates that point was at the buffer
   location given by the integer.  Undoing an entry of this form places
   point at POSITION.
-  
+
   Entries with value `nil' mark undo boundaries.  The undo command treats
   the changes between two undo boundaries as a single step to be undone.
-  
+
   If the value of the variable is t, undo information is not recorded.")
 
 (defvar buffer-file-truename nil
@@ -191,13 +192,13 @@
   When word-wrapping is on, continuation lines are wrapped at the space
   or tab character nearest to the right window edge.
   If nil, continuation lines are wrapped at the right screen edge.
-  
+
   This variable has no effect if long lines are truncated (see
   `truncate-lines' and `truncate-partial-width-windows').  If you use
   word-wrapping, you might want to reduce the value of
   `truncate-partial-width-windows', since wrapping can make text readable
   in narrower windows.
-  
+
   You can customize this variable.")
 
 (defvar buffer-auto-save-file-format nil
@@ -265,7 +266,7 @@
     %[ -- print one [ for each recursive editing level.  %] similar.
     %% -- print %.   %- -- print infinitely many dashes.
   Decimal digits after the % specify field width to which to pad.
-  
+
   You can customize this variable.")
 
 (defvar change-major-mode-hook nil
@@ -283,7 +284,7 @@
   1.0 means point goes at the bottom, so that in that simple case, the
   window scrolls by a full window height.  Meaningful values are
   between 0.0 and 1.0, inclusive.
-  
+
   You can customize this variable.")
 
 (defvar fringe-cursor-alist nil
@@ -291,12 +292,12 @@
   The value is an alist where each element (CURSOR . BITMAP)
   specifies the fringe bitmaps used to display a specific logical
   cursor type in the fringe.
-  
+
   CURSOR specifies the logical cursor type which is one of the following
   symbols: `box' , `hollow', `bar', `hbar', or `hollow-small'.  The last
   one is used to show a hollow cursor on narrow lines display lines
   where the normal hollow cursor will not fit.
-  
+
   BITMAP is the corresponding fringe bitmap shown for the logical
   cursor type.")
 
@@ -324,27 +325,27 @@
 
 (defvar buffer-display-table nil
   "Display table that controls display of the contents of current buffer.
-  
+
   If this variable is nil, the value of `standard-display-table' is used.
   Each window can have its own, overriding display table, see
   `set-window-display-table' and `window-display-table'.
-  
+
   The display table is a char-table created with `make-display-table'.
   A char-table is an array indexed by character codes.  Normal array
   primitives `aref' and `aset' can be used to access elements of a char-table.
-  
+
   Each of the char-table elements control how to display the corresponding
   text character: the element at index C in the table says how to display
   the character whose code is C.  Each element should be a vector of
   characters or nil.  The value nil means display the character in the
   default fashion; otherwise, the characters from the vector are delivered
   to the screen instead of the original character.
-  
+
   For example, (aset buffer-display-table ?X [?Y]) tells Emacs
   to display a capital Y instead of each X character.
-  
+
   In addition, a char-table has six extra slots to control the display of:
-  
+
     the end of a truncated screen line (extra-slot 0, a single character);
     the end of a continued line (extra-slot 1, a single character);
     the escape character used to display character codes in octal
@@ -355,7 +356,7 @@
       a vector of characters);
     the character used to draw the border between side-by-side windows
       (extra-slot 5, a single character).
-  
+
   See also the functions `display-table-slot' and `set-display-table-slot'.")
 
 (defvar indicate-buffer-boundaries nil
@@ -364,24 +365,24 @@
   of a window on window-systems with angle bitmaps, or if the window can be
   scrolled, the top and bottom line of the window are marked with up and down
   arrow bitmaps.
-  
+
   If value is a symbol `left' or `right', both angle and arrow bitmaps
   are displayed in the left or right fringe, resp.  Any other value
   that doesn't look like an alist means display the angle bitmaps in
   the left fringe but no arrows.
-  
+
   You can exercise more precise control by using an alist as the
   value.  Each alist element (INDICATOR . POSITION) specifies
   where to show one of the indicators.  INDICATOR is one of `top',
   `bottom', `up', `down', or t, which specifies the default position,
   and POSITION is one of `left', `right', or nil, meaning do not show
   this indicator.
-  
+
   For example, ((top . left) (t . right)) places the top angle bitmap in
   left fringe, the bottom angle bitmap in right fringe, and both arrow
   bitmaps in right fringe.  To show just the angle bitmaps in the left
   fringe, but no arrow bitmaps, use ((top .  left) (bottom . left)).
-  
+
   You can customize this variable.")
 
 (defvar default-left-margin-width nil
@@ -400,25 +401,25 @@
   The default value (normally `fundamental-mode') affects new buffers.
   A value of nil means to use the current buffer's major mode, provided
   it is not marked as \"special\".
-  
+
   When a mode is used by default, `find-file' switches to it before it
   reads the contents into the buffer and before it finishes setting up
   the buffer.  Thus, the mode and its hooks should not expect certain
   variables such as `buffer-read-only' and `buffer-file-coding-system'
   to be set up.
-  
+
   You can customize this variable.")
 
 (defvar fill-column nil
   "*Column beyond which automatic line-wrapping should happen.
   Interactively, you can set the buffer local value using C-x f.
-  
+
   You can customize this variable.")
 
 (defvar tab-width nil
   "*Distance between tab stops (for display of tab characters), in columns.
   This should be an integer greater than zero.
-  
+
   You can customize this variable.")
 
 (defvar default-cursor-in-non-selected-windows nil
@@ -433,7 +434,7 @@
   "Length of current buffer when last read in, saved or auto-saved.
   0 initially.
   -1 means auto-saving turned off until next real save.
-  
+
   If you set this to -2, that means don't turn off auto-saving in this buffer
   if its text size shrinks.   If you use `buffer-swap-text' on a buffer,
   you probably should set this to -2 in that buffer.")
@@ -448,22 +449,22 @@
   This variable applies to saving the buffer, and also to `write-region'
   and other functions that use `write-region'.
   It does not apply to sending output to subprocesses, however.
-  
+
   If this is nil, the buffer is saved without any code conversion
   unless some coding system is specified in `file-coding-system-alist'
   for the buffer file.
-  
+
   If the text to be saved cannot be encoded as specified by this variable,
   an alternative encoding is selected by `select-safe-coding-system', which see.
-  
+
   The variable `coding-system-for-write', if non-nil, overrides this variable.
-  
+
   This variable is never applied to a way of decoding a file while reading it.")
 
 (defvar left-margin nil
   "*Column for the default `indent-line-function' to indent to.
   Linefeed indents to this column in Fundamental mode.
-  
+
   You can customize this variable.")
 
 (defvar default-scroll-up-aggressively nil
@@ -487,11 +488,11 @@
   (For an insertion, the pre-change length is zero;
   for a deletion, that length is the number of bytes deleted,
   and the post-change beginning and end are at the same place.)
-  
+
   Buffer changes made while executing the `after-change-functions'
   don't call any before-change or after-change functions.
   That's because `inhibit-modification-hooks' is temporarily set non-nil.
-  
+
   If an unhandled error happens in running these functions,
   the variable's value remains nil.  That prevents the error
   from happening repeatedly and making Emacs nonfunctional.")
@@ -535,13 +536,13 @@
 (defvar truncate-lines nil
   "*Non-nil means do not display continuation lines.
   Instead, give each line of text just one screen line.
-  
+
   Note that this is overridden by the variable
   `truncate-partial-width-windows' if that variable is non-nil
   and this buffer is not full-frame width.
-  
+
   Minibuffers set this variable to nil.
-  
+
   You can customize this variable.")
 
 (defvar buffer-display-time nil
@@ -554,7 +555,7 @@
   "*Visually indicate empty lines after the buffer end.
   If non-nil, a bitmap is displayed in the left fringe of a window on
   window-systems.
-  
+
   You can customize this variable.")
 
 (defvar ctl-arrow nil
@@ -562,12 +563,12 @@
   A value of nil means use backslash and octal digits.
   This variable does not apply to characters whose display is specified
   in the current display table (if there is one).
-  
+
   You can customize this variable.")
 
 (defvar case-fold-search nil
   "*Non-nil if searches and matches should ignore case.
-  
+
   You can customize this variable.")
 
 (defvar default-indicate-buffer-boundaries nil
@@ -580,14 +581,14 @@
   see `display-graphic-p'.
   If value is a floating point number, it specifies the spacing relative
   to the default frame line height.  A value of nil means add no extra space.
-  
+
   You can customize this variable.")
 
 (defvar enable-multibyte-characters nil
   "Non-nil means the buffer contents are regarded as multi-byte characters.
   Otherwise they are regarded as unibyte.  This affects the display,
   file I/O and the behavior of various editing commands.
-  
+
   This variable is buffer-local but you cannot set it directly;
   use the function `set-buffer-multibyte' to change a buffer's representation.
   See also Info node `(elisp)Text Representations'.")
@@ -619,7 +620,7 @@
   1.0 means point goes at the top, so that in that simple case, the
   window scrolls by a full window height.  Meaningful values are
   between 0.0 and 1.0, inclusive.
-  
+
   You can customize this variable.")
 
 (defvar default-fill-column nil
@@ -631,11 +632,11 @@
   The value is an alist where each element (INDICATOR . BITMAPS)
   specifies the fringe bitmaps used to display a specific logical
   fringe indicator.
-  
+
   INDICATOR specifies the logical indicator type which is one of the
   following symbols: `truncation' , `continuation', `overlay-arrow',
   `top', `bottom', `top-bottom', `up', `down', empty-line', or `unknown'.
-  
+
   BITMAPS is a list of symbols (LEFT RIGHT [LEFT1 RIGHT1]) which specifies
   the actual bitmap shown in the left or right fringe for the logical
   indicator.  LEFT and RIGHT are the bitmaps shown in the left and/or
@@ -671,7 +672,7 @@
   (a solid box becomes hollow, a bar becomes a narrower bar).
   You can also specify the cursor type as in the `cursor-type' variable.
   Use Custom to set this variable and update the display.\"
-  
+
   You can customize this variable.")
 
 (defvar selective-display nil
@@ -684,13 +685,13 @@
 
 (defvar selective-display-ellipses nil
   "Non-nil means display ... on previous line when a line is invisible.
-  
+
   You can customize this variable.")
 
 (defvar cursor-type nil
   "Cursor to use when this buffer is in the selected window.
   Values are interpreted as follows:
-  
+
     t 		  use the cursor specified for the frame
     nil		  don't display a cursor
     box		  display a filled box cursor
@@ -700,7 +701,7 @@
     hbar		  display a horizontal bar cursor with default height
     (hbar . HEIGHT) display a horizontal bar cursor with height HEIGHT
     ANYTHING ELSE	  display a hollow box cursor
-  
+
   When the buffer is displayed in a non-selected window, the
   cursor's appearance is instead controlled by the variable
   `cursor-in-non-selected-windows'.")
@@ -745,15 +746,15 @@
 
 (defvar bidi-paragraph-direction nil
   "*If non-nil, forces directionality of text paragraphs in the buffer.
-  
+
   If this is nil (the default), the direction of each paragraph is
   determined by the first strong directional character of its text.
   The values of `right-to-left' and `left-to-right' override that.
   Any other value is treated as nil.
-  
+
   This variable has no effect unless the buffer's value of
   `bidi-display-reordering' is non-nil.
-  
+
   You can customize this variable.")
 
 (defun barf-if-buffer-read-only ()
@@ -836,7 +837,7 @@
   return that buffer.  If no such buffer exists, create a new buffer with
   that name and return it.  If BUFFER-OR-NAME starts with a space, the new
   buffer does not keep undo information.
-  
+
   If BUFFER-OR-NAME is a buffer instead of a string, return it as given,
   even if it is dead.  The return value is never nil."
   )
@@ -904,13 +905,13 @@
   `standard-syntax-table', the local keymap is set to nil,
   and the abbrev table from `fundamental-mode-abbrev-table'.
   This function also forces redisplay of the mode line.
-  
+
   Every function to select a new major mode starts by
   calling this function.
-  
+
   As a special exception, local variables whose names have
   a non-nil `permanent-local' property are not eliminated by this function.
-  
+
   The first thing this function does is run
   the normal hook `change-major-mode-hook'."
   )
@@ -974,7 +975,7 @@
   The argument may be a buffer or the name of an existing buffer.
   Argument nil or omitted means kill the current buffer.  Return t if the
   buffer is actually killed, nil otherwise.
-  
+
   This function calls `replace-buffer-in-windows' for cleaning up all
   windows currently displaying the buffer to be killed.  The functions in
   `kill-buffer-query-functions' are called with the buffer to be killed as
@@ -982,7 +983,7 @@
   killed.  The hook `kill-buffer-hook' is run before the buffer is
   actually killed.  The buffer being killed will be current while the hook
   is running.
-  
+
   Any processes that have this buffer as the `process-buffer' are killed
   with SIGHUP."
   )
@@ -1041,7 +1042,7 @@
 (defun buffer-file-name (&optional buffer)
   "Return name of file BUFFER is visiting, or nil if none.
   No argument or nil as argument means use the current buffer."
-  )
+  (d/symbol-value 'buffer-file-name))
 
 (defun buffer-local-value (variable buffer)
   "Return the value of VARIABLE in BUFFER.
@@ -1069,7 +1070,7 @@
   BUFFER unless it denotes a live buffer.  If the optional third argument
   FRAME is non-nil, use that frame's buffer list instead of the selected
   frame's buffer list.
-  
+
   The buffer is found by scanning the selected or specified frame's buffer
   list first, followed by the list of all buffers.  If no other buffer
   exists, return the buffer `*scratch*' (creating it if necessary)."

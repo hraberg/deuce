@@ -26,7 +26,7 @@
 
 (defn ^:private qualify-fns [form]
   (if-let [s (c/and (list? form) (symbol? (first form))
-                    (ns-resolve 'deuce.emacs (first form)))]
+                    (ns-resolve 'deuce.emacs (symbol (name (first form)))))]
     (apply c/list (cons (symbol (-> s meta :ns str) (-> s meta :name str)) (next form)))
     form))
 
