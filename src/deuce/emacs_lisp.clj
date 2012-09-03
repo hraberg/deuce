@@ -43,10 +43,10 @@
               (~cleanup-clojure (c/eval ~body))
               (c/let [locals# (zipmap '~vars ~(vec vars))
                       body# (w/postwalk-replace locals# ~body)
-;                      body# (w/postwalk ~qualify-fns body#)
                       body# (w/postwalk ~qualify-globals body#)
                       body# (w/postwalk ~strip-comments body#)
-                      ]
+                      body# (w/macroexpand-all body#)
+                      body# (w/postwalk ~qualify-fns body#)]
                 (~cleanup-clojure (c/eval body#)))))))
 
 ;; defined in subr.el
@@ -132,6 +132,25 @@
   [& clauses]
   `(c/cond ~@(apply concat clauses)))
 
+(c/defmacro setq-helper*
+  [locals sym-vals]
+  `(c/let
+    ~(reduce into []
+             (for [[s v] (partition 2 sym-vals)
+                   :let [s (if (seq? s) (second s) s)]]
+               (do
+                 [(symbol (name s))
+                  (if (contains? locals s)
+                    `(do (reset! ~s ~v) ~s)
+                    `(if-let [var# (ns-resolve 'deuce.emacs-lisp.globals '~s)]
+                       (if (contains? (get-thread-bindings) var#)
+                         (var-set var# ~v)
+                         (alter-var-root var# (constantly ~v)))
+                       (do
+                         (defvar ~s ~v)
+                           ~v)))])))
+    ~(last (butlast sym-vals))))
+
 (c/defmacro setq
   "Set each SYM to the value of its VAL.
   The symbols SYM are variables; they are literal (not evaluated).
@@ -142,19 +161,7 @@
   The return value of the `setq' form is the value of the last VAL."
   {:arglists '([[SYM VAL]...])}
   [& sym-vals]
-  `(c/let
-    ~(reduce into []
-             (for [[s v] (partition 2 sym-vals)]
-               [(symbol (name s))
-                (if (contains? &env s)
-                  `(reset! ~s ~v)
-                  `(if-let [var# (ns-resolve 'deuce.emacs-lisp.globals '~s)]
-                     (if (contains? (get-thread-bindings) var#)
-                       (var-set var# ~v)
-                       (alter-var-root var# (constantly ~v)))
-                     (do (defvar ~s ~v)
-                         ~v)))]))
-    ~(last (butlast sym-vals))))
+  `(setq-helper* ~(c/set (keys &env)) ~sym-vals))
 
 (c/defmacro ^:clojure-special-form quote
   "Return the argument, without evaluating it.  `(quote x)' yields `x'.
@@ -176,8 +183,8 @@
           {:keys [lexical dynamic]} (group-by (comp #(if (namespace %) :dynamic :lexical) first) varlist)
           lexical-vars (into {} (map vec lexical))
           dynamic-vars (into {} (map vec dynamic))
-          fix-lexical-setq (fn [form] (if (c/and (list? form) (= 'setq (first form)) (list? (second form)))
-                                        (c/list 'setq (-> form second second) (last form))
+          fix-lexical-setq (fn [form] (if (c/and (list? form) (= 'setq (first form)))
+                                        (c/list 'deuce.emacs-lisp/setq-helper* (c/set (keys lexical-vars)) (rest form))
                                         form))
           body (w/postwalk fix-lexical-setq
                            (w/postwalk-replace (zipmap (keys lexical-vars)
@@ -186,13 +193,13 @@
           temps (zipmap all-vars (repeatedly #(gensym "local")))
           lexical-vars (if can-refer? lexical-vars (select-keys temps (keys lexical-vars)))
           dynamic-vars (if can-refer? dynamic-vars (select-keys temps (keys dynamic-vars)))]
-         `(c/let ~(if can-refer? [] (vec (interleave (map temps (map first varlist)) (map second varlist))))
-                 ~((fn build-let [[v & vs]]
-                     (if v
-                       (if-let [local (lexical-vars v)]
-                         `(c/let [~v (atom ~local)] ~(build-let vs))
-                         `(c/binding [~v ~(dynamic-vars v)] ~(build-let vs)))
-                       `(do ~@body))) all-vars))))
+    `(c/let ~(if can-refer? [] (vec (interleave (map temps (map first varlist)) (map second varlist))))
+       ~((fn build-let [[v & vs]]
+           (if v
+             (if-let [local (lexical-vars v)]
+               `(c/let [~v (atom ~local)] ~(build-let vs))
+               `(c/binding [~v ~(dynamic-vars v)] ~(build-let vs)))
+             `(do ~@body))) all-vars))))
 
 (c/defmacro let
   "Bind variables according to VARLIST then eval BODY.
