@@ -24,14 +24,30 @@
     (symbol (-> s meta :ns str) (-> s meta :name str))
     form))
 
+(defn ^:private qualify-fns [form]
+  (if-let [s (c/and (list? form) (symbol? (first form))
+                    (ns-resolve 'deuce.emacs (first form)))]
+    (apply c/list (cons (symbol (-> s meta :ns str) (-> s meta :name str)) (next form)))
+    form))
+
+(defn ^:private strip-comments [form]
+  (if (list? form)
+    (apply c/list (remove (every-pred list? (comp '#{clojure.core/comment} first)) form))
+    form))
+
 ;; defined as fn in eval.clj
 (c/defmacro eval [body]
   (c/let [vars (keys &env)]
          `(binding [*ns* (the-ns 'deuce.emacs)]
-            (c/let [locals# (zipmap '~vars ~(vec vars))
-                    body# (w/postwalk-replace locals# ~body)
-                    body# (w/postwalk ~qualify-globals body#)]
-                   (~cleanup-clojure (c/eval body#))))))
+            (if (c/and (list? ~body) (= '~'defun (first ~body)))
+              (~cleanup-clojure (c/eval ~body))
+              (c/let [locals# (zipmap '~vars ~(vec vars))
+                      body# (w/postwalk-replace locals# ~body)
+;                      body# (w/postwalk ~qualify-fns body#)
+                      body# (w/postwalk ~qualify-globals body#)
+                      body# (w/postwalk ~strip-comments body#)
+                      ]
+                (~cleanup-clojure (c/eval body#)))))))
 
 ;; defined in subr.el
 (c/defmacro lambda [args & body]
@@ -129,10 +145,10 @@
   `(c/let
     ~(reduce into []
              (for [[s v] (partition 2 sym-vals)]
-               [(symbol (name  s))
+               [(symbol (name s))
                 (if (contains? &env s)
                   `(reset! ~s ~v)
-                  `(if-let [var# (resolve '~s)]
+                  `(if-let [var# (ns-resolve 'deuce.emacs-lisp.globals '~s)]
                      (if (contains? (get-thread-bindings) var#)
                        (var-set var# ~v)
                        (alter-var-root var# (constantly ~v)))

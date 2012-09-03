@@ -1,7 +1,11 @@
 (ns
  deuce.emacs.lread
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
+ (use [deuce.emacs-lisp :only (defun defvar t)])
+ (require [clojure.core :as c]
+          [clojure.java.io :as io]
+          [deuce.emacs-lisp :as el]
+          [deuce.emacs.eval :as ev]
+          [deuce.emacs-lisp.parser :as p])
  (:refer-clojure :exclude [read intern load]))
 
 (defvar old-style-backquotes nil
@@ -17,13 +21,13 @@
 
 (defvar read-with-symbol-positions nil
   "If non-nil, add position of read symbols to `read-symbol-positions-list'.
-  
+
   If this variable is a buffer, then only forms read from that buffer
   will be added to `read-symbol-positions-list'.
   If this variable is t, then all read forms will be added.
   The effect of all other values other than nil are not currently
   defined, although they may be in the future.
-  
+
   The positions are relative to the last call to `read' or
   `read-from-string'.  It is probably a bad idea to set this variable at
   the toplevel; bind it instead.")
@@ -33,11 +37,11 @@
   This variable is modified during calls to `read' or
   `read-from-string', but only when `read-with-symbol-positions' is
   non-nil.
-  
+
   Each element of the list looks like (SYMBOL . CHAR-POSITION), where
   CHAR-POSITION is an integer giving the offset of that occurrence of the
   symbol from the position where `read' or `read-from-string' started.
-  
+
   Note that a symbol will appear multiple times in this list, if it was
   read multiple times.  The list is in the same order as the symbols
   were read in.")
@@ -55,7 +59,7 @@
   The file name is absolute and true (i.e. it doesn't contain symlinks).
   As an exception, one of the alist elements may have FILE-NAME nil,
   for symbols and features not associated with any file.
-  
+
   The remaining ENTRIES in the alist element describe the functions and
   variables defined in that file, the features provided, and the
   features required.  Each entry has the form `(provide . FEATURE)',
@@ -65,7 +69,7 @@
   autoload before this file redefined it as a function.  In addition,
   entries may also be single symbols, which means that SYMBOL was
   defined by `defvar' or `defconst'.
-  
+
   During preloading, the file name recorded is relative to the main Lisp
   directory.  These file names are converted to absolute at startup.")
 
@@ -104,7 +108,7 @@
 (defvar load-file-rep-suffixes nil
   "List of suffixes that indicate representations of the same file.
   This list should normally start with the empty string.
-  
+
   Enabling Auto Compression mode appends the suffixes in
   `jka-compr-load-suffixes' to this list and disabling Auto Compression
   mode removes them again.  `load' and related functions use this list to
@@ -148,14 +152,14 @@
 (defvar after-load-alist nil
   "An alist of expressions to be evalled when particular files are loaded.
   Each element looks like (REGEXP-OR-FEATURE FORMS...).
-  
+
   REGEXP-OR-FEATURE is either a regular expression to match file names, or
   a symbol (a feature name).
-  
+
   When `load' is run and the file-name argument matches an element's
   REGEXP-OR-FEATURE, or when `provide' is run and provides the symbol
   REGEXP-OR-FEATURE, the FORMS in the element are executed.
-  
+
   An error in FORMS does not undo the load, but does prevent execution of
   the rest of the FORMS.")
 
@@ -204,7 +208,7 @@
   It is returned as a number.  Non-character events are ignored.
   If the character has modifiers, they are resolved and reflected to the
   character code if possible (e.g. C-SPC -> 0).
-  
+
   If the optional argument PROMPT is non-nil, display that as a prompt.
   If the optional argument INHERIT-INPUT-METHOD is non-nil and some
   input method is turned on in the current buffer, that input method
@@ -226,21 +230,21 @@
    a string (takes text from string, starting at the beginning)
    t (read text line using minibuffer and use it, or read from
       standard input in batch mode)."
-  )
+  (first (p/parse stream)))
 
 (defun read-char (&optional prompt inherit-input-method seconds)
   "Read a character from the command input (keyboard or macro).
   It is returned as a number.
   If the character has modifiers, they are resolved and reflected to the
   character code if possible (e.g. C-SPC -> 0).
-  
+
   If the user generates an event which is not a character (i.e. a mouse
   click or function key event), `read-char' signals an error.  As an
   exception, switch-frame events are put off until non-character events
   can be read.
   If you want to read non-character events, or ignore them, call
   `read-event' or `read-char-exclusive' instead.
-  
+
   If the optional argument PROMPT is non-nil, display that as a prompt.
   If the optional argument INHERIT-INPUT-METHOD is non-nil and some
   input method is turned on in the current buffer, that input method
@@ -263,7 +267,7 @@
    invocation.
   DO-ALLOW-PRINT, if non-nil, specifies that `print' and related
    functions should work normally even if PRINTFLAG is nil.
-  
+
   This function preserves the position of point."
   )
 
@@ -286,7 +290,7 @@
   Also the fourth argument READ-FUNCTION, if non-nil, is used
   instead of `read' to read each expression.  It gets one argument
   which is the input stream for reading characters.
-  
+
   This function does not move point."
   )
 
@@ -309,7 +313,7 @@
   determined by `load-suffixes').  Environment variable references in
   FILE are replaced with their values by calling `substitute-in-file-name'.
   This function searches the directories in `load-path'.
-  
+
   If optional second arg NOERROR is non-nil,
   report no error if FILE doesn't exist.
   Print messages at start and end of loading unless
@@ -320,30 +324,34 @@
   If optional fifth arg MUST-SUFFIX is non-nil, insist on
   the suffix `.elc' or `.el'; don't accept just FILE unless
   it ends in one of those suffixes or includes a directory name.
-  
+
   If this function fails to find a file, it may look for different
   representations of that file before trying another file.
   It does so by adding the non-empty suffixes in `load-file-rep-suffixes'
   to the file name.  Emacs uses this feature mainly to find compressed
   versions of files when Auto Compression mode is enabled.
-  
+
   The exact suffixes that this function tries out, in the exact order,
   are given by the value of the variable `load-file-rep-suffixes' if
   NOSUFFIX is non-nil and by the return value of the function
   `get-load-suffixes' if MUST-SUFFIX is non-nil.  If both NOSUFFIX and
   MUST-SUFFIX are nil, this function first tries out the latter suffixes
   and then the former.
-  
+
   Loading a file records its definitions, and its `provide' and
   `require' calls, in an element of `load-history' whose
   car is the file name loaded.  See `load-history'.
-  
+
   While the file is in the process of being loaded, the variable
   `load-in-progress' is non-nil and the variable `load-file-name'
   is bound to the file's name.
-  
+
   Return t if the file exists and loads successfully."
-  )
+  (binding [*ns* (the-ns 'deuce.emacs)]
+    (doseq [form (-> file (str ".el")
+                     io/resource io/input-stream p/parse)]
+      (println (el/eval form)))
+    true))
 
 (defun mapatoms (function &optional obarray)
   "Call FUNCTION on every symbol in OBARRAY.

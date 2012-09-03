@@ -1,7 +1,8 @@
 (ns
  deuce.emacs.eval
  (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
+ (require [clojure.core :as c]
+          [deuce.emacs-lisp :as el])
  (:refer-clojure :exclude [apply eval]))
 
 (defvar debugger nil
@@ -307,7 +308,7 @@
 (defun eval (form &optional lexical)
   "Evaluate FORM and return its value.
   If LEXICAL is t, evaluate using lexical scoping."
-  )
+  (el/eval form))
 
 (defun backtrace-debug (level flag)
   "Set the debug-on-exit flag of eval frame LEVEL levels down to FLAG.

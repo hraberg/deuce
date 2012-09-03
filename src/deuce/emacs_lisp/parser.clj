@@ -25,7 +25,7 @@
       #"\?" (symbol (str \? (.next sc)))
       #"\"" (.sval (doto (StreamTokenizer. (StringReader. (str \" (find re-str 0))))
                      (.nextToken)))
-      #";" (list 'comment (.nextLine sc))
+      #";" (list 'clojure.core/comment (.nextLine sc))
       #"#" (condp find 1
              #"'" (list 'var (tokenize sc))
              #"\(" (let [[object start end properties] (tokenize-all sc)]
