@@ -26,7 +26,7 @@ It is meant to ensure that Lanterna can handle the UI updates Emacs requires.
 
 It can read all the `.el` files under `emacs/lisp`, but the actual representation as Clojure forms will probably change.
 
-[`parser.cjl`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs-lisp/parser.clj).
+[`parser.cjl`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs_lisp/parser.clj).
 
 
 **Emacs Lisp**
