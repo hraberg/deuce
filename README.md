@@ -29,7 +29,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 You can also run it like this:
 
-    lein run  --batch --eval "(print (emacs-version))"
+    lein run --batch --eval "(print (emacs-version))"
 
 You can evaluate arbitrary Emacs Lisp using `--eval` (most things won't work). `--script` can be used to load a `.el` file from disk.
 `--batch` is currently a mandatory parameter, to represent the fact that there's no real display editor to load yet.
