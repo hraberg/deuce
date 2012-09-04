@@ -41,6 +41,7 @@
                 `(is (~'thrown? ~e (emacs ~@a)))
                 (if (= '-| op)
                   `(is (re-find (re-pattern ~e) (with-out-str (emacs ~@a))))
-                  (if (and (symbol? e) (resolve e))
-                    `(is (~(resolve e) (emacs ~@a)))
-                    `(is (= ~e (emacs ~@a))))))))))
+                  (cond
+                   (and (symbol? e) (resolve e)) `(is (~(resolve e) (emacs ~@a)))
+                   (instance? java.util.regex.Pattern e) `(is (re-find (re-pattern ~e) (emacs ~@a)))
+                   :else `(is (= ~e (emacs ~@a))))))))))

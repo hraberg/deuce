@@ -140,13 +140,20 @@
   [& clauses]
   `(c/cond ~@(apply concat clauses)))
 
+(defn ^:private first-symbol [s]
+  (if (symbol? s) s
+      (loop [s s]
+        (if (symbol? (second s))
+          (second s)
+          (recur (second s))))))
+
 (c/defmacro setq-helper* [locals sym-vals]
   `(c/let
        ~(reduce into []
                 (for [[s v] (partition 2 sym-vals)
                       :let [s (if (seq? s) (second s) s)]]
                   (do
-                    [(symbol (name s))
+                    [(symbol (name (first-symbol s)))
                      (if (contains? locals s)
                        `(do (reset! ~s ~v) ~s)
                        `(if-let [var# (ns-resolve 'deuce.emacs-lisp.globals '~s)]
@@ -187,6 +194,7 @@
 (c/defmacro let-helper* [can-refer? varlist & body]
   (c/let [varlist (if (every? list? varlist) varlist [varlist])
           varlist (if (= 1 (count (last varlist))) (concat (butlast varlist) [(concat (last varlist) [nil])]) varlist)
+          varlist (map (fn [[s v]] [(first-symbol s) v]) varlist)
           {:keys [lexical dynamic]} (group-by (comp #(if (namespace %) :dynamic :lexical) first) varlist)
           lexical-vars (into {} (map vec lexical))
           dynamic-vars (into {} (map vec dynamic))
@@ -327,15 +335,16 @@
   	Set NAME's `doc-string-elt' property to ELT."
   {:arglists '([NAME ARGLIST [DOCSTRING] [DECL] BODY...])}
   [name arglist & body]
-  (let [body (->> body
-                  (w/postwalk qualify-fns)
-                  (w/postwalk-replace {(symbol "\\,") 'clojure.core/unquote
-                                       (symbol "\\,@") 'clojure.core/unquote-splicing})
-                  (w/postwalk #(if (c/and (list? %) (= (symbol "\\`") (first %)))
-                                 (binding [*ns* (the-ns 'deuce.emacs-lisp.globals)]
-                                   (syntax-quote (rest %)))
-                                 %)))]
-    `(def-helper* c/defmacro ~name ~arglist ~@body)))
+  (when-not ((ns-interns 'deuce.emacs-lisp) name)
+    (let [body (->> body
+                    (w/postwalk qualify-fns)
+                    (w/postwalk-replace {(symbol "\\,") 'clojure.core/unquote
+                                         (symbol "\\,@") 'clojure.core/unquote-splicing})
+                    (w/postwalk #(if (c/and (list? %) (= (symbol "\\`") (first %)))
+                                   (binding [*ns* (the-ns 'deuce.emacs-lisp.globals)]
+                                     (syntax-quote (rest %)))
+                                   %)))]
+      `(def-helper* c/defmacro ~name ~arglist ~@body))))
 
 (c/defmacro function
   "Like `quote', but preferred for objects which are functions.
@@ -397,7 +406,7 @@
   option if its DOCSTRING starts with *, but this behavior is obsolete."
   {:arglists '([SYMBOL &optional INITVALUE DOCSTRING])}
   [symbol & [initvalue docstring]]
-  (c/let [symbol (c/symbol (name symbol))]
+  (c/let [symbol (c/symbol (name (first-symbol symbol)))]
     `(do
        (->
         (intern (create-ns 'deuce.emacs-lisp.globals)
@@ -566,3 +575,9 @@
 
 (eval `(setq ~(symbol "nil") nil))
 (setq t true)
+
+(setq motif-version-string "")
+(setq gtk-version-string "")
+(setq ns-version-string "")
+(setq x-toolkit-scroll-bars nil)
+(setq msdos-long-file-names nil)

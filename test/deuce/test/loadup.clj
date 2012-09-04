@@ -55,4 +55,14 @@
       (setq buffer-undo-list t)                                       ⇒ true
 
       (load "emacs-lisp/byte-run")                                    ⇒ true
-      (load "emacs-lisp/backquote")                                   ⇒ true)
+      (load "emacs-lisp/backquote")                                   ⇒ true
+      (load "subr")                                                   ⇒ true
+
+      ;; Do it after subr, since both after-load-functions and add-hook are
+      ;; implemented in subr.el.
+      (add-hook 'after-load-functions (lambda (f) (garbage-collect)))
+
+      ;; We specify .el in case someone compiled version.el by mistake.
+      (load "version.el")                                             ⇒ true
+
+      (emacs-version)                                                 ⇒ #"GNU Emacs 24.2 .jvm-.+clojure.+")

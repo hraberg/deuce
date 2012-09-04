@@ -1,7 +1,8 @@
 (ns
  deuce.emacs.data
  (use [deuce.emacs-lisp :only (defun defvar setq)])
- (require [clojure.core :as c])
+ (require [clojure.core :as c]
+          [deuce.emacs.eval :as eval])
  (import [deuce EmacsLispError])
  (:refer-clojure
   :exclude
@@ -387,7 +388,11 @@
   The optional third argument DOCSTRING specifies the documentation string
   for SYMBOL; if it is omitted or nil, SYMBOL uses the documentation string
   determined by DEFINITION."
-  )
+  (try
+    (eval/eval `(defvar ~symbol ~definition ~(or docstring "")))
+    (catch Exception e
+      ;(println (-> e .getCause .getMessage))
+      )))
 
 (defun setplist (symbol newplist)
   "Set SYMBOL's property list to NEWPLIST, and return NEWPLIST."
@@ -497,7 +502,10 @@
   If BASE, interpret STRING as a number in that base.  If BASE isn't
   present, base 10 is used.  BASE must be between 2 and 16 (inclusive).
   If the base used is not 10, STRING is always parsed as integer."
-  )
+  (try
+    (long (BigInteger. string (or base 10)))
+    (catch NumberFormatException _
+      (Double/parseDouble string))))
 
 (defun variable-binding-locus (variable)
   "Return a value indicating where VARIABLE's current binding comes from.

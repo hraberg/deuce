@@ -1,7 +1,8 @@
 (ns
  deuce.emacs.search
  (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
+ (require [clojure.core :as c]
+          [clojure.string :as s])
  (:refer-clojure :exclude []))
 
 (defvar inhibit-changing-match-data nil
@@ -186,6 +187,8 @@
   matched by parenthesis constructs in the pattern."
   )
 
+(def ^:private current-matcher (atom nil))
+
 (defun string-match (regexp string &optional start)
   "Return index of start of first match for REGEXP in STRING, or nil.
   Matching ignores case if `case-fold-search' is non-nil.
@@ -196,9 +199,12 @@
 
   You can use the function `match-string' to extract the substrings
   matched by the parenthesis constructions in REGEXP."
-  (let [m (re-matcher (re-pattern regexp)
+  (let [m (re-matcher (re-pattern (-> regexp
+                                      (s/replace "\\(" "(")
+                                      (s/replace "\\)" ")")))
                       (subs string (or start 0)))]
     (when (re-find m)
+      (reset! current-matcher m)
       (.start m))))
 
 (defun posix-looking-at (regexp)
@@ -276,7 +282,7 @@
   Value is nil if SUBEXPth pair didn't match, or there were less than
     SUBEXP pairs.
   Zero means the entire text matched by the whole regexp or whole string."
-  )
+  (.start @current-matcher subexp))
 
 (defun search-backward (string &optional bound noerror count)
   "Search backward from point for STRING.
@@ -302,7 +308,7 @@
   Value is nil if SUBEXPth pair didn't match, or there were less than
     SUBEXP pairs.
   Zero means the entire text matched by the whole regexp or whole string."
-  )
+  (.end @current-matcher subexp))
 
 (defun posix-search-backward (regexp &optional bound noerror count)
   "Search backward from point for match for regular expression REGEXP.

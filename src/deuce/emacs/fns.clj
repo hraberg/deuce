@@ -614,7 +614,8 @@
   The STRING argument may also be a vector.  In that case, the return
   value is a new vector that contains the elements between index FROM
   (inclusive) and index TO (exclusive) of that vector argument."
-  )
+  (let [idx #(if (neg? %) (+ % (count string)) %)]
+    (subs string (idx from) (idx (or to (count string))))))
 
 (defun featurep (feature &optional subfeature)
   "Return t if FEATURE is present in this Emacs.

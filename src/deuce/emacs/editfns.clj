@@ -1,7 +1,12 @@
 (ns
  deuce.emacs.editfns
  (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
+ (require [clojure.core :as c]
+          [clojure.string :as s]
+          [deuce.emacs.data :as data])
+ (import [java.net InetAddress]
+         [java.text SimpleDateFormat]
+         [java.util Date])
  (:refer-clojure :exclude [format]))
 
 (defvar buffer-access-fontified-property nil
@@ -23,7 +28,7 @@
 (defvar user-login-name nil
   "The user's name, taken from environment variables if possible.")
 
-(defvar system-name nil
+(defvar system-name (.getHostName (InetAddress/getLocalHost))
   "The host name of the machine Emacs is running on.")
 
 (defvar inhibit-field-text-motion nil
@@ -71,7 +76,9 @@
 
   The microsecond count is zero on systems that do not provide
   resolution finer than a second."
-  )
+  (let [now (System/currentTimeMillis)
+        seconds (int (/ now 1000))]
+    (list (bit-shift-right seconds 16) (bit-and 0xffff seconds) (* 1000 (mod now 1000)))))
 
 (defun point-max-marker ()
   "Return a marker to the maximum permissible value of point in this buffer.
@@ -572,7 +579,7 @@
 
 (defun system-name ()
   "Return the host name of the machine you are running on, as a string."
-  )
+  (data/symbol-value 'system-name))
 
 (defun buffer-size (&optional buffer)
   "Return the number of characters in the current buffer.
@@ -635,7 +642,11 @@
   %OX is like %X, but uses the locale's number symbols.
 
   For example, to produce full ISO 8601 format, use \"%Y-%m-%dT%T%z\"."
-  )
+  (let [[hi low] (or time (current-time))
+        time (* (+ (bit-shift-left hi 16) low) 1000)]
+    (.format (SimpleDateFormat. (-> format-string
+                                    (s/replace "%m" "M")
+                                    (s/replace "%" ""))) (Date. time))))
 
 (defun insert-byte (byte count &optional inherit)
   "Insert COUNT (second arg) copies of BYTE (first arg).

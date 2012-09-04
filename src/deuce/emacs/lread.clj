@@ -3,7 +3,10 @@
  (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c]
           [clojure.java.io :as io]
+          [clojure.string :as s]
           [deuce.emacs-lisp :as el]
+          [deuce.emacs.data :as data]
+          [deuce.emacs.editfns :as editfns]
           [deuce.emacs.eval :as eval]
           [deuce.emacs-lisp.parser :as parser])
  (:refer-clojure :exclude [read intern load]))
@@ -46,7 +49,8 @@
   read multiple times.  The list is in the same order as the symbols
   were read in.")
 
-(defvar load-path nil
+(defvar load-path (into () (-> (System/getProperty "java.class.path")
+                               (s/split (re-pattern (data/symbol-value 'path-separator)))))
   "*List of directories to search for files to load.
   Each element is a string (directory name) or nil (try default directory).
   Initialized based on EMACSLOADPATH environment variable, if any,
@@ -348,7 +352,9 @@
 
   Return t if the file exists and loads successfully."
   (binding [*ns* (the-ns 'deuce.emacs)]
+    (editfns/message "Loading %s..." file)
     (doseq [form (-> (or (io/resource (str file ".el"))
+                         (io/resource file)
                          (io/file file))
                      io/input-stream parser/parse)]
       (eval/eval form))
