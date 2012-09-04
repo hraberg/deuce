@@ -7,9 +7,6 @@
 
 ;; [1] http://www.gnu.org/software/emacs/manual/html_node/elisp/Defining-Macros.html
 
-;; (deuce.emacs.eval/eval (read "(el/defmacro simple (variable)
-;;            `(setq ,variable :x))"))
-
 (with-fresh-emacs)
 
 (repl example-1
