@@ -1,5 +1,4 @@
 (ns deuce.emacs-lisp.parser
-  (use [clojure.test])
   (import [java.util Scanner]
           [java.io StringReader StreamTokenizer]
           [java.util.regex Pattern]))
@@ -20,7 +19,7 @@
       #"\[" (vec (tokenize-all sc))
       #"," (list (if (find #"@" 1) (symbol "\\,@") (symbol "\\,")) (tokenize sc))
       #"'" (list 'quote (tokenize sc))
-      #"`" (list '\` (tokenize sc))
+      #"`" (list (symbol "\\`") (tokenize sc))
       #":" (keyword (.next sc))
       #"\?" (symbol (str \? (.next sc)))
       #"\"" (.sval (doto (StreamTokenizer. (StringReader. (str \" (find re-str 0))))

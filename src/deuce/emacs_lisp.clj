@@ -46,7 +46,7 @@
 (c/defmacro eval [body]
   (c/let [vars (keys &env)]
     `(binding [*ns* (the-ns 'deuce.emacs)]
-       (if (c/and (list? ~body) (= '~'defun (first ~body)))
+       (if (c/and (list? ~body) ('~'#{defun defmacro} (first ~body)))
          (~cleanup-clojure (c/eval ~body))
          (~cleanup-clojure ((~compile-body '~vars ~body) ~@vars))))))
 
@@ -54,12 +54,7 @@
 (c/defmacro lambda [args & body]
   `(fn ~(vec args) ~@body))
 
-(c/defmacro defun
-  "Define NAME as a function.
-  The definition is (lambda ARGLIST [DOCSTRING] BODY...).
-  See also the function `interactive'."
-  {:arglists '([NAME ARGLIST [DOCSTRING] BODY...])}
-  [name arglist & body]
+(c/defmacro def-helper* [what name arglist & body]
   (c/let [[docstring body] (split-with string? body)
           name (if (seq? name) (c/eval name) name)
           [arg & args :as arglist] (replace '{&rest &} arglist)
@@ -70,8 +65,20 @@
           [[interactive] body] (split-with #(c/and (list? %)
                                                    (= 'interactive (first %))) body)
           emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)]
-         `(do (defn ~name ~(apply str docstring) ~(vec arglist) ~(if emacs-lisp? `(eval '~@body) `(do ~@body)))
-              '~name)))
+    `(do (~what ~name ~(apply str docstring) ~(vec arglist)
+                ~(c/cond
+                  (= 'clojure.core/defmacro what) `(last (eval '~@body))
+                  emacs-lisp? `(eval '~@body)
+                  :else `(do ~@body)))
+         '~name)))
+
+(c/defmacro defun
+  "Define NAME as a function.
+  The definition is (lambda ARGLIST [DOCSTRING] BODY...).
+  See also the function `interactive'."
+  {:arglists '([NAME ARGLIST [DOCSTRING] BODY...])}
+  [name arglist & body]
+  `(def-helper* defn ~name ~arglist ~@body))
 
 (c/defmacro unwind-protect
   "Do BODYFORM, protecting with UNWINDFORMS.
@@ -115,10 +122,10 @@
      ~bodyform
      (catch EmacsLispError e#
        (c/let [~(if var var (gensym "_")) (.data e#)]
-              (case (.symbol e#)
-                ~@(apply concat (for [[c & h] handlers]
-                                  `[~c (do ~@h)]))
-                (throw e#))))))
+         (case (.symbol e#)
+           ~@(apply concat (for [[c & h] handlers]
+                             `[~c (do ~@h)]))
+           (throw e#))))))
 
 (c/defmacro cond
   "Try each clause until one succeeds.
@@ -133,24 +140,23 @@
   [& clauses]
   `(c/cond ~@(apply concat clauses)))
 
-(c/defmacro setq-helper*
-  [locals sym-vals]
+(c/defmacro setq-helper* [locals sym-vals]
   `(c/let
-    ~(reduce into []
-             (for [[s v] (partition 2 sym-vals)
-                   :let [s (if (seq? s) (second s) s)]]
-               (do
-                 [(symbol (name s))
-                  (if (contains? locals s)
-                    `(do (reset! ~s ~v) ~s)
-                    `(if-let [var# (ns-resolve 'deuce.emacs-lisp.globals '~s)]
-                       (if (contains? (get-thread-bindings) var#)
-                         (var-set var# ~v)
-                         (alter-var-root var# (constantly ~v)))
-                       (do
-                         (defvar ~s ~v)
-                           ~v)))])))
-    ~(last (butlast sym-vals))))
+       ~(reduce into []
+                (for [[s v] (partition 2 sym-vals)
+                      :let [s (if (seq? s) (second s) s)]]
+                  (do
+                    [(symbol (name s))
+                     (if (contains? locals s)
+                       `(do (reset! ~s ~v) ~s)
+                       `(if-let [var# (ns-resolve 'deuce.emacs-lisp.globals '~s)]
+                          (if (contains? (get-thread-bindings) var#)
+                            (var-set var# ~v)
+                            (alter-var-root var# (constantly ~v)))
+                          (do
+                            (defvar ~s ~v)
+                            ~v)))])))
+     ~(last (butlast sym-vals))))
 
 (c/defmacro setq
   "Set each SYM to the value of its VAL.
@@ -230,12 +236,12 @@
   {:arglists '([SYMBOL INITVALUE [DOCSTRING]])}
   [symbol initvalue & [docstring]]
   (c/let [symbol (c/symbol (name symbol))]
-         `(do
-            (-> (intern (create-ns 'deuce.emacs-lisp.globals)
-                        '~symbol
-                        ~initvalue)
-                (alter-meta! merge {:doc ~(apply str docstring)}))
-            '~symbol)))
+    `(do
+       (-> (intern (create-ns 'deuce.emacs-lisp.globals)
+                   '~symbol
+                   ~initvalue)
+           (alter-meta! merge {:doc ~(apply str docstring)}))
+       '~symbol)))
 
 (c/defmacro prog1
   "Eval FIRST and BODY sequentially; return value from FIRST.
@@ -244,8 +250,8 @@
   {:arglists '([FIRST BODY...])}
   [first & body]
   `(c/let [result# ~first]
-          ~@body
-          result#))
+     ~@body
+     result#))
 
 (c/defmacro prog2
   "Eval FORM1, FORM2 and BODY sequentially; return value from FORM2.
@@ -289,6 +295,13 @@
   [test & body]
   `(c/while ~test ~@body))
 
+(defn ^:private syntax-quote [form]
+  (.invoke (doto
+               (.getDeclaredMethod clojure.lang.LispReader$SyntaxQuoteReader
+                                   "syntaxQuote"
+                                   (into-array [Object]))
+             (.setAccessible true)) nil (into-array Object [form])))
+
 (c/defmacro defmacro
   "Define NAME as a macro.
   The actual definition looks like
@@ -313,7 +326,16 @@
     (doc-string ELT)
   	Set NAME's `doc-string-elt' property to ELT."
   {:arglists '([NAME ARGLIST [DOCSTRING] [DECL] BODY...])}
-  [name arglist & body])
+  [name arglist & body]
+  (let [body (->> body
+                  (w/postwalk qualify-fns)
+                  (w/postwalk-replace {(symbol "\\,") 'clojure.core/unquote
+                                       (symbol "\\,@") 'clojure.core/unquote-splicing})
+                  (w/postwalk #(if (c/and (list? %) (= (symbol "\\`") (first %)))
+                                 (binding [*ns* (the-ns 'deuce.emacs-lisp.globals)]
+                                   (syntax-quote (rest %)))
+                                 %)))]
+    `(def-helper* c/defmacro ~name ~arglist ~@body)))
 
 (c/defmacro function
   "Like `quote', but preferred for objects which are functions.
@@ -376,14 +398,14 @@
   {:arglists '([SYMBOL &optional INITVALUE DOCSTRING])}
   [symbol & [initvalue docstring]]
   (c/let [symbol (c/symbol (name symbol))]
-         `(do
-            (->
-             (intern (create-ns 'deuce.emacs-lisp.globals)
-                     '~symbol
-                     ~initvalue)
-             .setDynamic
-             (alter-meta! merge {:doc ~(apply str docstring)}))
-            '~symbol)))
+    `(do
+       (->
+        (intern (create-ns 'deuce.emacs-lisp.globals)
+                '~symbol
+                ~initvalue)
+        .setDynamic
+        (alter-meta! merge {:doc ~(apply str docstring)}))
+       '~symbol)))
 
 (c/defmacro ^:clojure-special-form throw
   "Throw to the catch for TAG and return VALUE from it.

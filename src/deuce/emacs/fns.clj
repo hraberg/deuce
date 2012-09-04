@@ -286,7 +286,7 @@
   "Concatenate all the arguments and make the result a string.
   The result is a string whose elements are the elements of all the arguments.
   Each argument may be a string or a list or vector of characters (integers)."
-  )
+  (apply c/concat sequences))
 
 (defun string-bytes (string)
   "Return the number of bytes in STRING.
