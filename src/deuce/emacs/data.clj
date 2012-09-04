@@ -81,7 +81,7 @@
 
 (defun symbol-value (symbol)
   "Return SYMBOL's value.  Error if that is void."
-  @(ns-resolve 'deuce.emacs-lisp.globals symbol))
+  @(ns-resolve 'deuce.emacs-lisp.globals (c/symbol (name symbol))))
 
 (defun keywordp (object)
   "Return t if OBJECT is a keyword.
@@ -216,12 +216,12 @@
 
 (defun consp (object)
   "Return t if OBJECT is a cons cell."
-  )
+  ((every-pred seq? seq) object))
 
 (defun listp (object)
   "Return t if OBJECT is a list, that is, a cons cell or nil.
   Otherwise, return nil."
-  )
+  ((some-fn list? nil?) object))
 
 (defun aref (array idx)
   "Return the element of ARRAY at index IDX.
@@ -282,7 +282,7 @@
 
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as cdr, car, cons cell and list."
-  )
+  (next list))
 
 (defun = (num1 num2)
   "Return t if two args, both numbers or markers, are equal."
@@ -445,7 +445,7 @@
 
 (defun null (object)
   "Return t if OBJECT is nil."
-  )
+  (or (nil? object) (c/= () object)))
 
 (defun char-table-p (object)
   "Return t if OBJECT is a char-table."

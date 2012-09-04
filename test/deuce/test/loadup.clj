@@ -52,4 +52,6 @@
 
       ;; We don't want to have any undo records in the dumped Emacs.
       (set-buffer "*scratch*")
-      (setq buffer-undo-list t)                                       ⇒ true)
+      (setq buffer-undo-list t)                                       ⇒ true
+
+      (load "emacs-lisp/byte-run")                                    ⇒ true)

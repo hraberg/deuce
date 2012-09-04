@@ -4,7 +4,6 @@
   (:refer-clojure :exclude [defmacro and or cond let while eval set / + list])
   (import [deuce EmacsLispError]))
 
-(def t true)
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
 
@@ -35,19 +34,21 @@
     (apply c/list (remove (every-pred list? (comp '#{clojure.core/comment} first)) form))
     form))
 
+(defn ^:private compile-body [args body]
+  (c/eval `(fn ~(vec args)
+             ~(->> body
+                   (w/postwalk qualify-globals)
+                   (w/postwalk strip-comments)
+                   w/macroexpand-all
+                   (w/postwalk qualify-fns)))))
+
 ;; defined as fn in eval.clj
 (c/defmacro eval [body]
   (c/let [vars (keys &env)]
-         `(binding [*ns* (the-ns 'deuce.emacs)]
-            (if (c/and (list? ~body) (= '~'defun (first ~body)))
-              (~cleanup-clojure (c/eval ~body))
-              (c/let [locals# (zipmap '~vars ~(vec vars))
-                      body# (w/postwalk-replace locals# ~body)
-                      body# (w/postwalk ~qualify-globals body#)
-                      body# (w/postwalk ~strip-comments body#)
-                      body# (w/macroexpand-all body#)
-                      body# (w/postwalk ~qualify-fns body#)]
-                (~cleanup-clojure (c/eval body#)))))))
+    `(binding [*ns* (the-ns 'deuce.emacs)]
+       (if (c/and (list? ~body) (= '~'defun (first ~body)))
+         (~cleanup-clojure (c/eval ~body))
+         (~cleanup-clojure ((~compile-body '~vars ~body) ~@vars))))))
 
 ;; defined in subr.el
 (c/defmacro lambda [args & body]
@@ -60,7 +61,7 @@
   {:arglists '([NAME ARGLIST [DOCSTRING] BODY...])}
   [name arglist & body]
   (c/let [[docstring body] (split-with string? body)
-          name (if (seq? name) (eval name) name)
+          name (if (seq? name) (c/eval name) name)
           [arg & args :as arglist] (replace '{&rest &} arglist)
           [arglist &optional optional-args] (if (= '&optional arg)
                                               [() arg args]
@@ -404,7 +405,7 @@
   `(try
      ~@body
      (catch EmacsLispError e#
-       (if (= '~(if (list? tag) (eval tag) tag) (.symbol e#) (.symbol e#))
+       (if (= ~tag (.symbol e#))
          (.data e#)
          (throw e#)))))
 
@@ -540,3 +541,6 @@
   Executes BODY just like `progn'."
   {:arglists '([&rest BODY])}
   [& body])
+
+(eval `(setq ~(symbol "nil") nil))
+(setq t true)

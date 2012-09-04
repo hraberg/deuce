@@ -1,6 +1,6 @@
 (ns
  deuce.emacs.lread
- (use [deuce.emacs-lisp :only (defun defvar t)])
+ (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c]
           [clojure.java.io :as io]
           [deuce.emacs-lisp :as el]
@@ -350,7 +350,7 @@
   (binding [*ns* (the-ns 'deuce.emacs)]
     (doseq [form (-> file (str ".el")
                      io/resource io/input-stream p/parse)]
-      (println (el/eval form)))
+      (el/eval form))
     true))
 
 (defun mapatoms (function &optional obarray)
