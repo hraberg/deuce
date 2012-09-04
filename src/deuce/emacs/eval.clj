@@ -262,7 +262,7 @@
 (defun throw (tag value)
   "Throw to the catch for TAG and return VALUE from it.
   Both TAG and VALUE are evalled."
-  )
+  (el/throw tag value))
 
 (defun backtrace ()
   "Print a trace of Lisp function calls currently active.
@@ -308,7 +308,7 @@
 (defun eval (form &optional lexical)
   "Evaluate FORM and return its value.
   If LEXICAL is t, evaluate using lexical scoping."
-  (el/eval form))
+  (el/eval form lexical))
 
 (defun backtrace-debug (level flag)
   "Set the debug-on-exit flag of eval frame LEVEL levels down to FLAG.

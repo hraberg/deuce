@@ -43,7 +43,10 @@
                    (w/postwalk qualify-fns)))))
 
 ;; defined as fn in eval.clj
-(c/defmacro eval [body]
+(c/defmacro eval [body & [lexical]]
+  "Evaluate FORM and return its value.
+  If LEXICAL is t, evaluate using lexical scoping."
+  {:arglists '([FORM &optional LEXICAL])}
   (c/let [vars (keys &env)]
     `(binding [*ns* (the-ns 'deuce.emacs)]
        (if (c/and (list? ~body) ('~'#{defun defmacro} (first ~body)))
@@ -416,6 +419,7 @@
         (alter-meta! merge {:doc ~(apply str docstring)}))
        '~symbol)))
 
+;; defined as fn in eval.clj
 (c/defmacro ^:clojure-special-form throw
   "Throw to the catch for TAG and return VALUE from it.
   Both TAG and VALUE are evalled."
