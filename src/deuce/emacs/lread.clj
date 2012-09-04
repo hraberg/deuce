@@ -351,7 +351,8 @@
   is bound to the file's name.
 
   Return t if the file exists and loads successfully."
-  (binding [*ns* (the-ns 'deuce.emacs)]
+  (binding [deuce.emacs-lisp.globals/load-file-name file
+            deuce.emacs-lisp.globals/load-in-progress true]
     (editfns/message "Loading %s..." file)
     (doseq [form (-> (or (io/resource (str file ".el"))
                          (io/resource file)
