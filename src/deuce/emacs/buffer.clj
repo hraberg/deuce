@@ -2,7 +2,7 @@
  deuce.emacs.buffer
  (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c]
-          [deuce.emacs.data :as d])
+          [deuce.emacs.data :as data])
  (:refer-clojure :exclude []))
 
 (defvar before-change-functions nil
@@ -1042,7 +1042,7 @@
 (defun buffer-file-name (&optional buffer)
   "Return name of file BUFFER is visiting, or nil if none.
   No argument or nil as argument means use the current buffer."
-  (d/symbol-value 'buffer-file-name))
+  (data/symbol-value 'buffer-file-name))
 
 (defun buffer-local-value (variable buffer)
   "Return the value of VARIABLE in BUFFER.

@@ -26,11 +26,11 @@
 (defvar print-charset-text-property nil
   "A flag to control printing of `charset' text property on printing a string.
   The value must be nil, t, or `default'.
-  
+
   If the value is nil, don't print the text property `charset'.
-  
+
   If the value is t, always print the text property `charset'.
-  
+
   If the value is `default', print the text property `charset' only when
   the value is different from what is guessed in the current charset
   priorities.")
@@ -60,7 +60,7 @@
   The precision in any of these cases is the number of digits following
   the decimal point.  With `f', a precision of 0 means to omit the
   decimal point.  0 is not allowed with `e' or `g'.
-  
+
   A value of nil means to use the shortest notation
   that represents the number without losing information.")
 
@@ -86,7 +86,7 @@
   "A vector used internally to produce `#N=' labels and `#N#' references.
   The Lisp printer uses this vector to detect Lisp objects referenced more
   than once.
-  
+
   When you bind `print-continuous-numbering' to t, you should probably
   also bind `print-number-table' to nil.  This ensures that the value of
   `print-number-table' can be garbage-collected once the printing is
@@ -116,25 +116,26 @@
   Quoting characters are printed when needed to make output that `read'
   can handle, whenever this is possible.  For complex objects, the behavior
   is controlled by `print-level' and `print-length', which see.
-  
+
   OBJECT is any of the Lisp data types: a number, a string, a symbol,
   a list, a buffer, a window, a frame, etc.
-  
+
   A printed representation of an object is text which describes that object.
-  
+
   Optional argument PRINTCHARFUN is the output stream, which can be one
   of these:
-  
+
      - a buffer, in which case output is inserted into that buffer at point;
      - a marker, in which case output is inserted at marker's position;
      - a function, in which case that function is called once for each
        character of OBJECT's printed representation;
      - a symbol, in which case that symbol's function definition is called; or
      - t, in which case the output is displayed in the echo area.
-  
+
   If PRINTCHARFUN is omitted, the value of `standard-output' (which see)
   is used instead."
-  )
+  (println object)
+  object)
 
 (defun redirect-debugging-output (file &optional append)
   "Redirect debugging output (stderr stream) to file FILE.
@@ -154,10 +155,10 @@
   when necessary to make output that `read' can handle, whenever possible,
   unless the optional second argument NOESCAPE is non-nil.  For complex objects,
   the behavior is controlled by `print-level' and `print-length', which see.
-  
+
   OBJECT is any of the Lisp data types: a number, a string, a symbol,
   a list, a buffer, a window, a frame, etc.
-  
+
   A printed representation of an object is text which describes that object."
   )
 
@@ -166,22 +167,22 @@
   Quoting characters are printed when needed to make output that `read'
   can handle, whenever this is possible.  For complex objects, the behavior
   is controlled by `print-level' and `print-length', which see.
-  
+
   OBJECT is any of the Lisp data types: a number, a string, a symbol,
   a list, a buffer, a window, a frame, etc.
-  
+
   A printed representation of an object is text which describes that object.
-  
+
   Optional argument PRINTCHARFUN is the output stream, which can be one
   of these:
-  
+
      - a buffer, in which case output is inserted into that buffer at point;
      - a marker, in which case output is inserted at marker's position;
      - a function, in which case that function is called once for each
        character of OBJECT's printed representation;
      - a symbol, in which case that symbol's function definition is called; or
      - t, in which case the output is displayed in the echo area.
-  
+
   If PRINTCHARFUN is omitted, the value of `standard-output' (which see)
   is used instead."
   )
@@ -196,22 +197,22 @@
   "Output the printed representation of OBJECT, any Lisp object.
   No quoting characters are used; no delimiters are printed around
   the contents of strings.
-  
+
   OBJECT is any of the Lisp data types: a number, a string, a symbol,
   a list, a buffer, a window, a frame, etc.
-  
+
   A printed representation of an object is text which describes that object.
-  
+
   Optional argument PRINTCHARFUN is the output stream, which can be one
   of these:
-  
+
      - a buffer, in which case output is inserted into that buffer at point;
      - a marker, in which case output is inserted at marker's position;
      - a function, in which case that function is called once for each
        character of OBJECT's printed representation;
      - a symbol, in which case that symbol's function definition is called; or
      - t, in which case the output is displayed in the echo area.
-  
+
   If PRINTCHARFUN is omitted, the value of `standard-output' (which see)
   is used instead."
   )

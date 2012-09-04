@@ -4,8 +4,8 @@
  (require [clojure.core :as c]
           [clojure.java.io :as io]
           [deuce.emacs-lisp :as el]
-          [deuce.emacs.eval :as ev]
-          [deuce.emacs-lisp.parser :as p])
+          [deuce.emacs.eval :as eval]
+          [deuce.emacs-lisp.parser :as parser])
  (:refer-clojure :exclude [read intern load]))
 
 (defvar old-style-backquotes nil
@@ -230,7 +230,7 @@
    a string (takes text from string, starting at the beginning)
    t (read text line using minibuffer and use it, or read from
       standard input in batch mode)."
-  (first (p/parse stream)))
+  (first (parser/parse stream)))
 
 (defun read-char (&optional prompt inherit-input-method seconds)
   "Read a character from the command input (keyboard or macro).
@@ -348,9 +348,10 @@
 
   Return t if the file exists and loads successfully."
   (binding [*ns* (the-ns 'deuce.emacs)]
-    (doseq [form (-> file (str ".el")
-                     io/resource io/input-stream p/parse)]
-      (el/eval form))
+    (doseq [form (-> (or (io/resource (str file ".el"))
+                         (io/file file))
+                     io/input-stream parser/parse)]
+      (eval/eval form))
     true))
 
 (defun mapatoms (function &optional obarray)

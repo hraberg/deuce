@@ -12,4 +12,4 @@
   :jar-exclusions [#".*\.elc"]
   :java-source-paths ["src"]
   :jvm-opts ["-Xss4m"]
-  :main deuce.core)
+  :main deuce.main)
