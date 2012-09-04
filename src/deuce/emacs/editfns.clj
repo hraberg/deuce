@@ -3,7 +3,7 @@
  (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c]
           [clojure.string :as s]
-          [deuce.emacs.data :as data])
+          [deuce.emacs-lisp.globals :as globals])
  (import [java.net InetAddress]
          [java.text SimpleDateFormat]
          [java.util Date])
@@ -579,7 +579,7 @@
 
 (defun system-name ()
   "Return the host name of the machine you are running on, as a string."
-  (data/symbol-value 'system-name))
+  globals/system-name)
 
 (defun buffer-size (&optional buffer)
   "Return the number of characters in the current buffer.
