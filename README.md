@@ -27,6 +27,13 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/src/deuce-loadup.el) represents a small fraction of the real Emacs [`loadup.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/loadup.el). Not all forms loaded are even properly evaluated yet, but we get to [`version.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/version.el).
 
+You can also run it like this:
+
+    lein run  --batch --eval "(print (emacs-version))"
+
+You can evaluate arbitrary Emacs Lisp using `--eval` (many things won't work). `--script` can be used to load a `.el` file from disk.
+`--batch` is currently a mandatory parameter, to represent the fact that there's no real display editor to load yet.
+
 
 **The [clojure-lanterna](https://github.com/sjl/clojure-lanterna/) screen test**
 
