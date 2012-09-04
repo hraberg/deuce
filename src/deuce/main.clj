@@ -8,7 +8,7 @@
   (:gen-class))
 
 (defn deuce-loadup []
-  (lread/load "deuce-loadup"))
+  (lread/load "deuce-loadup.el"))
 
 (defn -main [& args]
   (when-not (some #{"-batch" "--batch"} args)
