@@ -4,15 +4,15 @@
   (:refer-clojure :exclude [defmacro and or cond let while eval set])
   (import [deuce EmacsLispError]))
 
-(deftype ConsPair [car cdr]
+(deftype DottedPair [car cdr]
   Object
   (toString [this]
     (str "(" car ((fn tail [c]
-                    (if (instance? ConsPair c)
+                    (if (instance? DottedPair c)
                       (str " " (.car c) (tail (.cdr c)))
                       (str " . " c))) cdr) ")")))
 
-(defmethod c/print-method ConsPair [pair writer]
+(defmethod c/print-method DottedPair [pair writer]
   (.write writer (str pair)))
 
 (create-ns 'deuce.emacs)

@@ -5,7 +5,7 @@
   (import [java.util Scanner]
           [java.io StringReader StreamTokenizer]
           [java.util.regex Pattern]
-          [deuce.emacs_lisp ConsPair]))
+          [deuce.emacs_lisp DottedPair]))
 
 (declare tokenize)
 
@@ -47,7 +47,7 @@
                                        (list 'quote form)
                                        (list (symbol "\\`") form)))
       #":" (keyword (.next sc))
-      #"\." ConsPair
+      #"\." DottedPair
       #"\?" (parse-character (.next sc))
       #"\"" (parse-string (str \" (find re-str 0)))
       #";" (list 'clojure.core/comment (.nextLine sc))
@@ -68,8 +68,8 @@
        (.hasNext sc) (symbol (.replaceAll (.next sc) "/" "_SLASH_"))))))
 
 (defn ^:private expand-cons-pairs [form]
-  (if (and (list? form) (= 3 (count form)) (= ConsPair (second form)))
-    (ConsPair. (first form) (last form))
+  (if (and (list? form) (= 3 (count form)) (= DottedPair (second form)))
+    (DottedPair. (first form) (last form))
     form))
 
 (defn parse [r]

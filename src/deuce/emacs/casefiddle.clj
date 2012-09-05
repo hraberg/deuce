@@ -1,7 +1,8 @@
 (ns
  deuce.emacs.casefiddle
  (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
+ (require [clojure.core :as c]
+          [clojure.string :as s])
  (:refer-clojure :exclude []))
 
 (defun upcase-word (arg)
@@ -15,7 +16,7 @@
   The argument may be a character or string.  The result has the same type.
   The argument object is not altered--the value is a copy.
   See also `capitalize', `downcase' and `upcase-initials'."
-  )
+  (s/upper-case obj))
 
 (defun capitalize-word (arg)
   "Capitalize the following word (or ARG words), moving over.
@@ -44,7 +45,7 @@
   Do not change the other letters of each word.
   The argument may be a character or string.  The result has the same type.
   The argument object is not altered--the value is a copy."
-  )
+  (s/replace obj #"\w+" #(apply str (s/upper-case (first %)) (rest %))))
 
 (defun downcase-word (arg)
   "Convert following word (or ARG words) to lower case, moving over.
@@ -65,7 +66,7 @@
   and the rest is lower case.
   The argument may be a character or string.  The result has the same type.
   The argument object is not altered--the value is a copy."
-  )
+  (s/capitalize obj))
 
 (defun upcase-initials-region (beg end)
   "Upcase the initial of each word in the region.
@@ -78,4 +79,4 @@
   "Convert argument to lower case and return that.
   The argument may be a character or string.  The result has the same type.
   The argument object is not altered--the value is a copy."
-  )
+  (s/lower-case obj))
