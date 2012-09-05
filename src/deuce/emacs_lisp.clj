@@ -1,7 +1,7 @@
 (ns deuce.emacs-lisp
   (require [clojure.core :as c]
            [clojure.walk :as w])
-  (:refer-clojure :exclude [defmacro and or cond let while eval set / + list])
+  (:refer-clojure :exclude [defmacro and or cond let while eval set])
   (import [deuce EmacsLispError]))
 
 (deftype ConsPair [car cdr]
@@ -12,7 +12,7 @@
                       (str " " (.car c) (tail (.cdr c)))
                       (str " . " c))) cdr) ")")))
 
-(defmethod clojure.core/print-method ConsPair [pair writer]
+(defmethod c/print-method ConsPair [pair writer]
   (.write writer (str pair)))
 
 (create-ns 'deuce.emacs)
@@ -37,12 +37,12 @@
 (defn ^:private qualify-fns [form]
   (if-let [s (c/and (list? form) (symbol? (first form))
                     (ns-resolve 'deuce.emacs (symbol (name (first form)))))]
-    (apply c/list (cons (symbol (-> s meta :ns str) (-> s meta :name str)) (next form)))
+    (apply list (cons (symbol (-> s meta :ns str) (-> s meta :name str)) (next form)))
     form))
 
 (defn ^:private strip-comments [form]
   (if (list? form)
-    (apply c/list (remove (every-pred list? (comp '#{clojure.core/comment} first)) form))
+    (apply list (remove (every-pred list? (comp '#{clojure.core/comment} first)) form))
     form))
 
 (defn ^:private compile-body [args body]
@@ -213,11 +213,11 @@
           lexical-vars (into {} (map vec lexical))
           dynamic-vars (into {} (map vec dynamic))
           fix-lexical-setq (fn [form] (if (c/and (list? form) (= 'setq (first form)))
-                                        (c/list 'deuce.emacs-lisp/setq-helper* (c/set (keys lexical-vars)) (rest form))
+                                        (list 'deuce.emacs-lisp/setq-helper* (c/set (keys lexical-vars)) (rest form))
                                         form))
           body (w/postwalk fix-lexical-setq
                            (w/postwalk-replace (zipmap (keys lexical-vars)
-                                                       (map #(c/list 'clojure.core/deref %) (keys lexical-vars))) body))
+                                                       (map #(list 'clojure.core/deref %) (keys lexical-vars))) body))
           all-vars (map first varlist)
           temps (zipmap all-vars (repeatedly #(gensym "local")))
           lexical-vars (if can-refer? lexical-vars (select-keys temps (keys lexical-vars)))
