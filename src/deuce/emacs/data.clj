@@ -56,7 +56,8 @@
 (defun makunbound (symbol)
   "Make SYMBOL's value be void.
   Return SYMBOL."
-  )
+  (ns-unmap 'deuce.emacs-lisp.globals symbol)
+  symbol)
 
 (defun interactive-form (cmd)
   "Return the interactive form of CMD or nil if none.
@@ -102,7 +103,7 @@
 
 (defun subrp (object)
   "Return t if OBJECT is a built-in function."
-  )
+  (not= (the-ns 'deuce.emacs) (-> object meta :ns)))
 
 (defun symbol-plist (symbol)
   "Return SYMBOL's property list."
@@ -118,7 +119,7 @@
 
 (defun fboundp (symbol)
   "Return t if SYMBOL's function definition is not void."
-  )
+  (not (nil? (ns-resolve 'deuce.emacs (c/symbol (name symbol))))))
 
 (defun % (x y)
   "Return remainder of X divided by Y.
@@ -191,7 +192,7 @@
 (defun subr-name (subr)
   "Return name of subroutine SUBR.
   SUBR must be a built-in function."
-  )
+  (-> subr meta :name))
 
 (defun make-local-variable (variable)
   "Make VARIABLE have a separate value in the current buffer.
@@ -260,7 +261,8 @@
 (defun fmakunbound (symbol)
   "Make SYMBOL's function definition be void.
   Return SYMBOL."
-  )
+  (ns-unmap (-> (ns-resolve 'deuce.emacs symbol) meta :ns) symbol)
+  symbol)
 
 (defun lognot (number)
   "Return the bitwise complement of NUMBER.  NUMBER must be an integer."
@@ -445,7 +447,7 @@
   The returned value is a pair (MIN . MAX).  MIN is the minimum number
   of args.  MAX is the maximum number or the symbol `many', for a
   function with `&rest' args, or `unevalled' for a special form."
-  )
+  (-> subr meta :arglists first count))
 
 (defun mod (x y)
   "Return X modulo Y.

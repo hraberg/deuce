@@ -83,7 +83,10 @@
                        emacs-lisp? `(eval '~@body)
                        :else `(do ~@body)))]
        (if (var? f#)
-         (alter-meta! f# merge {:doc ~doc})
+         (do
+           (alter-meta! f# merge {:doc ~doc})
+           (when (= '~'clojure.core/defn '~what)
+             (alter-var-root f# (constantly (with-meta @f# (meta f#))))))
          (with-meta f# (assoc (meta f#) :doc ~doc))))))
 
 (c/defmacro defun
