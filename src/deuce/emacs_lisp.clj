@@ -4,6 +4,17 @@
   (:refer-clojure :exclude [defmacro and or cond let while eval set / + list])
   (import [deuce EmacsLispError]))
 
+(deftype ConsPair [car cdr]
+  Object
+  (toString [this]
+    (str "(" car ((fn tail [c]
+                    (if (instance? ConsPair c)
+                      (str " " (.car c) (tail (.cdr c)))
+                      (str " . " c))) cdr) ")")))
+
+(defmethod clojure.core/print-method ConsPair [pair writer]
+  (.write writer (str pair)))
+
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
 

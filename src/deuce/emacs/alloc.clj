@@ -2,6 +2,7 @@
  deuce.emacs.alloc
  (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c])
+ (import [deuce.emacs_lisp ConsPair])
  (:refer-clojure :exclude [vector cons list]))
 
 (defvar purify-flag nil
@@ -119,11 +120,11 @@
 (defun vector (&rest objects)
   "Return a newly created vector with specified arguments as elements.
   Any number of arguments, even zero arguments, are allowed."
-  )
+  (apply c/vector objects))
 
 (defun string (&rest characters)
   "Concatenate all the argument characters and make the result a string."
-  )
+  (apply str characters))
 
 (defun make-marker ()
   "Return a newly allocated marker which does not point at any place."
@@ -141,26 +142,26 @@
   However, if there was overflow in pure space, `garbage-collect'
   returns nil, because real GC can't be done.
   See Info node `(elisp)Garbage Collection'."
-  )
+  (System/gc))
 
 (defun cons (car cdr)
   "Create a new cons, give it CAR and CDR as components, and return it."
-  )
+  (ConsPair. car cdr))
 
 (defun (clojure.core/symbol "slash-equals") (num1 num2)
   "Return t if first arg is not equal to second arg.  Both must be numbers or markers."
-  )
+  (not (== num1 num2)))
 
 (defun make-symbol (name)
   "Return a newly allocated uninterned symbol whose name is NAME.
   Its value and function definition are void, and its property list is nil."
-  )
+  (symbol name))
 
 (defun purecopy (obj)
   "Make a copy of object OBJ in pure storage.
   Recursively copies contents of vectors and cons cells.
   Does not copy symbols.  Copies strings without text properties."
-  )
+  obj)
 
 (defun memory-limit ()
   "Return the address of the last byte Emacs has allocated, divided by 1024.
@@ -171,17 +172,17 @@
 (defun make-vector (length init)
   "Return a newly created vector of length LENGTH, with each element being INIT.
   See also the function `vector'."
-  )
+  (apply vector (repeat length init)))
 
 (defun make-string (length init)
   "Return a newly created string of length LENGTH, with INIT in each element.
   LENGTH must be an integer.
   INIT must be an integer that represents a character."
-  )
+  (apply str (repeat length init))  )
 
 (defun make-list (length init)
   "Return a newly created list of length LENGTH, with each element being INIT."
-  )
+  (apply c/list (repeat length init)))
 
 (defun list (&rest objects)
   "Return a newly created list with specified arguments as elements.

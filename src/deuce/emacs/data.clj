@@ -3,20 +3,23 @@
  (use [deuce.emacs-lisp :only (defun defvar setq)])
  (require [clojure.core :as c]
           [deuce.emacs.eval :as eval])
- (import [deuce EmacsLispError])
+ (import [deuce EmacsLispError]
+         [deuce.emacs_lisp ConsPair])
  (:refer-clojure
   :exclude
   [+ * - / aset set < = > max >= <= mod atom min]))
 
-(defvar most-positive-fixnum nil
+(declare consp car cdr)
+
+(defvar most-positive-fixnum Long/MAX_VALUE
   "The largest value that is representable in a Lisp integer.")
 
-(defvar most-negative-fixnum nil
+(defvar most-negative-fixnum Long/MIN_VALUE
   "The smallest value that is representable in a Lisp integer.")
 
 (defun natnump (object)
   "Return t if OBJECT is a nonnegative integer."
-  )
+  ((every-pred neg? integer?) object))
 
 (defun markerp (object)
   "Return t if OBJECT is a marker (editor pointer)."
@@ -26,13 +29,15 @@
   "Return VALUE with its bits shifted left by COUNT.
   If COUNT is negative, shifting is actually to the right.
   In this case, the sign bit is duplicated."
-  )
+  (if (pos? count)
+    (bit-shift-left value count)
+    (bit-shift-right value (c/- count))))
 
 (defun type-of (object)
   "Return a symbol representing the type of OBJECT.
   The symbol returned names the object's basic type;
   for example, (type-of 1) returns `integer'."
-  )
+  (type object))
 
 (defun indirect-function (object &optional noerror)
   "Return the function at the end of OBJECT's function chain.
@@ -46,7 +51,7 @@
 
 (defun symbol-name (symbol)
   "Return SYMBOL's name, a string."
-  )
+  (name symbol))
 
 (defun makunbound (symbol)
   "Make SYMBOL's value be void.
@@ -62,15 +67,15 @@
 (defun logior (&rest ints-or-markers)
   "Return bitwise-or of all the arguments.
   Arguments may be integers, or markers converted to integers."
-  )
+  (apply bit-or ints-or-markers))
 
 (defun sequencep (object)
   "Return t if OBJECT is a sequence (list or array)."
-  )
+  (seq? object))
 
 (defun zerop (number)
   "Return t if NUMBER is zero."
-  )
+  (zero? number))
 
 (defun indirect-variable (object)
   "Return the variable at the end of OBJECT's variable chain.
@@ -88,12 +93,12 @@
   "Return t if OBJECT is a keyword.
   This means that it is a symbol with a print name beginning with `:'
   interned in the initial obarray."
-  )
+  (keyword? object))
 
 (defun (clojure.core/symbol "1+") (number)
   "Return NUMBER plus one.  NUMBER may be a number or a marker.
   Markers are converted to integers."
-  )
+  (inc number))
 
 (defun subrp (object)
   "Return t if OBJECT is a built-in function."
@@ -105,11 +110,11 @@
 
 (defun stringp (object)
   "Return t if OBJECT is a string."
-  )
+  (string? object))
 
 (defun integerp (object)
   "Return t if OBJECT is an integer."
-  )
+  (integer? object))
 
 (defun fboundp (symbol)
   "Return t if SYMBOL's function definition is not void."
@@ -118,7 +123,7 @@
 (defun % (x y)
   "Return remainder of X divided by Y.
   Both must be integers or markers."
-  )
+  (rem x y))
 
 (defun + (&rest numbers-or-markers)
   "Return sum of any number of arguments, which are numbers or markers."
@@ -128,7 +133,9 @@
   "Return VALUE with its bits shifted left by COUNT.
   If COUNT is negative, shifting is actually to the right.
   In this case, zeros are shifted in on the left."
-  )
+  (if (pos? count)
+    (bit-shift-left value count)
+    (bit-shift-right value (c/- count))))
 
 (defun eq (obj1 obj2)
   "Return t if the two args are the same Lisp object."
@@ -136,26 +143,26 @@
 
 (defun * (&rest numbers-or-markers)
   "Return product of any number of arguments, which are numbers or markers."
-  )
+  (apply c/* numbers-or-markers))
 
 (defun - (&optional number-or-marker &rest more-numbers-or-markers)
   "Negate number or subtract numbers or markers and return the result.
   With one arg, negates it.  With more than one arg,
   subtracts all but the first from the first."
-  )
+  (apply c/- number-or-marker more-numbers-or-markers))
 
 (defun multibyte-string-p (object)
   "Return t if OBJECT is a multibyte string."
-  )
+  (string? object))
 
 (defun logxor (&rest ints-or-markers)
   "Return bitwise-exclusive-or of all the arguments.
   Arguments may be integers, or markers converted to integers."
-  )
+  (apply c/bit-xor ints-or-markers)  )
 
 (defun floatp (object)
   "Return t if OBJECT is a floating point number."
-  )
+  (float? object))
 
 (defun number-or-marker-p (object)
   "Return t if OBJECT is a number or a marker."
@@ -163,7 +170,8 @@
 
 (defun cdr-safe (object)
   "Return the cdr of OBJECT if it is a cons cell, or else nil."
-  )
+  (when (consp object)
+    (cdr object)))
 
 (defun / (dividend divisor &rest divisors)
   "Return first argument divided by all the remaining arguments.
@@ -208,16 +216,17 @@
 
 (defun numberp (object)
   "Return t if OBJECT is a number (floating point or integer)."
-  )
+  (number? object))
 
 (defun logand (&rest ints-or-markers)
   "Return bitwise-and of all the arguments.
   Arguments may be integers, or markers converted to integers."
-  )
+  (apply c/bit-and ints-or-markers))
 
 (defun consp (object)
   "Return t if OBJECT is a cons cell."
-  ((every-pred seq? seq) object))
+  (or (instance? ConsPair object)
+      ((every-pred seq? seq) object)))
 
 (defun listp (object)
   "Return t if OBJECT is a list, that is, a cons cell or nil.
@@ -232,7 +241,7 @@
 
 (defun wholenump (object)
   "Return t if OBJECT is a nonnegative integer."
-  )
+  ((every-pred pos? integer?) object))
 
 (defun aset (array idx newelt)
   "Store into the element of ARRAY at index IDX the value NEWELT.
@@ -242,11 +251,11 @@
 
 (defun arrayp (object)
   "Return t if OBJECT is an array (string or vector)."
-  )
+  ((some-fn vector? string?) object))
 
 (defun vectorp (object)
   "Return t if OBJECT is a vector."
-  )
+  (vector? object))
 
 (defun fmakunbound (symbol)
   "Make SYMBOL's function definition be void.
@@ -255,7 +264,7 @@
 
 (defun lognot (number)
   "Return the bitwise complement of NUMBER.  NUMBER must be an integer."
-  )
+  (bit-not number))
 
 (defun setcdr (cell newcdr)
   "Set the cdr of CELL to be NEWCDR.  Returns NEWCDR."
@@ -267,11 +276,12 @@
 
 (defun < (num1 num2)
   "Return t if first arg is less than second arg.  Both must be numbers or markers."
-  )
+  (c/< num1 num2))
 
 (defun car-safe (object)
   "Return the car of OBJECT if it is a cons cell, or else nil."
-  )
+  (when (consp object)
+    (car object)))
 
 (defun fset (symbol definition)
   "Set SYMBOL's function definition to DEFINITION, and return DEFINITION."
@@ -283,11 +293,13 @@
 
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as cdr, car, cons cell and list."
-  (next list))
+  (if (instance? ConsPair list)
+    (.car list)
+    (next list)))
 
 (defun = (num1 num2)
   "Return t if two args, both numbers or markers, are equal."
-  )
+  (== num1 num2))
 
 (defun make-variable-buffer-local (variable)
   "Make VARIABLE become buffer-local whenever it is set.
@@ -306,7 +318,7 @@
 
 (defun char-or-string-p (object)
   "Return t if OBJECT is a character or a string."
-  )
+  ((some-fn char? string?) object))
 
 (defun vector-or-char-table-p (object)
   "Return t if OBJECT is a char-table or vector."
@@ -318,12 +330,12 @@
 
 (defun > (num1 num2)
   "Return t if first arg is greater than second arg.  Both must be numbers or markers."
-  )
+  (c/> num1 num2))
 
 (defun max (number-or-marker &rest numbers-or-markers)
   "Return largest of all the arguments (which must be numbers or markers).
   The value is always a number; markers are converted to numbers."
-  )
+  (apply c/max number-or-marker numbers-or-markers))
 
 (defun local-variable-if-set-p (variable &optional buffer)
   "Non-nil if VARIABLE will be local in buffer BUFFER when set there.
@@ -342,16 +354,16 @@
 
 (defun nlistp (object)
   "Return t if OBJECT is not a list.  Lists include nil."
-  )
+  ((complement (some-fn list? nil?)) object))
 
 (defun >= (num1 num2)
   "Return t if first arg is greater than or equal to second arg.
   Both must be numbers or markers."
-  )
+  (c/>= num1 num2))
 
 (defun boundp (symbol)
   "Return t if SYMBOL's value is not void."
-  )
+  (not (nil? (ns-resolve 'deuce.emacs-lisp.globals (c/symbol (name symbol))))))
 
 (defun default-value (symbol)
   "Return SYMBOL's default value.
@@ -366,12 +378,12 @@
 
 (defun symbolp (object)
   "Return t if OBJECT is a symbol."
-  )
+  (symbol? object))
 
 (defun <= (num1 num2)
   "Return t if first arg is less than or equal to second arg.
   Both must be numbers or markers."
-  )
+  (c/<= num1 num2))
 
 (defun local-variable-p (variable &optional buffer)
   "Non-nil if VARIABLE has a local binding in buffer BUFFER.
@@ -419,7 +431,9 @@
 
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as car, cdr, cons cell and list."
-  (c/first list))
+  (if (instance? ConsPair list)
+    (.car list)
+    (c/first list)))
 
 (defun bool-vector-p (object)
   "Return t if OBJECT is a bool-vector."
@@ -437,16 +451,16 @@
   "Return X modulo Y.
   The result falls between zero (inclusive) and Y (exclusive).
   Both X and Y must be numbers or markers."
-  )
+  (c/mod x y))
 
 (defun (clojure.core/symbol "1-") (number)
   "Return NUMBER minus one.  NUMBER may be a number or a marker.
   Markers are converted to integers."
-  )
+  (dec number))
 
 (defun atom (object)
   "Return t if OBJECT is not a cons cell.  This includes nil."
-  )
+  (not (consp object)))
 
 (defun null (object)
   "Return t if OBJECT is nil."
@@ -483,7 +497,7 @@
   "Return the decimal representation of NUMBER as a string.
   Uses a minus sign if negative.
   NUMBER may be an integer or a floating point number."
-  )
+  (str number))
 
 (defun integer-or-marker-p (object)
   "Return t if OBJECT is an integer or a marker (editor pointer)."
@@ -492,7 +506,7 @@
 (defun min (number-or-marker &rest numbers-or-markers)
   "Return smallest of all the arguments (which must be numbers or markers).
   The value is always a number; markers are converted to numbers."
-  )
+  (apply c/min number-or-marker numbers-or-markers))
 
 (defun string-to-number (string &optional base)
   "Parse STRING as a decimal number and return the number.
