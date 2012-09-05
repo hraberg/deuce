@@ -315,7 +315,7 @@
 (defun assoc (key list)
   "Return non-nil if KEY is `equal' to the car of an element of LIST.
   The value is actually the first element of LIST whose car equals KEY."
-  )
+  (some #(c/and (instance? DottedPair %) (= key (.car %)) %) list))
 
 (defun remhash (key table)
   "Remove KEY from TABLE."
@@ -459,7 +459,7 @@
 (defun rassoc (key list)
   "Return non-nil if KEY is `equal' to the cdr of an element of LIST.
   The value is actually the first element of LIST whose cdr equals KEY."
-  )
+  (some #(c/and (instance? DottedPair %) (= key (.cdr %)) %) list))
 
 (defun equal (o1 o2)
   "Return t if two Lisp objects have similar structure and contents.
@@ -479,11 +479,11 @@
 (defun reverse (list)
   "Reverse LIST, copying.  Return the reversed list.
   See also the function `nreverse', which is used more often."
-  )
+  (c/reverse list))
 
 (defun nthcdr (n list)
   "Take cdr N times on LIST, return the result."
-  )
+  (drop n list))
 
 (defun hash-table-rehash-size (table)
   "Return the current rehash size of TABLE."
