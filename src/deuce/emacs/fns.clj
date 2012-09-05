@@ -4,6 +4,8 @@
  (require [clojure.core :as c]
           [clojure.string :as s])
  (import [deuce.emacs_lisp DottedPair]
+         [java.nio CharBuffer]
+         [java.nio.charset Charset]
          [javax.xml.bind DatatypeConverter]
          [java.security MessageDigest])
  (:refer-clojure
@@ -251,7 +253,7 @@
   This differs from `string-as-multibyte' by converting each byte of a correct
   utf-8 sequence to an eight-bit character, not just bytes that don't form a
   correct sequence."
-  )
+  (String. (.getBytes string) "UTF-8"))
 
 (defun eql (obj1 obj2)
   "Return t if the two args are the same Lisp object.
@@ -512,7 +514,8 @@
   where each `eight-bit' character is converted to the corresponding byte.
   If STRING contains a non-ASCII, non-`eight-bit' character,
   an error is signaled."
-  )
+  (let [ascii (.newEncoder (Charset/forName "US-ASCII"))]
+    (String. (.array (.encode ascii (CharBuffer/wrap string))) (.charset ascii))))
 
 (defun nconc (&rest lists)
   "Concatenate any number of lists by altering them.
