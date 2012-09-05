@@ -1,8 +1,11 @@
 (ns
  deuce.emacs.fns
  (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (import [deuce.emacs_lisp DottedPair])
+ (require [clojure.core :as c]
+          [clojure.string :as s])
+ (import [deuce.emacs_lisp DottedPair]
+         [javax.xml.bind DatatypeConverter]
+         [java.security MessageDigest])
  (:refer-clojure
   :exclude
   [concat assoc reverse nth identity require get sort]))
@@ -73,12 +76,21 @@
   This function never gets an error.  If LIST is not really a list,
   it returns 0.  If LIST is circular, it returns a finite value
   which is at least the number of distinct elements."
-  )
+  (if (instance? DottedPair list)
+    (loop [pair list
+           length 1]
+      (if (and (instance? DottedPair (.cdr pair)))
+        (recur (.cdr pair) (inc length))
+        length))
+    (if (coll? list)
+      (count list)
+      0)))
 
 (defun member (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.
   The value is actually the tail of LIST whose car is ELT."
-  )
+  (when (and (list? list) (some #{elt} list))
+    list))
 
 (defun copy-hash-table (table)
   "Return a copy of hash table TABLE."
@@ -89,14 +101,14 @@
   The result is a list whose elements are the elements of all the arguments.
   Each argument may be a list, vector or string.
   The last argument is not copied, just used as the tail of the new list."
-  )
+  (apply c/concat sequences))
 
 (defun mapconcat (function sequence separator)
   "Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.
   In between each pair of results, stick in SEPARATOR.  Thus, \" \" as
   SEPARATOR results in spaces between the values returned by FUNCTION.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  )
+  (s/join separator (map function sequence)))
 
 (defun compare-strings (str1 start1 end1 str2 start2 end2 &optional ignore-case)
   "Compare the contents of two strings, converting to multibyte if needed.
@@ -112,7 +124,10 @@
     - 1 - N is the number of characters that match at the beginning.
   If string STR1 is greater, the value is a positive number N;
     N - 1 is the number of characters that match at the beginning."
-  )
+  (let [[ str1 str2] (if ignore-case
+                       [(s/lower-case str1) (s/lower-case str2)]
+                       [str1 str2])]
+    (compare (subs str1 start1 end1) (subs str2 start2 end2))))
 
 (defun copy-alist (alist)
   "Return a copy of ALIST.
@@ -133,7 +148,10 @@
   whole OBJECT.
 
   If BINARY is non-nil, returns a string in binary form."
-  )
+  (let [hash (.digest (MessageDigest/getInstance (str algorithm))
+                      (.getBytes (subs object (or start 0) (or end (count object))) "UTF-8"))]
+    (if binary hash
+        (apply str (map #(format "%02x" %) hash)))))
 
 (defun copy-sequence (arg)
   "Return a copy of a list, vector, string or char-table.
@@ -151,7 +169,7 @@
 
 (defun sxhash (obj)
   "Compute a hash code for OBJ and return it as integer."
-  )
+  (hash obj))
 
 (defun md5 (object &optional start end coding-system noerror)
   "Return MD5 message digest of OBJECT, a buffer or string.
@@ -180,7 +198,7 @@
 
   If NOERROR is non-nil, silently assume the `raw-text' coding if the
   guesswork fails.  Normally, an error is signaled in such case."
-  )
+  (secure-hash 'md5 object start end))
 
 (defun widget-apply (widget property &rest args)
   "Apply the value of WIDGET's PROPERTY to the widget itself.
@@ -189,7 +207,7 @@
 
 (defun hash-table-p (obj)
   "Return t if OBJ is a Lisp hash table object."
-  )
+  (map? obj))
 
 (defun delete (elt seq)
   "Delete by side effect any occurrences of ELT as a member of SEQ.
@@ -238,7 +256,7 @@
 (defun eql (obj1 obj2)
   "Return t if the two args are the same Lisp object.
   Floating-point numbers of equal value are `eql', but they may not be `eq'."
-  )
+  (identical? obj1 obj2))
 
 (defun plist-get (plist prop)
   "Extract a value from a property list.
@@ -250,13 +268,13 @@
 
 (defun elt (sequence n)
   "Return element of SEQUENCE at index N."
-  )
+  (c/nth n sequence))
 
 (defun base64-encode-string (string &optional no-line-break)
   "Base64-encode STRING and return the result.
   Optional second argument NO-LINE-BREAK means do not break long lines
   into shorter lines."
-  )
+  (DatatypeConverter/printBase64Binary (.getBytes string "UTF-8")))
 
 (defun equal-including-properties (o1 o2)
   "Return t if two Lisp objects have similar structure and contents.
@@ -272,7 +290,7 @@
   If FROM or TO is negative, it counts from the end.
 
   With one argument, just copy STRING without its properties."
-  )
+  (subs string (or from 0) (or to (count string))))
 
 (defun random (&optional limit)
   "Return a pseudo-random number.
@@ -281,7 +299,7 @@
   With positive integer LIMIT, return random number in interval [0,LIMIT).
   With argument t, set the random number seed from the current time and pid.
   Other values of LIMIT are ignored."
-  )
+  (rand-int limit))
 
 (defun concat (&rest sequences)
   "Concatenate all the arguments and make the result a string.
@@ -292,7 +310,7 @@
 (defun string-bytes (string)
   "Return the number of bytes in STRING.
   If STRING is multibyte, this may be greater than the length of STRING."
-  )
+  (count (.getBytes string)))
 
 (defun assoc (key list)
   "Return non-nil if KEY is `equal' to the car of an element of LIST.
@@ -301,7 +319,7 @@
 
 (defun remhash (key table)
   "Remove KEY from TABLE."
-  )
+  (dissoc table key))
 
 (defun yes-or-no-p (prompt)
   "Ask user a yes-or-no question.  Return t if answer is yes.
@@ -317,7 +335,7 @@
 
 (defun hash-table-count (table)
   "Return the number of elements in TABLE."
-  )
+  (count table))
 
 (defun clear-string (string)
   "Clear the contents of STRING.
@@ -354,13 +372,13 @@
   "Return t if two strings have identical contents.
   Case is significant, but text properties are ignored.
   Symbols are also allowed; their print names are used instead."
-  )
+  (= (str s1) (str s2)))
 
 (defun mapcar (function sequence)
   "Apply FUNCTION to each element of SEQUENCE, and make a list of the results.
   The result is a list just as long as SEQUENCE.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  )
+  (map function sequence))
 
 (defun fillarray (array item)
   "Store each element of ARRAY with ITEM.
@@ -404,7 +422,7 @@
   "Concatenate all the arguments and make the result a vector.
   The result is a vector whose elements are the elements of all the arguments.
   Each argument may be a list, vector or string."
-  )
+  (vec (apply c/concat sequences)))
 
 (defun make-hash-table (&rest keyword-args)
   "Create and return a new hash table.
@@ -528,11 +546,11 @@
 (defun gethash (key table &optional dflt)
   "Look up KEY in TABLE and return its associated value.
   If KEY is not found, return DFLT which defaults to nil."
-  )
+  (c/get table key dflt))
 
 (defun identity (arg)
   "Return the argument unchanged."
-  )
+  arg)
 
 (defun define-hash-table-test (name test hash)
   "Define a new hash table test with name NAME, a symbol.
@@ -552,7 +570,7 @@
   The size can be used as an argument to `make-hash-table' to create
   a hash table than can hold as many elements as TABLE holds
   without need for resizing."
-  )
+  (count table))
 
 (defun require (feature &optional filename noerror)
   "If feature FEATURE is not loaded, load it from FILENAME.
@@ -584,7 +602,7 @@
 (defun maphash (function table)
   "Call FUNCTION for all entries in hash table TABLE.
   FUNCTION is called with two arguments, KEY and VALUE."
-  )
+  (into {} (map function table)))
 
 (defun rassq (key list)
   "Return non-nil if KEY is `eq' to the cdr of an element of LIST.
@@ -603,7 +621,7 @@
   "Return t if first arg string is less than second in lexicographic order.
   Case is significant.
   Symbols are also allowed; their print names are used instead."
-  )
+  (neg? (compare (str s1) (str s2))))
 
 (defun widget-put (widget property value)
   "In WIDGET, set PROPERTY to VALUE.
@@ -652,7 +670,7 @@
   "Associate KEY with VALUE in hash table TABLE.
   If KEY is already present in table, replace its current value with
   VALUE.  In any case, return VALUE."
-  )
+  (c/assoc table key value))
 
 (defun hash-table-test (table)
   "Return the test TABLE uses."
@@ -662,7 +680,8 @@
   "Apply FUNCTION to each element of SEQUENCE for side effects only.
   Unlike `mapcar', don't accumulate the results.  Return SEQUENCE.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  )
+  (dorun (map function sequence))
+  sequence)
 
 (defun plist-member (plist prop)
   "Return non-nil if PLIST has the property PROP.
@@ -678,8 +697,8 @@
   Returns the sorted list.  LIST is modified by side effects.
   PREDICATE is called with two elements of LIST, and should return non-nil
   if the first element should sort before the second."
-  )
+  (c/sort (fn [x y] (if (predicate x y) -1 1)) list))
 
 (defun base64-decode-string (string)
   "Base64-decode STRING and return the result."
-  )
+  (String. (DatatypeConverter/parseBase64Binary string) "UTF-8"))
