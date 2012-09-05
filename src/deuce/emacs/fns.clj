@@ -2,6 +2,7 @@
  deuce.emacs.fns
  (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c])
+ (import [deuce.emacs_lisp DottedPair])
  (:refer-clojure
   :exclude
   [concat assoc reverse nth identity require get sort]))
@@ -506,7 +507,13 @@
   If the string contains multibyte characters, this is not necessarily
   the number of bytes in the string; it is the number of characters.
   To get the number of bytes, use `string-bytes'."
-  (count sequence))
+  (if (instance? DottedPair sequence)
+    (loop [pair sequence
+           length 1]
+      (if (and (.cdr pair) (not= () (.cdr pair)))
+        (recur (.cdr pair) (inc length))
+        length))
+    (count sequence)))
 
 (defun memq (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.

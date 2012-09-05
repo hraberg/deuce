@@ -2,7 +2,7 @@
  deuce.emacs.alloc
  (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c])
- (import [deuce.emacs_lisp ConsPair])
+ (import [deuce.emacs_lisp DottedPair])
  (:refer-clojure :exclude [vector cons list]))
 
 (defvar purify-flag nil
@@ -146,7 +146,9 @@
 
 (defun cons (car cdr)
   "Create a new cons, give it CAR and CDR as components, and return it."
-  (ConsPair. car cdr))
+  (if (or (coll? cdr) (nil? cdr) (= () cdr))
+    (c/cons car cdr)
+    (DottedPair. car cdr)))
 
 (defun (clojure.core/symbol "slash-equals") (num1 num2)
   "Return t if first arg is not equal to second arg.  Both must be numbers or markers."

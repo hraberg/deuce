@@ -1,10 +1,10 @@
-(ns
+ (ns
  deuce.emacs.data
  (use [deuce.emacs-lisp :only (defun defvar setq)])
  (require [clojure.core :as c]
           [deuce.emacs.eval :as eval])
  (import [deuce EmacsLispError]
-         [deuce.emacs_lisp ConsPair])
+         [deuce.emacs_lisp DottedPair])
  (:refer-clojure
   :exclude
   [+ * - / aset set < = > max >= <= mod atom min]))
@@ -225,7 +225,7 @@
 
 (defun consp (object)
   "Return t if OBJECT is a cons cell."
-  (or (instance? ConsPair object)
+  (or (instance? DottedPair object)
       ((every-pred seq? seq) object)))
 
 (defun listp (object)
@@ -293,8 +293,8 @@
 
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as cdr, car, cons cell and list."
-  (if (instance? ConsPair list)
-    (.car list)
+  (if (instance? DottedPair list)
+    (.cdr list)
     (next list)))
 
 (defun = (num1 num2)
@@ -431,7 +431,7 @@
 
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as car, cdr, cons cell and list."
-  (if (instance? ConsPair list)
+  (if (instance? DottedPair list)
     (.car list)
     (c/first list)))
 

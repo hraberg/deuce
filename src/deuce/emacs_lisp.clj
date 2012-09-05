@@ -10,7 +10,7 @@
     (str "(" car ((fn tail [c]
                     (if (instance? DottedPair c)
                       (str " " (.car c) (tail (.cdr c)))
-                      (str " . " c))) cdr) ")")))
+                      (when (c/and c (not= () c)) (str " . " c)))) cdr) ")")))
 
 (defmethod c/print-method DottedPair [pair writer]
   (.write writer (str pair)))
