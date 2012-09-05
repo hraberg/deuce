@@ -29,8 +29,8 @@
 (defn ^:private qualify-globals [form]
   (if-let [s (c/and (symbol? form)
                     (c/or
-                     ((clojure-special-forms) form)
-                     (ns-resolve 'deuce.emacs-lisp.globals form)))]
+                     ((clojure-special-forms) (symbol (name form)))
+                     (ns-resolve 'deuce.emacs-lisp.globals (symbol (name form)))))]
     (symbol (-> s meta :ns str) (-> s meta :name str))
     form))
 
@@ -48,8 +48,8 @@
 (defn ^:private compile-body [args body]
   (c/eval `(fn ~(vec args)
              ~(->> body
-                   (w/postwalk qualify-globals)
                    (w/postwalk strip-comments)
+                   (w/postwalk qualify-globals)
                    w/macroexpand-all
                    (w/postwalk qualify-fns)))))
 
@@ -166,17 +166,16 @@
        ~(reduce into []
                 (for [[s v] (partition 2 sym-vals)
                       :let [s (if (seq? s) (second s) s)]]
-                  (do
-                    [(symbol (name (first-symbol s)))
-                     (if (contains? locals s)
-                       `(do (reset! ~s ~v) ~s)
-                       `(if-let [var# (ns-resolve 'deuce.emacs-lisp.globals '~s)]
-                          (if (contains? (get-thread-bindings) var#)
-                            (var-set var# ~v)
-                            (alter-var-root var# (constantly ~v)))
-                          (do
-                            (defvar ~s ~v)
-                            ~v)))])))
+                  [(symbol (name (first-symbol s)))
+                   (if (contains? locals s)
+                     `(do (reset! ~s ~v) ~s)
+                     `(if-let [var# (ns-resolve 'deuce.emacs-lisp.globals '~s)]
+                        (if (contains? (get-thread-bindings) var#)
+                          (var-set var# ~v)
+                          (alter-var-root var# (constantly ~v)))
+                        (do
+                          (defvar ~s ~v)
+                          ~v)))]))
      ~(last (butlast sym-vals))))
 
 (c/defmacro setq
@@ -317,13 +316,6 @@
   [test & body]
   `(c/while ~test ~@body))
 
-(defn ^:private syntax-quote [form]
-  (.invoke (doto
-               (.getDeclaredMethod clojure.lang.LispReader$SyntaxQuoteReader
-                                   "syntaxQuote"
-                                   (into-array [Object]))
-             (.setAccessible true)) nil (into-array Object [form])))
-
 (c/defmacro defmacro
   "Define NAME as a macro.
   The actual definition looks like
@@ -350,15 +342,7 @@
   {:arglists '([NAME ARGLIST [DOCSTRING] [DECL] BODY...])}
   [name arglist & body]
   (when-not ((ns-interns 'deuce.emacs-lisp) name)
-    (let [body (->> body
-                    (w/postwalk qualify-fns)
-                    (w/postwalk-replace {(symbol "\\,") 'clojure.core/unquote
-                                         (symbol "\\,@") 'clojure.core/unquote-splicing})
-                    (w/postwalk #(if (c/and (list? %) (= (symbol "\\`") (first %)))
-                                   (binding [*ns* (the-ns 'deuce.emacs-lisp.globals)]
-                                     (syntax-quote (rest %)))
-                                   %)))]
-      `(def-helper* c/defmacro ~name ~arglist ~@body))))
+    `(def-helper* c/defmacro ~name ~arglist ~@body)))
 
 (c/defmacro function
   "Like `quote', but preferred for objects which are functions.

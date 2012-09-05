@@ -29,6 +29,7 @@
            :else (int (first (parse-string (str \" c \")))))]
     (reduce bit-xor c (map character-modifier-bits (disj mods "\\C")))))
 
+
 (def ^:private ^Pattern re-str #"(?s)([^\"\\]*(?:\\.[^\"\\]*)*)\"")
 
 (defn ^:private tokenize-all [^Scanner sc]
@@ -72,7 +73,23 @@
     (DottedPair. (first form) (last form))
     form))
 
+(def ^:private clojure-syntax-quote
+  (doto
+      (.getDeclaredMethod clojure.lang.LispReader$SyntaxQuoteReader
+                          "syntaxQuote"
+                          (into-array [Object]))
+    (.setAccessible true)))
+
+(defn ^:private syntax-quote [form]
+  (->> form
+       (w/postwalk-replace {(symbol "\\,") 'clojure.core/unquote
+                            (symbol "\\,@") 'clojure.core/unquote-splicing})
+       (w/postwalk #(if (and (list? %) (= (symbol "\\`") (first %)))
+                      (.invoke clojure-syntax-quote nil (into-array [(rest %)]))
+                      %))))
+
 (defn parse [r]
-  (w/postwalk expand-cons-pairs
-              (tokenize-all (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
-                              (.useDelimiter #"(\s+|\]|\)|\"|;)")))))
+  (->> (tokenize-all (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
+                       (.useDelimiter #"(\s+|\]|\)|\"|;)")))
+       (w/postwalk expand-cons-pairs)
+       syntax-quote))
