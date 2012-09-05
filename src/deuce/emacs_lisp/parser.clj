@@ -68,7 +68,7 @@
        (.hasNextDouble sc) (.nextDouble sc)
        (.hasNext sc) (symbol (.replaceAll (.next sc) "/" "_SLASH_"))))))
 
-(defn ^:private expand-cons-pairs [form]
+(defn ^:private expand-dotted-pairs [form]
   (if (and (list? form) (= 3 (count form)) (= DottedPair (second form)))
     (DottedPair. (first form) (last form))
     form))
@@ -91,5 +91,5 @@
 (defn parse [r]
   (->> (tokenize-all (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
                        (.useDelimiter #"(\s+|\]|\)|\"|;)")))
-       (w/postwalk expand-cons-pairs)
+       (w/postwalk expand-dotted-pairs)
        syntax-quote))
