@@ -64,10 +64,6 @@
          (~cleanup-clojure (c/eval ~body))
          (~cleanup-clojure ((~compile-body '~vars ~body) ~@vars))))))
 
-;; defined in subr.el
-(c/defmacro lambda [args & body]
-  `(fn ~(vec args) ~@body))
-
 (c/defmacro def-helper* [what name arglist & body]
   (c/let [[docstring body] (split-with string? body)
           name (if (seq? name) (c/eval name) name)
@@ -78,13 +74,17 @@
           arglist (concat arglist (when &optional ['& (vec optional-args)]))
           [[interactive] body] (split-with #(c/and (list? %)
                                                    (= 'interactive (first %))) body)
-          emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)]
-    `(do (~what ~name ~(apply str docstring) ~(vec arglist)
-                ~(c/cond
-                  (= 'clojure.core/defmacro what) `(last (eval '~@body))
-                  emacs-lisp? `(eval '~@body)
-                  :else `(do ~@body)))
-         '~name)))
+          emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)
+          doc (apply str docstring)]
+    `(let [f# (~what ~name ~(vec arglist)
+                    ~(c/cond
+                       (= 'clojure.core/defmacro what) `(last (eval '~@body))
+                       (= 'clojure.core/fn what) `(do ~@body)
+                       emacs-lisp? `(eval '~@body)
+                       :else `(do ~@body)))]
+       (if (var? f#)
+         (alter-meta! f# merge {:doc ~doc})
+         (with-meta f# (assoc (meta f#) :doc ~doc))))))
 
 (c/defmacro defun
   "Define NAME as a function.
@@ -92,7 +92,28 @@
   See also the function `interactive'."
   {:arglists '([NAME ARGLIST [DOCSTRING] BODY...])}
   [name arglist & body]
-  `(def-helper* defn ~name ~arglist ~@body))
+  `(do (def-helper* defn ~name ~arglist ~@body)
+       '~name))
+
+;; defined in subr.el
+(c/defmacro lambda
+  "Return a lambda expression.
+  A call of the form (lambda ARGS DOCSTRING INTERACTIVE BODY) is
+  self-quoting; the result of evaluating the lambda expression is the
+  expression itself.  The lambda expression may then be treated as a
+  function, i.e., stored as the function value of a symbol, passed to
+  `funcall' or `mapcar', etc.
+
+  ARGS should take the same form as an argument list for a `defun'.
+  DOCSTRING is an optional documentation string.
+   If present, it should describe how to call the function.
+   But documentation strings are usually not useful in nameless functions.
+  INTERACTIVE should be a call to the function `interactive', which see.
+  It may also be omitted.
+  BODY should be a list of Lisp expressions."
+  {:arglists '([ARGS [DOCSTRING] [INTERACTIVE] BODY])}
+  [& cdr]
+  `(def-helper* fn '~'lambda ~(first cdr) ~@(rest cdr)))
 
 (c/defmacro unwind-protect
   "Do BODYFORM, protecting with UNWINDFORMS.
@@ -341,8 +362,10 @@
   	Set NAME's `doc-string-elt' property to ELT."
   {:arglists '([NAME ARGLIST [DOCSTRING] [DECL] BODY...])}
   [name arglist & body]
-  (when-not ((ns-interns 'deuce.emacs-lisp) name)
-    `(def-helper* c/defmacro ~name ~arglist ~@body)))
+  `(do
+     ~(when-not ((ns-interns 'deuce.emacs-lisp) name)
+        `(def-helper* c/defmacro ~name ~arglist ~@body))
+     '~name))
 
 (c/defmacro function
   "Like `quote', but preferred for objects which are functions.
