@@ -1,7 +1,8 @@
 (ns
  deuce.emacs.emacs
  (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
+ (require [clojure.core :as c]
+          [deuce.emacs-lisp.globals :as globals])
  (import [java.io File])
  (:refer-clojure :exclude []))
 
@@ -45,7 +46,7 @@
 (defvar system-configuration-options nil
   "String containing the configuration options Emacs was built with.")
 
-(defvar command-line-args nil
+(defvar command-line-args ["deuce"]
   "Args passed by shell to Emacs, as a list of strings.
   Many arguments are deleted from the list as they are processed.")
 
@@ -140,7 +141,8 @@
   The value of `kill-emacs-hook', if not void,
   is a list of functions (of no args),
   all of which are called before Emacs is actually killed."
-  )
+  (doall (map #(%) globals/kill-emacs-hook))
+  (System/exit 0))
 
 (defun dump-emacs (filename symfile)
   "Dump current state of Emacs into executable file FILENAME.

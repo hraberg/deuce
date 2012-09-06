@@ -32,16 +32,19 @@
 
 (def ^:private ^Pattern re-str #"(?s)([^\"\\]*(?:\\.[^\"\\]*)*)\"")
 
+(def ^:dynamic line (atom 1))
+
 (defn ^:private tokenize-all [^Scanner sc]
   (take-while identity (repeatedly (partial tokenize sc))))
 
 (defn ^:private tokenize [^Scanner sc]
   (let [find (fn [^Pattern re h] (.findWithinHorizon sc re (int h)))]
     (condp find 1
+      #"\n" (do (swap! line inc) (recur sc))
       #"\s" (recur sc)
       #"[)\]]" nil
-      #"\(" (apply list (tokenize-all sc))
-      #"\[" (list 'quote (vec (tokenize-all sc)))
+      #"\(" (with-meta (apply list (tokenize-all sc)) {:line @line})
+      #"\[" (with-meta (list 'quote (vec (tokenize-all sc))) {:line @line})
       #"," (list (if (find #"@" 1) (symbol "\\,@") (symbol "\\,")) (tokenize sc))
       #"'" (list 'quote (tokenize sc))
       #"`" (let [form (tokenize sc)] (if (symbol? form)
@@ -51,7 +54,7 @@
       #"\." DottedPair
       #"\?" (parse-character (.next sc))
       #"\"" (parse-string (str \" (find re-str 0)))
-      #";" (list 'clojure.core/comment (.nextLine sc))
+      #";" (do (swap! line inc) (list 'clojure.core/comment (.nextLine sc)))
       #"#" (condp find 1
              #"'" (list 'var (tokenize sc))
              #"\(" (let [[object start end properties] (tokenize-all sc)]
@@ -66,7 +69,7 @@
       (cond
        (.hasNextLong sc) (.nextLong sc)
        (.hasNextDouble sc) (.nextDouble sc)
-       (.hasNext sc) (symbol (.replaceAll (.next sc) "/" "_SLASH_"))))))
+       (.hasNext sc) (with-meta (symbol (.replaceAll (.next sc) "/" "_SLASH_")) {:line @line})))))
 
 (defn ^:private expand-dotted-pairs [form]
   (if (and (list? form) (= 3 (count form)) (= DottedPair (second form)))
@@ -89,7 +92,8 @@
                       %))))
 
 (defn parse [r]
+  (reset! line 1)
   (->> (tokenize-all (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
-                       (.useDelimiter #"(\s+|\]|\)|\"|;)")))
+                       (.useDelimiter #"(\s|\]|\)|\"|;)")))
        (w/postwalk expand-dotted-pairs)
        syntax-quote))

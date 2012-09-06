@@ -40,6 +40,8 @@
   for example, (type-of 1) returns `integer'."
   (type object))
 
+(declare symbol-function)
+
 (defun indirect-function (object &optional noerror)
   "Return the function at the end of OBJECT's function chain.
   If OBJECT is not a symbol, just return it.  Otherwise, follow all
@@ -48,7 +50,7 @@
   Optional arg NOERROR non-nil means to return nil instead of signaling.
   Signal a cyclic-function-indirection error if there is a loop in the
   function chain of symbols."
-  )
+  (symbol-function object))
 
 (defun symbol-name (symbol)
   "Return SYMBOL's name, a string."
@@ -79,13 +81,15 @@
   "Return t if NUMBER is zero."
   (zero? number))
 
+(declare symbol-value)
+
 (defun indirect-variable (object)
   "Return the variable at the end of OBJECT's variable chain.
   If OBJECT is a symbol, follow all variable indirections and return the final
   variable.  If OBJECT is not a symbol, just return it.
   Signal a cyclic-variable-indirection error if there is a loop in the
   variable chain of symbols."
-  )
+  (symbol-value object))
 
 (defun symbol-value (symbol)
   "Return SYMBOL's value.  Error if that is void."
@@ -408,7 +412,13 @@
   The optional third argument DOCSTRING specifies the documentation string
   for SYMBOL; if it is omitted or nil, SYMBOL uses the documentation string
   determined by DEFINITION."
-  (el/defvar-helper* symbol definition docstring))
+  (println symbol definition)
+  (el/defvar-helper* 'deuce.emacs symbol
+    (if (symbol? definition)
+      @(ns-resolve 'deuce.emacs definition)
+        definition)
+    docstring)
+  definition)
 
 (defun setplist (symbol newplist)
   "Set SYMBOL's property list to NEWPLIST, and return NEWPLIST."

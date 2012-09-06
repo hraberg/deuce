@@ -3,12 +3,17 @@
            [deuce.emacs-lisp :as el]
            [deuce.emacs.data :as data]
            [deuce.emacs.eval :as eval]
+           [deuce.emacs.editfns :as editfns]
            [deuce.emacs.lread :as lread])
   (import [java.util Stack])
   (:gen-class))
 
+(el/setq command-line-args ["deuce"])
+
 (defn deuce-loadup []
-  (lread/load "deuce-loadup.el"))
+  (el/setq before-init-time (editfns/current-time))
+  (lread/load "deuce-loadup.el")
+  (el/setq after-init-time (editfns/current-time)))
 
 (defn -main [& args]
   (when-not (some #{"-batch" "--batch"} args)

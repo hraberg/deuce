@@ -49,15 +49,15 @@
   which binds the character CHAR to DEFINITION, or (SYMBOL . DEFINITION),
   which binds the function key or mouse event SYMBOL to DEFINITION.
   Initially the alist is nil.
-  
+
   The optional arg STRING supplies a menu name for the keymap
   in case you use it as a menu with `x-popup-menu'."
-  )
+  (list 'keymap))
 
 (defun define-key (keymap key def)
   "In KEYMAP, define key sequence KEY as DEF.
   KEYMAP is a keymap.
-  
+
   KEY is a string or a vector of symbols and characters, representing a
   sequence of keystrokes and events.  Non-ASCII characters with codes
   above 127 (such as ISO Latin-1) can be represented by vectors.
@@ -65,7 +65,7 @@
    [remap COMMAND] remaps any key binding for COMMAND.
    [t] creates a default definition, which applies to any event with no
       other definition in KEYMAP.
-  
+
   DEF is anything that can be a key's definition:
    nil (means key is undefined in this keymap),
    a command (a Lisp function suitable for interactive calling),
@@ -79,7 +79,7 @@
    or a cons (MAP . CHAR), meaning use definition of CHAR in keymap MAP,
    or an extended menu item definition.
    (See info node `(elisp)Extended Menu Items'.)
-  
+
   If KEYMAP is a sparse keymap with a binding for KEY, the existing
   binding is altered.  If there is no binding for KEY, the new pair
   binding KEY to DEF is added at the front of KEYMAP."
@@ -112,7 +112,7 @@
   If KEYMAP is nil, search all the currently active keymaps, except
    for `overriding-local-map' (which is ignored).
   If KEYMAP is a list of keymaps, search only those keymaps.
-  
+
   If optional 3rd arg FIRSTONLY is non-nil, return the first key sequence found,
   rather than a list of all possible key sequences.
   If FIRSTONLY is the symbol `non-ascii', return the first binding found,
@@ -120,19 +120,19 @@
   If FIRSTONLY has another non-nil value, prefer bindings
   that use the modifier key specified in `where-is-preferred-modifier'
   (or their meta variants) and entirely reject menu bindings.
-  
+
   If optional 4th arg NOINDIRECT is non-nil, don't follow indirections
   to other keymaps or slots.  This makes it possible to search for an
   indirect definition itself.
-  
+
   The optional 5th arg NO-REMAP alters how command remapping is handled:
-  
+
   - If another command OTHER-COMMAND is remapped to DEFINITION, normally
     search for the bindings of OTHER-COMMAND and include them in the
     returned list.  But if NO-REMAP is non-nil, include the vector
     [remap OTHER-COMMAND] in the returned list instead, without
     searching for those other bindings.
-  
+
   - If DEFINITION is remapped to OTHER-COMMAND, normally return the
     bindings for OTHER-COMMAND.  But if NO-REMAP is non-nil, return the
     bindings for DEFINITION instead, ignoring its remapping."
@@ -140,7 +140,7 @@
 
 (defun keymapp (object)
   "Return t if OBJECT is a keymap.
-  
+
   A keymap is a list (keymap . ALIST),
   or a symbol whose function definition is itself a keymap.
   ALIST elements look like (CHAR . DEFN) or (SYMBOL . DEFN);
@@ -168,22 +168,22 @@
   "Return the binding for command KEY in current keymaps.
   KEY is a string or vector, a sequence of keystrokes.
   The binding is probably a symbol with a function definition.
-  
+
   Normally, `key-binding' ignores bindings for t, which act as default
   bindings, used when nothing else in the keymap applies; this makes it
   usable as a general function for probing keymaps.  However, if the
   optional second argument ACCEPT-DEFAULT is non-nil, `key-binding' does
   recognize the default bindings, just as `read-key-sequence' does.
-  
+
   Like the normal command loop, `key-binding' will remap the command
   resulting from looking up KEY by looking up the command in the
   current keymaps.  However, if the optional third argument NO-REMAP
   is non-nil, `key-binding' returns the unmapped command.
-  
+
   If KEY is a key sequence initiated with the mouse, the used keymaps
   will depend on the clicked mouse position with regard to the buffer
   and possible local keymaps on strings.
-  
+
   If the optional argument POSITION is non-nil, it specifies a mouse
   position as returned by `event-start' and `event-end', and the lookup
   occurs in the keymaps associated with it instead of KEY.  It can also
@@ -195,7 +195,7 @@
   "Call FUNCTION once for each event binding in KEYMAP.
   FUNCTION is called with two arguments: the event that is bound, and
   the definition it is bound to.  The event may be a character range.
-  
+
   If KEYMAP has a parent, the parent's bindings are included as well.
   This works recursively: if the parent has itself a parent, then the
   grandparent's bindings are also included and so on."
@@ -230,7 +230,7 @@
   \"command undefined\".  ALIST is an assoc-list which holds bindings for
   function keys, mouse events, and any other things that appear in the
   input stream.  Initially, ALIST is nil.
-  
+
   The optional arg STRING supplies a menu name for the keymap
   in case you use it as a menu with `x-popup-menu'."
   )
@@ -258,13 +258,13 @@
   "In keymap KEYMAP, look up key sequence KEY.  Return the definition.
   A value of nil means undefined.  See doc of `define-key'
   for kinds of definitions.
-  
+
   A number as value means KEY is \"too long\";
   that is, characters or symbols in it except for the last one
   fail to be a valid sequence of prefix characters in KEYMAP.
   The number is how many characters at the front of KEY
   it takes to reach a non-prefix key.
-  
+
   Normally, `lookup-key' ignores bindings for t, which act as default
   bindings, used when nothing else in the keymap applies; this makes it
   usable as a general function for probing keymaps.  However, if the
@@ -276,7 +276,7 @@
   "Return a pretty description of key-sequence KEYS.
   Optional arg PREFIX is the sequence of keys leading up to KEYS.
   For example, [?C-x ?l] is converted into the string \"C-x l\".
-  
+
   The `kbd' macro is an approximate inverse of this."
   )
 
@@ -296,7 +296,7 @@
   "Return the binding for command KEYS in current local keymap only.
   KEYS is a string or vector, a sequence of keystrokes.
   The binding is probably a symbol with a function definition.
-  
+
   If optional argument ACCEPT-DEFAULT is non-nil, recognize default
   bindings; see the description of `lookup-key' for more details about this."
   )
@@ -323,7 +323,7 @@
   The binding is probably a symbol with a function definition.
   This function's return values are the same as those of `lookup-key'
   (which see).
-  
+
   If optional argument ACCEPT-DEFAULT is non-nil, recognize default
   bindings; see the description of `lookup-key' for more details about this."
   )
@@ -335,14 +335,14 @@
 (defun command-remapping (command &optional position keymaps)
   "Return the remapping for command COMMAND.
   Returns nil if COMMAND is not remapped (or not a symbol).
-  
+
   If the optional argument POSITION is non-nil, it specifies a mouse
   position as returned by `event-start' and `event-end', and the
   remapping occurs in the keymaps associated with it.  It can also be a
   number or marker, in which case the keymap properties at the specified
   buffer position instead of point are used.  The KEYMAPS argument is
   ignored if POSITION is non-nil.
-  
+
   If the optional argument KEYMAPS is non-nil, it should be a list of
   keymaps to search for command remapping.  Otherwise, search for the
   remapping in all currently active keymaps."
@@ -357,7 +357,7 @@
   non-prefix, all subsequent bindings will be omitted, since they would
   be ignored.  Similarly, the list doesn't include non-prefix bindings
   that come after prefix bindings.
-  
+
   If optional argument ACCEPT-DEFAULT is non-nil, recognize default
   bindings; see the description of `lookup-key' for more details about this."
   )

@@ -242,7 +242,9 @@
   itself an alias.  If NEW-ALIAS is bound, and BASE-VARIABLE is not,
   then the value of BASE-VARIABLE is set to that of NEW-ALIAS.
   The return value is BASE-VARIABLE."
-  )
+  (el/defvar-helper* 'deuce.emacs-lisp.globals new-alias
+    @(ns-resolve 'deuce.emacs-lisp.globals base-variable) docstring)
+  base-variable)
 
 (defun run-hook-with-args-until-success (hook &rest args)
   "Run HOOK with the specified arguments ARGS.

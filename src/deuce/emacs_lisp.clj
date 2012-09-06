@@ -46,12 +46,19 @@
     form))
 
 (defn ^:private compile-body [args body]
-  (c/eval `(fn ~(vec args)
-             ~(->> body
-                   (w/postwalk strip-comments)
-                   (w/postwalk qualify-globals)
-                   w/macroexpand-all
-                   (w/postwalk qualify-fns)))))
+  (try
+    (c/eval `(fn ~(vec args)
+               ~(->> body
+                     (w/postwalk strip-comments)
+                     (w/postwalk qualify-globals)
+                     w/macroexpand-all
+                     (w/postwalk qualify-fns))))
+    (catch RuntimeException e
+      ;; (println e)
+      ;; (println args)
+      ;; (println body)
+      ;; (println (some #(-> % meta :line) (flatten body)))
+      (throw e))))
 
 
 ;; defined as fn in eval.clj
@@ -86,17 +93,23 @@
           emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)
           doc (apply str docstring)
           locals (find-locals body)]
+    (println (c/name what) name (c/or (-> name meta :line) ""))
     `(c/let [f# (~what ~name ~(vec arglist)
                        ~(c/cond
-                          (= 'clojure.core/defmacro what) `(last (eval '~@body))
+                          (= 'clojure.core/defmacro what) `(c/let [hack# (eval '(do ~@body))]
+                                                             (if (every? seq? hack#)
+                                                               (cons 'deuce.emacs-lisp/progn hack#)
+                                                               hack#))
                           (= 'clojure.core/fn what) `(binding [*ns* (the-ns 'deuce.emacs)]
                                                        (~cleanup-clojure ((~compile-body '~(concat locals arglist) '(do ~@body))
                                                                           ~@locals ~@arglist)))
-                          emacs-lisp? `(eval '~@body)
+                          emacs-lisp? `(eval '(do ~@body))
                           :else `(do ~@body)))]
        (if (var? f#)
          (do
-           (alter-meta! f# merge {:doc ~doc})
+           (alter-meta! f# merge {:doc ~doc :line (-> '~name meta :line)
+                                  :file (when-let [file# (ns-resolve 'deuce.emacs-lisp.globals 'load-file-name)]
+                                          @file#)})
            (alter-var-root f# (constantly (with-meta @f# (meta f#)))))
          (with-meta f# (assoc (meta f#) :doc ~doc))))))
 
@@ -199,18 +212,18 @@
 (c/defmacro setq-helper* [locals sym-vals]
   `(c/let
        ~(reduce into []
-                (for [[s v] (partition 2 sym-vals)
-                      :let [s (if (seq? s) (second s) s)]]
-                  [(symbol (name (first-symbol s)))
-                   (if (contains? locals s)
-                     `(do (reset! ~s ~v) ~s)
-                     `(if-let [var# (ns-resolve 'deuce.emacs-lisp.globals '~s)]
-                        (if (contains? (get-thread-bindings) var#)
-                          (var-set var# ~v)
-                          (alter-var-root var# (constantly ~v)))
-                        (do
-                          (defvar ~s ~v)
-                          ~v)))]))
+                (for [[s v] (partition 2 sym-vals)]
+                  (c/let [s (if (seq? s) (second s) s)]
+                    [(symbol (name (first-symbol s)))
+                     (if (contains? locals s)
+                       `(do (reset! ~s ~v) ~s)
+                       `(if-let [var# (ns-resolve 'deuce.emacs-lisp.globals '~s)]
+                          (if (contains? (get-thread-bindings) var#)
+                            (var-set var# ~v)
+                            (alter-var-root var# (constantly ~v)))
+                          (do
+                            (defvar ~s ~v)
+                            ~v)))])))
      ~(last (butlast sym-vals))))
 
 (c/defmacro setq
@@ -240,9 +253,10 @@
   `(quote ~arg))
 
 (c/defmacro let-helper* [can-refer? varlist & body]
-  (c/let [varlist (if (every? list? varlist) varlist [varlist])
-          varlist (if (= 1 (count (last varlist))) (concat (butlast varlist) [(concat (last varlist) [nil])]) varlist)
-          varlist (map (fn [[s v]] [(first-symbol s) v]) varlist)
+  (c/let [;varlist (if (every? list? varlist) varlist [varlist])
+          varlist (->> varlist
+                       (map #(if (symbol? %) [% nil] %))
+                       (map (fn [[s v]] [(first-symbol s) v])))
           {:keys [lexical dynamic]} (group-by (comp #(if (namespace %) :dynamic :lexical) first) varlist)
           lexical-vars (into {} (map vec lexical))
           dynamic-vars (into {} (map vec dynamic))
@@ -413,11 +427,11 @@
   [varlist & body]
   `(let-helper* true ~varlist ~@body))
 
-(defn defvar-helper* [symbol & [initvalue docstring]]
+(defn defvar-helper* [ns symbol & [initvalue docstring]]
   (c/let [symbol (c/symbol (name (first-symbol symbol)))]
     (do
       (->
-       (intern (create-ns 'deuce.emacs-lisp.globals)
+       (intern (create-ns ns)
                symbol
                initvalue)
        .setDynamic
@@ -452,7 +466,7 @@
   option if its DOCSTRING starts with *, but this behavior is obsolete."
   {:arglists '([SYMBOL &optional INITVALUE DOCSTRING])}
   [symbol & [initvalue docstring]]
-  `(defvar-helper* '~symbol ~initvalue ~docstring))
+  `(defvar-helper* 'deuce.emacs-lisp.globals '~symbol ~initvalue ~docstring))
 
 ;; defined as fn in eval.clj
 (c/defmacro ^:clojure-special-form throw
