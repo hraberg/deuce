@@ -1,7 +1,8 @@
- (ns
+(ns
  deuce.emacs.data
  (use [deuce.emacs-lisp :only (defun defvar setq)])
  (require [clojure.core :as c]
+          [deuce.emacs-lisp :as el]
           [deuce.emacs.eval :as eval])
  (import [deuce EmacsLispError]
          [deuce.emacs_lisp DottedPair])
@@ -402,11 +403,7 @@
   The optional third argument DOCSTRING specifies the documentation string
   for SYMBOL; if it is omitted or nil, SYMBOL uses the documentation string
   determined by DEFINITION."
-  (try
-    (eval/eval `(defvar ~symbol ~definition ~(or docstring "")))
-    (catch Exception e
-      ;(println (-> e .getCause .getMessage))
-      )))
+  (el/defvar-helper* symbol definition docstring))
 
 (defun setplist (symbol newplist)
   "Set SYMBOL's property list to NEWPLIST, and return NEWPLIST."

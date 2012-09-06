@@ -1,4 +1,5 @@
 (ns deuce.emacs
+  (require [clojure.core :as c])
   (:refer-clojure :only [])
   ;; Temporary exclusions preparing for the future split
   (use [deuce.emacs-lisp]

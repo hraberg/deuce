@@ -85,8 +85,7 @@
        (if (var? f#)
          (do
            (alter-meta! f# merge {:doc ~doc})
-           (when (= '~'clojure.core/defn '~what)
-             (alter-var-root f# (constantly (with-meta @f# (meta f#))))))
+           (alter-var-root f# (constantly (with-meta @f# (meta f#)))))
          (with-meta f# (assoc (meta f#) :doc ~doc))))))
 
 (c/defmacro defun
@@ -402,6 +401,17 @@
   [varlist & body]
   `(let-helper* true ~varlist ~@body))
 
+(defn defvar-helper* [symbol & [initvalue docstring]]
+  (c/let [symbol (c/symbol (name (first-symbol symbol)))]
+    (do
+      (->
+       (intern (create-ns 'deuce.emacs-lisp.globals)
+               symbol
+               initvalue)
+       .setDynamic
+       (alter-meta! merge {:doc (apply str docstring)}))
+      symbol)))
+
 (c/defmacro defvar
   "Define SYMBOL as a variable, and return SYMBOL.
   You are not required to define a variable in order to use it, but
@@ -430,15 +440,7 @@
   option if its DOCSTRING starts with *, but this behavior is obsolete."
   {:arglists '([SYMBOL &optional INITVALUE DOCSTRING])}
   [symbol & [initvalue docstring]]
-  (c/let [symbol (c/symbol (name (first-symbol symbol)))]
-    `(do
-       (->
-        (intern (create-ns 'deuce.emacs-lisp.globals)
-                '~symbol
-                ~initvalue)
-        .setDynamic
-        (alter-meta! merge {:doc ~(apply str docstring)}))
-       '~symbol)))
+  `(defvar-helper* '~symbol ~initvalue ~docstring))
 
 ;; defined as fn in eval.clj
 (c/defmacro ^:clojure-special-form throw
