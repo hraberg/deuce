@@ -8,7 +8,7 @@
   (import [java.util Stack])
   (:gen-class))
 
-(defn deuce-loadup []
+(defn loadup []
   (el/setq before-init-time (editfns/current-time))
   (lread/load "deuce-loadup.el")
   (el/setq after-init-time (editfns/current-time)))
@@ -33,12 +33,10 @@
     (while (seq args)
       (let [opt (.pop args)]
         (condp some [opt]
-          #{"--eval" "--execute"} (do
-                                    (deuce-loadup)
-                                    (eval/eval (deuce.emacs.lread/read (pop opt))))
-          (option "script") (do
-                              (deuce-loadup)
-                              (lread/load (pop opt)))
+          #{"--eval" "--execute"} (do (loadup)
+                                      (eval/eval (deuce.emacs.lread/read (pop opt))))
+          (option "script") (do (loadup)
+                                (lread/load (pop opt)))
           (option "version") (do (printf "GNU Emacs %s\n" (data/symbol-value 'emacs-version))
                                  (printf "%s\n" (data/symbol-value 'emacs-copyright))
                                  (printf "GNU Emacs comes with ABSOLUTELY NO WARRANTY.\n")

@@ -412,7 +412,6 @@
   The optional third argument DOCSTRING specifies the documentation string
   for SYMBOL; if it is omitted or nil, SYMBOL uses the documentation string
   determined by DEFINITION."
-  (println symbol definition)
   (el/defvar-helper* 'deuce.emacs symbol
     (if (symbol? definition)
       @(ns-resolve 'deuce.emacs definition)
