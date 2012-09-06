@@ -5,7 +5,8 @@
             :distribution :repo}
   :url "http://www.gnu.org/software/emacs/"
   :dependencies [[org.clojure/clojure "1.4.0"]
-                 [clojure-lanterna "0.9.2"]]
+                 [clojure-lanterna "0.9.2"]
+                 [analyze "0.1.7.1"]]
   :plugins [[lein-swank "1.4.4"]
             [lein-difftest "1.3.8"]]
   :resource-paths ["emacs/lisp"]

@@ -53,16 +53,25 @@
                    w/macroexpand-all
                    (w/postwalk qualify-fns)))))
 
+
 ;; defined as fn in eval.clj
-(c/defmacro eval [body & [lexical]]
+(c/defmacro eval
   "Evaluate FORM and return its value.
   If LEXICAL is t, evaluate using lexical scoping."
   {:arglists '([FORM &optional LEXICAL])}
+  [body & [lexical]]
   (c/let [vars (keys &env)]
     `(binding [*ns* (the-ns 'deuce.emacs)]
        (if (c/and (list? ~body) ('~'#{defun defmacro} (first ~body)))
          (~cleanup-clojure (c/eval ~body))
          (~cleanup-clojure ((~compile-body '~vars ~body) ~@vars))))))
+
+(defn ^:private find-locals [form]
+  (c/let [locals (transient [])]
+    (w/postwalk #(do (when (c/and (list? %) (= 'clojure.core/deref (first %)))
+                       (conj! locals (second %)))
+                     %) form)
+    (persistent! locals)))
 
 (c/defmacro def-helper* [what name arglist & body]
   (c/let [[docstring body] (split-with string? body)
@@ -75,13 +84,16 @@
           [[interactive] body] (split-with #(c/and (list? %)
                                                    (= 'interactive (first %))) body)
           emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)
-          doc (apply str docstring)]
-    `(let [f# (~what ~name ~(vec arglist)
-                    ~(c/cond
-                       (= 'clojure.core/defmacro what) `(last (eval '~@body))
-                       (= 'clojure.core/fn what) `(do ~@body)
-                       emacs-lisp? `(eval '~@body)
-                       :else `(do ~@body)))]
+          doc (apply str docstring)
+          locals (find-locals body)]
+    `(c/let [f# (~what ~name ~(vec arglist)
+                       ~(c/cond
+                          (= 'clojure.core/defmacro what) `(last (eval '~@body))
+                          (= 'clojure.core/fn what) `(binding [*ns* (the-ns 'deuce.emacs)]
+                                                       (~cleanup-clojure ((~compile-body '~(concat locals arglist) '(do ~@body))
+                                                                          ~@locals ~@arglist)))
+                          emacs-lisp? `(eval '~@body)
+                          :else `(do ~@body)))]
        (if (var? f#)
          (do
            (alter-meta! f# merge {:doc ~doc})

@@ -57,7 +57,7 @@
 (defun makunbound (symbol)
   "Make SYMBOL's value be void.
   Return SYMBOL."
-  (ns-unmap 'deuce.emacs-lisp.globals symbol)
+  (ns-unmap 'deuce.emacs-lisp.globals (c/symbol (name symbol)))
   symbol)
 
 (defun interactive-form (cmd)
@@ -262,8 +262,9 @@
 (defun fmakunbound (symbol)
   "Make SYMBOL's function definition be void.
   Return SYMBOL."
-  (ns-unmap (-> (ns-resolve 'deuce.emacs symbol) meta :ns) symbol)
-  symbol)
+  (let [symbol (c/symbol (name symbol))]
+    (ns-unmap (-> (ns-resolve 'deuce.emacs (c/symbol (name symbol))) meta :ns) (c/symbol (name symbol)))
+    symbol))
 
 (defun lognot (number)
   "Return the bitwise complement of NUMBER.  NUMBER must be an integer."
