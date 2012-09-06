@@ -27,7 +27,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/src/deuce-loadup.el) represents a small fraction of the real Emacs [`loadup.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/loadup.el). Not all forms loaded are even properly evaluated yet, but we get to [`version.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/version.el).
 
-You can also run it like this:
+You can also run it like this (currently broken, as I'm getting [`subr.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/subr.el) to load more properly):
 
     lein run --batch --eval "(print (emacs-version))"
 

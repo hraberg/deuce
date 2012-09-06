@@ -93,7 +93,7 @@
           emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)
           doc (apply str docstring)
           locals (find-locals body)]
-    (println (c/name what) name (c/or (-> name meta :line) ""))
+;    (println (c/name what) name (c/or (-> name meta :line) ""))
     `(c/let [f# (~what ~name ~(vec arglist)
                        ~(c/cond
                           (= 'clojure.core/defmacro what) `(c/let [hack# (eval '(do ~@body))]

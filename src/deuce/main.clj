@@ -8,8 +8,6 @@
   (import [java.util Stack])
   (:gen-class))
 
-(el/setq command-line-args ["deuce"])
-
 (defn deuce-loadup []
   (el/setq before-init-time (editfns/current-time))
   (lread/load "deuce-loadup.el")
