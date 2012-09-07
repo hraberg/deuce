@@ -1,7 +1,7 @@
 (ns deuce.emacs
-  (require [clojure.core :as c])
+  (require [clojure.core :as c]
+           [deuce.emacs-lisp.globals :as globals])
   (:refer-clojure :only [])
-  ;; Temporary exclusions preparing for the future split
   (use [deuce.emacs-lisp]
        [deuce.emacs.alloc]
        [deuce.emacs.buffer]

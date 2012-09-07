@@ -12,7 +12,7 @@
                       (str " " (.car c) (tail (.cdr c)))
                       (when (c/and c (not= () c)) (str " . " c)))) cdr) ")")))
 
-(defmethod c/print-method DottedPair [pair writer]
+(defmethod print-method DottedPair [pair writer]
   (.write writer (str pair)))
 
 (create-ns 'deuce.emacs)
@@ -39,7 +39,9 @@
   (if-let [s (c/and (list? form) (symbol? (first form))
                     (ns-resolve 'deuce.emacs (symbol (name (first form)))))]
     (apply list (cons (symbol (-> s meta :ns str) (-> s meta :name str)) (next form)))
-    form))
+    (if (c/and (symbol? form) (= "deuce.emacs" (namespace form)))
+      (symbol (name form))
+      form)))
 
 (defn ^:private strip-comments [form]
   (if (seq? form)
@@ -50,10 +52,14 @@
   (try
     (c/eval `(fn ~(vec args)
                ~(->> body
+                     (w/postwalk #(if (c/and (seq? %) (symbol? (first %))
+                                             ('#{defun defmacro} (symbol (name (first %)))))
+                                    ^:scope-protect (fn [] %)
+                                    %))
                      (w/postwalk strip-comments)
                      (w/postwalk qualify-globals)
-                     w/macroexpand-all
-                     (w/postwalk qualify-fns))))
+                     (w/postwalk qualify-fns)
+                     (w/postwalk #(if (-> % meta :scope-protect) (%) %)))))
     (catch RuntimeException e
       (println e)
       (println args)
@@ -69,9 +75,7 @@
   [body & [lexical]]
   (c/let [vars (keys &env)]
     `(binding [*ns* (the-ns 'deuce.emacs)]
-       (if (c/and (seq? ~body) ('~'#{defun defmacro} (first ~body)))
-         (~cleanup-clojure (c/eval ~body))
-         (~cleanup-clojure ((~compile-body '~vars ~body) ~@vars))))))
+       (~cleanup-clojure ((~compile-body '~vars ~body) ~@vars)))))
 
 (defn ^:private find-locals [form]
   (c/let [locals (transient [])]
@@ -253,14 +257,14 @@
   `(quote ~arg))
 
 (c/defmacro let-helper* [can-refer? varlist & body]
-  (c/let [;varlist (if (every? list? varlist) varlist [varlist])
-          varlist (->> varlist
+  (c/let [varlist (->> varlist
                        (map #(if (symbol? %) [% nil] %))
                        (map (fn [[s v]] [(first-symbol s) v])))
           {:keys [lexical dynamic]} (group-by (comp #(if (namespace %) :dynamic :lexical) first) varlist)
           lexical-vars (into {} (map vec lexical))
           dynamic-vars (into {} (map vec dynamic))
-          fix-lexical-setq (fn [form] (if (c/and (seq? form) (= 'setq (first form)))
+          fix-lexical-setq (fn [form] (if (c/and (seq? form) (symbol? (first form))
+                                                 (= 'setq (symbol (name (first form)))))
                                         (list 'deuce.emacs-lisp/setq-helper* (c/set (keys lexical-vars)) (rest form))
                                         form))
           body (w/postwalk fix-lexical-setq

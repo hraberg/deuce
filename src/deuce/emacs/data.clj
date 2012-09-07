@@ -477,7 +477,7 @@
 
 (defun null (object)
   "Return t if OBJECT is nil."
-  (or (nil? object) (c/= () object)))
+  (or (nil? object) (c/= () object) (false? object)))
 
 (defun char-table-p (object)
   "Return t if OBJECT is a char-table."

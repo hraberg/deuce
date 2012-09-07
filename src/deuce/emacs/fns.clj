@@ -3,7 +3,9 @@
  (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c]
           [clojure.string :as s]
-          [deuce.emacs.data :as data])
+          [deuce.emacs.data :as data]
+          [deuce.emacs-lisp :as el]
+          [deuce.emacs-lisp.globals :as globals])
  (import [deuce.emacs_lisp DottedPair]
          [java.nio CharBuffer]
          [java.nio.charset Charset]
@@ -40,7 +42,7 @@
   "Announce that FEATURE is a feature of the current Emacs.
   The optional argument SUBFEATURES should be a list of symbols listing
   particular subfeatures supported in this version of FEATURE."
-  )
+  (el/setq features (cons feature globals/features)))
 
 (defun widget-get (widget property)
   "In WIDGET, get the value of PROPERTY.
@@ -111,7 +113,7 @@
   In between each pair of results, stick in SEPARATOR.  Thus, \" \" as
   SEPARATOR results in spaces between the values returned by FUNCTION.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  (s/join separator (map function sequence)))
+  (s/join separator (map (if (symbol? function) (data/symbol-function function) function) sequence)))
 
 (defun compare-strings (str1 start1 end1 str2 start2 end2 &optional ignore-case)
   "Compare the contents of two strings, converting to multibyte if needed.
@@ -383,7 +385,7 @@
   "Apply FUNCTION to each element of SEQUENCE, and make a list of the results.
   The result is a list just as long as SEQUENCE.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  (map function sequence))
+  (map (if (symbol? function) (data/symbol-function function) function) sequence))
 
 (defun fillarray (array item)
   "Store each element of ARRAY with ITEM.
@@ -656,7 +658,7 @@
   Use `provide' to declare that a feature is available.  This function
   looks at the value of the variable `features'.  The optional argument
   SUBFEATURE can be used to check a specific subfeature of FEATURE."
-  )
+  (boolean (some #{feature} globals/features)))
 
 (defun hash-table-rehash-threshold (table)
   "Return the current rehash threshold of TABLE."
@@ -686,7 +688,7 @@
   "Apply FUNCTION to each element of SEQUENCE for side effects only.
   Unlike `mapcar', don't accumulate the results.  Return SEQUENCE.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  (dorun (map function sequence))
+  (dorun (map (if (symbol? function) (data/symbol-function function) function) sequence))
   sequence)
 
 (defun plist-member (plist prop)
