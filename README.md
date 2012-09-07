@@ -16,7 +16,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 * Getting [`subr.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/subr.el) to load properly (and then continue [`loadup.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/loadup.el)).
 * Proper loading of Emacs Lisp in general.
 * Proper handling of lexical vs. dynamic scoping.
-* Getting the [`ert.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/ert.el) [`ert-tests.el`](https://github.com/hraberg/deuce/blob/master/test/ert-tests.el) self tests running. This will require some buffer variable handling. ERT also requires a few other files to work (like [`cl.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/cl.el)).
+* Getting the [`ert.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/ert.el) [`ert-tests.el`](https://github.com/hraberg/deuce/blob/master/test/ert-tests.el) self tests running. This will require some buffer variable handling. [ERT](http://www.gnu.org/software/emacs/manual/html_node/ert/index.html) also requires a few other files to work (like [`cl.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/cl.el)).
 
 **2012-09-04 Deuce-Loadup**
 
@@ -172,7 +172,7 @@ I don't expect the visual editor to exist for quite a while. Initially, the edit
 
 Larger than the technical challenges - which are mainly about scale - is the fact it doesn't seem to be any large regression suite for Emacs one can use to ensure one is on the right track. There are some tests, and other editors, like Zile, have Emacs compatibility test suites for at least editing that could be reused:
 
-* Emacs is using [`ert.el`](https://github.com/ohler/ert) for regression testing. Stallman's [comments](http://lists.gnu.org/archive/html/emacs-devel/2007-12/msg01339.html).
+* Emacs is using [`ert.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/ert.el) for regression testing. Stallman's [comments](http://lists.gnu.org/archive/html/emacs-devel/2007-12/msg01339.html).
 * [Zile](http://www.gnu.org/software/zile/) [tests](http://git.savannah.gnu.org/cgit/zile.git/tree/tests) runs against both Zile and Emacs.
 * [Org-mode](http://orgmode.org/worg/org-tests/index.html) [testing/README](http://repo.or.cz/w/org-mode.git/blob/HEAD:/testing/README)
 * [Regression Testing XEmacs](http://www.xemacs.org/Documentation/21.5/html/internals_12.html) may or may not work with GNU Emacs.
