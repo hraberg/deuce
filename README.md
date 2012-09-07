@@ -130,7 +130,7 @@ Once in [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/e
 
 To try to load [`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/src/deuce-loadup.el), do:
 
-    (require 'deuce.main)
+    (clojure.core/require 'deuce.main)
     (deuce.main/loadup)
 
 This is currently broken on [`subr.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/subr.el).
