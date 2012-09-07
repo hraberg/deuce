@@ -13,7 +13,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 **Tentative Goals for September 2012**
 
-* Getting `subr.el` to load properly (and then continue `loadup.el`).
+* Getting [`subr.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/subr.el) to load properly (and then continue [`loadup.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/loadup.el)).
 * Proper loading of Emacs Lisp in general.
 * Proper handling of lexical vs. dynamic scoping (as needed, ignoring buffers for now).
 * Getting the [`ert.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/ert.el) `[ert-tests.el](https://github.com/hraberg/deuce/blob/master/test/ert-tests.el)` self tests running.
