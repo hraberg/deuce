@@ -4,13 +4,21 @@
 
 
 **Note: Absolutely NOTHING works yet. Expect until Q3 2012 before anything even remotely interesting.**
-*(I plan to work full-time on this from September 2012.)*
 
 Also - there's a risk I'll give up, far before reaching the current benchmark of JVM Emacsen: [JEmacs](http://per.bothner.com/papers/Freenix00/Freenix00.html).
 
 ### What is there to see?
 
-**Deuce-Loadup**
+**2012-09-07** A new section about [hacking on Deuce](https://github.com/hraberg/deuce#hacking).
+
+**Tentative Goals for September 2012**
+
+* Getting `subr.el` to load properly (and then continue `loadup.el`).
+* Proper loading of Emacs Lisp in general.
+* Proper handling of lexical vs. dynamic scoping (as needed, ignoring buffers for now).
+* Getting the [`ert.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/ert.el) `[ert-tests.el](https://github.com/hraberg/deuce/blob/master/test/ert-tests.el)` self tests running.
+
+**2012-09-04 Deuce-Loadup**
 
     $ java -jar target/deuce-0.1.0-SNAPSHOT-standalone.jar --batch --eval "(print (emacs-version))"
     Loading deuce-loadup.el...
@@ -93,6 +101,31 @@ The above should output:
 Clojure will be a first class citizen along Emacs Lisp in this new world. There may be ways to get this build even smaller, haven't looked into it yet.
 
 
+### Hacking
+
+While the most of the document below represents speculation about how the port might work, this discusses how the port *actually* works.
+
+You need Emacs (see above) to have access to the Emacs Lisp, but actually building Emacs is optional (this is the entire point of Deuce).
+I use Emacs to develop Deuce, which has a few recursive advantages - you can constantly verify how things should work in a real Lisp Interaction buffer.
+
+After a few days of hacking, I found that it's easiest to load and switch to the [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs.clj) and use this as your "base" namespace (`clojure.core` is required as `c`). Most actual hard work goes into [`deuce.emacs-lisp`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs_lisp.clj). The various namespaces [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs) replaces the C core `subr` functions in GNU Emacs.
+
+Once in [`deuce.emacs`] you can either evaluate Emacs Lisp as raw Clojure or via `eval` - the latter is more realistic as there's (often needed) processing done to the Clojure forms before they are really evaluated as Emacs Lisp. So normally do this:
+
+    (eval '(setq x 2))
+
+To try to load [`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/src/deuce-loadup.el), do:
+
+    (require 'deuce.main)
+    (deuce.main/loadup)
+
+This is currently broken on [`subr.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/subr.el).
+
+But the basic work to be done in this phase of Deuce is to get the real Emacs [`loadup.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/loadup.el) to actually load (some modifications are expected).
+
+Tests in [`deuce.test`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/) are written in an REPL example style, most are ported from the [GNU Emacs Lisp Reference Manual](http://www.gnu.org/software/emacs/manual/html_node/elisp/index.html), and are mainly targeting core features of Emacs Lisp, not the various library functions.
+
+
 #### Tags
 
 Run [`./collect-tags`](https://github.com/hraberg/deuce/blob/master/collect-tags) and add something like this to your `init.el`:
@@ -142,12 +175,12 @@ Larger than the technical challenges - which are mainly about scale - is the fac
 * [Org-mode](http://orgmode.org/worg/org-tests/index.html) [testing/README](http://repo.or.cz/w/org-mode.git/blob/HEAD:/testing/README)
 * [Regression Testing XEmacs](http://www.xemacs.org/Documentation/21.5/html/internals_12.html) may or may not work with GNU Emacs.
 
-[`./ert`](https://github.com/hraberg/deuce/blob/master/ert) will run [its own test suite](https://github.com/hraberg/deuce/blob/master/test/ert-tests.el), using the Emacs built at `emacs/src/emacs`. This is the version above, before it was merged into Emacs 24.
+[`./ert`](https://github.com/hraberg/deuce/blob/master/ert) will run [its own test suite](https://github.com/hraberg/deuce/blob/master/test/ert-tests.el), using the Emacs built at `emacs/src/emacs`.
 
 
 ### Building
 
-`lein uberjar` will bundle together Deuce, Clojure and the Emacs Lisp from GNU Emacs into an executable jar (which currently cannot do anything).
+`lein uberjar` will bundle together Deuce, Clojure and the Emacs Lisp from GNU Emacs into an executable jar (which currently can only do limited evaluation of Emacs Lisp in batch mode).
 
 
 ### The Road Map
