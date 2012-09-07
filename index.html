@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8" content="text/html" http-equiv="Content-Type" /><meta content="DEUCE - Deuce is Emacs under Clojure" name="description" /><style type="text/css">/**
+<html><head><meta charset="utf-8" content="text/html" http-equiv="Content-Type" /><meta content="DEUCE - Deuce is (not yet) Emacs under Clojure" name="description" /><style type="text/css">/**
  * SyntaxHighlighter
  * http://alexgorbatchev.com/SyntaxHighlighter
  *
@@ -3028,7 +3028,7 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>deuce -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">deuce</h1><h2 class="project-version">0.1.0-SNAPSHOT</h2><br /><p>DEUCE - Deuce is Emacs under Clojure</p>
+</script><title>deuce -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">deuce</h1><h2 class="project-version">0.1.0-SNAPSHOT</h2><br /><p>DEUCE - Deuce is (not yet) Emacs under Clojure</p>
 </div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.4.0</td></tr><tr><td class="dep-name">clojure-lanterna</td><td class="dotted"><hr /></td><td class="dep-version">0.9.2</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#deuce.emacs">deuce.emacs</a></li><li><a href="#deuce.emacs.alloc">deuce.emacs.alloc</a></li><li><a href="#deuce.emacs.buffer">deuce.emacs.buffer</a></li><li><a href="#deuce.emacs.bytecode">deuce.emacs.bytecode</a></li><li><a href="#deuce.emacs.callint">deuce.emacs.callint</a></li><li><a href="#deuce.emacs.callproc">deuce.emacs.callproc</a></li><li><a href="#deuce.emacs.casefiddle">deuce.emacs.casefiddle</a></li><li><a href="#deuce.emacs.casetab">deuce.emacs.casetab</a></li><li><a href="#deuce.emacs.category">deuce.emacs.category</a></li><li><a href="#deuce.emacs.ccl">deuce.emacs.ccl</a></li><li><a href="#deuce.emacs.character">deuce.emacs.character</a></li><li><a href="#deuce.emacs.charset">deuce.emacs.charset</a></li><li><a href="#deuce.emacs.chartab">deuce.emacs.chartab</a></li><li><a href="#deuce.emacs.cmds">deuce.emacs.cmds</a></li><li><a href="#deuce.emacs.coding">deuce.emacs.coding</a></li><li><a href="#deuce.emacs.composite">deuce.emacs.composite</a></li><li><a href="#deuce.emacs.data">deuce.emacs.data</a></li><li><a href="#deuce.emacs.dired">deuce.emacs.dired</a></li><li><a href="#deuce.emacs.dispnew">deuce.emacs.dispnew</a></li><li><a href="#deuce.emacs.doc">deuce.emacs.doc</a></li><li><a href="#deuce.emacs.editfns">deuce.emacs.editfns</a></li><li><a href="#deuce.emacs.emacs">deuce.emacs.emacs</a></li><li><a href="#deuce.emacs.eval">deuce.emacs.eval</a></li><li><a href="#deuce.emacs.fileio">deuce.emacs.fileio</a></li><li><a href="#deuce.emacs.filelock">deuce.emacs.filelock</a></li><li><a href="#deuce.emacs.floatfns">deuce.emacs.floatfns</a></li><li><a href="#deuce.emacs.fns">deuce.emacs.fns</a></li><li><a href="#deuce.emacs.font">deuce.emacs.font</a></li><li><a href="#deuce.emacs.frame">deuce.emacs.frame</a></li><li><a href="#deuce.emacs.indent">deuce.emacs.indent</a></li><li><a href="#deuce.emacs.insdel">deuce.emacs.insdel</a></li><li><a href="#deuce.emacs.keyboard">deuce.emacs.keyboard</a></li><li><a href="#deuce.emacs.keymap">deuce.emacs.keymap</a></li><li><a href="#deuce.emacs.lread">deuce.emacs.lread</a></li><li><a href="#deuce.emacs.macros">deuce.emacs.macros</a></li><li><a href="#deuce.emacs.marker">deuce.emacs.marker</a></li><li><a href="#deuce.emacs.menu">deuce.emacs.menu</a></li><li><a href="#deuce.emacs.minibuf">deuce.emacs.minibuf</a></li><li><a href="#deuce.emacs.print">deuce.emacs.print</a></li><li><a href="#deuce.emacs.process">deuce.emacs.process</a></li><li><a href="#deuce.emacs.search">deuce.emacs.search</a></li><li><a href="#deuce.emacs.syntax">deuce.emacs.syntax</a></li><li><a href="#deuce.emacs.term">deuce.emacs.term</a></li><li><a href="#deuce.emacs.terminal">deuce.emacs.terminal</a></li><li><a href="#deuce.emacs.textprop">deuce.emacs.textprop</a></li><li><a href="#deuce.emacs.undo">deuce.emacs.undo</a></li><li><a href="#deuce.emacs.window">deuce.emacs.window</a></li><li><a href="#deuce.emacs.xdisp">deuce.emacs.xdisp</a></li><li><a href="#deuce.emacs.xfaces">deuce.emacs.xfaces</a></li><li><a href="#deuce.emacs.xml">deuce.emacs.xml</a></li><li><a href="#deuce.emacs-lisp">deuce.emacs-lisp</a></li><li><a href="#deuce.emacs-lisp.globals">deuce.emacs-lisp.globals</a></li><li><a href="#deuce.emacs-lisp.parser">deuce.emacs-lisp.parser</a></li><li><a href="#deuce.main">deuce.main</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs" name="deuce.emacs"><h1 class="project-name">deuce.emacs</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.emacs
   (require [clojure.core :as c])
@@ -5318,7 +5318,7 @@ ANYTHING ELSE     display a hollow box cursor
   (bit-not number))</pre></td></tr><tr><td class="docs"><p>Set the cdr of CELL to be NEWCDR.  Returns NEWCDR.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun setcdr (cell newcdr))</pre></td></tr><tr><td class="docs"><p>Set SYMBOL's value to NEWVAL, and return NEWVAL.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun set (symbol newval)
-  (eval `(setq ~symbol '~newval)))</pre></td></tr><tr><td class="docs"><p>Return t if first arg is less than second arg.  Both must be numbers or markers.</p>
+  (eval `(el/setq  ~symbol '~newval)))</pre></td></tr><tr><td class="docs"><p>Return t if first arg is less than second arg.  Both must be numbers or markers.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun &lt; (num1 num2)
   (c/&lt; num1 num2))</pre></td></tr><tr><td class="docs"><p>Return the car of OBJECT if it is a cons cell, or else nil.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun car-safe (object)
@@ -7099,7 +7099,9 @@ ANYTHING ELSE     display a hollow box cursor
  (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c]
           [clojure.string :as s]
-          [deuce.emacs.data :as data])
+          [deuce.emacs.data :as data]
+          [deuce.emacs-lisp :as el]
+          [deuce.emacs-lisp.globals :as globals])
  (import [deuce.emacs_lisp DottedPair]
          [java.nio CharBuffer]
          [java.nio.charset Charset]
@@ -7127,7 +7129,8 @@ ANYTHING ELSE     display a hollow box cursor
 </td><td class="codes"><pre class="brush: clojure">(defvar features nil)</pre></td></tr><tr><td class="docs"><p>Announce that FEATURE is a feature of the current Emacs.
   The optional argument SUBFEATURES should be a list of symbols listing
   particular subfeatures supported in this version of FEATURE.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun provide (feature &amp;optional subfeatures))</pre></td></tr><tr><td class="docs"><p>In WIDGET, get the value of PROPERTY.
+</td><td class="codes"><pre class="brush: clojure">(defun provide (feature &amp;optional subfeatures)
+  (el/setq features (cons feature globals/features)))</pre></td></tr><tr><td class="docs"><p>In WIDGET, get the value of PROPERTY.
   The value could either be specified when the widget was created, or
   later with `widget-put'.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun widget-get (widget property))</pre></td></tr><tr><td class="docs"><p>Return a multibyte string with the same individual bytes as STRING.
@@ -7560,7 +7563,8 @@ ANYTHING ELSE     display a hollow box cursor
   Use `provide' to declare that a feature is available.  This function
   looks at the value of the variable `features'.  The optional argument
   SUBFEATURE can be used to check a specific subfeature of FEATURE.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun featurep (feature &amp;optional subfeature))</pre></td></tr><tr><td class="docs"><p>Return the current rehash threshold of TABLE.</p>
+</td><td class="codes"><pre class="brush: clojure">(defun featurep (feature &amp;optional subfeature)
+  (boolean (some #{feature} globals/features)))</pre></td></tr><tr><td class="docs"><p>Return the current rehash threshold of TABLE.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun hash-table-rehash-threshold (table))</pre></td></tr><tr><td class="docs"><p>Change value in PLIST of PROP to VAL.
   PLIST is a property list, which is a list of the form
   (PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol and VAL is any object.
@@ -13060,14 +13064,19 @@ reverse order.</p></li>
   (if (seq? form)
     (apply list (remove (every-pred seq? (comp '#{clojure.core/comment} first)) form))
     form))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn ^:private compile-body [args body]
+</td><td class="codes"><pre class="brush: clojure">(defn compile-body [args body]
   (try
     (c/eval `(fn ~(vec args)
                ~(-&gt;&gt; body
+                     ;; (w/postwalk #(do (println %) (if (c/and (seq? %) (symbol? (first %))
+                     ;;                             ('#{defun defmacro lambda} (symbol (name (first %)))))
+                     ;;                    (fn [] %)
+                     ;;                    %)))
                      (w/postwalk strip-comments)
                      (w/postwalk qualify-globals)
                      w/macroexpand-all
-                     (w/postwalk qualify-fns))))
+                     (w/postwalk qualify-fns)
+;                     (w/postwalk #(if (fn? %) (do (println &quot;EXPANDING A FN&quot;) (%)) %)))))
     (catch RuntimeException e
       (println e)
       (println args)
@@ -13083,7 +13092,7 @@ reverse order.</p></li>
     `(binding [*ns* (the-ns 'deuce.emacs)]
        (if (c/and (seq? ~body) ('~'#{defun defmacro} (first ~body)))
          (~cleanup-clojure (c/eval ~body))
-         (~cleanup-clojure ((~compile-body '~vars ~body) ~@vars))))))</pre></td></tr><tr><td class="docs">
+         (~cleanup-clojure ((compile-body '~vars ~body) ~@vars))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ^:private find-locals [form]
   (c/let [locals (transient [])]
     (w/postwalk #(do (when (c/and (seq? %) (= 'clojure.core/deref (first %)))
@@ -13111,7 +13120,7 @@ reverse order.</p></li>
                                                     (cons 'deuce.emacs-lisp/progn hack#)
                                                     hack#))
                           (= `c/fn what) `(binding [*ns* (the-ns 'deuce.emacs)]
-                                            (~cleanup-clojure ((~compile-body '~(concat locals arglist) '(do ~@body))
+                                            (~cleanup-clojure ((compile-body '~(concat locals arglist) '(do ~@body))
                                                                ~@locals ~@arglist)))
                           emacs-lisp? `(eval '(do ~@body))
                           :else `(do ~@body)))]
@@ -13247,14 +13256,14 @@ reverse order.</p></li>
   [arg]
   `(quote ~arg))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(c/defmacro let-helper* [can-refer? varlist &amp; body]
-  (c/let [;varlist (if (every? list? varlist) varlist [varlist])
-          varlist (-&gt;&gt; varlist
+  (c/let [varlist (-&gt;&gt; varlist
                        (map #(if (symbol? %) [% nil] %))
                        (map (fn [[s v]] [(first-symbol s) v])))
           {:keys [lexical dynamic]} (group-by (comp #(if (namespace %) :dynamic :lexical) first) varlist)
           lexical-vars (into {} (map vec lexical))
           dynamic-vars (into {} (map vec dynamic))
-          fix-lexical-setq (fn [form] (if (c/and (seq? form) (= 'setq (first form)))
+          fix-lexical-setq (fn [form] (if (c/and (seq? form) (symbol? (first form))
+                                                 (= 'setq (symbol (name (first form)))))
                                         (list 'deuce.emacs-lisp/setq-helper* (c/set (keys lexical-vars)) (rest form))
                                         form))
           body (w/postwalk fix-lexical-setq
