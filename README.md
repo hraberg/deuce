@@ -101,6 +101,20 @@ The above should output:
 Clojure will be a first class citizen along Emacs Lisp in this new world. There may be ways to get this build even smaller, haven't looked into it yet.
 
 
+#### Tags
+
+Run [`./collect-tags`](https://github.com/hraberg/deuce/blob/master/collect-tags) and add something like this to your `init.el`:
+
+    ;; To navigate between C and Emacs Lisp
+    (require 'etags-select)
+    (require 'etags-table)
+
+    (global-set-key "\M-." 'etags-select-find-tag)
+    (setq etags-table-search-up-depth 10)
+
+There are probably better and cleaner ways of doing this, as TAGS includes TAGS-LISP (there's a hint at [here](http://www.emacswiki.org/emacs/EtagsSelect)).
+
+
 ### Hacking
 
 While the most of the document below represents speculation about how the port might work, this discusses how the port *actually* works.
@@ -126,20 +140,6 @@ You can load Emacs Lisp (from the class path) with:
     (load "subr")
 
 Tests in [`deuce.test`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/) are written in an REPL example style, most are ported from the [GNU Emacs Lisp Reference Manual](http://www.gnu.org/software/emacs/manual/html_node/elisp/index.html), and are mainly targeting core features of Emacs Lisp, not the various library functions.
-
-
-#### Tags
-
-Run [`./collect-tags`](https://github.com/hraberg/deuce/blob/master/collect-tags) and add something like this to your `init.el`:
-
-    ;; To navigate between C and Emacs Lisp
-    (require 'etags-select)
-    (require 'etags-table)
-
-    (global-set-key "\M-." 'etags-select-find-tag)
-    (setq etags-table-search-up-depth 10)
-
-There are probably better and cleaner ways of doing this, as TAGS includes TAGS-LISP (there's a hint at [here](http://www.emacswiki.org/emacs/EtagsSelect)).
 
 
 ### Emacs Lisp to Clojure
