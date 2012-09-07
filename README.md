@@ -9,6 +9,9 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 ### What is there to see?
 
+[Marginalia](http://ghettojedi.org/deuce/)
+
+
 **2012-09-07** A new section about [hacking on Deuce](https://github.com/hraberg/deuce#hacking).
 
 **Tentative Goals for September 2012**
