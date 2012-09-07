@@ -43,7 +43,7 @@ You can evaluate arbitrary Emacs Lisp using `--eval` (most things won't work). `
 `--batch` is currently a mandatory parameter, to represent the fact that there's no real display editor to load yet.
 
 
-**The [clojure-lanterna](https://github.com/sjl/clojure-lanterna/) screen test**
+**2012-08-25 The [clojure-lanterna](https://github.com/sjl/clojure-lanterna/) screen test**
 
     lein trampoline run -m deuce.test.terminal
 
@@ -53,16 +53,7 @@ It is meant to ensure that Lanterna can handle the UI updates Emacs requires.
 [`terminal.cjl`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/terminal.clj).
 
 
-**The Emacs Lisp parser**
-
-    lein run -m deuce.test.parser
-
-It can read all the `.el` files under `emacs/lisp`, but the actual representation as Clojure forms will probably change.
-
-[`parser.cjl`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs_lisp/parser.clj).
-
-
-**Emacs Lisp**
+**2012-08-23 Emacs Lisp**
 
 The Clojure macros that backs Emacs Lisp lives in [`deuce.emacs-lisp`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs_lisp.clj).
 The exact evaluation model haven't been decided, but as Emacs Lisp is a Lisp 2, there will be a namespace for functions and one for variabels (currently called `deuce.emacs-lisp.globals`).
@@ -70,6 +61,15 @@ The exact evaluation model haven't been decided, but as Emacs Lisp is a Lisp 2, 
 [`dynamic.cjl`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/dynamic.clj), [`lexical.clj`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/lexical.clj) and [`locals.clj`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/locals.clj) is a first stab at evaluating some Emacs Lisp. See [`deuce.test`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/) for more.
 
 A test representing a tiny fraction of [`loadup.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/loadup.el), [`loadup.clj`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/loadup.clj).
+
+
+**2012-04-22 The Emacs Lisp parser**
+
+    lein run -m deuce.test.parser
+
+It can read all the `.el` files under `emacs/lisp`, but the actual representation as Clojure forms will probably change.
+
+[`parser.cjl`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs_lisp/parser.clj). This was one of the first things written back right before [EuroClojure](http://euroclojure.com/2012/), before I put Deuce on hold after admitting that the scope of this project required full time dedication.
 
 
 ### Preparing Emacs
