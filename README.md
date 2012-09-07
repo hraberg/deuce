@@ -122,7 +122,7 @@ While the most of the document below represents speculation about how the port m
 You need Emacs (see above) to have access to the Emacs Lisp, but actually building Emacs is optional (this is the entire point of Deuce).
 I use Emacs to develop Deuce, which has a few recursive advantages - you can constantly verify how things should work in a real Lisp Interaction buffer.
 
-After a few days of hacking, I found that it's easiest to load and switch to the [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs.clj) and use this as your "base" namespace (`clojure.core` is required as `c`). Most actual hard work goes into [`deuce.emacs-lisp`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs_lisp.clj). The various namespaces [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs) replaces the C core `subr` functions in GNU Emacs.
+After a few days of hacking, I found that it's easiest to load and switch to the [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs.clj) and use this as your "base" namespace (`clojure.core` is required as `c`). Most actual hard work goes into [`deuce.emacs-lisp`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs_lisp.clj). The various namespaces under [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs) replaces the C core `subr` functions in GNU Emacs.
 
 Once in [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs.clj) you can either evaluate Emacs Lisp as raw Clojure or via `eval` - the latter is more realistic as there's (often needed) processing done to the Clojure forms before they are really evaluated as Emacs Lisp. So normally do this:
 
