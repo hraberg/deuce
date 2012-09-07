@@ -1,5 +1,5 @@
 (defproject deuce "0.1.0-SNAPSHOT"
-  :description "DEUCE - Deuce is Emacs under Clojure"
+  :description "DEUCE - Deuce is (not yet) Emacs under Clojure"
   :license {:name "GNU General Public License Version 3"
             :url "http://www.gnu.org/licenses/"
             :distribution :repo}
