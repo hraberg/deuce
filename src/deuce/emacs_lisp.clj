@@ -28,6 +28,7 @@
 
 (defn ^:private qualify-globals [form]
   (if-let [s (c/and (symbol? form)
+                    (not (re-find #"\." (c/name form)))
                     (c/or
                      ((clojure-special-forms) (symbol (name form)))
                      (ns-resolve 'deuce.emacs-lisp.globals (symbol (name form)))))]
@@ -41,8 +42,8 @@
     form))
 
 (defn ^:private strip-comments [form]
-  (if (list? form)
-    (apply list (remove (every-pred list? (comp '#{clojure.core/comment} first)) form))
+  (if (seq? form)
+    (apply list (remove (every-pred seq? (comp '#{clojure.core/comment} first)) form))
     form))
 
 (defn ^:private compile-body [args body]
@@ -54,10 +55,9 @@
                      w/macroexpand-all
                      (w/postwalk qualify-fns))))
     (catch RuntimeException e
-      ;; (println e)
-      ;; (println args)
-      ;; (println body)
-      ;; (println (some #(-> % meta :line) (flatten body)))
+      (println e)
+      (println args)
+      (println body (type body))
       (throw e))))
 
 
@@ -69,13 +69,13 @@
   [body & [lexical]]
   (c/let [vars (keys &env)]
     `(binding [*ns* (the-ns 'deuce.emacs)]
-       (if (c/and (list? ~body) ('~'#{defun defmacro} (first ~body)))
+       (if (c/and (seq? ~body) ('~'#{defun defmacro} (first ~body)))
          (~cleanup-clojure (c/eval ~body))
          (~cleanup-clojure ((~compile-body '~vars ~body) ~@vars))))))
 
 (defn ^:private find-locals [form]
   (c/let [locals (transient [])]
-    (w/postwalk #(do (when (c/and (list? %) (= 'clojure.core/deref (first %)))
+    (w/postwalk #(do (when (c/and (seq? %) (= 'clojure.core/deref (first %)))
                        (conj! locals (second %)))
                      %) form)
     (persistent! locals)))
@@ -88,7 +88,7 @@
                                               [() arg args]
                                               (partition-by '#{&optional} arglist))
           arglist (concat arglist (when &optional ['& (vec optional-args)]))
-          [[interactive] body] (split-with #(c/and (list? %)
+          [[interactive] body] (split-with #(c/and (seq? %)
                                                    (= 'interactive (first %))) body)
           emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)
           doc (apply str docstring)
@@ -96,13 +96,13 @@
 ;    (println (c/name what) name (c/or (-> name meta :line) ""))
     `(c/let [f# (~what ~name ~(vec arglist)
                        ~(c/cond
-                          (= 'clojure.core/defmacro what) `(c/let [hack# (eval '(do ~@body))]
-                                                             (if (every? seq? hack#)
-                                                               (cons 'deuce.emacs-lisp/progn hack#)
-                                                               hack#))
-                          (= 'clojure.core/fn what) `(binding [*ns* (the-ns 'deuce.emacs)]
-                                                       (~cleanup-clojure ((~compile-body '~(concat locals arglist) '(do ~@body))
-                                                                          ~@locals ~@arglist)))
+                          (= `c/defmacro what) `(c/let [hack# (eval '(do ~@body))]
+                                                  (if (every? seq? hack#)
+                                                    (cons 'deuce.emacs-lisp/progn hack#)
+                                                    hack#))
+                          (= `c/fn what) `(binding [*ns* (the-ns 'deuce.emacs)]
+                                            (~cleanup-clojure ((~compile-body '~(concat locals arglist) '(do ~@body))
+                                                               ~@locals ~@arglist)))
                           emacs-lisp? `(eval '(do ~@body))
                           :else `(do ~@body)))]
        (if (var? f#)
@@ -212,18 +212,18 @@
 (c/defmacro setq-helper* [locals sym-vals]
   `(c/let
        ~(reduce into []
-                (for [[s v] (partition 2 sym-vals)]
-                  (c/let [s (if (seq? s) (second s) s)]
-                    [(symbol (name (first-symbol s)))
-                     (if (contains? locals s)
-                       `(do (reset! ~s ~v) ~s)
-                       `(if-let [var# (ns-resolve 'deuce.emacs-lisp.globals '~s)]
-                          (if (contains? (get-thread-bindings) var#)
-                            (var-set var# ~v)
-                            (alter-var-root var# (constantly ~v)))
-                          (do
-                            (defvar ~s ~v)
-                            ~v)))])))
+                (for [[s v] (partition 2 sym-vals)
+                      :let [s (if (seq? s) (second s) s)]]
+                  [(symbol (name (first-symbol s)))
+                   (if (contains? locals s)
+                     `(do (reset! ~s ~v) ~s)
+                     `(if-let [var# (ns-resolve 'deuce.emacs-lisp.globals '~s)]
+                        (if (contains? (get-thread-bindings) var#)
+                          (var-set var# ~v)
+                          (alter-var-root var# (constantly ~v)))
+                        (do
+                          (defvar ~s ~v)
+                          ~v)))]))
      ~(last (butlast sym-vals))))
 
 (c/defmacro setq
@@ -260,7 +260,7 @@
           {:keys [lexical dynamic]} (group-by (comp #(if (namespace %) :dynamic :lexical) first) varlist)
           lexical-vars (into {} (map vec lexical))
           dynamic-vars (into {} (map vec dynamic))
-          fix-lexical-setq (fn [form] (if (c/and (list? form) (= 'setq (first form)))
+          fix-lexical-setq (fn [form] (if (c/and (seq? form) (= 'setq (first form)))
                                         (list 'deuce.emacs-lisp/setq-helper* (c/set (keys lexical-vars)) (rest form))
                                         form))
           body (w/postwalk fix-lexical-setq
@@ -425,7 +425,9 @@
   Each VALUEFORM can refer to the symbols already bound by this VARLIST."
   {:arglists '([VARLIST BODY...])}
   [varlist & body]
-  `(let-helper* true ~varlist ~@body))
+  (if (vector? varlist)
+    `(c/let ~varlist ~@body)
+    `(let-helper* true ~varlist ~@body)))
 
 (defn defvar-helper* [ns symbol & [initvalue docstring]]
   (c/let [symbol (c/symbol (name (first-symbol symbol)))]

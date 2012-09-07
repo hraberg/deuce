@@ -12,6 +12,8 @@
 
 (repl example-1
 
+     (setq lexical-binding t)
+
      (let ((x 1))
        (+ x 3))      ⇒ 4
 
@@ -22,6 +24,8 @@
        (getx))       ⇒ Exception)
 
 (repl example-2
+
+     (setq lexical-binding t)
 
      (defvar my-ticker nil)
 
