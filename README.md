@@ -110,7 +110,7 @@ I use Emacs to develop Deuce, which has a few recursive advantages - you can con
 
 After a few days of hacking, I found that it's easiest to load and switch to the [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs.clj) and use this as your "base" namespace (`clojure.core` is required as `c`). Most actual hard work goes into [`deuce.emacs-lisp`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs_lisp.clj). The various namespaces [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs) replaces the C core `subr` functions in GNU Emacs.
 
-Once in [`deuce.emacs`] you can either evaluate Emacs Lisp as raw Clojure or via `eval` - the latter is more realistic as there's (often needed) processing done to the Clojure forms before they are really evaluated as Emacs Lisp. So normally do this:
+Once in [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs.clj) you can either evaluate Emacs Lisp as raw Clojure or via `eval` - the latter is more realistic as there's (often needed) processing done to the Clojure forms before they are really evaluated as Emacs Lisp. So normally do this:
 
     (eval '(setq x 2))
 
@@ -121,7 +121,9 @@ To try to load [`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/
 
 This is currently broken on [`subr.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/subr.el).
 
-But the basic work to be done in this phase of Deuce is to get the real Emacs [`loadup.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/loadup.el) to actually load (some modifications are expected).
+You can load Emacs Lisp (from the class path) with:
+
+    (load "subr")
 
 Tests in [`deuce.test`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/) are written in an REPL example style, most are ported from the [GNU Emacs Lisp Reference Manual](http://www.gnu.org/software/emacs/manual/html_node/elisp/index.html), and are mainly targeting core features of Emacs Lisp, not the various library functions.
 
