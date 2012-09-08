@@ -31,7 +31,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
     Loading subr...
     Loading version.el...
     GNU Emacs 24.2 (jvm-1.8.0-ea_clojure-1.4.0)
-     of 2012-9-4 on hraberg-VPCZ21C5E
+     of 2012-09-04 on hraberg-VPCZ21C5E
 
 [`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/src/deuce-loadup.el) represents a small fraction of the real Emacs [`loadup.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/loadup.el). Not all forms loaded are even properly evaluated yet, but we get to [`version.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/version.el).
 
