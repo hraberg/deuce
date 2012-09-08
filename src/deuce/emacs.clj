@@ -2,7 +2,10 @@
   (require [clojure.core :as c]
            [deuce.emacs-lisp.globals :as globals])
   (:refer-clojure :only [])
-  (use [deuce.emacs-lisp]
+  (use [deuce.emacs-lisp :only [and catch cond condition-case defconst defmacro defun defvar eval
+                                function if interactive lambda let let* or prog1 prog2 progn quote
+                                save-current-buffer save-excursion save-restriction save-window-excursion
+                                setq setq-default throw unwind-protect while with-output-to-temp-buffer]]
        [deuce.emacs.alloc]
        [deuce.emacs.buffer]
        [deuce.emacs.bytecode]

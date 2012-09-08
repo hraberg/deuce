@@ -18,15 +18,15 @@
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
 
-(defn ^:private clojure-special-forms []
+(defn clojure-special-forms []
   (->> (ns-map 'deuce.emacs-lisp)
        (filter (comp :clojure-special-form meta val))
        (into {})))
 
-(defn ^:private cleanup-clojure [x]
+(defn cleanup-clojure [x]
   (if (symbol? x) (symbol (name x)) x))
 
-(defn ^:private qualify-globals [locals form]
+(defn qualify-globals [locals form]
   (if-let [s (c/and (symbol? form)
                     (not (locals form))
                     (not (re-find #"\." (c/name form)))
@@ -36,7 +36,7 @@
     (symbol (-> s meta :ns str) (-> s meta :name str))
     form))
 
-(defn ^:private qualify-fns [form]
+(defn qualify-fns [form]
   (if-let [s (c/and (list? form) (symbol? (first form))
                     (ns-resolve 'deuce.emacs (symbol (name (first form)))))]
     (apply list (cons (symbol (-> s meta :ns str) (-> s meta :name str)) (next form)))
@@ -44,12 +44,12 @@
       (symbol (name form))
       form)))
 
-(defn ^:private strip-comments [form]
+(defn strip-comments [form]
   (if (seq? form)
     (apply list (remove (every-pred seq? (comp '#{clojure.core/comment} first)) form))
     form))
 
-(defn ^:private compile-body [args body]
+(defn compile-body [args body]
   (try
     (c/eval `(fn ~(vec args)
                ~(->> body
@@ -75,7 +75,7 @@
   [body & [lexical]]
   (c/let [vars (keys &env)]
     `(binding [*ns* (the-ns 'deuce.emacs)]
-       (~cleanup-clojure ((~compile-body '~vars ~body) ~@vars)))))
+       (cleanup-clojure ((compile-body '~vars ~body) ~@vars)))))
 
 (declare let-helper*)
 
@@ -194,7 +194,7 @@
   [& clauses]
   `(c/cond ~@(apply concat clauses)))
 
-(defn ^:private first-symbol [s]
+(defn first-symbol [s]
   (if (symbol? s) s
       (loop [s s]
         (if (symbol? (second s))
