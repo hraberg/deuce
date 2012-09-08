@@ -14,10 +14,10 @@
   `buffer-substring' need not call the `buffer-access-fontify-functions'
   functions if all the text being accessed has this property.")
 
-(defvar operating-system-release nil
+(defvar operating-system-release (System/getProperty "os.version")
   "The release of the operating system Emacs is running on.")
 
-(defvar user-real-login-name nil
+(defvar user-real-login-name (System/getProperty "user.name")
   "The user's name, based upon the real uid only.")
 
 (defvar buffer-access-fontify-functions nil
@@ -25,7 +25,7 @@
   Each function is called with two arguments which specify the range
   of the buffer being accessed.")
 
-(defvar user-login-name nil
+(defvar user-login-name (System/getProperty "user.name")
   "The user's name, taken from environment variables if possible.")
 
 (defvar system-name (.getHostName (InetAddress/getLocalHost))
@@ -49,6 +49,14 @@
   A field is a region of text with the same `field' property.
   If POS is nil, the value of point is used for POS."
   )
+
+(defn ^:private emacs-time-to-date [[high low usec]]
+  (Date. (+ (* (+ (bit-shift-left high 16) low) 1000) (/ usec 1000))))
+
+(defn ^:private date-to-emacs-time [date]
+  (let [now (.getTime date)
+        seconds (int (/ now 1000))]
+    (list (bit-shift-right seconds 16) (bit-and 0xffff seconds) (* 1000 (mod now 1000)))))
 
 (defun decode-time (&optional specified-time)
   "Decode a time value as (SEC MINUTE HOUR DAY MONTH YEAR DOW DST ZONE).
@@ -76,9 +84,7 @@
 
   The microsecond count is zero on systems that do not provide
   resolution finer than a second."
-  (let [now (System/currentTimeMillis)
-        seconds (int (/ now 1000))]
-    (list (bit-shift-right seconds 16) (bit-and 0xffff seconds) (* 1000 (mod now 1000)))))
+  (date-to-emacs-time (Date.)))
 
 (defun point-max-marker ()
   "Return a marker to the maximum permissible value of point in this buffer.
@@ -199,7 +205,7 @@
   "Return the name of the user's real uid, as a string.
   This ignores the environment variables LOGNAME and USER, so it differs from
   `user-login-name' when running under `su'."
-  )
+  globals/user-real-login-name)
 
 (defun emacs-pid ()
   "Return the process ID of Emacs, as an integer."
@@ -215,7 +221,7 @@
   "Return t if two characters match, optionally ignoring case.
   Both arguments must be characters (i.e. integers).
   Case is ignored if `case-fold-search' is non-nil in the current buffer."
-  )
+  (= (s/lower-case c1) (s/lower-case c2)))
 
 (defun encode-time (second minute hour day month year &optional zone)
   "Convert SECOND, MINUTE, HOUR, DAY, MONTH, YEAR and ZONE to internal time.
@@ -264,7 +270,7 @@
 
 (defun string-to-char (string)
   "Return the first character in STRING."
-  )
+  (first string))
 
 (defun point-marker ()
   "Return value of point, as a marker object."
@@ -417,7 +423,7 @@
 
   If optional argument UID is an integer or a float, return the login name
   of the user with that uid, or nil if there is no such user."
-  )
+  globals/user-login-name)
 
 (defun bobp ()
   "Return t if point is at the beginning of the buffer.
@@ -457,7 +463,8 @@
   Thus, you can use times obtained from `current-time' and from
   `file-attributes'.  SPECIFIED-TIME can also have the form (HIGH . LOW),
   but this is considered obsolete."
-  )
+  (.format (SimpleDateFormat. "EEE MMM dd HH:mm:ss yyyy")
+           (emacs-time-to-date (or specified-time (current-time)))))
 
 (defun constrain-to-field (new-pos old-pos &optional escape-from-edge only-in-line inhibit-capture-property)
   "Return the position closest to NEW-POS that is in the same field as OLD-POS.
@@ -644,9 +651,10 @@
   For example, to produce full ISO 8601 format, use \"%Y-%m-%dT%T%z\"."
   (let [[hi low] (or time (current-time))
         time (* (+ (bit-shift-left hi 16) low) 1000)]
-    (.format (SimpleDateFormat. (-> format-string
-                                    (s/replace "%m" "M")
-                                    (s/replace "%" ""))) (Date. time))))
+    (.format (SimpleDateFormat. (reduce #(apply s/replace %1 %2) format-string
+                                        {"%Y" "Y"
+                                         "%m" "MM"
+                                         "%d" "dd"})) (Date. time))))
 
 (defun insert-byte (byte count &optional inherit)
   "Insert COUNT (second arg) copies of BYTE (first arg).
@@ -736,7 +744,7 @@
 
 (defun byte-to-string (byte)
   "Convert arg BYTE to a unibyte string containing that byte."
-  )
+  (str (char byte)))
 
 (defun float-time (&optional specified-time)
   "Return the current time, as a float number of seconds since the epoch.
@@ -749,7 +757,10 @@
   WARNING: Since the result is floating point, it may not be exact.
   If precise time stamps are required, use either `current-time',
   or (if you need time as a string) `format-time-string'."
-  )
+  (let [specified-time (if specified-time
+                         (emacs-time-to-date specified-time)
+                         (Date.))]
+    (/ (.getTime specified-time) 1000.0)))
 
 (defun message-box (format-string &rest args)
   "Display a message, in a dialog box if possible.
