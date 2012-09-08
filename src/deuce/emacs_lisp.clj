@@ -141,9 +141,9 @@
   If BODYFORM exits nonlocally, the UNWINDFORMS are executed anyway."
   {:arglists '([BODYFORM UNWINDFORMS...])}
   [bodyform & unwindforms]
-  (try
-    ~bodyform
-    (finally ~@unwindforms)))
+  `(try
+     ~bodyform
+     (finally ~@unwindforms)))
 
 (c/defmacro condition-case
   "Regain control when an error is signaled.
