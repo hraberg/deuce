@@ -92,8 +92,9 @@
                       %))))
 
 (defn parse [r]
-  (reset! line 1)
-  (->> (tokenize-all (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
-                       (.useDelimiter #"(\s|\]|\)|\"|;)")))
-       (w/postwalk expand-dotted-pairs)
-       syntax-quote))
+  (binding [line (atom 1)]
+    (->> (tokenize-all (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
+                         (.useDelimiter #"(\s|\]|\)|\"|;)")))
+         (w/postwalk expand-dotted-pairs)
+         (w/postwalk-replace {(symbol "nil") nil (symbol "t") true})
+         syntax-quote)))

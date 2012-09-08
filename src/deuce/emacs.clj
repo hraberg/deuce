@@ -52,3 +52,11 @@
        [deuce.emacs.xdisp]
        [deuce.emacs.xfaces]
        [deuce.emacs.xml]))
+
+(setq t true)
+
+(setq motif-version-string "")
+(setq gtk-version-string "")
+(setq ns-version-string "")
+(setq x-toolkit-scroll-bars nil)
+(setq msdos-long-file-names nil)
