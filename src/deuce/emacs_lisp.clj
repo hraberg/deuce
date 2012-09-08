@@ -23,26 +23,41 @@
        (filter (comp :clojure-special-form meta val))
        (into {})))
 
-(defn cleanup-clojure [x]
-  (if (symbol? x) (symbol (name x)) x))
+(defn sym [s]
+  (symbol (name s)))
+
+(defn first-symbol [form]
+  (when ((every-pred seq? (comp symbol? first)) form)
+        (first form)))
+
+(defn nested-first-symbol [s]
+  (if (symbol? s)
+    s
+    (when s
+      (recur (second s)))))
+
+(defn global [s]
+  (ns-resolve 'deuce.emacs-lisp.globals s))
+
+(defn maybe-sym [x]
+  (if (symbol? x) (sym x) x))
 
 (defn qualify-globals [locals form]
   (if-let [s (c/and (symbol? form)
                     (not (locals form))
-                    (not (re-find #"\." (c/name form)))
-                    (c/or
-                     ((clojure-special-forms) (symbol (name form)))
-                     (ns-resolve 'deuce.emacs-lisp.globals (symbol (name form)))))]
+                    (not (re-find #"\." (name form)))
+                    ((some-fn (clojure-special-forms) global) (sym form)))]
     (symbol (-> s meta :ns str) (-> s meta :name str))
     form))
 
 (defn qualify-fns [form]
-  (if-let [s (c/and (list? form) (symbol? (first form))
-                    (not (= "clojure.core" (namespace (first form))))
-                    (ns-resolve 'deuce.emacs (symbol (name (first form)))))]
+  (if-let [s (when-let [s (first-symbol form)]
+               (c/and
+                (not (= "clojure.core" (namespace s)))
+                (ns-resolve 'deuce.emacs (sym s))))]
     (apply list (cons (symbol (-> s meta :ns str) (-> s meta :name str)) (next form)))
     (if (c/and (symbol? form) (= "deuce.emacs" (namespace form)))
-      (symbol (name form))
+      (sym form)
       form)))
 
 (defn strip-comments [form]
@@ -54,8 +69,7 @@
   (try
     (c/eval `(fn ~(vec args)
                ~(->> body
-                     (w/postwalk #(if (c/and (seq? %) (symbol? (first %))
-                                             ('#{defun defmacro} (symbol (name (first %)))))
+                     (w/postwalk #(if ('#{defun defmacro} (maybe-sym (first-symbol %)))
                                     ^:protect-from-expansion (fn [] %)
                                     %))
                      (w/postwalk strip-comments)
@@ -76,7 +90,7 @@
   [body & [lexical]]
   (c/let [vars (keys &env)]
     `(binding [*ns* (the-ns 'deuce.emacs)]
-       (cleanup-clojure ((compile-body '~vars ~body) ~@vars)))))
+       (maybe-sym ((compile-body '~vars ~body) ~@vars)))))
 
 (declare let-helper*)
 
@@ -92,17 +106,18 @@
                                                    (= 'interactive (first %))) body)
           emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)
           doc (apply str docstring)
-          arglist (w/postwalk #(if (symbol? %) (symbol (c/name %)) %) arglist)
+          arglist (w/postwalk #(if (symbol? %) (sym %) %) arglist)
           the-args (remove '#{&} (flatten arglist))]
 ;    (println (c/name what) name (c/or (-> name meta :line) ""))
     `(c/let [f# (~what ~name ~(vec arglist)
                        ~(if emacs-lisp?
-                          `(let-helper* false ~(map #(list % %) the-args) (eval '(do ~@body)))
+                          `(let-helper* false ~(map #(list % %) the-args)
+                             (eval '(do ~@body)))
                           `(do ~@body)))]
        (if (var? f#)
          (do
            (alter-meta! f# merge {:doc ~doc :line (-> '~name meta :line)
-                                  :file (when-let [file# (ns-resolve 'deuce.emacs-lisp.globals 'load-file-name)]
+                                  :file (when-let [file# (global 'load-file-name)]
                                           @file#)})
            (alter-var-root f# (constantly (with-meta @f# (meta f#)))))
          (with-meta f# (assoc (meta f#) :doc ~doc))))))
@@ -194,21 +209,16 @@
   CONDITION's value if non-nil is returned from the cond-form."
   {:arglists '([CLAUSES...])}
   [& clauses]
-  `(c/cond ~@(apply concat (map #(if (= 1 (count %)) (repeat 2 (first %)) %) clauses))))
-
-(defn first-symbol [s]
-  (if (symbol? s) s
-      (loop [s s]
-        (if (symbol? (second s))
-          (second s)
-          (recur (second s))))))
+  `(c/cond ~@(->> clauses
+                  (map #(if (second %) % (repeat 2 (first %))))
+                  (apply concat))))
 
 (c/defmacro setq-helper* [locals sym-vals]
   `(c/let
        ~(reduce into []
                 (for [[s v] (partition 2 sym-vals)
-                      :let [s (if (seq? s) (second s) s)]]
-                  [(symbol (name (first-symbol s)))
+                      :let [s (nested-first-symbol s)]]
+                  [(sym s)
                    (if (contains? locals s)
                      `(do (reset! ~s ~v) ~s)
                      `(if-let [var# (ns-resolve 'deuce.emacs-lisp.globals '~s)]
@@ -249,27 +259,23 @@
 (c/defmacro let-helper* [can-refer? varlist & body]
   (c/let [varlist (->> varlist
                        (map #(if (symbol? %) [% nil] %))
-                       (map (fn [[s v]] [(first-symbol s) v])))
+                       (map (fn [[s v]] [(nested-first-symbol s) v])))
           {:keys [lexical dynamic]} (group-by (comp #(if (namespace %) :dynamic :lexical) first) varlist)
           lexical-vars (into {} (map vec lexical))
           dynamic-vars (into {} (map vec dynamic))
-          fix-lexical-setq (fn [form] (c/cond
-                                        (c/and (seq? form) (symbol? (first form))
-                                               (= 'setq (symbol (name (first form)))))
-                                        (list 'deuce.emacs-lisp/setq-helper* (c/set (keys lexical-vars)) (rest form))
-
-                                        (c/and (seq? form) (symbol? (first form))
-                                               (= 'setq-helper* (symbol (name (first form)))))
-                                        (concat ['deuce.emacs-lisp/setq-helper* (into (second form) (keys lexical-vars))] (drop 2 form))
-
-                                        :else form))
+          fix-lexical-setq (fn [form] (condp some [(maybe-sym (first-symbol form))]
+                                        '#{setq} (list 'deuce.emacs-lisp/setq-helper*
+                                                       (c/set (keys lexical-vars)) (rest form))
+                                        '#{setq-helper*} (concat ['deuce.emacs-lisp/setq-helper*
+                                                                  (into (second form) (keys lexical-vars))] (drop 2 form))
+                                        form))
           body (w/postwalk fix-lexical-setq
                            (w/postwalk-replace (zipmap (keys lexical-vars)
                                                        (map #(list 'clojure.core/deref %) (keys lexical-vars))) body))
           all-vars (map first varlist)
           temps (zipmap all-vars (repeatedly #(gensym "local")))
-          lexical-vars (if can-refer? lexical-vars (select-keys temps (keys lexical-vars)))
-          dynamic-vars (if can-refer? dynamic-vars (select-keys temps (keys dynamic-vars)))]
+          [lexical-vars dynamic-vars] (->> [lexical-vars dynamic-vars]
+                                           (map #(if can-refer? % (select-keys temps (keys %)))))]
     `(c/let ~(if can-refer? [] (vec (interleave (map temps (map first varlist)) (map second varlist))))
        ~((fn build-let [[v & vs]]
            (if v
@@ -305,7 +311,7 @@
   The optional DOCSTRING specifies the variable's documentation string."
   {:arglists '([SYMBOL INITVALUE [DOCSTRING]])}
   [symbol initvalue & [docstring]]
-  (c/let [symbol (c/symbol (name symbol))]
+  (c/let [symbol (sym symbol)]
     `(do
        (-> (intern (create-ns 'deuce.emacs-lisp.globals)
                    '~symbol
@@ -430,7 +436,7 @@
     `(let-helper* true ~varlist ~@body)))
 
 (defn defvar-helper* [ns symbol & [initvalue docstring]]
-  (c/let [symbol (c/symbol (name (first-symbol symbol)))]
+  (c/let [symbol (sym (nested-first-symbol symbol))]
     (do
       (->
        (intern (create-ns ns)
