@@ -38,6 +38,7 @@
 
 (defn qualify-fns [form]
   (if-let [s (c/and (list? form) (symbol? (first form))
+                    (not (= "clojure.core" (namespace (first form))))
                     (ns-resolve 'deuce.emacs (symbol (name (first form)))))]
     (apply list (cons (symbol (-> s meta :ns str) (-> s meta :name str)) (next form)))
     (if (c/and (symbol? form) (= "deuce.emacs" (namespace form)))
