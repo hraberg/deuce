@@ -1,7 +1,7 @@
 (ns deuce.emacs-lisp
   (require [clojure.core :as c]
            [clojure.walk :as w])
-  (:refer-clojure :exclude [defmacro and or cond let while eval set])
+  (:refer-clojure :exclude [defmacro and or cond let while eval set compile])
   (import [deuce EmacsLispError]))
 
 (deftype DottedPair [car cdr]
@@ -65,21 +65,31 @@
     (remove (every-pred seq? (comp '#{clojure.core/comment} first)) form)
     form))
 
-(defn compile-body [args body]
+(defn protect-forms [form]
+  (if ('#{defun defmacro} (maybe-sym (first-symbol form)))
+    ^:protect-from-expansion (fn [] form)
+    form))
+
+(defn unprotect-forms [form]
+  (if (-> form meta :protect-from-expansion) (form) form))
+
+(defn preprocess [scope body]
+  (with-meta
+    `(fn ~(vec scope)
+       ~(->> body
+             (w/postwalk (comp strip-comments
+                               protect-forms))
+             (w/postwalk (comp unprotect-forms
+                               qualify-fns
+                               (partial qualify-globals (c/set scope))))))
+    (merge (meta body) {:scope scope :src body})))
+
+(defn compile [emacs-lisp]
   (try
-    (c/eval `(fn ~(vec args)
-               ~(->> body
-                     (w/postwalk #(if ('#{defun defmacro} (maybe-sym (first-symbol %)))
-                                    ^:protect-from-expansion (fn [] %)
-                                    %))
-                     (w/postwalk strip-comments)
-                     (w/postwalk (partial qualify-globals (c/set args)))
-                     (w/postwalk qualify-fns)
-                     (w/postwalk #(if (-> % meta :protect-from-expansion) (%) %)))))
+    (c/eval (with-meta emacs-lisp nil))
     (catch RuntimeException e
       (println e)
-      (println args)
-      (println body (type body))
+      (apply println (vals (meta emacs-lisp)))
       (throw e))))
 
 ;; defined as fn in eval.clj
@@ -88,9 +98,9 @@
   If LEXICAL is t, evaluate using lexical scoping."
   {:arglists '([FORM &optional LEXICAL])}
   [body & [lexical]]
-  (c/let [vars (keys &env)]
+  (c/let [scope (keys &env)]
     `(binding [*ns* (the-ns 'deuce.emacs)]
-       (maybe-sym ((compile-body '~vars ~body) ~@vars)))))
+       (maybe-sym ((compile (preprocess '~scope ~body)) ~@scope)))))
 
 (declare let-helper*)
 
