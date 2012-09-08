@@ -17,7 +17,7 @@
                               "\\M" 0x8000000})
 
 (defn ^:private parse-string [s]
-  (.sval (doto (StreamTokenizer. (StringReader. s))
+  (.sval (doto (StreamTokenizer. (StringReader. (s/replace s "\n" "\\\n")))
            (.nextToken))))
 
 (defn ^:private parse-character [c]
@@ -28,7 +28,6 @@
            (mods "\\C") (- (int (first (s/upper-case c))) 64)
            :else (int (first (parse-string (str \" c \")))))]
     (reduce bit-xor c (map character-modifier-bits (disj mods "\\C")))))
-
 
 (def ^:private ^Pattern re-str #"(?s)([^\"\\]*(?:\\.[^\"\\]*)*)\"")
 

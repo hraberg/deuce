@@ -54,7 +54,9 @@
 
 (defun symbol-name (symbol)
   "Return SYMBOL's name, a string."
-  (name symbol))
+  (if (keyword? symbol)
+    (str symbol)
+    (name symbol)))
 
 (defun makunbound (symbol)
   "Make SYMBOL's value be void.
@@ -395,7 +397,7 @@
 
 (defun symbolp (object)
   "Return t if OBJECT is a symbol."
-  (symbol? object))
+  ((some-fn symbol? keyword?) object))
 
 (defun <= (num1 num2)
   "Return t if first arg is less than or equal to second arg.
