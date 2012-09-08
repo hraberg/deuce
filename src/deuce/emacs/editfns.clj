@@ -6,7 +6,7 @@
           [deuce.emacs-lisp.globals :as globals])
  (import [java.net InetAddress]
          [java.text SimpleDateFormat]
-         [java.util Date])
+         [java.util Date Calendar TimeZone])
  (:refer-clojure :exclude [format]))
 
 (defvar buffer-access-fontified-property nil
@@ -533,9 +533,11 @@
   the data it can't find."
   (let [specified-time (if specified-time
                          (emacs-time-to-date specified-time)
-                         (Date.))]
-    (list (* 36 (Integer/parseInt (.format (SimpleDateFormat. "Z") specified-time)))
-          (.format (SimpleDateFormat. "z") specified-time))))
+                         (Date.))
+        timezone (.getTimeZone (doto (Calendar/getInstance)
+                                 (.setTime specified-time)))]
+    (list (/ (.getOffset timezone (.getTime specified-time)) 1000)
+          (.getDisplayName timezone (.inDaylightTime timezone specified-time) TimeZone/SHORT))))
 
 (defun insert-before-markers (&rest args)
   "Insert strings or characters at point, relocating markers after the text.
