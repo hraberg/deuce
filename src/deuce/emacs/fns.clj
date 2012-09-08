@@ -261,9 +261,9 @@
 (defun eql (obj1 obj2)
   "Return t if the two args are the same Lisp object.
   Floating-point numbers of equal value are `eql', but they may not be `eq'."
-  (if (and (float? obj1) (float obj2))
-    (== obj1 obj2)
-    (identical? obj1 obj2)))
+  (cond
+    (and (float? obj1) (float obj2)) (== obj1 obj2)
+    :else (data/eq obj1 obj2)))
 
 (defun plist-get (plist prop)
   "Extract a value from a property list.
@@ -544,12 +544,12 @@
 (defun memq (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
   The value is actually the tail of LIST whose car is ELT."
-  (drop-while #(not (data/eq elt %)) list))
+  (seq (drop-while #(not (data/eq elt %)) list)))
 
 (defun memql (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `eql'.
   The value is actually the tail of LIST whose car is ELT."
-  (drop-while #(not (eql elt %)) list))
+  (seq (drop-while #(not (eql elt %)) list)))
 
 (defun gethash (key table &optional dflt)
   "Look up KEY in TABLE and return its associated value.

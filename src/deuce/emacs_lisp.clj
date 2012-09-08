@@ -26,8 +26,9 @@
 (defn ^:private cleanup-clojure [x]
   (if (symbol? x) (symbol (name x)) x))
 
-(defn ^:private qualify-globals [form]
+(defn ^:private qualify-globals [locals form]
   (if-let [s (c/and (symbol? form)
+                    (not (locals form))
                     (not (re-find #"\." (c/name form)))
                     (c/or
                      ((clojure-special-forms) (symbol (name form)))
@@ -54,18 +55,17 @@
                ~(->> body
                      (w/postwalk #(if (c/and (seq? %) (symbol? (first %))
                                              ('#{defun defmacro} (symbol (name (first %)))))
-                                    ^:scope-protect (fn [] %)
+                                    ^:protect-from-expansion (fn [] %)
                                     %))
                      (w/postwalk strip-comments)
-                     (w/postwalk qualify-globals)
+                     (w/postwalk (partial qualify-globals (c/set args)))
                      (w/postwalk qualify-fns)
-                     (w/postwalk #(if (-> % meta :scope-protect) (%) %)))))
+                     (w/postwalk #(if (-> % meta :protect-from-expansion) (%) %)))))
     (catch RuntimeException e
       (println e)
       (println args)
       (println body (type body))
       (throw e))))
-
 
 ;; defined as fn in eval.clj
 (c/defmacro eval
@@ -84,6 +84,8 @@
                      %) form)
     (persistent! locals)))
 
+(declare let-helper*)
+
 (c/defmacro def-helper* [what name arglist & body]
   (c/let [[docstring body] (split-with string? body)
           name (if (seq? name) (c/eval name) name)
@@ -96,7 +98,8 @@
                                                    (= 'interactive (first %))) body)
           emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)
           doc (apply str docstring)
-          locals (find-locals body)]
+          locals (find-locals body)
+          the-args (remove '#{&} (flatten arglist))]
 ;    (println (c/name what) name (c/or (-> name meta :line) ""))
     `(c/let [f# (~what ~name ~(vec arglist)
                        ~(c/cond
@@ -105,9 +108,9 @@
                                                     (cons 'deuce.emacs-lisp/progn hack#)
                                                     hack#))
                           (= `c/fn what) `(binding [*ns* (the-ns 'deuce.emacs)]
-                                            (~cleanup-clojure ((~compile-body '~(concat locals arglist) '(do ~@body))
-                                                               ~@locals ~@arglist)))
-                          emacs-lisp? `(eval '(do ~@body))
+                                            (~cleanup-clojure ((~compile-body '~(concat locals the-args) '(do ~@body))
+                                                               ~@locals ~@the-args)))
+                          emacs-lisp? `(let-helper* false ~(map #(list % %) the-args) (eval '(do ~@body)))
                           :else `(do ~@body)))]
        (if (var? f#)
          (do
@@ -263,10 +266,16 @@
           {:keys [lexical dynamic]} (group-by (comp #(if (namespace %) :dynamic :lexical) first) varlist)
           lexical-vars (into {} (map vec lexical))
           dynamic-vars (into {} (map vec dynamic))
-          fix-lexical-setq (fn [form] (if (c/and (seq? form) (symbol? (first form))
-                                                 (= 'setq (symbol (name (first form)))))
+          fix-lexical-setq (fn [form] (c/cond
+                                        (c/and (seq? form) (symbol? (first form))
+                                               (= 'setq (symbol (name (first form)))))
                                         (list 'deuce.emacs-lisp/setq-helper* (c/set (keys lexical-vars)) (rest form))
-                                        form))
+
+                                        (c/and (seq? form) (symbol? (first form))
+                                               (= 'setq-helper* (symbol (name (first form)))))
+                                        (concat ['deuce.emacs-lisp/setq-helper* (into (second form) (keys lexical-vars))] (drop 2 form))
+
+                                        :else form))
           body (w/postwalk fix-lexical-setq
                            (w/postwalk-replace (zipmap (keys lexical-vars)
                                                        (map #(list 'clojure.core/deref %) (keys lexical-vars))) body))

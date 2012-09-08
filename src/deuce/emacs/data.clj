@@ -3,6 +3,7 @@
  (use [deuce.emacs-lisp :only (defun defvar setq)])
  (require [clojure.core :as c]
           [deuce.emacs-lisp :as el]
+          [deuce.emacs-lisp.globals :as globals]
           [deuce.emacs.eval :as eval])
  (import [deuce EmacsLispError]
          [deuce.emacs_lisp DottedPair])
@@ -143,9 +144,14 @@
     (bit-shift-left value count)
     (bit-shift-right value (c/- count))))
 
+(declare null)
+
 (defun eq (obj1 obj2)
   "Return t if the two args are the same Lisp object."
-  (identical? obj1 obj2))
+  (cond
+    (null obj1) (null obj2)
+    (symbol? obj1) (c/= obj1 obj2)
+    :else (identical? obj1 obj2)))
 
 (defun * (&rest numbers-or-markers)
   "Return product of any number of arguments, which are numbers or markers."
@@ -280,7 +286,7 @@
 
 (defun set (symbol newval)
   "Set SYMBOL's value to NEWVAL, and return NEWVAL."
-  (eval `(setq ~symbol '~newval)))
+  ((eval `(fn [v#] (setq ~symbol v#))) newval))
 
 (defun < (num1 num2)
   "Return t if first arg is less than second arg.  Both must be numbers or markers."
@@ -412,11 +418,11 @@
   The optional third argument DOCSTRING specifies the documentation string
   for SYMBOL; if it is omitted or nil, SYMBOL uses the documentation string
   determined by DEFINITION."
-  (el/defvar-helper* 'deuce.emacs symbol
-    (if (symbol? definition)
-      @(ns-resolve 'deuce.emacs definition)
-        definition)
-    docstring)
+  (when-let [definition (if (symbol? definition)
+                          (when-let [v (ns-resolve 'deuce.emacs definition)]
+                            @v)
+                          definition)]
+    (el/defvar-helper* 'deuce.emacs symbol definition docstring))
   definition)
 
 (defun setplist (symbol newplist)
@@ -477,7 +483,7 @@
 
 (defun null (object)
   "Return t if OBJECT is nil."
-  (or (nil? object) (c/= () object) (false? object)))
+  (or (nil? object) (c/= () object) (false? object) (c/= 'deuce.emacs-lisp.globals/nil object)))
 
 (defun char-table-p (object)
   "Return t if OBJECT is a char-table."

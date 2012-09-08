@@ -159,7 +159,7 @@
   error message is constructed.
   If the signal is handled, DATA is made available to the handler.
   See also the function `condition-case'."
-  )
+  (el/throw error-symbol data))
 
 (defun called-interactively-p (kind)
   "Return t if the containing function was called by `call-interactively'.
@@ -242,8 +242,12 @@
   itself an alias.  If NEW-ALIAS is bound, and BASE-VARIABLE is not,
   then the value of BASE-VARIABLE is set to that of NEW-ALIAS.
   The return value is BASE-VARIABLE."
-  (el/defvar-helper* 'deuce.emacs-lisp.globals new-alias
-    @(ns-resolve 'deuce.emacs-lisp.globals base-variable) docstring)
+  (if-let [base (ns-resolve 'deuce.emacs-lisp.globals base-variable)]
+    (el/defvar-helper* 'deuce.emacs-lisp.globals new-alias
+      @base (or docstring (-> base meta :doc)))
+    (when-let [new (ns-resolve 'deuce.emacs-lisp.globals new-alias)]
+      (el/defvar-helper* 'deuce.emacs-lisp.globals base-variable
+        @new (or docstring (-> new meta :doc)))))
   base-variable)
 
 (defun run-hook-with-args-until-success (hook &rest args)

@@ -159,8 +159,8 @@
   OBJECT is any of the Lisp data types: a number, a string, a symbol,
   a list, a buffer, a window, a frame, etc.
 
-  A printed representation of an object is text which describes that object."
-  )
+  A pqrinted representation of an object is text which describes that object."
+  (pr-str object))
 
 (defun prin1 (object &optional printcharfun)
   "Output the printed representation of OBJECT, any Lisp object.

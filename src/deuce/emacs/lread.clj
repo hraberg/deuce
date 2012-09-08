@@ -283,7 +283,11 @@
    remaining character in STRING.
   START and END optionally delimit a substring of STRING from which to read;
    they default to 0 and (length STRING) respectively."
-  )
+  (let [string (subs string (or start 0) (or end (count string)))]
+    (try
+      (read-string string)
+      (catch Exception e
+        (first (parser/parse string))))))
 
 (defun eval-region (start end &optional printflag read-function)
   "Execute the region as Lisp code.
