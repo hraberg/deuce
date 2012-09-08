@@ -55,14 +55,14 @@
                (c/and
                 (not (= "clojure.core" (namespace s)))
                 (ns-resolve 'deuce.emacs (sym s))))]
-    (apply list (cons (symbol (-> s meta :ns str) (-> s meta :name str)) (next form)))
+    (cons (symbol (-> s meta :ns str) (-> s meta :name str)) (next form))
     (if (c/and (symbol? form) (= "deuce.emacs" (namespace form)))
       (sym form)
       form)))
 
 (defn strip-comments [form]
   (if (seq? form)
-    (apply list (remove (every-pred seq? (comp '#{clojure.core/comment} first)) form))
+    (remove (every-pred seq? (comp '#{clojure.core/comment} first)) form)
     form))
 
 (defn compile-body [args body]
@@ -106,7 +106,7 @@
                                                    (= 'interactive (first %))) body)
           emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)
           doc (apply str docstring)
-          arglist (w/postwalk #(if (symbol? %) (sym %) %) arglist)
+          arglist (w/postwalk maybe-sym arglist)
           the-args (remove '#{&} (flatten arglist))]
 ;    (println (c/name what) name (c/or (-> name meta :line) ""))
     `(c/let [f# (~what ~name ~(vec arglist)
@@ -263,19 +263,19 @@
           {:keys [lexical dynamic]} (group-by (comp #(if (namespace %) :dynamic :lexical) first) varlist)
           lexical-vars (into {} (map vec lexical))
           dynamic-vars (into {} (map vec dynamic))
-          fix-lexical-setq (fn [form] (condp some [(maybe-sym (first-symbol form))]
-                                        '#{setq} (list 'deuce.emacs-lisp/setq-helper*
-                                                       (c/set (keys lexical-vars)) (rest form))
-                                        '#{setq-helper*} (concat ['deuce.emacs-lisp/setq-helper*
-                                                                  (into (second form) (keys lexical-vars))] (drop 2 form))
-                                        form))
-          body (w/postwalk fix-lexical-setq
-                           (w/postwalk-replace (zipmap (keys lexical-vars)
-                                                       (map #(list 'clojure.core/deref %) (keys lexical-vars))) body))
+          fix-lexical-setq (fn [form] (if ((c/set (keys lexical-vars)) form)
+                                        (list 'clojure.core/deref form)
+                                        (condp some [(maybe-sym (first-symbol form))]
+                                          '#{setq} (list 'deuce.emacs-lisp/setq-helper*
+                                                         (c/set (keys lexical-vars)) (rest form))
+                                          '#{setq-helper*} (concat ['deuce.emacs-lisp/setq-helper*
+                                                                    (into (second form) (keys lexical-vars))] (drop 2 form))
+                                          form)))
+          body (w/postwalk fix-lexical-setq body)
           all-vars (map first varlist)
           temps (zipmap all-vars (repeatedly #(gensym "local")))
-          [lexical-vars dynamic-vars] (->> [lexical-vars dynamic-vars]
-                                           (map #(if can-refer? % (select-keys temps (keys %)))))]
+          [lexical-vars dynamic-vars] (map #(if can-refer? % (select-keys temps (keys %)))
+                                           [lexical-vars dynamic-vars])]
     `(c/let ~(if can-refer? [] (vec (interleave (map temps (map first varlist)) (map second varlist))))
        ~((fn build-let [[v & vs]]
            (if v
