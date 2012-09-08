@@ -324,7 +324,7 @@
   On systems that can't determine the run time, `get-internal-run-time'
   does the same thing as `current-time'.  The microsecond count is zero
   on systems that do not provide resolution finer than a second."
-  )
+  (current-time))
 
 (defun point-min ()
   "Return the minimum permissible value of point in the current buffer.
@@ -531,7 +531,11 @@
   Some operating systems cannot provide all this information to Emacs;
   in this case, `current-time-zone' returns a list containing nil for
   the data it can't find."
-  )
+  (let [specified-time (if specified-time
+                         (emacs-time-to-date specified-time)
+                         (Date.))]
+    (list (* 36 (Integer/parseInt (.format (SimpleDateFormat. "Z") specified-time)))
+          (.format (SimpleDateFormat. "z") specified-time))))
 
 (defun insert-before-markers (&rest args)
   "Insert strings or characters at point, relocating markers after the text.
