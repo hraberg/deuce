@@ -285,7 +285,7 @@
    they default to 0 and (length STRING) respectively."
   (let [string (subs string (or start 0) (or end (count string)))]
     (try
-      (read-string string)
+      (or (read-string string) (first (parser/parse string)))
       (catch Exception e
         (first (parser/parse string))))))
 

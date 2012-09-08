@@ -2,6 +2,7 @@
  deuce.emacs.eval
  (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c]
+          [deuce.emacs.data :as data]
           [deuce.emacs-lisp :as el])
  (:refer-clojure :exclude [apply eval]))
 
@@ -201,7 +202,7 @@
   "Call first argument as a function, passing remaining arguments to it.
   Return the value that function returns.
   Thus, (funcall 'cons 'x 'y) returns (x . y)."
-  (c/apply function arguments))
+  (c/apply (if (symbol? function) (data/symbol-function function) function) arguments))
 
 (defun run-hook-wrapped (hook wrap-function &rest args)
   "Run HOOK, passing each function through WRAP-FUNCTION.
@@ -293,7 +294,8 @@
   "Call FUNCTION with our remaining args, using our last arg as list of args.
   Then return the value FUNCTION returns.
   Thus, (apply '+ 1 2 '(3 4)) returns 10."
-  )
+  (c/apply (if (symbol? function) (data/symbol-function function) function)
+           (concat (butlast arguments) (last arguments))))
 
 (defun run-hooks (&rest hooks)
   "Run each hook in HOOKS.

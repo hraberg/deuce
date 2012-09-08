@@ -88,7 +88,7 @@
        (w/postwalk-replace {(symbol "\\,") 'clojure.core/unquote
                             (symbol "\\,@") 'clojure.core/unquote-splicing})
        (w/postwalk #(if (and (list? %) (= (symbol "\\`") (first %)))
-                      (.invoke clojure-syntax-quote nil (into-array [(rest %)]))
+                      (.invoke clojure-syntax-quote nil (into-array [(second %)]))
                       %))))
 
 (defn parse [r]

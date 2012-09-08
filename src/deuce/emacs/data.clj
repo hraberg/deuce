@@ -3,8 +3,7 @@
  (use [deuce.emacs-lisp :only (defun defvar setq)])
  (require [clojure.core :as c]
           [deuce.emacs-lisp :as el]
-          [deuce.emacs-lisp.globals :as globals]
-          [deuce.emacs.eval :as eval])
+          [deuce.emacs-lisp.globals :as globals])
  (import [deuce EmacsLispError]
          [deuce.emacs_lisp DottedPair])
  (:refer-clojure

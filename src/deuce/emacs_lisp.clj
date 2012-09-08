@@ -103,10 +103,7 @@
 ;    (println (c/name what) name (c/or (-> name meta :line) ""))
     `(c/let [f# (~what ~name ~(vec arglist)
                        ~(c/cond
-                          (= `c/defmacro what) `(c/let [hack# (eval '(do ~@body))]
-                                                  (if (every? seq? hack#)
-                                                    (cons 'deuce.emacs-lisp/progn hack#)
-                                                    hack#))
+                          (= `c/defmacro what) `(eval '(do ~@body))
                           (= `c/fn what) `(binding [*ns* (the-ns 'deuce.emacs)]
                                             (~cleanup-clojure ((~compile-body '~(concat locals the-args) '(do ~@body))
                                                                ~@locals ~@the-args)))
