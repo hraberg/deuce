@@ -77,13 +77,6 @@
     `(binding [*ns* (the-ns 'deuce.emacs)]
        (~cleanup-clojure ((~compile-body '~vars ~body) ~@vars)))))
 
-(defn ^:private find-locals [form]
-  (c/let [locals (transient [])]
-    (w/postwalk #(do (when (c/and (seq? %) (= 'clojure.core/deref (first %)))
-                       (conj! locals (second %)))
-                     %) form)
-    (persistent! locals)))
-
 (declare let-helper*)
 
 (c/defmacro def-helper* [what name arglist & body]
@@ -98,17 +91,12 @@
                                                    (= 'interactive (first %))) body)
           emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)
           doc (apply str docstring)
-          locals (find-locals body)
           the-args (remove '#{&} (flatten arglist))]
 ;    (println (c/name what) name (c/or (-> name meta :line) ""))
     `(c/let [f# (~what ~name ~(vec arglist)
-                       ~(c/cond
-                          (= `c/defmacro what) `(eval '(do ~@body))
-                          (= `c/fn what) `(binding [*ns* (the-ns 'deuce.emacs)]
-                                            (~cleanup-clojure ((~compile-body '~(concat locals the-args) '(do ~@body))
-                                                               ~@locals ~@the-args)))
-                          emacs-lisp? `(let-helper* false ~(map #(list % %) the-args) (eval '(do ~@body)))
-                          :else `(do ~@body)))]
+                       ~(if emacs-lisp?
+                          `(let-helper* false ~(map #(list % %) the-args) (eval '(do ~@body)))
+                          `(do ~@body)))]
        (if (var? f#)
          (do
            (alter-meta! f# merge {:doc ~doc :line (-> '~name meta :line)
