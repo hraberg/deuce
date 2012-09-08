@@ -62,7 +62,7 @@
 
 (defn strip-comments [form]
   (if (seq? form)
-    (remove (every-pred seq? (comp '#{clojure.core/comment} first)) form)
+    (remove (every-pred seq? (comp `#{comment} first)) form)
     form))
 
 (defn protect-forms [form]
@@ -219,9 +219,10 @@
   CONDITION's value if non-nil is returned from the cond-form."
   {:arglists '([CLAUSES...])}
   [& clauses]
-  `(c/cond ~@(->> clauses
-                  (map #(if (second %) % (repeat 2 (first %))))
-                  (apply concat))))
+  `(c/cond
+     ~@(->> clauses
+            (map #(if (second %) % (repeat 2 (first %))))
+            (apply concat))))
 
 (c/defmacro setq-helper* [locals sym-vals]
   `(c/let
@@ -231,7 +232,7 @@
                   [(sym s)
                    (if (contains? locals s)
                      `(do (reset! ~s ~v) ~s)
-                     `(if-let [var# (ns-resolve 'deuce.emacs-lisp.globals '~s)]
+                     `(if-let [var# (global '~s)]
                         (if (contains? (get-thread-bindings) var#)
                           (var-set var# ~v)
                           (alter-var-root var# (constantly ~v)))
@@ -274,11 +275,11 @@
           lexical-vars (into {} (map vec lexical))
           dynamic-vars (into {} (map vec dynamic))
           fix-lexical-setq (fn [form] (if ((c/set (keys lexical-vars)) form)
-                                        (list 'clojure.core/deref form)
+                                        (list `deref form)
                                         (condp some [(maybe-sym (first-symbol form))]
-                                          '#{setq} (list 'deuce.emacs-lisp/setq-helper*
+                                          '#{setq} (list `setq-helper*
                                                          (c/set (keys lexical-vars)) (rest form))
-                                          '#{setq-helper*} (concat ['deuce.emacs-lisp/setq-helper*
+                                          '#{setq-helper*} (concat [`setq-helper*
                                                                     (into (second form) (keys lexical-vars))] (drop 2 form))
                                           form)))
           body (w/postwalk fix-lexical-setq body)
