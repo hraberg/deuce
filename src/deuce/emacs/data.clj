@@ -300,11 +300,12 @@
 
 (defun fset (symbol definition)
   "Set SYMBOL's function definition to DEFINITION, and return DEFINITION."
-  (ns-unmap 'deuce.emacs symbol)
-  (intern (the-ns 'deuce.emacs) symbol
-          (if (fn? definition) definition
-              @(ns-resolve 'deuce.emacs definition)))
-  definition)
+  (let [symbol (c/symbol (name symbol))]
+    (ns-unmap 'deuce.emacs symbol)
+    (intern (the-ns 'deuce.emacs) symbol
+            (if (fn? definition) definition
+                @(ns-resolve 'deuce.emacs definition)))
+    definition))
 
 (defun cdr (list)
   "Return the cdr of LIST.  If arg is nil, return nil.

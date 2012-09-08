@@ -358,15 +358,21 @@
   is bound to the file's name.
 
   Return t if the file exists and loads successfully."
-  (binding [globals/load-file-name file
-            globals/load-in-progress true]
-    (editfns/message "Loading %s..." file)
-    (doseq [form (-> (or (io/resource (str file ".el"))
-                         (io/resource file)
-                         (io/file file))
-                     io/input-stream parser/parse)]
-      (eval/eval form))
-    true))
+  (try
+    (binding [globals/load-file-name file
+              globals/load-in-progress true]
+      (let [in (io/input-stream (or (when-not nosuffix
+                                      (io/resource (str file ".el")))
+                                    (io/resource file)
+                                    (io/file file)))]
+        (when-not nomessage
+          (editfns/message "Loading %s..." file))
+        (doseq [form (parser/parse in)]
+          (eval/eval form))
+        true))
+    (catch Exception e
+      (when-not noerror
+        (throw e)))))
 
 (defun mapatoms (function &optional obarray)
   "Call FUNCTION on every symbol in OBARRAY.

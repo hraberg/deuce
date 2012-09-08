@@ -171,7 +171,10 @@
   precision specifier says how many decimal places to show; if zero, the
   decimal point itself is omitted.  For %s and %S, the precision
   specifier truncates the string to the given width."
-  (apply c/format string objects))
+  (apply c/format string (map #(if (and (instance? Long %)
+                                        (<= Integer/MIN_VALUE % Integer/MAX_VALUE))
+                                 (int %)
+                                 %) objects)))
 
 (defun user-uid ()
   "Return the effective uid of Emacs.
