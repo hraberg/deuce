@@ -42,7 +42,7 @@
       #"\n" (do (swap! line inc) (recur sc))
       #"\s" (recur sc)
       #"[)\]]" nil
-      #"\(" (with-meta (apply list (tokenize-all sc)) {:line @line})
+      #"\(" (with-meta (tokenize-all sc) {:line @line})
       #"\[" (with-meta (list 'quote (vec (tokenize-all sc))) {:line @line})
       #"," (list (if (find #"@" 1) (symbol "\\,@") (symbol "\\,")) (tokenize sc))
       #"'" (list 'quote (tokenize sc))
@@ -87,8 +87,8 @@
 
 (defn ^:private syntax-quote [form]
   (->> form
-       (w/postwalk-replace {(symbol "\\,") 'clojure.core/unquote
-                            (symbol "\\,@") 'clojure.core/unquote-splicing})
+       (w/postwalk-replace {(symbol "\\,") `unquote
+                            (symbol "\\,@") `unquote-splicing})
        (w/postwalk #(if (and (list? %) (= (symbol "\\`") (first %)))
                       (.invoke clojure-syntax-quote nil (into-array [(second %)]))
                       %))))
@@ -98,5 +98,5 @@
     (->> (tokenize-all (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
                          (.useDelimiter #"(\s|\]|\)|\"|;)")))
          (w/postwalk expand-dotted-pairs)
-         (w/postwalk-replace {(symbol "nil") nil (symbol "t") true})
+         (w/postwalk-replace {(symbol "nil") nil 't true})
          syntax-quote)))

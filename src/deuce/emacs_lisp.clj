@@ -18,10 +18,7 @@
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
 
-(defn clojure-special-forms []
-  (->> (ns-map 'deuce.emacs-lisp)
-       (filter (comp :clojure-special-form meta val))
-       (into {})))
+(declare clojure-special-forms)
 
 (defn sym [s]
   (symbol (name s)))
@@ -46,7 +43,7 @@
   (if-let [s (c/and (symbol? form)
                     (not (locals form))
                     (not (re-find #"\." (name form)))
-                    ((some-fn (clojure-special-forms) global) (sym form)))]
+                    ((some-fn clojure-special-forms global) (sym form)))]
     (symbol (-> s meta :ns str) (-> s meta :name str))
     form))
 
@@ -91,6 +88,8 @@
       (println e)
       (apply println (vals (meta emacs-lisp)))
       (throw e))))
+(alter-var-root #'compile memoize)
+
 
 ;; defined as fn in eval.clj
 (c/defmacro eval
@@ -644,3 +643,8 @@
   Executes BODY just like `progn'."
   {:arglists '([&rest BODY])}
   [& body])
+
+(def clojure-special-forms
+  (->> (ns-map 'deuce.emacs-lisp)
+       (filter (comp :clojure-special-form meta val))
+       (into {})))
