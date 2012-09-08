@@ -92,6 +92,7 @@
                                                    (= 'interactive (first %))) body)
           emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)
           doc (apply str docstring)
+          arglist (w/postwalk #(if (symbol? %) (symbol (c/name %)) %) arglist)
           the-args (remove '#{&} (flatten arglist))]
 ;    (println (c/name what) name (c/or (-> name meta :line) ""))
     `(c/let [f# (~what ~name ~(vec arglist)
@@ -193,7 +194,7 @@
   CONDITION's value if non-nil is returned from the cond-form."
   {:arglists '([CLAUSES...])}
   [& clauses]
-  `(c/cond ~@(apply concat clauses)))
+  `(c/cond ~@(apply concat (map #(if (= 1 (count %)) (repeat 2 (first %)) %) clauses))))
 
 (defn first-symbol [s]
   (if (symbol? s) s

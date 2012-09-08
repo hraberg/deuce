@@ -490,7 +490,7 @@
 
 (defun nthcdr (n list)
   "Take cdr N times on LIST, return the result."
-  (drop n list))
+  (seq (drop n list)))
 
 (defun hash-table-rehash-size (table)
   "Return the current rehash size of TABLE."

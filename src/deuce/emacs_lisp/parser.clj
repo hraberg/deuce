@@ -21,7 +21,7 @@
            (.nextToken))))
 
 (defn ^:private parse-character [c]
-  (let [parts (s/split c #"-")
+  (let [parts (if (= "-" c) [c] (s/split c #"-"))
         [mods c] [(set (butlast parts)) (last parts)]
         c (cond
            (re-find #"\\\^(.)" c) (- (int (last c)) 64)
@@ -68,7 +68,10 @@
       (cond
        (.hasNextLong sc) (.nextLong sc)
        (.hasNextDouble sc) (.nextDouble sc)
-       (.hasNext sc) (with-meta (symbol (.replaceAll (.next sc) "/" "_SLASH_")) {:line @line})))))
+       (.hasNext sc) (let [s (.next sc)]
+                       (with-meta (symbol (if (= "/" s)
+                                            s
+                                            (s/replace s "/" "_SLASH_"))) {:line @line}))))))
 
 (defn ^:private expand-dotted-pairs [form]
   (if (and (list? form) (= 3 (count form)) (= DottedPair (second form)))
