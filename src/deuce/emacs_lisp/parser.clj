@@ -52,7 +52,9 @@
       #":" (keyword (.next sc))
       #"\." DottedPair
       #"\?" (parse-character (.next sc))
-      #"\"" (parse-string (str \" (find re-str 0)))
+      #"\"" (let [s (parse-string (str \" (find re-str 0)))]
+              (swap! line + (count (butlast (re-seq #"\n" s))))
+              s)
       #";" (do (swap! line inc) (list 'clojure.core/comment (.nextLine sc)))
       #"#" (condp find 1
              #"'" (list 'var (tokenize sc))
