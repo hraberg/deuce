@@ -1,6 +1,6 @@
 (ns
  deuce.emacs.data
- (use [deuce.emacs-lisp :only (defun defvar setq)])
+ (use [deuce.emacs-lisp :only (defun defvar setq setq-default)])
  (require [clojure.core :as c]
           [deuce.emacs-lisp :as el]
           [deuce.emacs-lisp.globals :as globals])
@@ -61,7 +61,7 @@
 (defun makunbound (symbol)
   "Make SYMBOL's value be void.
   Return SYMBOL."
-  (ns-unmap 'deuce.emacs-lisp.globals (c/symbol (name symbol)))
+  (ns-unmap 'deuce.emacs-lisp.globals (el/sym symbol))
   symbol)
 
 (defun interactive-form (cmd)
@@ -95,7 +95,7 @@
 
 (defun symbol-value (symbol)
   "Return SYMBOL's value.  Error if that is void."
-  @(ns-resolve 'deuce.emacs-lisp.globals (c/symbol (name symbol))))
+  @(el/global symbol))
 
 (defun keywordp (object)
   "Return t if OBJECT is a keyword.
@@ -126,7 +126,8 @@
 
 (defun fboundp (symbol)
   "Return t if SYMBOL's function definition is not void."
-  (not (nil? (ns-resolve 'deuce.emacs (c/symbol (name symbol))))))
+  (when-let [v (el/fun symbol)]
+    (bound? v)))
 
 (defun % (x y)
   "Return remainder of X divided by Y.
@@ -273,8 +274,8 @@
 (defun fmakunbound (symbol)
   "Make SYMBOL's function definition be void.
   Return SYMBOL."
-  (let [symbol (c/symbol (name symbol))]
-    (ns-unmap (-> (ns-resolve 'deuce.emacs (c/symbol (name symbol))) meta :ns) (c/symbol (name symbol)))
+  (let [symbol (el/sym symbol)]
+    (ns-unmap (-> (el/fun symbol) meta :ns) (el/sym symbol))
     symbol))
 
 (defun lognot (number)
@@ -287,7 +288,7 @@
 
 (defun set (symbol newval)
   "Set SYMBOL's value to NEWVAL, and return NEWVAL."
-  ((eval `(fn [v#] (setq ~symbol v#))) newval))
+  ((eval `(fn set [v#] (setq ~symbol v#))) newval))
 
 (defun < (num1 num2)
   "Return t if first arg is less than second arg.  Both must be numbers or markers."
@@ -300,11 +301,11 @@
 
 (defun fset (symbol definition)
   "Set SYMBOL's function definition to DEFINITION, and return DEFINITION."
-  (let [symbol (c/symbol (name symbol))]
+  (let [symbol (el/sym symbol)]
     (ns-unmap 'deuce.emacs symbol)
     (intern (the-ns 'deuce.emacs) symbol
             (if (fn? definition) definition
-                @(ns-resolve 'deuce.emacs definition)))
+                @(el/fun definition)))
     definition))
 
 (defun cdr (list)
@@ -370,7 +371,8 @@
   "Return t if SYMBOL has a non-void default value.
   This is the value that is seen in buffers that do not have their own values
   for this variable."
-  )
+  (when-let [v (el/global symbol)]
+    (.hasRoot v)))
 
 (defun nlistp (object)
   "Return t if OBJECT is not a list.  Lists include nil."
@@ -383,14 +385,15 @@
 
 (defun boundp (symbol)
   "Return t if SYMBOL's value is not void."
-  (not (nil? (ns-resolve 'deuce.emacs-lisp.globals (c/symbol (name symbol))))))
+  (when-let [v (el/global symbol)]
+    (bound? v)))
 
 (defun default-value (symbol)
   "Return SYMBOL's default value.
   This is the value that is seen in buffers that do not have their own values
   for this variable.  The default value is meaningful for variables with
   local bindings in certain buffers."
-  )
+  (.getRawRoot (el/global symbol)))
 
 (defun setcar (cell newcar)
   "Set the car of CELL to be NEWCAR.  Returns NEWCAR."
@@ -408,11 +411,11 @@
 (defun local-variable-p (variable &optional buffer)
   "Non-nil if VARIABLE has a local binding in buffer BUFFER.
   BUFFER defaults to the current buffer."
-  )
+  (contains? (get-thread-bindings) variable))
 
 (defun byte-code-function-p (object)
   "Return t if OBJECT is a byte-compiled function object."
-  )
+  (fn? object))
 
 (defun defalias (symbol definition &optional docstring)
   "Set SYMBOL's function definition to DEFINITION, and return DEFINITION.
@@ -421,7 +424,7 @@
   for SYMBOL; if it is omitted or nil, SYMBOL uses the documentation string
   determined by DEFINITION."
   (when-let [definition (if (symbol? definition)
-                          (when-let [v (ns-resolve 'deuce.emacs definition)]
+                          (when-let [v (el/fun definition)]
                             @v)
                           definition)]
     (el/defvar-helper* 'deuce.emacs symbol definition docstring))
@@ -435,11 +438,11 @@
   "Set SYMBOL's default value to VALUE.  SYMBOL and VALUE are evaluated.
   The default value is seen in buffers that do not have their own values
   for this variable."
-  )
+  ((eval `(fn set-default [v#] (setq-default ~symbol v#))) value))
 
 (defun symbol-function (symbol)
   "Return SYMBOL's function definition.  Error if that is void."
-  @(ns-resolve 'deuce.emacs (c/symbol (name symbol))))
+  @(el/fun symbol))
 
 (defun kill-local-variable (variable)
   "Make VARIABLE no longer have a separate value in the current buffer.

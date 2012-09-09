@@ -25,7 +25,7 @@
 
 (defn first-symbol [form]
   (when ((every-pred seq? (comp symbol? first)) form)
-        (first form)))
+    (first form)))
 
 (defn nested-first-symbol [s]
   (if (symbol? s)
@@ -34,7 +34,10 @@
       (recur (second s)))))
 
 (defn global [s]
-  (ns-resolve 'deuce.emacs-lisp.globals s))
+  (ns-resolve 'deuce.emacs-lisp.globals (sym s)))
+
+(defn fun [s]
+  (ns-resolve 'deuce.emacs (sym s)))
 
 (defn maybe-sym [x]
   (if (symbol? x) (sym x) x))
@@ -51,7 +54,7 @@
   (if-let [s (when-let [s (first-symbol form)]
                (c/and
                 (not (= "clojure.core" (namespace s)))
-                (ns-resolve 'deuce.emacs (sym s))))]
+                (fun s)))]
     (cons (symbol (-> s meta :ns str) (-> s meta :name str)) (next form))
     (if (c/and (symbol? form) (= "deuce.emacs" (namespace form)))
       (sym form)
@@ -223,7 +226,7 @@
             (map #(if (second %) % (repeat 2 (first %))))
             (apply concat))))
 
-(c/defmacro setq-helper* [locals sym-vals]
+(c/defmacro setq-helper* [locals default? sym-vals]
   `(c/let
        ~(reduce into []
                 (for [[s v] (partition 2 sym-vals)
@@ -232,7 +235,8 @@
                    (if (contains? locals s)
                      `(do (reset! ~s ~v) ~s)
                      `(if-let [var# (global '~s)]
-                        (if (contains? (get-thread-bindings) var#)
+                        (if (c/and (contains? (get-thread-bindings) var#)
+                                   (not ~default?))
                           (var-set var# ~v)
                           (alter-var-root var# (constantly ~v)))
                         (do
@@ -250,7 +254,7 @@
   The return value of the `setq' form is the value of the last VAL."
   {:arglists '([[SYM VAL]...])}
   [& sym-vals]
-  `(setq-helper* ~(c/set (keys &env)) ~sym-vals))
+  `(setq-helper* ~(c/set (keys &env)) false ~sym-vals))
 
 (c/defmacro ^:clojure-special-form quote
   "Return the argument, without evaluating it.  `(quote x)' yields `x'.
@@ -277,7 +281,7 @@
                                         (list `deref form)
                                         (condp some [(maybe-sym (first-symbol form))]
                                           '#{setq} (list `setq-helper*
-                                                         (c/set (keys lexical-vars)) (rest form))
+                                                         (c/set (keys lexical-vars)) false (rest form))
                                           '#{setq-helper*} (concat [`setq-helper*
                                                                     (into (second form) (keys lexical-vars))] (drop 2 form))
                                           form)))
@@ -363,7 +367,7 @@
   of previous VARs."
   {:arglists '([[VAR VALUE]...])}
   [& var-values]
-  `(setq ~@var-values))
+  `(setq-helper* #{} :default ~var-values))
 
 (c/defmacro or
   "Eval args until one of them yields non-nil, then return that value.
