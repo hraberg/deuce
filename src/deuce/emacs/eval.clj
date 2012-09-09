@@ -311,7 +311,8 @@
 
   Do not use `make-local-variable' to make a hook variable buffer-local.
   Instead, use `add-hook' and specify t for the LOCAL argument."
-  )
+  (doseq [hook (map data/symbol-value hooks)]
+    (dorun (map #(%) (if (fn? hook) [hook] hook)))))
 
 (defun eval (form &optional lexical)
   "Evaluate FORM and return its value.
