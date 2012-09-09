@@ -5,7 +5,7 @@
   (import [java.util Scanner]
           [java.io StringReader StreamTokenizer]
           [java.util.regex Pattern]
-          [deuce.emacs_lisp DottedPair]))
+          [deuce DottedPair]))
 
 (declare tokenize)
 

@@ -6,7 +6,7 @@
           [deuce.emacs.data :as data]
           [deuce.emacs-lisp :as el]
           [deuce.emacs-lisp.globals :as globals])
- (import [deuce.emacs_lisp DottedPair]
+ (import [deuce DottedPair]
          [java.nio CharBuffer]
          [java.nio.charset Charset]
          [javax.xml.bind DatatypeConverter]

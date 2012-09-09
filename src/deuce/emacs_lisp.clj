@@ -2,18 +2,14 @@
   (require [clojure.core :as c]
            [clojure.walk :as w])
   (:refer-clojure :exclude [defmacro and or cond let while eval set compile])
-  (import [deuce EmacsLispError]))
-
-(deftype DottedPair [car cdr]
-  Object
-  (toString [this]
-    (str "(" car ((fn tail [c]
-                    (if (instance? DottedPair c)
-                      (str " " (.car c) (tail (.cdr c)))
-                      (when (c/and c (not= () c)) (str " . " c)))) cdr) ")")))
+  (import [deuce EmacsLispError DottedPair]))
 
 (defmethod print-method DottedPair [pair writer]
-  (.write writer (str pair)))
+  (.write writer
+          (str "(" (.car pair) ((fn tail [c]
+                                  (if (instance? DottedPair c)
+                                    (str " " (.car c) (tail (.cdr c)))
+                                    (when (c/and c (not= () c)) (str " . " c)))) (.cdr pair)) ")")))
 
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)

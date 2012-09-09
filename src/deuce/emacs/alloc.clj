@@ -2,7 +2,7 @@
  deuce.emacs.alloc
  (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c])
- (import [deuce.emacs_lisp DottedPair])
+ (import [deuce DottedPair])
  (:refer-clojure :exclude [vector cons list]))
 
 (defvar purify-flag nil
@@ -180,7 +180,7 @@
   "Return a newly created string of length LENGTH, with INIT in each element.
   LENGTH must be an integer.
   INIT must be an integer that represents a character."
-  (apply str (repeat length init))  )
+  (apply str (repeat length init)))
 
 (defun make-list (length init)
   "Return a newly created list of length LENGTH, with each element being INIT."

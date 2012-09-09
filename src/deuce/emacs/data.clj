@@ -4,8 +4,10 @@
  (require [clojure.core :as c]
           [deuce.emacs-lisp :as el]
           [deuce.emacs-lisp.globals :as globals])
- (import [deuce EmacsLispError]
-         [deuce.emacs_lisp DottedPair])
+ (import [clojure.lang IPersistentCollection]
+         [deuce EmacsLispError DottedPair]
+         [java.nio ByteOrder]
+         [java.util List])
  (:refer-clojure
   :exclude
   [+ * - / aset set < = > max >= <= mod atom min]))
@@ -180,7 +182,7 @@
 
 (defun number-or-marker-p (object)
   "Return t if OBJECT is a number or a marker."
-  )
+  (number? object))
 
 (defun cdr-safe (object)
   "Return the cdr of OBJECT if it is a cons cell, or else nil."
@@ -200,7 +202,9 @@
   "Return the byteorder for the machine.
   Returns 66 (ASCII uppercase B) for big endian machines or 108 (ASCII
   lowercase l) for small endian machines."
-  )
+  ({ByteOrder/BIG_ENDIAN "B"
+    ByteOrder/LITTLE_ENDIAN "l"}
+   (ByteOrder/nativeOrder)))
 
 (defun subr-name (subr)
   "Return name of subroutine SUBR.
@@ -226,7 +230,7 @@
 
   Do not use `make-local-variable' to make a hook variable buffer-local.
   Instead, use `add-hook' and specify t for the LOCAL argument."
-  )
+  variable)
 
 (defun numberp (object)
   "Return t if OBJECT is a number (floating point or integer)."
@@ -251,7 +255,7 @@
   "Return the element of ARRAY at index IDX.
   ARRAY may be a vector, a string, a char-table, a bool-vector,
   or a byte-code object.  IDX starts at 0."
-  )
+  (get array idx))
 
 (defun wholenump (object)
   "Return t if OBJECT is a nonnegative integer."
@@ -261,7 +265,7 @@
   "Store into the element of ARRAY at index IDX the value NEWELT.
   Return NEWELT.  ARRAY may be a vector, a string, a char-table or a
   bool-vector.  IDX starts at 0."
-  )
+  (c/aset array idx newelt))
 
 (defun arrayp (object)
   "Return t if OBJECT is an array (string or vector)."
@@ -284,7 +288,12 @@
 
 (defun setcdr (cell newcdr)
   "Set the cdr of CELL to be NEWCDR.  Returns NEWCDR."
-  )
+  (condp instance? cell
+    DottedPair (set! (.cdr  cell) newcdr)
+    List (do (while (c/< 1 (count cell))
+               (.remove cell 1))
+             (.add cell newcdr)))
+  newcdr)
 
 (defun set (symbol newval)
   "Set SYMBOL's value to NEWVAL, and return NEWVAL."
@@ -314,8 +323,13 @@
 
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as cdr, car, cons cell and list."
-  (if (instance? DottedPair list)
-    (.cdr list)
+  (condp instance? list
+    IPersistentCollection (next list)
+    DottedPair (.cdr list)
+    List (let [c (count list)]
+           (if (< c 2)
+             nil
+             (.subList list 1 c)))
     (next list)))
 
 (defun = (num1 num2)
@@ -335,7 +349,7 @@
   which makes a variable local in just one buffer.
 
   The function `default-value' gets the default value and `set-default' sets it."
-  )
+  variable)
 
 (defun char-or-string-p (object)
   "Return t if OBJECT is a character or a string."
@@ -343,7 +357,7 @@
 
 (defun vector-or-char-table-p (object)
   "Return t if OBJECT is a char-table or vector."
-  )
+  (vector? object))
 
 (defun bufferp (object)
   "Return t if OBJECT is an editor buffer."
@@ -397,7 +411,10 @@
 
 (defun setcar (cell newcar)
   "Set the car of CELL to be NEWCAR.  Returns NEWCAR."
-  )
+  (condp instance? cell
+    DottedPair (set! (.car  cell) newcar)
+    List (.set cell 0 newcar))
+  newcar)
 
 (defun symbolp (object)
   "Return t if OBJECT is a symbol."
