@@ -197,7 +197,7 @@
   Do not use `make-local-variable' to make a hook variable buffer-local.
   Instead, use `add-hook' and specify t for the LOCAL argument."
   (let [hook (data/symbol-value hook)]
-    (dorun (map #(apply % args) (if (fn? hook) [hook] hook)))))
+    (dorun (map #(c/apply % args) (if (fn? hook) [hook] hook)))))
 
 (defun funcall (function &rest arguments)
   "Call first argument as a function, passing remaining arguments to it.
