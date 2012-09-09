@@ -229,7 +229,7 @@
   is not a side effect; it is simply using a different sequence.
   Therefore, write `(setq foo (delete element foo))'
   to be sure of changing the value of `foo'."
-  (remove #{elt} seq))
+  (seq (remove #{elt} seq)))
 
 (defun locale-info (item)
   "Access locale data ITEM for the current C locale, if available.
@@ -365,7 +365,7 @@
   If the first member of LIST is ELT, there is no way to remove it by side effect;
   therefore, write `(setq foo (delq element foo))'
   to be sure of changing the value of `foo'."
-  (remove #{elt} list))
+  (seq (remove #{elt} list)))
 
 (defun assq (key list)
   "Return non-nil if KEY is `eq' to the car of an element of LIST.
@@ -491,12 +491,12 @@
 (defun nreverse (list)
   "Reverse LIST by modifying cdr pointers.
   Return the reversed list."
-  (c/reverse list))
+  (seq (c/reverse list)))
 
 (defun reverse (list)
   "Reverse LIST, copying.  Return the reversed list.
   See also the function `nreverse', which is used more often."
-  (c/reverse list))
+  (seq (c/reverse list)))
 
 (defun nthcdr (n list)
   "Take cdr N times on LIST, return the result."
@@ -562,6 +562,7 @@
 (defun memq (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
   The value is actually the tail of LIST whose car is ELT."
+
   (seq (drop-while #(not (data/eq elt %)) list)))
 
 (defun memql (elt list)

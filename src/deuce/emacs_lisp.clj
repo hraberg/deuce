@@ -85,11 +85,18 @@
   (try
     (c/eval (with-meta emacs-lisp nil))
     (catch RuntimeException e
-      (println e)
-      (apply println (vals (meta emacs-lisp)))
-      (throw e))))
+      (if-let [[_  undeclared] (c/and (global 'load-in-progress)
+                                      @(global 'load-in-progress)
+                                      (c/re-find #"Unable to resolve symbol: (.+) in this context"
+                                                 (.getMessage e)))]
+        (do
+          (intern 'deuce.emacs (symbol undeclared))
+          (compile emacs-lisp))
+        (do
+          (println e)
+          (apply println (vals (meta emacs-lisp)))
+          (throw e))))))
 (alter-var-root #'compile memoize)
-
 
 ;; defined as fn in eval.clj
 (c/defmacro eval
@@ -158,7 +165,7 @@
   BODY should be a list of Lisp expressions."
   {:arglists '([ARGS [DOCSTRING] [INTERACTIVE] BODY])}
   [& cdr]
-  `(def-helper* fn '~'lambda ~(first cdr) ~@(rest cdr)))
+  `(def-helper* fn lambda ~(first cdr) ~@(rest cdr)))
 
 (c/defmacro unwind-protect
   "Do BODYFORM, protecting with UNWINDFORMS.
@@ -204,7 +211,7 @@
        (c/let [~(if var var (gensym "_")) (.data e#)]
          (case (.symbol e#)
            ~@(apply concat (for [[c & h] handlers]
-                             `[~c (do ~@h)]))
+                             `[~(sym c) (do ~@h)]))
            (throw e#))))))
 
 (c/defmacro cond

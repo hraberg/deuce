@@ -86,6 +86,6 @@
 ;; We specify .el in case someone compiled version.el by mistake.
 (load "version.el")
 
-;; (load "widget")
-;; (load "custom")
-;; (load "emacs-lisp/map-ynp")
+(load "widget")
+(load "custom")
+(load "emacs-lisp/map-ynp")

@@ -56,9 +56,10 @@
 
 (defun symbol-name (symbol)
   "Return SYMBOL's name, a string."
-  (if (keyword? symbol)
-    (str symbol)
-    (name symbol)))
+  (condp some [symbol]
+    keyword? (str symbol)
+    symbol? (name symbol)
+    nil? (str nil)))
 
 (defun makunbound (symbol)
   "Make SYMBOL's value be void.
@@ -278,9 +279,9 @@
 (defun fmakunbound (symbol)
   "Make SYMBOL's function definition be void.
   Return SYMBOL."
-  (let [symbol (el/sym symbol)]
-    (ns-unmap (-> (el/fun symbol) meta :ns) (el/sym symbol))
-    symbol))
+  (when-let [fun (el/fun (el/sym symbol))]
+    (ns-unmap (-> (el/fun symbol) meta :ns) (el/sym symbol)))
+  symbol)
 
 (defun lognot (number)
   "Return the bitwise complement of NUMBER.  NUMBER must be an integer."
