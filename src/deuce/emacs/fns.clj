@@ -4,9 +4,12 @@
  (require [clojure.core :as c]
           [clojure.string :as s]
           [deuce.emacs.data :as data]
+          [deuce.emacs.lread :as lread]
           [deuce.emacs-lisp :as el]
           [deuce.emacs-lisp.globals :as globals])
- (import [deuce DottedPair]
+ (import [clojure.lang IPersistentCollection]
+         [deuce DottedPair]
+         [java.util List]
          [java.nio CharBuffer]
          [java.nio.charset Charset]
          [javax.xml.bind DatatypeConverter]
@@ -64,7 +67,10 @@
   It is similar to (decode-coding-string STRING 'utf-8-emacs).
   If you're not sure, whether to use `string-as-multibyte' or
   `string-to-multibyte', use `string-to-multibyte'."
-  )
+  (let [utf-8 (.newEncoder (Charset/forName "UTF-8"))]
+    (String. (.array (.encode utf-8 (CharBuffer/wrap string))) (.charset utf-8))))
+
+(declare plist-put)
 
 (defun lax-plist-put (plist prop val)
   "Change value in PLIST of PROP to VAL, comparing with `equal'.
@@ -74,7 +80,7 @@
   otherwise the new PROP VAL pair is added.  The new plist is returned;
   use `(setq x (lax-plist-put x prop val))' to be sure to use the new value.
   The PLIST is modified by side effects."
-  )
+  (plist-put prop val))
 
 (defun safe-length (list)
   "Return the length of a list, but avoid error or infinite loop.
@@ -99,7 +105,7 @@
 
 (defun copy-hash-table (table)
   "Return a copy of hash table TABLE."
-  )
+  table)
 
 (defun append (&rest sequences)
   "Concatenate all the arguments and make the result a list.
@@ -141,7 +147,7 @@
   The objects mapped (cars and cdrs of elements of the alist)
   are shared, however.
   Elements of ALIST that are not conses are also shared."
-  )
+  alist)
 
 (defun secure-hash (algorithm object &optional start end binary)
   "Return the secure hash of OBJECT, a buffer or string.
@@ -162,7 +168,7 @@
   "Return a copy of a list, vector, string or char-table.
   The elements of a list or vector are not copied; they are shared
   with the original."
-  )
+  arg)
 
 (defun string-as-unibyte (string)
   "Return a unibyte string with the same individual bytes as STRING.
@@ -170,7 +176,8 @@
   Otherwise it is a newly created string, with no text properties.
   If STRING is multibyte and contains a character of charset
   `eight-bit', it is converted to the corresponding single byte."
-  )
+  (let [ascii (.newEncoder (Charset/forName "US-ASCII"))]
+    (String. (.array (.encode ascii (CharBuffer/wrap string))) (.charset ascii))))
 
 (defun sxhash (obj)
   "Compute a hash code for OBJ and return it as integer."
@@ -222,7 +229,7 @@
   is not a side effect; it is simply using a different sequence.
   Therefore, write `(setq foo (delete element foo))'
   to be sure of changing the value of `foo'."
-  )
+  (remove #{elt} seq))
 
 (defun locale-info (item)
   "Access locale data ITEM for the current C locale, if available.
@@ -256,7 +263,7 @@
   This differs from `string-as-multibyte' by converting each byte of a correct
   utf-8 sequence to an eight-bit character, not just bytes that don't form a
   correct sequence."
-  (String. (.getBytes string) "UTF-8"))
+  (string-as-multibyte string))
 
 (defun eql (obj1 obj2)
   "Return t if the two args are the same Lisp object.
@@ -265,13 +272,16 @@
     (and (float? obj1) (float obj2)) (== obj1 obj2)
     :else (data/eq obj1 obj2)))
 
+(defn ^:private plist-map [plist]
+  (if (map? plist) plist (apply hash-map plist)))
+
 (defun plist-get (plist prop)
   "Extract a value from a property list.
   PLIST is a property list, which is a list of the form
   (PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
   corresponding to the given PROP, or nil if PROP is not one of the
   properties on the list.  This function never signals an error."
-  )
+  ((plist-map plist) prop))
 
 (defun elt (sequence n)
   "Return element of SEQUENCE at index N."
@@ -287,7 +297,7 @@
   "Return t if two Lisp objects have similar structure and contents.
   This is like `equal' except that it compares the text properties
   of strings.  (`equal' ignores text properties.)"
-  )
+  (c/= o1 o2))
 
 (defun substring-no-properties (string &optional from to)
   "Return a substring of STRING, without text properties.
@@ -355,13 +365,13 @@
   If the first member of LIST is ELT, there is no way to remove it by side effect;
   therefore, write `(setq foo (delq element foo))'
   to be sure of changing the value of `foo'."
-  )
+  (remove #{elt} list))
 
 (defun assq (key list)
   "Return non-nil if KEY is `eq' to the car of an element of LIST.
   The value is actually the first element of LIST whose car is KEY.
   Elements of LIST that are not conses are ignored."
-  )
+  (first (filter #(= key (.car %)) (filter #(instance? DottedPair %) list))))
 
 (defun string-make-multibyte (string)
   "Return the multibyte equivalent of STRING.
@@ -373,7 +383,7 @@
   STRING is unibyte and entirely ASCII, the returned string is unibyte.
   (When the characters are all ASCII, Emacs primitives will treat the
   string the same way whether it is unibyte or multibyte.)"
-  )
+  (string-to-multibyte string))
 
 (defun string-equal (s1 s2)
   "Return t if two strings have identical contents.
@@ -390,7 +400,7 @@
 (defun fillarray (array item)
   "Store each element of ARRAY with ITEM.
   ARRAY is a vector, string, char-table, or bool-vector."
-  )
+  (into (empty array) (repeat (count array) item)))
 
 (defun load-average (&optional use-floats)
   "Return list of 1 minute, 5 minute and 15 minute load averages.
@@ -423,7 +433,7 @@
 
 (defun clrhash (table)
   "Clear hash table TABLE and return it."
-  )
+  (empty table))
 
 (defun vconcat (&rest sequences)
   "Concatenate all the arguments and make the result a vector.
@@ -481,7 +491,7 @@
 (defun nreverse (list)
   "Reverse LIST by modifying cdr pointers.
   Return the reversed list."
-  )
+  (c/reverse list))
 
 (defun reverse (list)
   "Reverse LIST, copying.  Return the reversed list.
@@ -499,7 +509,10 @@
 (defun put (symbol propname value)
   "Store SYMBOL's PROPNAME property with value VALUE.
   It can be retrieved with `(get SYMBOL PROPNAME)'."
-  )
+  (when-not (data/boundp symbol)
+    (data/set symbol nil))
+  (alter-meta! (ns-resolve 'deuce.emacs-lisp.globals symbol) c/assoc propname value)
+  value)
 
 (defun base64-decode-region (beg end)
   "Base64-decode the region between BEG and END.
@@ -519,13 +532,18 @@
   where each `eight-bit' character is converted to the corresponding byte.
   If STRING contains a non-ASCII, non-`eight-bit' character,
   an error is signaled."
-  (let [ascii (.newEncoder (Charset/forName "US-ASCII"))]
-    (String. (.array (.encode ascii (CharBuffer/wrap string))) (.charset ascii))))
+  (string-as-unibyte string))
 
 (defun nconc (&rest lists)
   "Concatenate any number of lists by altering them.
   Only the last argument is not altered, and need not be a list."
-  )
+  (condp instance? (first lists)
+    IPersistentCollection (c/apply c/concat lists)
+    List (let [[car & cdr] lists]
+           (doseq [list cdr]
+             (.addAll cdr list))
+           car)
+    (c/apply c/concat lists)))
 
 (defun length (sequence)
   "Return the length of vector, list or string SEQUENCE.
@@ -580,6 +598,8 @@
   without need for resizing."
   (count table))
 
+(declare featurep)
+
 (defun require (feature &optional filename noerror)
   "If feature FEATURE is not loaded, load it from FILENAME.
   If FEATURE is not a member of the list `features', then the feature
@@ -592,12 +612,13 @@
   then return nil if the file is not found instead of signaling an error.
   Normally the return value is FEATURE.
   The normal messages at start and end of loading FILENAME are suppressed."
-  )
+  (when-not (featurep feature)
+    (lread/load (or filename feature) noerror true)))
 
 (defun get (symbol propname)
   "Return the value of SYMBOL's PROPNAME property.
   This is the last value stored with `(put SYMBOL PROPNAME VALUE)'."
-  )
+  (-> (ns-resolve 'deuce.emacs-lisp.globals symbol) meta propname))
 
 (defun lax-plist-get (plist prop)
   "Extract a value from a property list, comparing with `equal'.
@@ -605,7 +626,7 @@
   (PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
   corresponding to the given PROP, or nil if PROP is not
   one of the properties on the list."
-  )
+  (plist-get plist prop))
 
 (defun maphash (function table)
   "Call FUNCTION for all entries in hash table TABLE.
@@ -623,7 +644,7 @@
   `nonascii-translation-table' or, if that is nil, `nonascii-insert-offset'.
   If the lookup in the translation table fails, this function takes just
   the low 8 bits of each character."
-  )
+  (string-to-unibyte string))
 
 (defun string-lessp (s1 s2)
   "Return t if first arg string is less than second in lexicographic order.
@@ -672,7 +693,7 @@
   otherwise the new PROP VAL pair is added.  The new plist is returned;
   use `(setq x (plist-put x prop val))' to be sure to use the new value.
   The PLIST is modified by side effects."
-  )
+  (c/apply list (reduce into [] (c/assoc (plist-map plist) prop val))))
 
 (defun puthash (key value table)
   "Associate KEY with VALUE in hash table TABLE.
@@ -698,7 +719,7 @@
   Unlike `plist-get', this allows you to distinguish between a missing
   property and a property with the value nil.
   The value is actually the tail of PLIST whose car is PROP."
-  )
+  ((plist-map plist) prop))
 
 (defun sort (list predicate)
   "Sort LIST, stably, comparing elements using PREDICATE.
