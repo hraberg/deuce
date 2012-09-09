@@ -449,7 +449,7 @@
 
 (defun setplist (symbol newplist)
   "Set SYMBOL's property list to NEWPLIST, and return NEWPLIST."
-  )
+  (alter-meta! (el/global symbol) (constantly newplist)))
 
 (defun set-default (symbol value)
   "Set SYMBOL's default value to VALUE.  SYMBOL and VALUE are evaluated.

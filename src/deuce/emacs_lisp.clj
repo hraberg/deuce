@@ -234,7 +234,9 @@
                         (if (c/and (contains? (get-thread-bindings) var#)
                                    (not ~default?))
                           (var-set var# ~v)
-                          (alter-var-root var# (constantly ~v)))
+                          (c/let [m# (meta var#)]
+                            (alter-var-root var# (constantly ~v))
+                            (alter-meta! var# (constantly m#))))
                         (do
                           (defvar ~s ~v)
                           ~v)))]))
@@ -446,15 +448,18 @@
     `(let-helper* true ~varlist ~@body)))
 
 (defn defvar-helper* [ns symbol & [initvalue docstring]]
-  (c/let [symbol (sym (nested-first-symbol symbol))]
-    (do
-      (->
-       (intern (create-ns ns)
-               symbol
-               initvalue)
-       .setDynamic
-       (alter-meta! merge {:doc (apply str docstring)}))
-      symbol)))
+  (c/let [symbol (sym (nested-first-symbol symbol))
+          default (global symbol)
+          m (meta default)]
+    (->
+     (intern (create-ns ns)
+             symbol
+             (c/or (when default
+                     (.getRawRoot default))
+                   initvalue))
+     .setDynamic
+     (alter-meta! merge (merge m {:doc (apply str docstring)})))
+    symbol))
 
 (c/defmacro defvar
   "Define SYMBOL as a variable, and return SYMBOL.

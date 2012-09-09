@@ -509,9 +509,9 @@
 (defun put (symbol propname value)
   "Store SYMBOL's PROPNAME property with value VALUE.
   It can be retrieved with `(get SYMBOL PROPNAME)'."
-  (when-not (data/boundp symbol)
-    (data/set symbol nil))
-  (alter-meta! (ns-resolve 'deuce.emacs-lisp.globals symbol) c/assoc propname value)
+  (when-not (el/global symbol)
+    (intern (the-ns 'deuce.emacs-lisp.globals) symbol))
+  (alter-meta! (el/global symbol) c/assoc propname value)
   value)
 
 (defun base64-decode-region (beg end)
@@ -618,7 +618,7 @@
 (defun get (symbol propname)
   "Return the value of SYMBOL's PROPNAME property.
   This is the last value stored with `(put SYMBOL PROPNAME VALUE)'."
-  (-> (ns-resolve 'deuce.emacs-lisp.globals symbol) meta propname))
+  (-> (el/global symbol) meta propname))
 
 (defun lax-plist-get (plist prop)
   "Extract a value from a property list, comparing with `equal'.
