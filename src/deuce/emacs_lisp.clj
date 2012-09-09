@@ -236,7 +236,8 @@
                           (var-set var# ~v)
                           (c/let [m# (meta var#)]
                             (alter-var-root var# (constantly ~v))
-                            (alter-meta! var# (constantly m#))))
+                            (alter-meta! var# (constantly m#))
+                            @var#))
                         (do
                           (defvar ~s ~v)
                           ~v)))]))
