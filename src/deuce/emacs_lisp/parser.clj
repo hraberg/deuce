@@ -43,7 +43,7 @@
       #"\s" (recur sc)
       #"[)\]]" nil
       #"\(" (with-meta (tokenize-all sc) {:line @line})
-      #"\[" (with-meta (list 'quote (vec (tokenize-all sc))) {:line @line})
+      #"\[" (with-meta (list `object-array (list 'quote (vec (tokenize-all sc)))) {:line @line})
       #"," (list (if (find #"@" 1) (symbol "\\,@") (symbol "\\,")) (tokenize sc))
       #"'" (list 'quote (tokenize sc))
       #"`" (let [form (tokenize sc)] (if (symbol? form)

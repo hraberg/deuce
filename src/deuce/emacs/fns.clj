@@ -45,7 +45,9 @@
   "Announce that FEATURE is a feature of the current Emacs.
   The optional argument SUBFEATURES should be a list of symbols listing
   particular subfeatures supported in this version of FEATURE."
-  (el/setq features (cons feature globals/features)))
+  (when-not (some #{feature} globals/features)
+    (el/setq features (cons feature globals/features)))
+  feature)
 
 (defun widget-get (widget property)
   "In WIDGET, get the value of PROPERTY.
@@ -614,7 +616,7 @@
   Normally the return value is FEATURE.
   The normal messages at start and end of loading FILENAME are suppressed."
   (when-not (featurep feature)
-    (lread/load (or filename feature) noerror true))
+    (lread/load (or filename (name feature)) noerror true))
   feature)
 
 (defun get (symbol propname)

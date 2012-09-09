@@ -120,7 +120,7 @@
 (defun vector (&rest objects)
   "Return a newly created vector with specified arguments as elements.
   Any number of arguments, even zero arguments, are allowed."
-  (apply c/vector objects))
+  (object-array objects))
 
 (defun string (&rest characters)
   "Concatenate all the argument characters and make the result a string."
@@ -174,7 +174,7 @@
 (defun make-vector (length init)
   "Return a newly created vector of length LENGTH, with each element being INIT.
   See also the function `vector'."
-  (apply vector (repeat length init)))
+  (object-array (repeat length init)))
 
 (defun make-string (length init)
   "Return a newly created string of length LENGTH, with INIT in each element.

@@ -66,12 +66,14 @@
   and `replace-match'."
   )
 
+(def ^:private current-match-data (atom nil))
+
 (defun set-match-data (list &optional reseat)
   "Set internal data on last search match from elements of LIST.
   LIST should have been created by calling `match-data' previously.
 
   If optional arg RESEAT is non-nil, make markers on LIST point nowhere."
-  )
+  (reset! current-match-data list))
 
 (defun word-search-forward-lax (string &optional bound noerror count)
   "Search forward from point for STRING, ignoring differences in punctuation.
@@ -187,8 +189,6 @@
   matched by parenthesis constructs in the pattern."
   )
 
-(def ^:private current-matcher (atom nil))
-
 (defun string-match (regexp string &optional start)
   "Return index of start of first match for REGEXP in STRING, or nil.
   Matching ignores case if `case-fold-search' is non-nil.
@@ -204,7 +204,7 @@
                                       (s/replace "\\)" ")")))
                       (subs string (or start 0)))]
     (when (re-find m)
-      (reset! current-matcher m)
+      (reset! current-match-data m)
       (.start m))))
 
 (defun posix-looking-at (regexp)
@@ -235,7 +235,7 @@
   REUSE list will be modified to point to nowhere.
 
   Return value is undefined if the last search failed."
-  )
+  @current-match-data)
 
 (defun replace-match (newtext &optional fixedcase literal string subexp)
   "Replace text matched by last search with NEWTEXT.
@@ -282,7 +282,7 @@
   Value is nil if SUBEXPth pair didn't match, or there were less than
     SUBEXP pairs.
   Zero means the entire text matched by the whole regexp or whole string."
-  (.start @current-matcher subexp))
+  (.start @current-match-data subexp))
 
 (defun search-backward (string &optional bound noerror count)
   "Search backward from point for STRING.
@@ -308,7 +308,7 @@
   Value is nil if SUBEXPth pair didn't match, or there were less than
     SUBEXP pairs.
   Zero means the entire text matched by the whole regexp or whole string."
-  (.end @current-matcher subexp))
+  (.end @current-match-data subexp))
 
 (defun posix-search-backward (regexp &optional bound noerror count)
   "Search backward from point for match for regular expression REGEXP.

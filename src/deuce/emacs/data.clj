@@ -20,6 +20,11 @@
 (defvar most-negative-fixnum Long/MIN_VALUE
   "The smallest value that is representable in a Lisp integer.")
 
+(def ^:private array-class (Class/forName "[Ljava.lang.Object;"))
+
+(defmethod print-method array-class [o w]
+  (print-method (vec o) w))
+
 (defun natnump (object)
   "Return t if OBJECT is a nonnegative integer."
   ((every-pred neg? integer?) object))
@@ -268,13 +273,15 @@
   bool-vector.  IDX starts at 0."
   (c/aset array idx newelt))
 
+(declare vectorp)
+
 (defun arrayp (object)
   "Return t if OBJECT is an array (string or vector)."
-  ((some-fn vector? string?) object))
+  ((some-fn vectorp string?) object))
 
 (defun vectorp (object)
   "Return t if OBJECT is a vector."
-  (vector? object))
+  (c/= array-class (type object)))
 
 (defun fmakunbound (symbol)
   "Make SYMBOL's function definition be void.
@@ -358,7 +365,7 @@
 
 (defun vector-or-char-table-p (object)
   "Return t if OBJECT is a char-table or vector."
-  (vector? object))
+  (c/or (vectorp object)))
 
 (defun bufferp (object)
   "Return t if OBJECT is an editor buffer."
