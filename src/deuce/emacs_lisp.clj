@@ -2,7 +2,8 @@
   (require [clojure.core :as c]
            [clojure.walk :as w])
   (:refer-clojure :exclude [defmacro and or cond let while eval set compile])
-  (import [deuce EmacsLispError DottedPair]))
+  (import [clojure.lang Atom]
+          [deuce EmacsLispError DottedPair]))
 
 (defmethod print-method DottedPair [pair writer]
   (.write writer
@@ -104,7 +105,7 @@
 
 (c/defmacro def-helper* [what name arglist & body]
   (c/let [[docstring body] (split-with string? body)
-          name (if (seq? name) (c/eval name) name)
+          name (sym (if (seq? name) (c/eval name) name))
           [arg & args :as arglist] (replace '{&rest &} arglist)
           [arglist &optional optional-args] (if (= '&optional arg)
                                               [() arg args]
@@ -293,8 +294,13 @@
        ~((fn build-let [[v & vs]]
            (if v
              (if-let [local (lexical-vars v)]
-               `(c/let [~v (atom ~local)] ~(build-let vs))
-               `(c/binding [~v ~(dynamic-vars v)] ~(build-let vs)))
+               `(c/let [~v (c/let [local# ~local]
+                             (atom (if (instance? Atom local#)
+                                     @local#
+                                     local#)))]
+                  ~(build-let vs))
+               `(c/binding [~v ~(dynamic-vars v)]
+                  ~(build-let vs)))
              `(do ~@body))) all-vars))))
 
 (c/defmacro let

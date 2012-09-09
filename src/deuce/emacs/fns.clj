@@ -613,7 +613,8 @@
   Normally the return value is FEATURE.
   The normal messages at start and end of loading FILENAME are suppressed."
   (when-not (featurep feature)
-    (lread/load (or filename feature) noerror true)))
+    (lread/load (or filename feature) noerror true))
+  feature)
 
 (defun get (symbol propname)
   "Return the value of SYMBOL's PROPNAME property.
