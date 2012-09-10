@@ -125,7 +125,7 @@
 
 (defun functionp (object)
   "Non-nil if OBJECT is a function."
-  )
+  (fn? object))
 
 (defun autoload (function file &optional docstring interactive type)
   "Define FUNCTION to autoload from FILE.

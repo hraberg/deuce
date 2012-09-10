@@ -150,6 +150,7 @@
           the-args (remove '#{&} (flatten arglist))]
 ;    (println (c/name what) name (c/or (-> name meta :line) ""))
     `(c/let [f# (~what ~name ~(vec arglist)
+                       ~(when-not (seq body) `(println "WARNING" ~(c/name name) "NOT IMPLEMENTED"))
                        ~(if emacs-lisp?
                           `(let-helper* false ~(map #(list % %) the-args)
                              (if (= '~'defmacro '~(sym what))

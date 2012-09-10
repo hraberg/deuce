@@ -154,10 +154,9 @@ Once in [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/e
 
 To try to load [`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/src/deuce-loadup.el), do:
 
-    (clojure.core/require 'deuce.main)
-    (deuce.main/loadup)
+    (load "deuce-loadup")
 
-You can load Emacs Lisp (from the class path) with:
+You can also load other Emacs Lisp (from the class path) with:
 
     (load "subr")
 
