@@ -158,10 +158,11 @@
                           `(do ~@body)))]
        (if (var? f#)
          (do
-           (alter-meta! f# merge (merge {:doc ~doc} (when ~emacs-lisp?
-                                                      {:line ~line
-                                                       :file (when-let [file# (global 'load-file-name)]
-                                                               @file#)})))
+           (alter-meta! f# merge (merge {:doc ~doc}
+                                        (when ~emacs-lisp?
+                                          {:line ~line
+                                           :file (when-let [file# (global 'load-file-name)]
+                                                   @file#)})))
            (alter-var-root f# (constantly (with-meta @f# (meta f#)))))
          (with-meta f# (assoc (meta f#) :doc ~doc))))))
 
@@ -304,6 +305,16 @@
   [arg]
   `(quote ~arg))
 
+(defn fix-lexical-setq [lexical-vars form]
+  (if (lexical-vars form)
+    (list `deref form)
+    (condp some [(maybe-sym (first-symbol form))]
+      '#{setq} (list `setq-helper*
+                     lexical-vars false (rest form))
+      '#{setq-helper*} (concat [`setq-helper*
+                                (into (second form) lexical-vars)] (drop 2 form))
+      form)))
+
 (c/defmacro let-helper* [can-refer? varlist & body]
   (c/let [varlist (->> varlist
                        (map #(if (symbol? %) [% nil] %))
@@ -311,14 +322,7 @@
           {:keys [lexical dynamic]} (group-by (comp #(if (namespace %) :dynamic :lexical) first) varlist)
           lexical-vars (into {} (map vec lexical))
           dynamic-vars (into {} (map vec dynamic))
-          fix-lexical-setq (fn [form] (if ((c/set (keys lexical-vars)) form)
-                                        (list `deref form)
-                                        (condp some [(maybe-sym (first-symbol form))]
-                                          '#{setq} (list `setq-helper*
-                                                         (c/set (keys lexical-vars)) false (rest form))
-                                          '#{setq-helper*} (concat [`setq-helper*
-                                                                    (into (second form) (keys lexical-vars))] (drop 2 form))
-                                          form)))
+          fix-lexical-setq (partial fix-lexical-setq (c/set (keys lexical-vars)))
           body (w/postwalk fix-lexical-setq body)
           all-vars (map first varlist)
           temps (zipmap all-vars (repeatedly #(gensym "local__")))
