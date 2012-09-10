@@ -13,11 +13,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 **2012-09-10 Mutable Data**
 
-Somewhat reluctantly now backing Emacs Lisp with [LinkedList](http://docs.oracle.com/javase/7/docs/api/java/util/LinkedList.html) for [lists](http://www.gnu.org/software/emacs/manual/html_node/elisp/Lists.html) and arrays for [vectors](http://www.gnu.org/software/emacs/manual/html_node/elisp/Sequences-Arrays-Vectors.html), so various destructive updates work.
-
-Both [`custom.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/custom.el) and [`mule.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/international/mula.el) are using this to build up various state.
-
-I've also decided to represent property lists as meta data on the var for now.
+Somewhat reluctantly now backing Emacs Lisp with [LinkedList](http://docs.oracle.com/javase/7/docs/api/java/util/LinkedList.html) for [lists](http://www.gnu.org/software/emacs/manual/html_node/elisp/Lists.html) and arrays for [vectors](http://www.gnu.org/software/emacs/manual/html_node/elisp/Sequences-Arrays-Vectors.html), so various destructive updates work. Both [`custom.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/custom.el) and [`mule.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/international/mula.el) are using this to build up various state. I've also decided to represent property lists as meta data on the var for now.
 
 Here's the current state - load path entries are classpath relative (from `emacs/lisp`, see [`project.clj`](https://github.com/hraberg/deuce/blob/master/project.clj)):
 
