@@ -580,18 +580,8 @@
   use `save-excursion' outermost:
       (save-excursion (save-restriction ...))"
   {:arglists '([&rest BODY])}
-  [& body])
-
-(c/defmacro save-window-excursion
-  "Execute BODY, preserving window sizes and contents.
-  Return the value of the last form in BODY.
-  Restore which buffer appears in which window, where display starts,
-  and the value of point and mark for each window.
-  Also restore the choice of selected window.
-  Also restore which buffer is current.
-  Does not restore the value of point in current buffer."
-  {:arglists '([BODY...])}
-  [& body])
+  [& body]
+  `(do ~@body))
 
 (c/defmacro save-excursion
   "Save point, mark, and current buffer; execute BODY; restore those things.
@@ -607,12 +597,8 @@
 
   If you only want to save the current buffer but not point nor mark,
   then just use `save-current-buffer', or even `with-current-buffer'."
-  [& body])
-
-(c/defmacro with-output-to-temp-buffer
-  "Bind `standard-output' to buffer BUFNAME, eval BODY, then show that buffer."
-  {:arglists '([BUFNAME BODY...])}
-  [bufname & body])
+  [& body]
+  `(do ~@body))
 
 (c/defmacro interactive
   "Specify a way of parsing arguments for interactive use of a function.
