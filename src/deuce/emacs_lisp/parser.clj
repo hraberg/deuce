@@ -95,4 +95,5 @@
                          (.useDelimiter #"(\s|\]|\)|\"|;)")))
          (w/postwalk-replace {(symbol "nil") nil 't true})
          (w/postwalk (comp el/expand-dotted-pairs el/vectors-to-arrays))
-         syntax-quote)))
+         syntax-quote
+         (w/postwalk el/lists-to-linked-lists))))

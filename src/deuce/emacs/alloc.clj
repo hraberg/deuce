@@ -2,7 +2,8 @@
  deuce.emacs.alloc
  (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c])
- (import [deuce DottedPair])
+ (import [deuce DottedPair]
+         [java.util LinkedList])
  (:refer-clojure :exclude [vector cons list]))
 
 (defvar purify-flag nil
@@ -144,11 +145,15 @@
   See Info node `(elisp)Garbage Collection'."
   (System/gc))
 
+(declare list)
+
 (defun cons (car cdr)
   "Create a new cons, give it CAR and CDR as components, and return it."
-  (if (or (coll? cdr) (nil? cdr) (= () cdr))
-    (c/cons car cdr)
-    (DottedPair. car cdr)))
+  (cond
+    (instance? LinkedList cdr) (doto (list car)
+                                 (.addAll cdr))
+    (or (coll? cdr) (nil? cdr) (= () cdr)) (c/cons car cdr)
+    :else (DottedPair. car cdr)))
 
 (defun (clojure.core/symbol "slash-equals") (num1 num2)
   "Return t if first arg is not equal to second arg.  Both must be numbers or markers."
@@ -182,8 +187,6 @@
   INIT must be an integer that represents a character."
   (apply str (repeat length init)))
 
-(declare list)
-
 (defun make-list (length init)
   "Return a newly created list of length LENGTH, with each element being INIT."
   (apply list (repeat length init)))
@@ -191,4 +194,5 @@
 (defun list (&rest objects)
   "Return a newly created list with specified arguments as elements.
   Any number of arguments, even zero arguments, are allowed."
-  (apply c/list objects))
+;  (apply c/list objects)
+  (LinkedList. (or objects [])))

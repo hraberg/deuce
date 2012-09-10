@@ -3,7 +3,8 @@
            [clojure.walk :as w])
   (:refer-clojure :exclude [defmacro and or cond let while eval set compile])
   (import [clojure.lang Atom]
-          [deuce EmacsLispError DottedPair]))
+          [deuce EmacsLispError DottedPair]
+          [java.util LinkedList]))
 
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
@@ -14,11 +15,11 @@
   (symbol (name s)))
 
 (defn first-symbol [form]
-  (when ((every-pred seq? (comp symbol? first)) form)
+  (when ((every-pred (some-fn seq? list?) (comp symbol? first)) form)
     (first form)))
 
 (defn nested-first-symbol [s]
-  (if (symbol? s)
+  (if ((some-fn symbol? (complement seq?)) s)
     s
     (when s
       (recur (second s)))))
@@ -65,6 +66,12 @@
     (object-array form)
     form))
 
+(defn lists-to-linked-lists [form]
+  (if (c/and (seq? form) (= 'quote (first form))
+             (seq? (second form)))
+    (list `LinkedList. form)
+    form))
+
 (defn protect-forms [form]
   (if ('#{defun defmacro} (maybe-sym (first-symbol form)))
     ^:protect-from-expansion (fn [] form)
@@ -79,6 +86,7 @@
        ~(->> body
              (w/postwalk (comp strip-comments
                                expand-dotted-pairs
+                               lists-to-linked-lists
                                vectors-to-arrays
                                protect-forms))
              (w/postwalk (comp unprotect-forms
@@ -103,13 +111,18 @@
           (throw e))))))
 (alter-var-root #'compile memoize)
 
+(defn limit-scope [scope]
+  (->> scope
+       (remove '#{&env &form})
+       (remove #(re-find #"local__\d+" (name %)))))
+
 ;; defined as fn in eval.clj
 (c/defmacro eval
   "Evaluate FORM and return its value.
   If LEXICAL is t, evaluate using lexical scoping."
   {:arglists '([FORM &optional LEXICAL])}
   [body & [lexical]]
-  (c/let [scope (keys &env)]
+  (c/let [scope (limit-scope (keys &env))]
     `(binding [*ns* (the-ns 'deuce.emacs)]
        (maybe-sym ((compile (preprocess '~scope ~body)) ~@scope)))))
 
@@ -133,7 +146,9 @@
     `(c/let [f# (~what ~name ~(vec arglist)
                        ~(if emacs-lisp?
                           `(let-helper* false ~(map #(list % %) the-args)
-                             (eval '(do ~@body)))
+                             (if (= '~'defmacro '~(sym what))
+                               (eval '(seq (do ~@body)))
+                               (eval '(do ~@body))))
                           `(do ~@body)))]
        (if (var? f#)
          (do
@@ -299,17 +314,14 @@
                                           form)))
           body (w/postwalk fix-lexical-setq body)
           all-vars (map first varlist)
-          temps (zipmap all-vars (repeatedly #(gensym "local")))
+          temps (zipmap all-vars (repeatedly #(gensym "local__")))
           [lexical-vars dynamic-vars] (map #(if can-refer? % (select-keys temps (keys %)))
                                            [lexical-vars dynamic-vars])]
     `(c/let ~(if can-refer? [] (vec (interleave (map temps (map first varlist)) (map second varlist))))
        ~((fn build-let [[v & vs]]
            (if v
              (if-let [local (lexical-vars v)]
-               `(c/let [~v (c/let [local# ~local]
-                             (atom (if (instance? Atom local#)
-                                     @local#
-                                     local#)))]
+               `(c/let [~v (atom ~(w/postwalk fix-lexical-setq local))]
                   ~(build-let vs))
                `(c/binding [~v ~(dynamic-vars v)]
                   ~(build-let vs)))

@@ -1,7 +1,7 @@
 (ns deuce.test.common
+  (use [clojure.test])
   (require [deuce.emacs-lisp :as el]
-           [deuce.emacs])
-  (use [clojure.test]))
+           [deuce.emacs]))
 
 (defmacro emacs [& body]
   `(last (map #(el/eval %) '~body)))
@@ -42,6 +42,8 @@
                 (if (= '-| op)
                   `(is (re-find (re-pattern ~e) (with-out-str (emacs ~@a))))
                   (cond
-                   (and (symbol? e) (resolve e)) `(is (~(resolve e) (emacs ~@a)))
-                   (instance? java.util.regex.Pattern e) `(is (re-find (re-pattern ~e) (emacs ~@a)))
-                   :else `(is (= ~e (emacs ~@a))))))))))
+                    (and (symbol? e) (resolve e)) (if (instance? Class (resolve e))
+                                                    `(is (instance? ~e (emacs ~@a)))
+                                                    `(is (~(resolve e) (emacs ~@a))))
+                    (instance? java.util.regex.Pattern e) `(is (re-find (re-pattern ~e) (emacs ~@a)))
+                    :else `(is (= ~e (emacs ~@a))))))))))

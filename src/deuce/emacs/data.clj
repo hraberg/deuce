@@ -7,7 +7,7 @@
  (import [clojure.lang IPersistentCollection]
          [deuce EmacsLispError DottedPair]
          [java.nio ByteOrder]
-         [java.util List])
+         [java.util List LinkedList SubList])
  (:refer-clojure
   :exclude
   [+ * - / aset set < = > max >= <= mod atom min]))
@@ -27,6 +27,12 @@
 
 (defmethod print-dup array-class [array out]
   (.write out (str "#=" `(object-array ~(vec array)))))
+
+(defmethod print-method LinkedList [o w]
+  (print-method (seq o) w))
+
+(defmethod print-method SubList [o w]
+  (print-method (seq o) w))
 
 (defmethod print-method DottedPair [pair out]
   (.write out
@@ -263,12 +269,13 @@
 (defun consp (object)
   "Return t if OBJECT is a cons cell."
   (or (instance? DottedPair object)
-      ((every-pred seq? seq) object)))
+      ((every-pred seq? seq) object)
+      ((every-pred (partial instance? List) seq) object)))
 
 (defun listp (object)
   "Return t if OBJECT is a list, that is, a cons cell or nil.
   Otherwise, return nil."
-  ((some-fn list? nil?) object))
+  ((some-fn list? nil? (partial instance? List)) object))
 
 (defun aref (array idx)
   "Return the element of ARRAY at index IDX.
@@ -307,13 +314,19 @@
   "Return the bitwise complement of NUMBER.  NUMBER must be an integer."
   (bit-not number))
 
+(declare atom)
+
 (defun setcdr (cell newcdr)
   "Set the cdr of CELL to be NEWCDR.  Returns NEWCDR."
   (condp instance? cell
     DottedPair (set! (.cdr  cell) newcdr)
-    List (do (while (c/< 1 (count cell))
-               (.remove cell 1))
-             (.add cell newcdr)))
+    List (let [car (first cell)]
+           (.clear cell)
+           (.add cell car)
+           (if (atom newcdr)
+             (.add cell newcdr)
+             (.addAll cell newcdr)))
+    IPersistentCollection (throw (UnsupportedOperationException.)))
   newcdr)
 
 (defun set (symbol newval)
@@ -434,7 +447,8 @@
   "Set the car of CELL to be NEWCAR.  Returns NEWCAR."
   (condp instance? cell
     DottedPair (set! (.car  cell) newcar)
-    List (.set cell 0 newcar))
+    List (.set cell 0 newcar)
+    IPersistentCollection (throw (UnsupportedOperationException.)))
   newcar)
 
 (defun symbolp (object)

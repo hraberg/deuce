@@ -374,7 +374,7 @@
   "Return non-nil if KEY is `eq' to the car of an element of LIST.
   The value is actually the first element of LIST whose car is KEY.
   Elements of LIST that are not conses are ignored."
-  (first (filter #(= key (.car %)) (filter #(instance? DottedPair %) list))))
+  (first (filter #(data/eq key (data/car-safe %)) list)))
 
 (defun string-make-multibyte (string)
   "Return the multibyte equivalent of STRING.
@@ -444,7 +444,7 @@
   "Concatenate all the arguments and make the result a vector.
   The result is a vector whose elements are the elements of all the arguments.
   Each argument may be a list, vector or string."
-  (alloc/make-vector (apply c/concat sequences)))
+  (alloc/vector (apply c/concat sequences)))
 
 (defun make-hash-table (&rest keyword-args)
   "Create and return a new hash table.
@@ -528,7 +528,7 @@
 (defun nth (n list)
   "Return the Nth element of LIST.
   N counts from zero.  If LIST is not that long, nil is returned."
-  (c/nth list n nil))
+  (c/nth (seq list) n nil))
 
 (defun string-to-unibyte (string)
   "Return a unibyte string with the same individual chars as STRING.
@@ -543,10 +543,12 @@
   "Concatenate any number of lists by altering them.
   Only the last argument is not altered, and need not be a list."
   (condp instance? (first lists)
+;    IPersistentCollection (throw (UnsupportedOperationException.))
     IPersistentCollection (c/apply c/concat lists)
-    List (let [[car & cdr] lists]
+    List (let [[car & cdr] lists
+               car (if (nil? car) (alloc/list) car)]
            (doseq [list cdr]
-             (.addAll cdr list))
+             (.addAll car list))
            car)
     (c/apply c/concat lists)))
 
@@ -567,7 +569,6 @@
 (defun memq (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
   The value is actually the tail of LIST whose car is ELT."
-
   (seq (drop-while #(not (data/eq elt %)) list)))
 
 (defun memql (elt list)
@@ -643,7 +644,7 @@
 (defun rassq (key list)
   "Return non-nil if KEY is `eq' to the cdr of an element of LIST.
   The value is actually the first element of LIST whose cdr is KEY."
-  (first (filter #(data/eq key (.cdr %)) (filter #(instance? DottedPair %) list))))
+  (first (filter #(data/eq key (data/cdr-safe %))  list)))
 
 (defun string-make-unibyte (string)
   "Return the unibyte equivalent of STRING.
