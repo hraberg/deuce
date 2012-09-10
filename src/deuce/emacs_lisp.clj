@@ -4,7 +4,7 @@
   (:refer-clojure :exclude [defmacro and or cond let while eval set compile])
   (import [clojure.lang Atom]
           [deuce EmacsLispError DottedPair]
-          [java.util LinkedList]))
+          [java.util LinkedList List]))
 
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
@@ -114,7 +114,8 @@
 (defn limit-scope [scope]
   (->> scope
        (remove '#{&env &form})
-       (remove #(re-find #"local__\d+" (name %)))))
+       (remove #(re-find #"local__\d+" (name %)))
+       seq))
 
 ;; defined as fn in eval.clj
 (c/defmacro eval
@@ -128,7 +129,12 @@
 
 (declare let-helper*)
 
-(c/defmacro def-helper* [what name arglist & body]
+(defn linked-lists-to-seqs [form]
+  (if (instance? List form)
+    (apply clojure.core/list form)
+    form))
+
+(c/defmacro def-helper* [what line name arglist & body]
   (c/let [[docstring body] (split-with string? body)
           name (sym (if (seq? name) (c/eval name) name))
           [arg & args :as arglist] (replace '{&rest &} arglist)
@@ -147,14 +153,15 @@
                        ~(if emacs-lisp?
                           `(let-helper* false ~(map #(list % %) the-args)
                              (if (= '~'defmacro '~(sym what))
-                               (eval '(seq (do ~@body)))
+                               (w/prewalk linked-lists-to-seqs (eval '(do ~@body)))
                                (eval '(do ~@body))))
                           `(do ~@body)))]
        (if (var? f#)
          (do
-           (alter-meta! f# merge {:doc ~doc :line (-> '~name meta :line)
-                                  :file (when-let [file# (global 'load-file-name)]
-                                          @file#)})
+           (alter-meta! f# merge (merge {:doc ~doc} (when ~emacs-lisp?
+                                                      {:line ~line
+                                                       :file (when-let [file# (global 'load-file-name)]
+                                                               @file#)})))
            (alter-var-root f# (constantly (with-meta @f# (meta f#)))))
          (with-meta f# (assoc (meta f#) :doc ~doc))))))
 
@@ -164,7 +171,7 @@
   See also the function `interactive'."
   {:arglists '([NAME ARGLIST [DOCSTRING] BODY...])}
   [name arglist & body]
-  `(do (def-helper* defn ~name ~arglist ~@body)
+  `(do (def-helper* defn ~(-> name meta :line) ~name ~arglist ~@body)
        '~name))
 
 ;; defined in subr.el
@@ -185,7 +192,7 @@
   BODY should be a list of Lisp expressions."
   {:arglists '([ARGS [DOCSTRING] [INTERACTIVE] BODY])}
   [& cdr]
-  `(def-helper* fn lambda ~(first cdr) ~@(rest cdr)))
+  `(def-helper* fn nil lambda ~(first cdr) ~@(rest cdr)))
 
 (c/defmacro unwind-protect
   "Do BODYFORM, protecting with UNWINDFORMS.
@@ -441,7 +448,7 @@
   [name arglist & body]
   `(do
      ~(when-not ((ns-interns 'deuce.emacs-lisp) name)
-        `(def-helper* c/defmacro ~name ~arglist ~@body))
+        `(def-helper* c/defmacro ~(-> name meta :line) ~name ~arglist ~@body))
      '~name))
 
 (c/defmacro function

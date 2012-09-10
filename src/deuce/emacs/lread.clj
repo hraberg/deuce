@@ -359,20 +359,21 @@
 
   Return t if the file exists and loads successfully."
   (try
-    (binding [globals/load-file-name file
-              globals/load-in-progress true]
-      (with-open [in (io/input-stream (or (->> (for [l globals/load-path
-                                                     :let [file (s/replace (str l "/" file) #"^/" "")]]
-                                                 (or (when-not nosuffix
-                                                       (io/resource (str file ".el")))
-                                                     (io/resource file)))
-                                               (some identity))
-                                          (io/file file)))]
-        (when-not nomessage
-          (editfns/message "Loading %s..." file))
-        (doseq [form (parser/parse in)]
-          (eval/eval form))
-        true))
+    (let [url (or (->> (for [l globals/load-path
+                             :let [file (s/replace (str l "/" file) #"^/" "")]]
+                         (or (when-not nosuffix
+                               (io/resource (str file ".el")))
+                             (io/resource file)))
+                       (some identity))
+                  (.toURL (io/file file)))]
+      (binding [globals/load-file-name (.getFile url)
+                globals/load-in-progress true]
+        (with-open [in (io/input-stream url)]
+          (when-not nomessage
+            (editfns/message "Loading %s..." file))
+          (doseq [form (parser/parse in)]
+            (eval/eval form))
+          true)))
     (catch Exception e
       (when-not noerror
         (throw e)))))

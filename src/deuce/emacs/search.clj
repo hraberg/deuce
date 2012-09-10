@@ -200,12 +200,15 @@
   You can use the function `match-string' to extract the substrings
   matched by the parenthesis constructions in REGEXP."
   (let [m (re-matcher (re-pattern (-> regexp
+                                      (s/replace #"^\\\`" "^")
                                       (s/replace "\\(" "(")
                                       (s/replace "\\)" ")")))
                       (subs string (or start 0)))]
-    (when (re-find m)
-      (reset! current-match-data m)
-      (.start m))))
+    (if (re-find m)
+      (do
+        (reset! current-match-data m)
+        (.start m))
+      (reset! current-match-data nil))))
 
 (defun posix-looking-at (regexp)
   "Return t if text after point matches regular expression REGEXP.
@@ -282,7 +285,8 @@
   Value is nil if SUBEXPth pair didn't match, or there were less than
     SUBEXP pairs.
   Zero means the entire text matched by the whole regexp or whole string."
-  (.start @current-match-data subexp))
+  (when @current-match-data subexp
+        (.start @current-match-data subexp)))
 
 (defun search-backward (string &optional bound noerror count)
   "Search backward from point for STRING.
@@ -308,7 +312,8 @@
   Value is nil if SUBEXPth pair didn't match, or there were less than
     SUBEXP pairs.
   Zero means the entire text matched by the whole regexp or whole string."
-  (.end @current-match-data subexp))
+  (when @current-match-data subexp
+        (.end @current-match-data subexp)))
 
 (defun posix-search-backward (regexp &optional bound noerror count)
   "Search backward from point for match for regular expression REGEXP.
