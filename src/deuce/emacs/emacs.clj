@@ -46,7 +46,7 @@
 (defvar system-configuration-options nil
   "String containing the configuration options Emacs was built with.")
 
-(defvar command-line-args ["deuce"]
+(defvar command-line-args ["src/bootstrap-emacs"]
   "Args passed by shell to Emacs, as a list of strings.
   Many arguments are deleted from the list as they are processed.")
 

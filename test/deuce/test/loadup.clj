@@ -17,7 +17,6 @@
       ;; setup
 
       (setq command-line-args (list "src/bootstrap-emacs"))
-      (setq load-path (list "lisp"))
 
       ;; copied verbatim from loadup.el
 
@@ -40,7 +39,7 @@
         (setq purify-flag (make-hash-table :test 'equal)))             ⇒ nil
 
       (message "Using load-path %s" load-path)
-      -| "Using load-path .*lisp.*lisp/emacs-lisp.*lisp/language.*lisp/international.*lisp/textmodes"
+      -| "Using load-path .*emacs-lisp.*language.*international.*textmodes"
 
       (length load-path)                                               ⇒ 5
 

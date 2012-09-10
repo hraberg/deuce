@@ -6,7 +6,7 @@
           [deuce.emacs-lisp.globals :as globals])
  (import [java.net InetAddress]
          [java.text SimpleDateFormat]
-         [java.util Date Calendar TimeZone])
+         [java.util Date Calendar TimeZone List])
  (:refer-clojure :exclude [format]))
 
 (defvar buffer-access-fontified-property nil
@@ -171,10 +171,11 @@
   precision specifier says how many decimal places to show; if zero, the
   decimal point itself is omitted.  For %s and %S, the precision
   specifier truncates the string to the given width."
-  (apply c/format string (map #(if (and (instance? Long %)
-                                        (<= Integer/MIN_VALUE % Integer/MAX_VALUE))
-                                 (int %)
-                                 %) objects)))
+  (apply c/format string (map #(cond
+                                 (and (instance? Long %)
+                                      (<= Integer/MIN_VALUE % Integer/MAX_VALUE)) (int %)
+                                 (instance? List %) (seq %)
+                                 :else %) objects)))
 
 (defun user-uid ()
   "Return the effective uid of Emacs.

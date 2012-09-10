@@ -190,9 +190,11 @@
   (expand-file-name \"..\" \"/\") returns \"/..\".  For this reason, use
   (directory-file-name (file-name-directory dirname)) to traverse a
   filesystem tree, not (expand-file-name \"..\"  dirname)."
-  (.getAbsolutePath (if default-directory
-                      (io/file default-directory name)
-                      (io/file name))))
+  (if (seq default-directory)
+    (.getAbsolutePath (if default-directory
+                        (io/file default-directory name)
+                        (io/file name)))
+    name))
 
 (defun write-region (start end filename &optional append visit lockname mustbenew)
   "Write current region into specified file.

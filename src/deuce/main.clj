@@ -18,7 +18,7 @@
     (println "Batch mode required, run with -batch or --batch")
     (System/exit 1))
 
-  (el/setq command-line-args (cons "deuce" args))
+  (el/setq command-line-args (cons "src/bootstrap-emacs" args))
 
   (let [args (doto (Stack.)
                (.addAll (reverse args)))
