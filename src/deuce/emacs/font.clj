@@ -1,8 +1,7 @@
-(ns
- deuce.emacs.font
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.font
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defvar font-weight-table nil
   "Vector of valid font weight values.
@@ -15,15 +14,15 @@
   Each element looks like (REGEXP . (ENCODING . REPERTORY)),
   where ENCODING is a charset or a char-table,
   and REPERTORY is a charset, a char-table, or nil.
-  
+
   If ENCODING and REPERTORY are the same, the element can have the form
   (REGEXP . ENCODING).
-  
+
   ENCODING is for converting a character to a glyph code of the font.
   If ENCODING is a charset, encoding a character by the charset gives
   the corresponding glyph code.  If ENCODING is a char-table, looking up
   the table by a character gives the corresponding glyph code.
-  
+
   REPERTORY specifies a repertory of characters supported by the font.
   If REPERTORY is a charset, all characters belonging to the charset are
   supported.  If REPERTORY is a char-table, all characters who have a
@@ -86,7 +85,7 @@
   of the current buffer.
   If the optional fourth arg OBJECT is not nil, it is a string or a
   vector containing the target characters.
-  
+
   Each element is a vector containing information of a glyph in this format:
     [FROM-IDX TO-IDX C CODE WIDTH LBEARING RBEARING ASCENT DESCENT ADJUSTMENT]
   where
@@ -103,75 +102,75 @@
 (defun font-put (font prop val)
   "Set one property of FONT: give property KEY value VAL.
   FONT is a font-spec, a font-entity, or a font-object.
-  
+
   If FONT is a font-spec, KEY can be any symbol.  But if KEY is the one
   accepted by the function `font-spec' (which see), VAL must be what
   allowed in `font-spec'.
-  
+
   If FONT is a font-entity or a font-object, KEY must not be the one
   accepted by `font-spec'."
   )
 
 (defun font-spec (&rest args)
   "Return a newly created font-spec with arguments as properties.
-  
+
   ARGS must come in pairs KEY VALUE of font properties.  KEY must be a
   valid font property name listed below:
-  
+
   `:family', `:weight', `:slant', `:width'
-  
+
   They are the same as face attributes of the same name.  See
   `set-face-attribute'.
-  
+
   `:foundry'
-  
+
   VALUE must be a string or a symbol specifying the font foundry, e.g. ``misc''.
-  
+
   `:adstyle'
-  
+
   VALUE must be a string or a symbol specifying the additional
   typographic style information of a font, e.g. ``sans''.
-  
+
   `:registry'
-  
+
   VALUE must be a string or a symbol specifying the charset registry and
   encoding of a font, e.g. ``iso8859-1''.
-  
+
   `:size'
-  
+
   VALUE must be a non-negative integer or a floating point number
   specifying the font size.  It specifies the font size in pixels (if
   VALUE is an integer), or in points (if VALUE is a float).
-  
+
   `:name'
-  
+
   VALUE must be a string of XLFD-style or fontconfig-style font name.
-  
+
   `:script'
-  
+
   VALUE must be a symbol representing a script that the font must
   support.  It may be a symbol representing a subgroup of a script
   listed in the variable `script-representative-chars'.
-  
+
   `:lang'
-  
+
   VALUE must be a symbol of two-letter ISO-639 language names,
   e.g. `ja'.
-  
+
   `:otf'
-  
+
   VALUE must be a list (SCRIPT-TAG LANGSYS-TAG GSUB [ GPOS ]) to specify
   required OpenType features.
-  
+
     SCRIPT-TAG: OpenType script tag symbol (e.g. `deva').
     LANGSYS-TAG: OpenType language system tag symbol,
        or nil for the default language system.
     GSUB: List of OpenType GSUB feature tag symbols, or nil if none required.
     GPOS: List of OpenType GPOS feature tag symbols, or nil if none required.
-  
+
   GSUB and GPOS may contain `nil' element.  In such a case, the font
   must not have any of the remaining elements.
-  
+
   For instance, if the VALUE is `(thai nil nil (mark))', the font must
   be an OpenType font whose GPOS table of `thai' script's default
   language system must contain `mark' feature."
@@ -187,7 +186,7 @@
   Shaping means substituting glyphs and/or adjusting positions of glyphs
   to get the correct visual image of character sequences set in the
   header of the glyph-string.
-  
+
   If the shaping was successful, the value is GSTRING itself or a newly
   created glyph-string.  Otherwise, the value is nil."
   )
@@ -197,41 +196,41 @@
   The value is a vector:
     [ NAME FILENAME PIXEL-SIZE SIZE ASCENT DESCENT SPACE-WIDTH AVERAGE-WIDTH
       CAPABILITY ]
-  
+
   NAME is the font name, a string (or nil if the font backend doesn't
   provide a name).
-  
+
   FILENAME is the font file name, a string (or nil if the font backend
   doesn't provide a file name).
-  
+
   PIXEL-SIZE is a pixel size by which the font is opened.
-  
+
   SIZE is a maximum advance width of the font in pixels.
-  
+
   ASCENT, DESCENT, SPACE-WIDTH, AVERAGE-WIDTH are metrics of the font in
   pixels.
-  
+
   CAPABILITY is a list whose first element is a symbol representing the
   font format (x, opentype, truetype, type1, pcf, or bdf) and the
   remaining elements describe the details of the font capability.
-  
+
   If the font is OpenType font, the form of the list is
     (opentype GSUB GPOS)
   where GSUB shows which \"GSUB\" features the font supports, and GPOS
   shows which \"GPOS\" features the font supports.  Both GSUB and GPOS are
   lists of the format:
     ((SCRIPT (LANGSYS FEATURE ...) ...) ...)
-  
+
   If the font is not OpenType font, currently the length of the form is
   one.
-  
+
   SCRIPT is a symbol representing OpenType script tag.
-  
+
   LANGSYS is a symbol representing OpenType langsys tag, or nil
   representing the default langsys.
-  
+
   FEATURE is a symbol representing OpenType feature tag.
-  
+
   If the font is not OpenType font, CAPABILITY is nil."
   )
 
@@ -244,9 +243,9 @@
   See the documentation of `font-spec' for their meanings.
   In addition, if FONT is a font-entity or a font-object, values of
   :script and :otf are different from those of a font-spec as below:
-  
+
   The value of :script may be a list of scripts that are supported by the font.
-  
+
   The value of :otf is a cons (GSUB . GPOS) where GSUB and GPOS are lists
   representing the OpenType features supported by the font by this form:
     ((SCRIPT (LANGSYS FEATURE ...) ...) ...)

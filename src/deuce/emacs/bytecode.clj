@@ -1,8 +1,7 @@
-(ns
- deuce.emacs.bytecode
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.bytecode
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defun byte-code (bytestr vector maxdepth)
   "Function used internally in byte-compiled code.

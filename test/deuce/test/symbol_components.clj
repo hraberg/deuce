@@ -1,5 +1,5 @@
 (ns deuce.test.symbol-components
-  (use [deuce.test.common]))
+  (:use [deuce.test.common]))
 
 ;; "8.1 Symbol Components"[1]
 

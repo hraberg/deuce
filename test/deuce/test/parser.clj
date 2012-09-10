@@ -1,7 +1,7 @@
 (ns deuce.test.parser
-  (use [clojure.test]
-       [deuce.emacs-lisp.parser])
-  (require [clojure.java.io :as io]))
+  (:use [clojure.test]
+        [deuce.emacs-lisp.parser])
+  (:require [clojure.java.io :as io]))
 
 ;; This is an Emacs Lisp parser spike.
 

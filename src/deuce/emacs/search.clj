@@ -1,9 +1,8 @@
-(ns
- deuce.emacs.search
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c]
-          [clojure.string :as s])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.search
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c]
+            [clojure.string :as s])
+  (:refer-clojure :exclude []))
 
 (defvar inhibit-changing-match-data nil
   "Internal use only.

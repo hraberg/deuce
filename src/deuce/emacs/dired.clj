@@ -1,8 +1,7 @@
-(ns
- deuce.emacs.dired
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.dired
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defvar completion-ignored-extensions nil
   "Completion ignores file names ending in any string in this list.
@@ -10,18 +9,18 @@
   these strings or when displaying a list of completions.
   It ignores directory names if they match any string in this list which
   ends in a slash.
-  
+
   You can customize this variable.")
 
 (defun file-attributes (filename &optional id-format)
   "Return a list of attributes of file FILENAME.
   Value is nil if specified file cannot be opened.
-  
+
   ID-FORMAT specifies the preferred format of attributes uid and gid (see
   below) - valid values are 'string and 'integer.  The latter is the
   default, but we plan to change that, so you should specify a non-nil value
   for ID-FORMAT if you use the returned uid or gid.
-  
+
   Elements of the attribute list are:
    0. t for directory, string (name linked to) for symbolic link, or nil.
    1. Number of links to file.
@@ -46,13 +45,13 @@
     and finally the low 16 bits.
   11. Filesystem device number.  If it is larger than what the Emacs
     integer can hold, this is a cons cell, similar to the inode number.
-  
+
   On most filesystems, the combination of the inode and the device
   number uniquely identifies the file.
-  
+
   On MS-Windows, performance depends on `w32-get-true-file-attributes',
   which see.
-  
+
   On some FAT-based filesystems, only the date of last access is recorded,
   so last access time will always be midnight of that day."
   )
@@ -74,10 +73,10 @@
   common to all file names in DIRECTORY that start with FILE.
   If there is only one and FILE matches it exactly, returns t.
   Returns nil if DIRECTORY contains no name starting with FILE.
-  
+
   If PREDICATE is non-nil, call PREDICATE with each possible
   completion (in absolute form) and ignore it if PREDICATE returns nil.
-  
+
   This function ignores some of the possible completions as
   determined by the variable `completion-ignored-extensions', which see."
   )

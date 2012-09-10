@@ -1,11 +1,11 @@
 (ns deuce.main
-  (require [deuce.emacs]
-           [deuce.emacs-lisp :as el]
-           [deuce.emacs.data :as data]
-           [deuce.emacs.eval :as eval]
-           [deuce.emacs.editfns :as editfns]
-           [deuce.emacs.lread :as lread])
-  (import [java.util Stack])
+  (:require [deuce.emacs]
+            [deuce.emacs-lisp :as el]
+            [deuce.emacs.data :as data]
+            [deuce.emacs.eval :as eval]
+            [deuce.emacs.editfns :as editfns]
+            [deuce.emacs.lread :as lread])
+  (:import [java.util Stack])
   (:gen-class))
 
 (defn loadup []

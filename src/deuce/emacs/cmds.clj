@@ -1,8 +1,7 @@
-(ns
- deuce.emacs.cmds
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.cmds
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defvar post-self-insert-hook nil
   "Hook run at the end of `self-insert-command'.
@@ -22,7 +21,7 @@
 (defun forward-char (&optional n)
   "Move point N characters forward (backward if N is negative).
   On reaching end or beginning of buffer, stop and signal error.
-  
+
   Depending on the bidirectional context, the movement may be to the
   right or to the left on the screen.  This is in contrast with
   <right>, which see."
@@ -31,7 +30,7 @@
 (defun forward-point (n)
   "This function is obsolete since 23.1;
   use (+ (point) N) instead.
-  
+
   Return buffer position N characters after (before if N negative) point."
   )
 
@@ -48,7 +47,7 @@
 (defun backward-char (&optional n)
   "Move point N characters backward (forward if N is negative).
   On attempt to pass beginning or end of buffer, stop and signal error.
-  
+
   Depending on the bidirectional context, the movement may be to the
   right or to the left on the screen.  This is in contrast with
   <left>, which see."
@@ -58,7 +57,7 @@
   "Move point to beginning of current line (in the logical order).
   With argument N not nil or 1, move forward N - 1 lines first.
   If point reaches the beginning or end of buffer, it stops there.
-  
+
   This function constrains point to the current field unless this moves
   point to a different line than the original, unconstrained result.
   If N is nil or 1, and a front-sticky field starts at point, the point
@@ -73,7 +72,7 @@
   Optional second arg KILLFLAG non-nil means kill instead (save in kill ring).
   Interactively, N is the prefix arg, and KILLFLAG is set if
   N was explicitly specified.
-  
+
   The command `delete-forward-char' is preferable for interactive use."
   )
 
@@ -82,7 +81,7 @@
   With argument N not nil or 1, move forward N - 1 lines first.
   If point reaches the beginning or end of buffer, it stops there.
   To ignore intangibility, bind `inhibit-point-motion-hooks' to t.
-  
+
   This function constrains point to the current field unless this moves
   point to a different line than the original, unconstrained result.  If
   N is nil or 1, and a rear-sticky field ends at point, the point does

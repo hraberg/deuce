@@ -1,15 +1,14 @@
-(ns
- deuce.emacs.dispnew
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.dispnew
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defvar no-redraw-on-reenter nil
   "Non-nil means no need to redraw entire frame after suspending.
   A non-nil value is useful if the terminal can automatically preserve
   Emacs's frame display when you reenter Emacs.
   It is up to you to set this variable if your terminal can do that.
-  
+
   You can customize this variable.")
 
 (defvar cursor-in-echo-area nil
@@ -21,9 +20,9 @@
 
 (defvar visible-bell nil
   "Non-nil means try to flash the frame to represent a bell.
-  
+
   See also `ring-bell-function'.
-  
+
   You can customize this variable.")
 
 (defvar redisplay-dont-pause nil
@@ -47,7 +46,7 @@
    'w32' for an Emacs frame that is a window on MS-Windows display,
    'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
    'pc' for a direct-write MS-DOS frame.
-  
+
   Use of this variable as a boolean is deprecated.  Instead,
   use `display-graphic-p' or any of the other `display-*-p'
   predicates which report frame's specific UI-related capabilities.")
@@ -56,7 +55,7 @@
   "The output baud rate of the terminal.
   On most systems, changing this value will affect the amount of padding
   and the other strategic decisions made during redisplay.
-  
+
   You can customize this variable.")
 
 (defvar glyph-table nil
@@ -72,7 +71,7 @@
 (defvar inverse-video nil
   "Non-nil means invert the entire frame display.
   This means everything is in inverse video which otherwise would not be.
-  
+
   You can customize this variable.")
 
 (defun open-termscript (file)
@@ -106,7 +105,7 @@
   check to see whether buffer menus might need to be recomputed.
   If this function returns non-nil, it updates the internal vector to reflect
   the current state.
-  
+
   If VARIABLE is nil, an internal variable is used.  Users should not
   pass nil for VARIABLE."
   )
@@ -117,7 +116,7 @@
   preempted by arriving input, even if `redisplay-dont-pause' is nil.
   If `redisplay-dont-pause' is non-nil (the default), redisplay is never
   preempted by arriving input, so FORCE does nothing.
-  
+
   Return t if redisplay was performed, nil if redisplay was preempted
   immediately by pending input."
   )
@@ -134,7 +133,7 @@
 (defun send-string-to-terminal (string &optional terminal)
   "Send STRING to the terminal without alteration.
   Control characters in STRING will have terminal-dependent effects.
-  
+
   Optional parameter TERMINAL specifies the tty terminal device to use.
   It may be a terminal object, a frame, or nil for the terminal used by
   the currently selected frame.  In batch mode, STRING is sent to stdout

@@ -1,9 +1,8 @@
-(ns
- deuce.emacs.buffer
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c]
-          [deuce.emacs-lisp.globals :as globals])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.buffer
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c]
+            [deuce.emacs-lisp.globals :as globals])
+  (:refer-clojure :exclude []))
 
 (defvar before-change-functions nil
   "List of functions to call before each text change.

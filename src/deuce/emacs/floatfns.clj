@@ -1,8 +1,7 @@
-(ns
- deuce.emacs.floatfns
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude [float]))
+(ns deuce.emacs.floatfns
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude [float]))
 
 (defun ftruncate (arg)
   "Truncate a floating point number to an integral float value.
@@ -62,7 +61,7 @@
 (defun round (arg &optional divisor)
   "Return the nearest integer to ARG.
   With optional DIVISOR, return the nearest integer to ARG/DIVISOR.
-  
+
   Rounding a value equidistant between two integers may choose the
   integer closer to zero, or it may prefer an even integer, depending on
   your machine.  For example, (round 2.5) can return 3 on some
@@ -120,9 +119,9 @@
   Breaks the floating point number X into its binary significand SGNFCAND
   (a floating point value between 0.5 (included) and 1.0 (excluded))
   and an integral exponent EXP for 2, such that:
-  
+
     X = SGNFCAND * 2^EXP
-  
+
   The function returns the cons cell (SGNFCAND . EXP).
   If X is zero, both parts (SGNFCAND and EXP) are zero."
   )

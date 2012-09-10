@@ -1,12 +1,11 @@
-(ns
- deuce.emacs.syntax
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.syntax
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defvar words-include-escapes nil
   "Non-nil means `forward-word', etc., should treat escape chars part of words.
-  
+
   You can customize this variable.")
 
 (defvar parse-sexp-lookup-properties nil
@@ -20,27 +19,27 @@
 
 (defvar parse-sexp-ignore-comments nil
   "Non-nil means `forward-sexp', etc., should treat comments as whitespace.
-  
+
   You can customize this variable.")
 
 (defvar find-word-boundary-function-table nil
   "Char table of functions to search for the word boundary.
   Each function is called with two arguments; POS and LIMIT.
   POS and LIMIT are character positions in the current buffer.
-  
+
   If POS is less than LIMIT, POS is at the first character of a word,
   and the return value of a function is a position after the last
   character of that word.
-  
+
   If POS is not less than LIMIT, POS is at the last character of a word,
   and the return value of a function is a position at the first
   character of that word.
-  
+
   In both cases, LIMIT bounds the search.")
 
 (defvar open-paren-in-column-0-is-defun-start nil
   "*Non-nil means an open paren in column 0 denotes the start of a defun.
-  
+
   You can customize this variable.")
 
 (defun standard-syntax-table ()
@@ -84,9 +83,9 @@
   "Scan from character number FROM by COUNT balanced expressions.
   If COUNT is negative, scan backwards.
   Returns the character number of the position thus found.
-  
+
   Comments are ignored if `parse-sexp-ignore-comments' is non-nil.
-  
+
   If the beginning or end of (the accessible part of) the buffer is reached
   in the middle of a parenthetical grouping, an error is signaled.
   If the beginning or end is reached between groupings
@@ -110,18 +109,18 @@
   "Scan from character number FROM by COUNT lists.
   Scan forward if COUNT is positive, backward if COUNT is negative.
   Return the character number of the position thus found.
-  
+
   A \"list\", in this context, refers to a balanced parenthetical
   grouping, as determined by the syntax table.
-  
+
   If DEPTH is nonzero, treat that as the nesting depth of the starting
   point (i.e. the starting point is DEPTH parentheses deep).  This
   function scans over parentheses until the depth goes to zero COUNT
   times.  Hence, positive DEPTH moves out that number of levels of
   parentheses, while negative DEPTH moves to a deeper level.
-  
+
   Comments are ignored if `parse-sexp-ignore-comments' is non-nil.
-  
+
   If we reach the beginning or end of the accessible part of the buffer
   before we have scanned over COUNT lists, return nil if the depth at
   that point is zero, and signal a error if the depth is nonzero."
@@ -192,7 +191,7 @@
     <           comment starter.      >   comment ender.
     /           character-quote.      @   inherit from `standard-syntax-table'.
     |           generic string fence. !   generic comment fence.
-  
+
   Only single-character comment start and end sequences are represented thus.
   Two-character sequences are represented as described below.
   The second character of NEWENTRY is the matching parenthesis,
@@ -203,7 +202,7 @@
    2 means CHAR is the second character of such a sequence.
    3 means CHAR is the start of a two-char comment end sequence.
    4 means CHAR is the second character of such a sequence.
-  
+
   There can be several orthogonal comment sequences.  This is to support
   language modes such as C++.  By default, all comment sequences are of style
   a, but you can set the comment sequence style to b (on the second character
@@ -212,7 +211,7 @@
    b means CHAR is part of comment sequence b.
    c means CHAR is part of comment sequence c.
    n means CHAR is part of a nestable comment sequence.
-  
+
    p means CHAR is a prefix character for `backward-prefix-chars';
      such characters are treated as whitespace when they occur
      between expressions."
@@ -230,7 +229,7 @@
   Thus, with arg \"a-zA-Z\", this skips letters stopping before first nonletter.
   With arg \"^a-zA-Z\", skips nonletters stopping before first letter.
   Char classes, e.g. `[:alpha:]', are supported.
-  
+
   Returns the distance traveled, either zero or positive."
   )
 

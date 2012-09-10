@@ -1,5 +1,5 @@
 (ns deuce.test.lexical
-  (use [deuce.test.common]))
+  (:use [deuce.test.common]))
 
 ;; "11.9.3 Lexical Binding"[1]
 

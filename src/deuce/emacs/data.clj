@@ -1,16 +1,13 @@
-(ns
- deuce.emacs.data
- (use [deuce.emacs-lisp :only (defun defvar setq setq-default)])
- (require [clojure.core :as c]
-          [deuce.emacs-lisp :as el]
-          [deuce.emacs-lisp.globals :as globals])
- (import [clojure.lang IPersistentCollection]
-         [deuce EmacsLispError DottedPair]
-         [java.nio ByteOrder]
-         [java.util List LinkedList SubList])
- (:refer-clojure
-  :exclude
-  [+ * - / aset set < = > max >= <= mod atom min]))
+(ns deuce.emacs.data
+  (:use [deuce.emacs-lisp :only (defun defvar setq setq-default)])
+  (:require [clojure.core :as c]
+            [deuce.emacs-lisp :as el]
+            [deuce.emacs-lisp.globals :as globals])
+  (:import [clojure.lang IPersistentCollection]
+           [deuce EmacsLispError DottedPair]
+           [java.nio ByteOrder]
+           [java.util List LinkedList SubList])
+  (:refer-clojure :exclude [+ * - / aset set < = > max >= <= mod atom min]))
 
 (declare consp car cdr)
 

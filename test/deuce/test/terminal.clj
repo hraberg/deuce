@@ -1,6 +1,6 @@
 (ns deuce.test.terminal
-  (require [lanterna.screen :as s])
-  (import [sun.misc Signal SignalHandler]))
+  (:require [lanterna.screen :as s])
+  (:import [sun.misc Signal SignalHandler]))
 
 ;; This is a clojure-lanterna[1] UI spike.
 

@@ -1,9 +1,8 @@
-(ns
- deuce.emacs.casefiddle
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c]
-          [clojure.string :as s])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.casefiddle
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c]
+            [clojure.string :as s])
+  (:refer-clojure :exclude []))
 
 (defun upcase-word (arg)
   "Convert following word (or ARG words) to upper case, moving over.

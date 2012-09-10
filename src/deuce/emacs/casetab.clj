@@ -1,8 +1,7 @@
-(ns
- deuce.emacs.casetab
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.casetab
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defun set-standard-case-table (table)
   "Select a new standard case table for new buffers.

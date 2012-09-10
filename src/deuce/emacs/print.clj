@@ -1,8 +1,7 @@
-(ns
- deuce.emacs.print
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude [print]))
+(ns deuce.emacs.print
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude [print]))
 
 (defvar print-circle nil
   "*Non-nil means print recursive structures using #N= and #N# syntax.

@@ -1,8 +1,7 @@
-(ns
- deuce.emacs.marker
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.marker
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defvar byte-debug-flag nil
   "Non-nil enables debugging checks in byte/char position conversions.")

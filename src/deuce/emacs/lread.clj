@@ -1,17 +1,16 @@
-(ns
- deuce.emacs.lread
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c]
-          [clojure.java.io :as io]
-          [clojure.string :as s]
-          [deuce.emacs-lisp :as el]
-          [deuce.emacs-lisp.globals :as globals]
-          [deuce.emacs.alloc :as alloc]
-          [deuce.emacs.data :as data]
-          [deuce.emacs.editfns :as editfns]
-          [deuce.emacs.eval :as eval]
-          [deuce.emacs-lisp.parser :as parser])
- (:refer-clojure :exclude [read intern load]))
+(ns deuce.emacs.lread
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c]
+            [clojure.java.io :as io]
+            [clojure.string :as s]
+            [deuce.emacs-lisp :as el]
+            [deuce.emacs-lisp.globals :as globals]
+            [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.data :as data]
+            [deuce.emacs.editfns :as editfns]
+            [deuce.emacs.eval :as eval]
+            [deuce.emacs-lisp.parser :as parser])
+  (:refer-clojure :exclude [read intern load]))
 
 (defvar old-style-backquotes nil
   "Set to non-nil when `read' encounters an old-style backquote.")

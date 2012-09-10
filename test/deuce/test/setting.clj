@@ -1,5 +1,5 @@
 (ns deuce.test.setting
-  (use [deuce.test.common]))
+  (:use [deuce.test.common]))
 
 ;; "11.8 Setting Variable Values"[1]
 

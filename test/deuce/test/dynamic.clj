@@ -1,5 +1,5 @@
 (ns deuce.test.dynamic
-  (use [deuce.test.common]))
+  (:use [deuce.test.common]))
 
 ;; "11.9.1 Dynamic Binding"[1]
 

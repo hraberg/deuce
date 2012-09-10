@@ -1,8 +1,7 @@
-(ns
- deuce.emacs.chartab
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.chartab
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defvar char-code-property-alist nil
   "Alist of character property name vs char-table containing property values.
@@ -62,7 +61,7 @@
 (defun make-char-table (purpose &optional init)
   "Return a newly created char-table, with purpose PURPOSE.
   Each element is initialized to INIT, which defaults to nil.
-  
+
   PURPOSE should be a symbol.  If it has a `char-table-extra-slots'
   property, the property's value should be an integer between 0 and 10
   that specifies how many extra slots the char-table has.  Otherwise,
@@ -72,7 +71,7 @@
 (defun set-char-table-default (char-table ch value)
   "This function is obsolete since 23.1;
   generic characters no longer exist.
-  
+
   This function is obsolete and has no effect."
   )
 

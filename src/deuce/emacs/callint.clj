@@ -1,15 +1,14 @@
-(ns
- deuce.emacs.callint
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.callint
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (::refer-clojure :exclude []))
 
 (defvar prefix-arg nil
   "The value of the prefix argument for the next editing command.
   It may be a number, or the symbol `-' for just a minus sign as arg,
   or a list whose car is a number for just one or more C-u's
   or nil if no argument has been specified.
-  
+
   You cannot examine this variable to find the argument for this command
   since it has been set to nil by the time you can look.
   Instead, you should use the variable `current-prefix-arg', although
@@ -18,7 +17,7 @@
 (defvar command-history nil
   "List of recent commands that read arguments from terminal.
   Each command is represented as a form to evaluate.
-  
+
   Maximum length of the history list is determined by the value
   of `history-length', which see.")
 
@@ -44,7 +43,7 @@
   When the option is non-nil, deactivation of the mark
   turns off region highlighting, but commands that use the mark
   behave as if the mark were still active.
-  
+
   You can customize this variable.")
 
 (defvar mouse-leave-buffer-hook nil
@@ -59,11 +58,11 @@
   In the case of user-defined functions, this is specified by placing a call
   to the function `interactive' at the top level of the function body.
   See `interactive'.
-  
+
   Optional second arg RECORD-FLAG non-nil
   means unconditionally put this command in the command-history.
   Otherwise, this is done only if an arg is read using the minibuffer.
-  
+
   Optional third arg KEYS, if given, specifies the sequence of events to
   supply, as a vector, if the command inquires which events were used to
   invoke it.  If KEYS is omitted or nil, the return value of

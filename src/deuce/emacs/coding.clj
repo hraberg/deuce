@@ -1,15 +1,14 @@
-(ns
- deuce.emacs.coding
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.coding
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defvar inhibit-null-byte-detection nil
   "If non-nil, Emacs ignores null bytes on code detection.
   By default, Emacs treats it as binary data, and does not attempt to
   decode it.  The effect is as if you specified `no-conversion' for
   reading that text.
-  
+
   Set this to non-nil when a regular text happens to include null bytes.
   Examples are Index nodes of Info files and null-byte delimited output
   from GNU Find and GNU Grep.  Emacs will then ignore the null bytes and
@@ -17,7 +16,7 @@
 
 (defvar eol-mnemonic-undecided nil
   "*String displayed in mode line when end-of-line format is not yet determined.
-  
+
   You can customize this variable.")
 
 (defvar latin-extra-code-table nil
@@ -44,32 +43,32 @@
 
 (defvar inhibit-iso-escape-detection nil
   "If non-nil, Emacs ignores ISO-2022 escape sequences during code detection.
-  
+
   When Emacs reads text, it tries to detect how the text is encoded.
   This code detection is sensitive to escape sequences.  If Emacs sees
   a valid ISO-2022 escape sequence, it assumes the text is encoded in one
   of the ISO2022 encodings, and decodes text by the corresponding coding
   system (e.g. `iso-2022-7bit').
-  
+
   However, there may be a case that you want to read escape sequences in
   a file as is.  In such a case, you can set this variable to non-nil.
   Then the code detection will ignore any escape sequences, and no text is
   detected as encoded in some ISO-2022 encoding.  The result is that all
   escape sequences become visible in a buffer.
-  
+
   The default value is nil, and it is strongly recommended not to change
   it.  That is because many Emacs Lisp source files that contain
   non-ASCII characters are encoded by the coding system `iso-2022-7bit'
   in Emacs's distribution, and they won't be decoded correctly on
   reading if you suppress escape sequence detection.
-  
+
   The other way to read escape sequences in a file without decoding is
   to explicitly specify some coding system that doesn't use ISO-2022
   escape sequence (e.g `latin-1') on reading by C-x RET c.")
 
 (defvar coding-system-list nil
   "List of coding systems.
-  
+
   Do not alter the value of this variable manually.  This variable should be
   updated by the functions `define-coding-system' and
   `define-coding-system-alias'.")
@@ -82,7 +81,7 @@
   Programs bind this variable with `let', but you should not set it globally.
   If the value is a coding system, it is used for encoding of output,
   when writing it to a file and when sending it to a file or subprocess.
-  
+
   If this does not specify a coding system, an appropriate element
   is used from one of the coding system alists.
   There are three such tables: `file-coding-system-alist',
@@ -95,7 +94,7 @@
 
 (defvar eol-mnemonic-unix nil
   "*String displayed in mode line for UNIX-like (LF) end-of-line format.
-  
+
   You can customize this variable.")
 
 (defvar coding-system-for-read nil
@@ -108,7 +107,7 @@
 
 (defvar eol-mnemonic-mac nil
   "*String displayed in mode line for MAC-like (CR) end-of-line format.
-  
+
   You can customize this variable.")
 
 (defvar inherit-process-coding-system nil
@@ -118,23 +117,23 @@
 
 (defvar select-safe-coding-system-function nil
   "Function to call to select safe coding system for encoding a text.
-  
+
   If set, this function is called to force a user to select a proper
   coding system which can encode the text in the case that a default
   coding system used in each operation can't encode the text.  The
   function should take care that the buffer is not modified while
   the coding system is being selected.
-  
+
   The default value is `select-safe-coding-system' (which see).")
 
 (defvar eol-mnemonic-dos nil
   "*String displayed in mode line for DOS-like (CRLF) end-of-line format.
-  
+
   You can customize this variable.")
 
 (defvar last-code-conversion-error nil
   "Error status of the last code conversion.
-  
+
   When an error was detected in the last code conversion, this variable
   is set to one of the following symbols.
     `insufficient-source'
@@ -162,10 +161,10 @@
   `find-operation-coding-system' was called.  If the function can't decide
   a coding system, it can return `undecided' so that the normal
   code-detection is performed.
-  
+
   See also the function `find-operation-coding-system'
   and the variable `auto-coding-alist'.
-  
+
   You can customize this variable.")
 
 (defvar network-coding-system-alist nil
@@ -180,7 +179,7 @@
   and the cdr part is used for encoding.
   If VAL is a function symbol, the function must return a coding system
   or a cons of coding systems which are used as above.
-  
+
   See also the function `find-operation-coding-system'.")
 
 (defvar default-process-coding-system nil
@@ -192,14 +191,14 @@
   "*Non-nil means always inhibit code conversion of end-of-line format.
   See info node `Coding Systems' and info node `Text and Binary' concerning
   such conversion.
-  
+
   You can customize this variable.")
 
 (defvar coding-system-alist nil
   "Alist of coding system names.
   Each element is one element list of coding system name.
   This variable is given to `completing-read' as COLLECTION argument.
-  
+
   Do not alter the value of this variable manually.  This variable should be
   updated by the functions `make-coding-system' and
   `define-coding-system-alias'.")
@@ -218,19 +217,19 @@
   "Char table for translating self-inserting characters.
   This is applied to the result of input methods, not their input.
   See also `keyboard-translate-table'.
-  
+
   Use of this variable for character code unification was rendered
   obsolete in Emacs 23.1 and later, since Unicode is now the basis of
   internal character representation.")
 
 (defvar coding-category-list nil
   "List of coding-categories (symbols) ordered by priority.
-  
+
   On detecting a coding system, Emacs tries code detection algorithms
   associated with each coding-category one by one in this order.  When
   one algorithm agrees with a byte sequence of source text, the coding
   system bound to the corresponding coding-category is selected.
-  
+
   Don't modify this variable directly, but use `set-coding-system-priority'.")
 
 (defvar process-coding-system-alist nil
@@ -244,7 +243,7 @@
   and the cdr part is used for encoding.
   If VAL is a function symbol, the function must return a coding system
   or a cons of coding systems which are used as above.
-  
+
   See also the function `find-operation-coding-system'.")
 
 (defun coding-system-base (coding-system)
@@ -260,10 +259,10 @@
 (defun coding-system-eol-type (coding-system)
   "Return eol-type of CODING-SYSTEM.
   An eol-type is an integer 0, 1, 2, or a vector of coding systems.
-  
+
   Integer values 0, 1, and 2 indicate a format of end-of-line; LF, CRLF,
   and CR respectively.
-  
+
   A vector value indicates that a format of end-of-line should be
   detected automatically.  Nth element of the vector is the subsidiary
   coding system whose eol-type is N."
@@ -303,14 +302,14 @@
   When called from a program, takes four arguments:
   	START, END, CODING-SYSTEM, and DESTINATION.
   START and END are buffer positions.
-  
+
   Optional 4th arguments DESTINATION specifies where the decoded text goes.
   If nil, the region between START and END is replaced by the decoded text.
   If buffer, the decoded text is inserted in that buffer after point (point
   does not move).
   In those cases, the length of the decoded text is returned.
   If DESTINATION is t, the decoded text is returned.
-  
+
   This function sets `last-coding-system-used' to the precise coding system
   used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
   not fully specified.)"
@@ -321,12 +320,12 @@
   Return a list of possible coding systems ordered by priority.
   The coding systems to try and their priorities follows what
   the function `coding-system-priority-list' (which see) returns.
-  
+
   If only ASCII characters are found (except for such ISO-2022 control
   characters as ESC), it returns a list of single element `undecided'
   or its subsidiary coding system according to a detected end-of-line
   format.
-  
+
   If optional argument HIGHEST is non-nil, return the coding system of
   highest priority."
   )
@@ -336,14 +335,14 @@
   When called from a program, takes four arguments:
           START, END, CODING-SYSTEM and DESTINATION.
   START and END are buffer positions.
-  
+
   Optional 4th arguments DESTINATION specifies where the encoded text goes.
   If nil, the region between START and END is replace by the encoded text.
   If buffer, the encoded text is inserted in that buffer after point (point
   does not move).
   In those cases, the length of the encoded text is returned.
   If DESTINATION is t, the encoded text is returned.
-  
+
   This function sets `last-coding-system-used' to the precise coding system
   used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
   not fully specified.)"
@@ -358,11 +357,11 @@
   "Return position of first un-encodable character in a region.
   START and END specify the region and CODING-SYSTEM specifies the
   encoding to check.  Return nil if CODING-SYSTEM does encode the region.
-  
+
   If optional 4th argument COUNT is non-nil, it specifies at most how
   many un-encodable characters to search.  In this case, the value is a
   list of positions.
-  
+
   If optional 5th argument STRING is non-nil, it is a string to search
   for un-encodable characters.  In that case, START and END are indexes
   to the string."
@@ -377,36 +376,36 @@
 
 (defun check-coding-systems-region (start end coding-system-list)
   "Check if the region is encodable by coding systems.
-  
+
   START and END are buffer positions specifying the region.
   CODING-SYSTEM-LIST is a list of coding systems to check.
-  
+
   The value is an alist ((CODING-SYSTEM POS0 POS1 ...) ...), where
   CODING-SYSTEM is a member of CODING-SYSTEM-LIST and can't encode the
   whole region, POS0, POS1, ... are buffer positions where non-encodable
   characters are found.
-  
+
   If all coding systems in CODING-SYSTEM-LIST can encode the region, the
   value is nil.
-  
+
   START may be a string.  In that case, check if the string is
   encodable, and the value contains indices to the string instead of
   buffer positions.  END is ignored.
-  
+
   If the current buffer (or START if it is a string) is unibyte, the value
   is nil."
   )
 
 (defun encode-coding-string (string coding-system &optional nocopy buffer)
   "Encode STRING to CODING-SYSTEM, and return the result.
-  
+
   Optional third arg NOCOPY non-nil means it is OK to return STRING
   itself if the encoding operation is trivial.
-  
+
   Optional fourth arg BUFFER non-nil means that the encoded text is
   inserted in that buffer after point (point does not move).  In this
   case, the return value is the length of the encoded text.
-  
+
   This function sets `last-coding-system-used' to the precise coding system
   used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
   not fully specified.)"
@@ -418,22 +417,22 @@
   DECODING-SYSTEM is the coding system to use for decoding
   (in case OPERATION does decoding), and ENCODING-SYSTEM is the coding system
   for encoding (in case OPERATION does encoding).
-  
+
   The first argument OPERATION specifies an I/O primitive:
     For file I/O, `insert-file-contents' or `write-region'.
     For process I/O, `call-process', `call-process-region', or `start-process'.
     For network I/O, `open-network-stream'.
-  
+
   The remaining arguments should be the same arguments that were passed
   to the primitive.  Depending on which primitive, one of those arguments
   is selected as the TARGET.  For example, if OPERATION does file I/O,
   whichever argument specifies the file name is TARGET.
-  
+
   TARGET has a meaning which depends on OPERATION:
     For file I/O, TARGET is a file name (except for the special case below).
     For process I/O, TARGET is a process name.
     For network I/O, TARGET is a service name or a port number.
-  
+
   This function looks up what is specified for TARGET in
   `file-coding-system-alist', `process-coding-system-alist',
   or `network-coding-system-alist' depending on OPERATION.
@@ -443,7 +442,7 @@
   which is a list of all the arguments given to this function.
   If the function can't decide a coding system, it can return
   `undecided' so that the normal code-detection is performed.
-  
+
   If OPERATION is `insert-file-contents', the argument corresponding to
   TARGET may be a cons (FILENAME . BUFFER).  In that case, FILENAME is a
   file name to look up, and BUFFER is a buffer that contains the file's
@@ -462,7 +461,7 @@
   "Return a list of coding systems ordered by their priorities.
   The list contains a subset of coding systems; i.e. coding systems
   assigned to each coding category (see `coding-category-list').
-  
+
   HIGHESTP non-nil means just return the highest priority one."
   )
 
@@ -475,12 +474,12 @@
   Return a list of possible coding systems ordered by priority.
   The coding systems to try and their priorities follows what
   the function `coding-system-priority-list' (which see) returns.
-  
+
   If only ASCII characters are found (except for such ISO-2022 control
   characters as ESC), it returns a list of single element `undecided'
   or its subsidiary coding system according to a detected end-of-line
   format.
-  
+
   If optional argument HIGHEST is non-nil, return the coding system of
   highest priority."
   )
@@ -495,14 +494,14 @@
 
 (defun decode-coding-string (string coding-system &optional nocopy buffer)
   "Decode STRING which is encoded in CODING-SYSTEM, and return the result.
-  
+
   Optional third arg NOCOPY non-nil means it is OK to return STRING itself
   if the decoding operation is trivial.
-  
+
   Optional fourth arg BUFFER non-nil means that the decoded text is
   inserted in that buffer after point (point does not move).  In this
   case, the return value is the length of the decoded text.
-  
+
   This function sets `last-coding-system-used' to the precise coding system
   used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
   not fully specified.)"

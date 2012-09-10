@@ -1,8 +1,7 @@
-(ns
- deuce.emacs.frame
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.frame
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defvar menu-bar-mode nil
   "Non-nil if Menu-Bar mode is enabled.
@@ -10,14 +9,14 @@
   Setting this variable directly does not take effect;
   either customize it (see the info node `Easy Customization')
   or call the function `menu-bar-mode'.
-  
+
   You can customize this variable.")
 
 (defvar delete-frame-functions nil
   "Functions to be run before deleting a frame.
   The functions are run with one arg, the frame to be deleted.
   See `delete-frame'.
-  
+
   Note that functions in this list may be called just before the frame is
   actually deleted, or some time later (or even both when an earlier function
   in `delete-frame-functions' (indirectly) calls `delete-frame'
@@ -26,7 +25,7 @@
 (defvar make-pointer-invisible nil
   "If non-nil, make pointer invisible while typing.
   The pointer becomes visible again when the mouse is moved.
-  
+
   You can customize this variable.")
 
 (defvar window-system nil
@@ -37,7 +36,7 @@
    'w32' for an Emacs frame that is a window on MS-Windows display,
    'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
    'pc' for a direct-write MS-DOS frame.
-  
+
   Use of this variable as a boolean is deprecated.  Instead,
   use `display-graphic-p' or any of the other `display-*-p'
   predicates which report frame's specific UI-related capabilities.")
@@ -58,7 +57,7 @@
   The `menu-bar-lines' element of the list controls whether new frames
    have menu bars; `menu-bar-mode' works by altering this element.
   Setting this variable does not affect existing frames, only new ones.
-  
+
   You can customize this variable.")
 
 (defvar focus-follows-mouse nil
@@ -66,7 +65,7 @@
   You should set this variable to tell Emacs how your window manager
   handles focus, since there is no way in general for Emacs to find out
   automatically.  See also `mouse-autoselect-window'.
-  
+
   You can customize this variable.")
 
 (defvar mouse-highlight nil
@@ -75,7 +74,7 @@
   mouse, while keyboard input turns off the highlight even when the mouse
   is over the clickable text.  However, the mouse shape still indicates
   when the mouse is over clickable text.
-  
+
   You can customize this variable.")
 
 (defvar tool-bar-mode nil
@@ -84,7 +83,7 @@
   Setting this variable directly does not take effect;
   either customize it (see the info node `Easy Customization')
   or call the function `tool-bar-mode'.
-  
+
   You can customize this variable.")
 
 (defvar mouse-position-function nil
@@ -99,27 +98,27 @@
 
 (defvar default-minibuffer-frame nil
   "Minibufferless frames use this frame's minibuffer.
-  
+
   Emacs cannot create minibufferless frames unless this is set to an
   appropriate surrogate.
-  
+
   Emacs consults this variable only when creating minibufferless
   frames; once the frame is created, it sticks with its assigned
   minibuffer, no matter what this variable is set to.  This means that
   this variable doesn't necessarily say anything meaningful about the
   current set of frames, or where the minibuffer is currently being
   displayed.
-  
+
   This variable is local to the current terminal and cannot be buffer-local.")
 
 (defun delete-frame (&optional frame force)
   "Delete FRAME, permanently eliminating it from use.
   FRAME defaults to the selected frame.
-  
+
   A frame may not be deleted if its minibuffer is used by other frames.
   Normally, you may not delete a frame if all other frames are invisible,
   but if the second optional argument FORCE is non-nil, you may do so.
-  
+
   This function runs `delete-frame-functions' before actually
   deleting the frame, unless the frame is a tooltip.
   The functions are run with one argument, the frame to be deleted."
@@ -169,7 +168,7 @@
   Return nil if FRAME was made invisible, via `make-frame-invisible'.
   On graphical displays, invisible frames are not updated and are
   usually not displayed at all, even in a window system's \"taskbar\".
-  
+
   If FRAME is a text-only terminal frame, this always returns t.
   Such frames are always considered visible, whether or not they are
   currently being displayed on the terminal."
@@ -178,17 +177,17 @@
 (defun make-terminal-frame (parms)
   "Create an additional terminal frame, possibly on another terminal.
   This function takes one argument, an alist specifying frame parameters.
-  
+
   You can create multiple frames on a single text-only terminal, but
   only one of them (the selected terminal frame) is actually displayed.
-  
+
   In practice, generally you don't need to specify any parameters,
   except when you want to create a new frame on another terminal.
   In that case, the `tty' parameter specifies the device file to open,
   and the `tty-type' parameter specifies the terminal type.  Example:
-  
+
      (make-terminal-frame '((tty . \"/dev/pts/5\") (tty-type . \"xterm\")))
-  
+
   Note that changing the size of one terminal frame automatically
   affects all frames on the same terminal device."
   )
@@ -201,7 +200,7 @@
   The meaningful PARMs depend on the kind of frame.
   Undefined PARMs are ignored, but stored in the frame's parameter list
   so that `frame-parameters' will return them.
-  
+
   The value of frame parameter FOO can also be accessed
   as a frame-local binding for the variable FOO, if you have
   enabled such bindings for that variable with `make-variable-frame-local'.
@@ -215,7 +214,7 @@
   A switch-frame event tells Emacs that the window manager has requested
   that the user's events be directed to the frame mentioned in the event.
   This function selects the selected window of the frame of EVENT.
-  
+
   If EVENT is frame object, handle it as if it were a switch-frame event
   to that frame."
   )
@@ -241,9 +240,9 @@
    'w32' for an Emacs frame that is a window on MS-Windows display,
    'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
    'pc' for a direct-write MS-DOS frame.
-  
+
   FRAME defaults to the currently selected frame.
-  
+
   Use of this function as a predicate is deprecated.  Instead,
   use `display-graphic-p' or any of the other `display-*-p'
   predicates which report frame's specific UI-related capabilities."
@@ -266,7 +265,7 @@
   "Move the mouse pointer to pixel position (X,Y) in FRAME.
   The position is given in pixels, where (0, 0) is the upper-left corner
   of the frame, X is the horizontal offset, and Y is the vertical offset.
-  
+
   Note, this is a no-op for an X frame that is not visible.
   If you have just created a frame, you must wait for it to become visible
   before calling this function on it, like this.
@@ -277,17 +276,17 @@
   "Return a FRAME's height in pixels.
   If FRAME is omitted, the selected frame is used.  The exact value
   of the result depends on the window-system and toolkit in use:
-  
+
   In the Gtk+ version of Emacs, it includes only any window (including
   the minibuffer or echo area), mode line, and header line.  It does not
   include the tool bar or menu bar.
-  
+
   With the Motif or Lucid toolkits, it also includes the tool bar (but
   not the menu bar).
-  
+
   In a graphical version with no toolkit, it includes both the tool bar
   and menu bar.
-  
+
   For a text-only terminal, it includes the menu bar.  In this case, the
   result is really in characters rather than pixels (i.e., is identical
   to `frame-height')."
@@ -312,7 +311,7 @@
   Subsequent editing commands apply to its selected window.
   Optional argument NORECORD means to neither change the order of
   recently selected windows nor the buffer list.
-  
+
   The selection of FRAME lasts until the next time the user does
   something to select a different frame, or until the next time
   this function is called.  If you are using a window system, the
@@ -320,7 +319,7 @@
   when returning to the command loop, because it still may have
   the window system's input focus.  On a text-only terminal, the
   next redisplay will display FRAME.
-  
+
   This function returns FRAME, or nil if FRAME has been deleted."
   )
 
@@ -378,10 +377,10 @@
   If omitted, FRAME defaults to the currently selected frame.
   On graphical displays, invisible frames are not updated and are
   usually not displayed at all, even in a window system's \"taskbar\".
-  
+
   Normally you may not make FRAME invisible if all other frames are invisible,
   but if the second optional argument FORCE is non-nil, you may do so.
-  
+
   This function has no effect on text-only terminal frames.  Such frames
   are always considered visible, whether or not they are currently being
   displayed in the terminal."
@@ -412,11 +411,11 @@
   Coordinates are relative to the frame, not a window,
   so the coordinates of the top left character in the frame
   may be nonzero due to left-hand scroll bars or the menu bar.
-  
+
   The position is given in character cells, where (0, 0) is the
   upper-left corner of the frame, X is the horizontal offset, and Y is
   the vertical offset.
-  
+
   This function is a no-op for an X frame that is not visible.
   If you have just created a frame, you must wait for it to become visible
   before calling this function on it, like this.
@@ -432,24 +431,24 @@
   In other words, switch-frame events caused by events in FRAME will
   request a switch to FOCUS-FRAME, and `last-event-frame' will be
   FOCUS-FRAME after reading an event typed at FRAME.
-  
+
   If FOCUS-FRAME is omitted or nil, any existing redirection is
   canceled, and the frame again receives its own keystrokes.
-  
+
   Focus redirection is useful for temporarily redirecting keystrokes to
   a surrogate minibuffer frame when a frame doesn't have its own
   minibuffer window.
-  
+
   A frame's focus redirection can be changed by `select-frame'.  If frame
   FOO is selected, and then a different frame BAR is selected, any
   frames redirecting their focus to FOO are shifted to redirect their
   focus to BAR.  This allows focus redirection to work properly when the
   user switches from one frame to another using `select-window'.
-  
+
   This means that a frame whose focus is redirected to itself is treated
   differently from a frame whose focus is redirected to nil; the former
   is affected by `select-frame', while the latter is not.
-  
+
   The redirection lasts until `redirect-frame-focus' is called to change it."
   )
 

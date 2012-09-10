@@ -1,8 +1,7 @@
-(ns
- deuce.emacs.insdel
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.insdel
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defvar combine-after-change-calls nil
   "Used internally by the `combine-after-change-calls' macro.")

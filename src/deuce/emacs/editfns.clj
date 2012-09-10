@@ -1,13 +1,12 @@
-(ns
- deuce.emacs.editfns
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c]
-          [clojure.string :as s]
-          [deuce.emacs-lisp.globals :as globals])
- (import [java.net InetAddress]
-         [java.text SimpleDateFormat]
-         [java.util Date Calendar TimeZone List])
- (:refer-clojure :exclude [format]))
+(ns deuce.emacs.editfns
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c]
+            [clojure.string :as s]
+            [deuce.emacs-lisp.globals :as globals])
+  (:import [java.net InetAddress]
+           [java.text SimpleDateFormat]
+           [java.util Date Calendar TimeZone List])
+  (:refer-clojure :exclude [format]))
 
 (defvar buffer-access-fontified-property nil
   "Property which (if non-nil) indicates text has been fontified.

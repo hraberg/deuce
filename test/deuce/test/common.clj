@@ -1,7 +1,7 @@
 (ns deuce.test.common
-  (use [clojure.test])
-  (require [deuce.emacs-lisp :as el]
-           [deuce.emacs]))
+  (:use [clojure.test])
+  (:require [deuce.emacs-lisp :as el]
+            [deuce.emacs]))
 
 (defmacro emacs [& body]
   `(last (map #(el/eval %) '~body)))

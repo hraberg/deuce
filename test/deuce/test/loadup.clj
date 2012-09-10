@@ -1,6 +1,6 @@
 (ns deuce.test.loadup
-  (use [deuce.test.common])
-  (import [java.util List]))
+  (:use [deuce.test.common])
+  (:import [java.util List]))
 
 ;; "E.1 Building Emacs"[1]
 

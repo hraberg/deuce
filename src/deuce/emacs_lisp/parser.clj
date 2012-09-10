@@ -1,11 +1,11 @@
 (ns deuce.emacs-lisp.parser
-  (require [clojure.walk :as w]
-           [clojure.string :as s]
-           [deuce.emacs-lisp :as el])
-  (import [java.util Scanner]
-          [java.io StringReader StreamTokenizer]
-          [java.util.regex Pattern]
-          [deuce DottedPair]))
+  (:require [clojure.walk :as w]
+            [clojure.string :as s]
+            [deuce.emacs-lisp :as el])
+  (:import [java.util Scanner]
+           [java.io StringReader StreamTokenizer]
+           [java.util.regex Pattern]
+           [deuce DottedPair]))
 
 (declare tokenize)
 

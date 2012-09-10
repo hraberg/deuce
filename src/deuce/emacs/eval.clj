@@ -1,10 +1,9 @@
-(ns
- deuce.emacs.eval
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c]
-          [deuce.emacs.data :as data]
-          [deuce.emacs-lisp :as el])
- (:refer-clojure :exclude [apply eval]))
+(ns deuce.emacs.eval
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c]
+            [deuce.emacs.data :as data]
+            [deuce.emacs-lisp :as el])
+  (:refer-clojure :exclude [apply eval]))
 
 (defvar debugger nil
   "Function to call to invoke debugger.
@@ -181,7 +180,7 @@
   function an extra optional argument whose `interactive' spec specifies
   non-nil unconditionally (\"p\" is a good way to do this), or via
   (not (or executing-kbd-macro noninteractive))."
-  )
+  nil)
 
 (defun run-hook-with-args (hook &rest args)
   "Run HOOK with the specified arguments ARGS.

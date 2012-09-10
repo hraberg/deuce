@@ -1,5 +1,5 @@
 (ns deuce.test.defining-macros
-  (use [deuce.test.common]))
+  (:use [deuce.test.common]))
 
 ;; "13.4 Defining Macros"[1]
 

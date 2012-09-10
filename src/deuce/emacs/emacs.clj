@@ -1,10 +1,9 @@
-(ns
- deuce.emacs.emacs
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c]
-          [deuce.emacs-lisp.globals :as globals])
- (import [java.io File])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.emacs
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c]
+            [deuce.emacs-lisp.globals :as globals])
+  (:import [java.io File])
+  (:refer-clojure :exclude []))
 
 (defvar emacs-version "24.2"
   "Version numbers of this version of Emacs.")

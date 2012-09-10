@@ -1,8 +1,7 @@
-(ns
- deuce.emacs.xml
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.xml
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defun libxml-parse-html-region (start end &optional base-url)
   "Parse the region as an HTML document and return the parse tree.

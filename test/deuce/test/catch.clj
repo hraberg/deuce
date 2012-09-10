@@ -1,5 +1,5 @@
 (ns deuce.test.catch
-  (use [deuce.test.common]))
+  (:use [deuce.test.common]))
 
 ;; "10.5.2 Examples of catch and throw"[1]
 

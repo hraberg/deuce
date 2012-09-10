@@ -1,8 +1,7 @@
-(ns
- deuce.emacs.character
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.character
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defvar auto-fill-chars nil
   "A char-table for characters which invoke auto-filling.
@@ -84,7 +83,7 @@
   Optional 2nd arg STRING, if non-nil, is a string of which first
   character is a target to get a byte value.  In this case, POSITION, if
   non-nil, is an index of a target character in the string.
-  
+
   If the current buffer (or STRING) is multibyte, and the target
   character is not ASCII nor 8-bit character, an error is signaled."
   )

@@ -1,8 +1,7 @@
-(ns
- deuce.emacs.keyboard
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.keyboard
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defvar last-command-event nil
   "Last input event that was part of a command.")
@@ -24,7 +23,7 @@
 (defvar auto-save-interval nil
   "Number of input events between auto-saves.
   Zero means disable autosaving due to number of characters typed.
-  
+
   You can customize this variable.")
 
 (defvar track-mouse nil
@@ -46,25 +45,25 @@
   "Keymap that translates key sequences to key sequences during input.
   This is used mainly for mapping key sequences into some preferred
   key events (symbols).
-  
+
   The `read-key-sequence' function replaces any subsequence bound by
   `local-function-key-map' with its binding.  More precisely, when the
   active keymaps have no binding for the current key sequence but
   `local-function-key-map' binds a suffix of the sequence to a vector or
   string, `read-key-sequence' replaces the matching suffix with its
   binding, and continues with the new sequence.
-  
+
   If the binding is a function, it is called with one argument (the prompt)
   and its return value (a key sequence) is used.
-  
+
   The events that come from bindings in `local-function-key-map' are not
   themselves looked up in `local-function-key-map'.
-  
+
   For example, suppose `local-function-key-map' binds `ESC O P' to [f1].
   Typing `ESC O P' to `read-key-sequence' would return [f1].  Typing
   `C-x ESC O P' would return [?\\C-x f1].  If [f1] were a prefix key,
   typing `ESC O P x' would return [f1 x].
-  
+
   `local-function-key-map' has a separate binding for each terminal
   device.  See Info node `(elisp)Multiple Terminals'.  If you need to
   define a binding on all terminals, change `function-key-map'
@@ -90,7 +89,7 @@
 (defvar help-event-list nil
   "List of input events to recognize as meaning Help.
   These work just like the value of `help-char' (see that).
-  
+
   You can customize this variable.")
 
 (defvar double-click-fuzz nil
@@ -99,10 +98,10 @@
   moved horizontally or vertically between two clicks to make a double-click.
   On non window-system frames, value is interpreted in units of 1/8 characters
   instead of pixels.
-  
+
   This variable is also the threshold for motion of the mouse
   to count as a drag.
-  
+
   You can customize this variable.")
 
 (defvar system-key-alist nil
@@ -110,7 +109,7 @@
   Each element should have the form (N . SYMBOL) where N is the
   numeric keysym code (sans the \"system-specific\" bit 1<<28)
   and SYMBOL is its name.
-  
+
   `system-key-alist' has a separate binding for each terminal device.
   See Info node `(elisp)Multiple Terminals'.")
 
@@ -125,7 +124,7 @@
   "Nonzero means echo unfinished commands after this many seconds of pause.
   The value may be integer or floating point.
   If the value is zero, don't echo at all.
-  
+
   You can customize this variable.")
 
 (defvar unread-post-input-method-events nil
@@ -139,7 +138,7 @@
   character it reads.  For example, after evaluating the expression
       (setq extra-keyboard-modifiers ?\\C-x)
   all input characters will have the control modifier applied to them.
-  
+
   Note that the character ?\\C-@, equivalent to the integer zero, does
   not count as a control character; rather, it counts as a character
   with no modifiers; thus, setting `extra-keyboard-modifiers' to zero
@@ -161,7 +160,7 @@
 
 (defvar enable-disabled-menus-and-buttons nil
   "If non-nil, don't ignore events produced by disabled menu items and tool-bar.
-  
+
   Help functions bind this to allow help on disabled menu items
   and tool-bar buttons.")
 
@@ -172,15 +171,15 @@
   Typically this function uses `read-event' to read additional events.
   When it does so, it should first bind `input-method-function' to nil
   so it will not be called recursively.
-  
+
   The function should return a list of zero or more events
   to be used as input.  If it wants to put back some events
   to be reconsidered, separately, by the input method,
   it can add them to the beginning of `unread-command-events'.
-  
+
   The input method function can find in `input-method-previous-message'
   the previous echo area message.
-  
+
   The input method function should refer to the variables
   `input-method-use-echo-area' and `input-method-exit-on-first-char'
   for guidance on what to do.")
@@ -190,10 +189,10 @@
   If this variable is non-nil, it is used as a keymap instead of the
   buffer's local map, and the minor mode keymaps and text property keymaps.
   It also replaces `overriding-local-map'.
-  
+
   This variable is intended to let commands such as `universal-argument'
   set up a different keymap for reading the next command.
-  
+
   `overriding-terminal-local-map' has a separate binding for each
   terminal device.
   See Info node `(elisp)Multiple Terminals'.")
@@ -206,9 +205,9 @@
   "If non-nil, an active region automatically sets the primary selection.
   If the value is `only', only temporarily active regions (usually made
   by mouse-dragging or shift-selection) set the window selection.
-  
+
   This takes effect only when Transient Mark mode is enabled.
-  
+
   You can customize this variable.")
 
 (defvar last-command nil
@@ -216,15 +215,15 @@
   Normally a symbol with a function definition, but can be whatever was found
   in the keymap, or whatever the variable `this-command' was set to by that
   command.
-  
+
   The value `mode-exit' is special; it means that the previous command
   read an event that told it to exit, and it did so and unread that event.
   In other words, the present command is the event that made the previous
   command exit.
-  
+
   The value `kill-region' is special; it means that the previous command
   was a kill command.
-  
+
   `last-command' has a separate binding for each terminal device.
   See Info node `(elisp)Multiple Terminals'.")
 
@@ -233,20 +232,20 @@
   If non-nil, the value should be a char-table.  Each character read
   from the keyboard is looked up in this char-table.  If the value found
   there is non-nil, then it is used instead of the actual input character.
-  
+
   The value can also be a string or vector, but this is considered obsolete.
   If it is a string or vector of length N, character codes N and up are left
   untranslated.  In a vector, an element which is nil means \"no translation\".
-  
+
   This is applied to the characters supplied to input methods, not their
   output.  See also `translation-table-for-input'.
-  
+
   This variable has a separate binding for each terminal.
   See Info node `(elisp)Multiple Terminals'.")
 
 (defvar inhibit-local-menu-bar-menus nil
   "Non-nil means inhibit local map menu bar menus.
-  
+
   You can customize this variable.")
 
 (defvar delayed-warnings-list nil
@@ -282,7 +281,7 @@
   if X menus were enabled at configuration
   time and the previous event was a mouse click prefix key.
   Otherwise, menu prompting uses the echo area.
-  
+
   You can customize this variable.")
 
 (defvar function-key-map nil
@@ -300,7 +299,7 @@
 
 (defvar global-disable-point-adjustment nil
   "If non-nil, always suppress point adjustment.
-  
+
   The default value is nil, in which case, point adjustment are
   suppressed only after special commands that set
   `disable-point-adjustment' (which see) to non-nil.")
@@ -310,7 +309,7 @@
   The reason for polling is to make C-g work to stop a running program.
   Polling is needed only when using X windows and SIGIO does not work.
   Polling is automatically disabled in all other cases.
-  
+
   You can customize this variable.")
 
 (defvar overriding-local-map nil
@@ -326,19 +325,19 @@
   "Keymap that decodes input escape sequences.
   This is used mainly for mapping ASCII function key sequences into
   real Emacs function key events (symbols).
-  
+
   The `read-key-sequence' function replaces any subsequence bound by
   `input-decode-map' with its binding.  Contrary to `function-key-map',
   this map applies its rebinding regardless of the presence of an ordinary
   binding.  So it is more like `key-translation-map' except that it applies
   before `function-key-map' rather than after.
-  
+
   If the binding is a function, it is called with one argument (the prompt)
   and its return value (a key sequence) is used.
-  
+
   The events that come from bindings in `input-decode-map' are not
   themselves looked up in `input-decode-map'.
-  
+
   This variable is keyboard-local.")
 
 (defvar last-repeatable-command nil
@@ -362,17 +361,17 @@
   "Character to recognize as meaning Help.
   When it is read, do `(eval help-form)', and display result if it's a string.
   If the value of `help-form' is nil, this char can be read normally.
-  
+
   You can customize this variable.")
 
 (defvar disable-point-adjustment nil
   "If non-nil, suppress point adjustment after executing a command.
-  
+
   After a command is executed, if point is moved into a region that has
   special properties (e.g. composition, display), we adjust point to
   the boundary of the region.  But, when a command sets this variable to
   non-nil, we suppress the point adjustment.
-  
+
   This variable is set to nil before reading a command, and is checked
   just after executing the command.")
 
@@ -381,10 +380,10 @@
   receives the special event specified by this variable, it will try to
   break into the debugger as soon as possible instead of processing the
   event normally through `special-event-map'.
-  
+
   Currently, the only supported values for this
   variable are `sigusr1' and `sigusr2'.
-  
+
   You can customize this variable.")
 
 (defvar deferred-action-list nil
@@ -408,7 +407,7 @@
   "Non-nil means show the equivalent key-binding when M-x command has one.
   The value can be a length of time to show the message for.
   If the value is non-nil and not a number, we wait 2 seconds.
-  
+
   You can customize this variable.")
 
 (defvar selection-inhibit-update-commands nil
@@ -432,13 +431,13 @@
   Measured in milliseconds.  The value nil means disable double-click
   recognition; t means double-clicks have no time limit and are detected
   by position only.
-  
+
   You can customize this variable.")
 
 (defvar meta-prefix-char nil
   "Meta-prefix character code.
   Meta-foo as command input turns into this character followed by foo.
-  
+
   You can customize this variable.")
 
 (defvar auto-save-timeout nil
@@ -446,7 +445,7 @@
   Zero or nil means disable auto-saving due to idleness.
   After auto-saving due to this many seconds of idle time,
   Emacs also does a garbage collection if that seems to be warranted.
-  
+
   You can customize this variable.")
 
 (defvar timer-idle-list nil
@@ -512,7 +511,7 @@
 (defun posn-at-point (&optional pos window)
   "Return position information for buffer POS in WINDOW.
   POS defaults to point in WINDOW; WINDOW defaults to the selected window.
-  
+
   Return nil if position is not visible in window.  Otherwise,
   the return value is similar to that returned by `event-start' for
   a mouse click at the upper left corner of the glyph corresponding
@@ -567,13 +566,13 @@
   "Stop Emacs and return to superior process.  You can resume later.
   If `cannot-suspend' is non-nil, or if the system doesn't support job
   control, run a subshell instead.
-  
+
   If optional arg STUFFSTRING is non-nil, its characters are stuffed
   to be read as terminal input by Emacs's parent, after suspension.
-  
+
   Before suspending, run the normal hook `suspend-hook'.
   After resumption run the normal hook `suspend-resume-hook'.
-  
+
   Some operating systems cannot stop the Emacs process and resume it later.
   On such systems, Emacs starts a subshell instead of suspending."
   )
@@ -603,45 +602,45 @@
   "Read a sequence of keystrokes and return as a string or vector.
   The sequence is sufficient to specify a non-prefix command in the
   current local and global maps.
-  
+
   First arg PROMPT is a prompt string.  If nil, do not prompt specially.
   Second (optional) arg CONTINUE-ECHO, if non-nil, means this key echos
   as a continuation of the previous key.
-  
+
   The third (optional) arg DONT-DOWNCASE-LAST, if non-nil, means do not
   convert the last event to lower case.  (Normally any upper case event
   is converted to lower case if the original event is undefined and the lower
   case equivalent is defined.)  A non-nil value is appropriate for reading
   a key sequence to be defined.
-  
+
   A C-g typed while in this function is treated like any other character,
   and `quit-flag' is not set.
-  
+
   If the key sequence starts with a mouse click, then the sequence is read
   using the keymaps of the buffer of the window clicked in, not the buffer
   of the selected window as normal.
-  
+
   `read-key-sequence' drops unbound button-down events, since you normally
   only care about the click or drag events which follow them.  If a drag
   or multi-click event is unbound, but the corresponding click event would
   be bound, `read-key-sequence' turns the event into a click event at the
   drag's starting position.  This means that you don't have to distinguish
   between click and drag, double, or triple events unless you want to.
-  
+
   `read-key-sequence' prefixes mouse events on mode lines, the vertical
   lines separating windows, and scroll bars with imaginary keys
   `mode-line', `vertical-line', and `vertical-scroll-bar'.
-  
+
   Optional fourth argument CAN-RETURN-SWITCH-FRAME non-nil means that this
   function will process a switch-frame event if the user switches frames
   before typing anything.  If the user switches frames in the middle of a
   key sequence, or at the start of the sequence but CAN-RETURN-SWITCH-FRAME
   is nil, then the event will be put off until after the current key sequence.
-  
+
   `read-key-sequence' checks `function-key-map' for function key
   sequences, where they wouldn't conflict with ordinary bindings.  See
   `function-key-map' for more details.
-  
+
   The optional fifth argument CMD-LOOP, if non-nil, means
   that this key sequence is being read by something that will
   read commands one after another.  It should be nil if the caller
@@ -654,7 +653,7 @@
   Optional third arg FRAME-OR-WINDOW non-nil specifies frame or window.
   If optional fourth arg WHOLE is non-nil, X is relative to the left
   edge of the window.
-  
+
   The return value is similar to a mouse click position:
      (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
       IMAGE (DX . DY) (WIDTH . HEIGHT))
@@ -679,7 +678,7 @@
   "Return the key sequence that invoked this command, as a vector.
   However, if the command has called `read-key-sequence', it returns
   the last key sequence that has been read.
-  
+
   See also `this-command-keys'."
   )
 
@@ -690,10 +689,10 @@
 
 (defun execute-extended-command (prefixarg)
   "Read function name, then read its arguments and call it.
-  
+
   To pass a numeric argument to the command you are invoking with, specify
   the numeric argument to this command.
-  
+
   Noninteractively, the argument PREFIXARG is the prefix argument to
   give to the command you invoke, if it asks for an argument."
   )
@@ -706,7 +705,7 @@
 (defun reset-this-command-lengths ()
   "Make the unread events replace the last command and echo.
   Used in `universal-argument-other-key'.
-  
+
   `universal-argument-other-key' rereads the event just typed.
   It then gets translated through `function-key-map'.
   The translated event has to replace the real events,
@@ -720,19 +719,19 @@
   "Enable or disable 8-bit input on TERMINAL.
   If META is t, Emacs will accept 8-bit input, and interpret the 8th
   bit as the Meta modifier.
-  
+
   If META is nil, Emacs will ignore the top bit, on the assumption it is
   parity.
-  
+
   Otherwise, Emacs will accept and pass through 8-bit input without
   specially interpreting the top bit.
-  
+
   This setting only has an effect on tty terminal devices.
-  
+
   Optional parameter TERMINAL specifies the tty terminal device to use.
   It may be a terminal object, a frame, or nil for the terminal used by
   the currently selected frame.
-  
+
   See also `current-input-mode'."
   )
 
@@ -752,10 +751,10 @@
 (defun set-quit-char (quit)
   "Specify character used for quitting.
   QUIT must be an ASCII character.
-  
+
   This function only has an effect on the controlling tty of the Emacs
   process.
-  
+
   See also `current-input-mode'."
   )
 
@@ -767,7 +766,7 @@
   "Set interrupt mode of reading keyboard input.
   If INTERRUPT is non-nil, Emacs will use input interrupts;
   otherwise Emacs uses CBREAK mode.
-  
+
   See also `current-input-mode'."
   )
 
@@ -779,10 +778,10 @@
   "Enable or disable ^S/^Q flow control for output to TERMINAL.
   If FLOW is non-nil, flow control is enabled and you cannot use C-s or
   C-q in key sequences.
-  
+
   This setting only has an effect on tty terminals and only when
   Emacs reads input in CBREAK mode; see `set-input-interrupt-mode'.
-  
+
   See also `current-input-mode'."
   )
 
@@ -791,7 +790,7 @@
   However, if the command has called `read-key-sequence', it returns
   the last key sequence that has been read.
   The value is a string or a vector.
-  
+
   See also `this-command-keys-vector'."
   )
 
@@ -800,9 +799,9 @@
   The value when Emacs is idle is a list of three integers.  The first has
   the most significant 16 bits of the seconds, while the second has the least
   significant 16 bits.  The third integer gives the microsecond count.
-  
+
   The value when Emacs is not idle is nil.
-  
+
   The microsecond count is zero on systems that do not provide
   resolution finer than a second."
   )

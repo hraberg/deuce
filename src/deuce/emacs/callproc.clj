@@ -1,8 +1,7 @@
-(ns
- deuce.emacs.callproc
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.callproc
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defvar doc-directory nil
   "Directory containing the DOC file that comes with GNU Emacs.

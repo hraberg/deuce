@@ -1,10 +1,10 @@
 (ns deuce.emacs-lisp
-  (require [clojure.core :as c]
+  (:require [clojure.core :as c]
            [clojure.walk :as w])
-  (:refer-clojure :exclude [defmacro and or cond let while eval set compile])
-  (import [clojure.lang Atom]
-          [deuce EmacsLispError DottedPair]
-          [java.util LinkedList List]))
+  (:import [clojure.lang Atom]
+           [deuce EmacsLispError DottedPair]
+           [java.util LinkedList List])
+  (:refer-clojure :exclude [defmacro and or cond let while eval set compile]))
 
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)

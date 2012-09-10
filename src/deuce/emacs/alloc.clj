@@ -1,10 +1,9 @@
-(ns
- deuce.emacs.alloc
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (import [deuce DottedPair]
-         [java.util LinkedList])
- (:refer-clojure :exclude [vector cons list]))
+(ns deuce.emacs.alloc
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:import [deuce DottedPair]
+           [java.util LinkedList])
+  (:refer-clojure :exclude [vector cons list]))
 
 (defvar purify-flag nil
   "Non-nil means loading Lisp code in order to dump an executable.

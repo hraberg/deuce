@@ -1,13 +1,12 @@
-(ns
- deuce.emacs.process
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.process
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defvar delete-exited-processes nil
   "*Non-nil means delete processes immediately when they exit.
   A value of nil means don't delete them until `list-processes' is run.
-  
+
   You can customize this variable.")
 
 (defvar process-connection-type nil
@@ -66,22 +65,22 @@
 
 (defun process-attributes (pid)
   "Return attributes of the process given by its PID, a number.
-  
+
   Value is an alist where each element is a cons cell of the form
-  
+
       (KEY . VALUE)
-  
+
   If this functionality is unsupported, the value is nil.
-  
+
   See `list-system-processes' for getting a list of all process IDs.
-  
+
   The KEYs of the attributes that this function may return are listed
   below, together with the type of the associated VALUE (in parentheses).
   Not all platforms support all of these attributes; unsupported
   attributes will not appear in the returned alist.
   Unless explicitly indicated otherwise, numbers can have either
   integer or floating point values.
-  
+
    euid    -- Effective user User ID of the process (number)
    user    -- User name corresponding to euid (string)
    egid    -- Effective user Group ID of the process (number)
@@ -118,40 +117,40 @@
 
 (defun make-network-process (&rest args)
   "Create and return a network server or client process.
-  
+
   In Emacs, network connections are represented by process objects, so
   input and output work as for subprocesses and `delete-process' closes
   a network connection.  However, a network process has no process id,
   it cannot be signaled, and the status codes are different from normal
   processes.
-  
+
   Arguments are specified as keyword/argument pairs.  The following
   arguments are defined:
-  
+
   :name NAME -- NAME is name for process.  It is modified if necessary
   to make it unique.
-  
+
   :buffer BUFFER -- BUFFER is the buffer (or buffer-name) to associate
   with the process.  Process output goes at end of that buffer, unless
   you specify an output stream or filter function to handle the output.
   BUFFER may be also nil, meaning that this process is not associated
   with any buffer.
-  
+
   :host HOST -- HOST is name of the host to connect to, or its IP
   address.  The symbol `local' specifies the local host.  If specified
   for a server process, it must be a valid name or address for the local
   host, and only clients connecting to that address will be accepted.
-  
+
   :service SERVICE -- SERVICE is name of the service desired, or an
   integer specifying a port number to connect to.  If SERVICE is t,
   a random port number is selected for the server.  (If Emacs was
   compiled with getaddrinfo, a port number can also be specified as a
   string, e.g. \"80\", as well as an integer.  This is not portable.)
-  
+
   :type TYPE -- TYPE is the type of connection.  The default (nil) is a
   stream type connection, `datagram' creates a datagram type connection,
   `seqpacket' creates a reliable datagram connection.
-  
+
   :family FAMILY -- FAMILY is the address (and protocol) family for the
   service specified by HOST and SERVICE.  The default (nil) is to use
   whatever address family (IPv4 or IPv6) that is defined for the host
@@ -160,17 +159,17 @@
     local -- for a local (i.e. UNIX) address specified by SERVICE.
     ipv4  -- use IPv4 address family only.
     ipv6  -- use IPv6 address family only.
-  
+
   :local ADDRESS -- ADDRESS is the local address used for the connection.
   This parameter is ignored when opening a client process. When specified
   for a server process, the FAMILY, HOST and SERVICE args are ignored.
-  
+
   :remote ADDRESS -- ADDRESS is the remote partner's address for the
   connection.  This parameter is ignored when opening a stream server
   process.  For a datagram server process, it specifies the initial
   setting of the remote datagram address.  When specified for a client
   process, the FAMILY, HOST, and SERVICE args are ignored.
-  
+
   The format of ADDRESS depends on the address family:
   - An IPv4 address is represented as an vector of integers [A B C D P]
   corresponding to numeric IP address A.B.C.D and port number P.
@@ -181,52 +180,52 @@
   address data with one element per address data byte.  Do not rely on
   this format in portable code, as it may depend on implementation
   defined constants, data sizes, and data structure alignment.
-  
+
   :coding CODING -- If CODING is a symbol, it specifies the coding
   system used for both reading and writing for this process.  If CODING
   is a cons (DECODING . ENCODING), DECODING is used for reading, and
   ENCODING is used for writing.
-  
+
   :nowait BOOL -- If BOOL is non-nil for a stream type client process,
   return without waiting for the connection to complete; instead, the
   sentinel function will be called with second arg matching \"open\" (if
   successful) or \"failed\" when the connect completes.  Default is to use
   a blocking connect (i.e. wait) for stream type connections.
-  
+
   :noquery BOOL -- Query the user unless BOOL is non-nil, and process is
   running when Emacs is exited.
-  
+
   :stop BOOL -- Start process in the `stopped' state if BOOL non-nil.
   In the stopped state, a server process does not accept new
   connections, and a client process does not handle incoming traffic.
   The stopped state is cleared by `continue-process' and set by
   `stop-process'.
-  
+
   :filter FILTER -- Install FILTER as the process filter.
-  
+
   :filter-multibyte BOOL -- If BOOL is non-nil, strings given to the
   process filter are multibyte, otherwise they are unibyte.
   If this keyword is not specified, the strings are multibyte if
   the default value of `enable-multibyte-characters' is non-nil.
-  
+
   :sentinel SENTINEL -- Install SENTINEL as the process sentinel.
-  
+
   :log LOG -- Install LOG as the server process log function.  This
   function is called when the server accepts a network connection from a
   client.  The arguments are SERVER, CLIENT, and MESSAGE, where SERVER
   is the server process, CLIENT is the new process for the connection,
   and MESSAGE is a string.
-  
+
   :plist PLIST -- Install PLIST as the new process' initial plist.
-  
+
   :server QLEN -- if QLEN is non-nil, create a server process for the
   specified FAMILY, SERVICE, and connection type (stream or datagram).
   If QLEN is an integer, it is used as the max. length of the server's
   pending connection queue (also known as the backlog); the default
   queue length is 5.  Default is to create a client process.
-  
+
   The following network options can be specified for this connection:
-  
+
   :broadcast BOOL    -- Allow send and receive of datagram broadcasts.
   :dontroute BOOL    -- Only send to directly connected hosts.
   :keepalive BOOL    -- Send keep-alive messages on network stream.
@@ -237,15 +236,15 @@
                         (this is allowed by default for a server process).
   :bindtodevice NAME -- bind to interface NAME.  Using this may require
                         special privileges on some systems.
-  
+
   Consult the relevant system programmer's manual pages for more
   information on using these options.
-  
-  
+
+
   A server process will listen for and accept connections from clients.
   When a client connection is accepted, a new network process is created
   for the connection with the following parameters:
-  
+
   - The client's process name is constructed by concatenating the server
   process' NAME and a client identification string.
   - If the FILTER argument is non-nil, the client process will not get a
@@ -257,12 +256,12 @@
   - The client process' contact info is set according to the client's
   addressing information (typically an IP address and a port number).
   - The client process' plist is initialized from the server's plist.
-  
+
   Notice that the FILTER and SENTINEL args are never used directly by
   the server process.  Also, the BUFFER argument is not used directly by
   the server process, but via the optional :log function, accepted (and
   failed) connections may be logged in the server process' buffer.
-  
+
   The original argument list, modified with the actual connection
   information, is available via the `process-contact' function."
   )
@@ -332,7 +331,7 @@
 
 (defun process-filter-multibyte-p (process)
   "This function is obsolete since 23.1.
-  
+
   Return t if a multibyte string is given to PROCESS's filter."
   )
 
@@ -428,11 +427,11 @@
 (defun set-process-filter (process filter)
   "Give PROCESS the filter function FILTER; nil means no filter.
   A value of t means stop accepting output from the process.
-  
+
   When a process has a filter, its buffer is not used for output.
   Instead, each time it does output, the entire string of output is
   passed to the filter.
-  
+
   The filter gets two arguments: the process and the string of output.
   The string argument is normally a multibyte string, except:
   - if the process' input coding system is no-conversion or raw-text,
@@ -449,7 +448,7 @@
 (defun list-system-processes ()
   "Return a list of numerical process IDs of all running processes.
   If this functionality is unsupported, return nil.
-  
+
   See `process-attributes' for getting attributes of a process given its ID."
   )
 
@@ -459,16 +458,16 @@
   `buffer-file-coding-system' of the buffer associated with PROCESS
   will be bound to the value of the coding system used to decode
   the process output.
-  
+
   This is useful when the coding system specified for the process buffer
   leaves either the character code conversion or the end-of-line conversion
   unspecified, or if the coding system used to decode the process output
   is more appropriate for saving the process buffer.
-  
+
   Binding the variable `inherit-process-coding-system' to non-nil before
   starting the process is an alternative way of setting the inherit flag
   for the process which will run.
-  
+
   This function returns FLAG."
   )
 
@@ -519,84 +518,84 @@
 
 (defun make-serial-process (&rest args)
   "Create and return a serial port process.
-  
+
   In Emacs, serial port connections are represented by process objects,
   so input and output work as for subprocesses, and `delete-process'
   closes a serial port connection.  However, a serial process has no
   process id, it cannot be signaled, and the status codes are different
   from normal processes.
-  
+
   `make-serial-process' creates a process and a buffer, on which you
   probably want to use `process-send-string'.  Try M-x serial-term for
   an interactive terminal.  See below for examples.
-  
+
   Arguments are specified as keyword/argument pairs.  The following
   arguments are defined:
-  
+
   :port PORT -- (mandatory) PORT is the path or name of the serial port.
   For example, this could be \"/dev/ttyS0\" on Unix.  On Windows, this
   could be \"COM1\", or \"\\\\.\\COM10\" for ports higher than COM9 (double
   the backslashes in strings).
-  
+
   :speed SPEED -- (mandatory) is handled by `serial-process-configure',
   which this function calls.
-  
+
   :name NAME -- NAME is the name of the process.  If NAME is not given,
   the value of PORT is used.
-  
+
   :buffer BUFFER -- BUFFER is the buffer (or buffer-name) to associate
   with the process.  Process output goes at the end of that buffer,
   unless you specify an output stream or filter function to handle the
   output.  If BUFFER is not given, the value of NAME is used.
-  
+
   :coding CODING -- If CODING is a symbol, it specifies the coding
   system used for both reading and writing for this process.  If CODING
   is a cons (DECODING . ENCODING), DECODING is used for reading, and
   ENCODING is used for writing.
-  
+
   :noquery BOOL -- When exiting Emacs, query the user if BOOL is nil and
   the process is running.  If BOOL is not given, query before exiting.
-  
+
   :stop BOOL -- Start process in the `stopped' state if BOOL is non-nil.
   In the stopped state, a serial process does not accept incoming data,
   but you can send outgoing data.  The stopped state is cleared by
   `continue-process' and set by `stop-process'.
-  
+
   :filter FILTER -- Install FILTER as the process filter.
-  
+
   :sentinel SENTINEL -- Install SENTINEL as the process sentinel.
-  
+
   :plist PLIST -- Install PLIST as the initial plist of the process.
-  
+
   :bytesize
   :parity
   :stopbits
   :flowcontrol
   -- This function calls `serial-process-configure' to handle these
   arguments.
-  
+
   The original argument list, possibly modified by later configuration,
   is available via the function `process-contact'.
-  
+
   Examples:
-  
+
   (make-serial-process :port \"/dev/ttyS0\" :speed 9600)
-  
+
   (make-serial-process :port \"COM1\" :speed 115200 :stopbits 2)
-  
+
   (make-serial-process :port \"\\\\.\\COM13\" :speed 1200 :bytesize 7 :parity 'odd)
-  
+
   (make-serial-process :port \"/dev/tty.BlueConsole-SPP-1\" :speed nil)"
   )
 
 (defun serial-process-configure (&rest args)
   "Configure speed, bytesize, etc. of a serial process.
-  
+
   Arguments are specified as keyword/argument pairs.  Attributes that
   are not given are re-initialized from the process's current
   configuration (available via the function `process-contact') or set to
   reasonable default values.  The following arguments are defined:
-  
+
   :process PROCESS
   :name NAME
   :buffer BUFFER
@@ -604,7 +603,7 @@
   -- Any of these arguments can be given to identify the process that is
   to be configured.  If none of these arguments is given, the current
   buffer's process is used.
-  
+
   :speed SPEED -- SPEED is the speed of the serial port in bits per
   second, also called baud rate.  Any value can be given for SPEED, but
   most serial ports work only at a few defined values between 1200 and
@@ -614,40 +613,40 @@
   Bluetooth-to-serial converters which can only be configured through AT
   commands.  A value of nil for SPEED can be used only when passed
   through `make-serial-process' or `serial-term'.
-  
+
   :bytesize BYTESIZE -- BYTESIZE is the number of bits per byte, which
   can be 7 or 8.  If BYTESIZE is not given or nil, a value of 8 is used.
-  
+
   :parity PARITY -- PARITY can be nil (don't use parity), the symbol
   `odd' (use odd parity), or the symbol `even' (use even parity).  If
   PARITY is not given, no parity is used.
-  
+
   :stopbits STOPBITS -- STOPBITS is the number of stopbits used to
   terminate a byte transmission.  STOPBITS can be 1 or 2.  If STOPBITS
   is not given or nil, 1 stopbit is used.
-  
+
   :flowcontrol FLOWCONTROL -- FLOWCONTROL determines the type of
   flowcontrol to be used, which is either nil (don't use flowcontrol),
   the symbol `hw' (use RTS/CTS hardware flowcontrol), or the symbol `sw'
   (use XON/XOFF software flowcontrol).  If FLOWCONTROL is not given, no
   flowcontrol is used.
-  
+
   `serial-process-configure' is called by `make-serial-process' for the
   initial configuration of the serial port.
-  
+
   Examples:
-  
+
   (serial-process-configure :process \"/dev/ttyS0\" :speed 1200)
-  
+
   (serial-process-configure
       :buffer \"COM1\" :stopbits 1 :parity 'odd :flowcontrol 'hw)
-  
+
   (serial-process-configure :port \"\\\\.\\COM13\" :bytesize 7)"
   )
 
 (defun set-process-filter-multibyte (process flag)
   "This function is obsolete since 23.1.
-  
+
   Set multibyteness of the strings given to PROCESS's filter.
   If FLAG is non-nil, the filter is given multibyte strings.
   If FLAG is nil, the filter is given unibyte strings.  In this case,
@@ -692,13 +691,13 @@
   It is read into the process' buffers or given to their filter functions.
   Non-nil arg PROCESS means do not return until some output has been received
   from PROCESS.
-  
+
   Non-nil second arg SECONDS and third arg MILLISEC are number of seconds
   and milliseconds to wait; return after that much time whether or not
   there is any subprocess output.  If SECONDS is a floating point number,
   it specifies a fractional number of seconds to wait.
   The MILLISEC argument is obsolete and should be avoided.
-  
+
   If optional fourth arg JUST-THIS-ONE is non-nil, only accept output
   from PROCESS, suspending reading output from other processes.
   If JUST-THIS-ONE is an integer, don't run any timers either.
@@ -709,16 +708,16 @@
   "Start a program in a subprocess.  Return the process object for it.
   NAME is name for process.  It is modified if necessary to make it unique.
   BUFFER is the buffer (or buffer name) to associate with the process.
-  
+
   Process output (both standard output and standard error streams) goes
   at end of BUFFER, unless you specify an output stream or filter
   function to handle the output.  BUFFER may also be nil, meaning that
   this process is not associated with any buffer.
-  
+
   PROGRAM is the program file name.  It is searched for in `exec-path'
   (which see).  If nil, just associate a pty with the buffer.  Remaining
   arguments are strings to give program as arguments.
-  
+
   If you want to separate standard output from standard error, invoke
   the command through a shell and redirect one of them using the shell
   syntax."
@@ -737,7 +736,7 @@
   rather than to the process's own process group.
   If the process is a shell, this means interrupt current subjob
   rather than the shell.
-  
+
   If CURRENT-GROUP is `lambda', and if the shell owns the terminal,
   don't send the signal."
   )

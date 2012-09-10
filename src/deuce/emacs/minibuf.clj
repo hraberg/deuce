@@ -1,8 +1,7 @@
-(ns
- deuce.emacs.minibuf
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude [read-string]))
+(ns deuce.emacs.minibuf
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude [read-string]))
 
 (defvar minibuffer-history-variable nil
   "History list symbol to add minibuffer values to.
@@ -32,7 +31,7 @@
 (defvar enable-recursive-minibuffers nil
   "Non-nil means to allow minibuffer commands while in the minibuffer.
   This variable makes a difference whenever the minibuffer window is active.
-  
+
   You can customize this variable.")
 
 (defvar minibuffer-setup-hook nil
@@ -42,12 +41,12 @@
   "Text properties that are added to minibuffer prompts.
   These are in addition to the basic `field' property, and stickiness
   properties.
-  
+
   You can customize this variable.")
 
 (defvar read-buffer-completion-ignore-case nil
   "Non-nil means completion ignores case when reading a buffer name.
-  
+
   You can customize this variable.")
 
 (defvar minibuffer-history-position nil
@@ -56,14 +55,14 @@
 (defvar read-buffer-function nil
   "If this is non-nil, `read-buffer' does its work by calling this function.
   The function is called with the arguments passed to `read-buffer'.
-  
+
   You can customize this variable.")
 
 (defvar history-delete-duplicates nil
   "Non-nil means to delete duplicates in history.
   If set to t when adding a new history element, all previous identical
   elements are deleted from the history list.
-  
+
   You can customize this variable.")
 
 (defvar minibuffer-completion-predicate nil
@@ -93,24 +92,24 @@
   A number means truncate to that length; truncation deletes old
   elements, and is done just after inserting a new element.
   A value of t means no truncation.
-  
+
   This variable only affects history lists that don't specify their own
   maximum lengths.  Setting the `history-length' property of a history
   variable overrides this default.
-  
+
   You can customize this variable.")
 
 (defvar minibuffer-auto-raise nil
   "Non-nil means entering the minibuffer raises the minibuffer's frame.
   Some uses of the echo area also raise that frame (since they use it too).
-  
+
   You can customize this variable.")
 
 (defvar minibuffer-completion-table nil
   "Alist or obarray used for completion in the minibuffer.
   This becomes the ALIST argument to `try-completion' and `all-completions'.
   The value can also be a list of strings or a hash table.
-  
+
   The value may alternatively be a function, which is given three arguments:
     STRING, the current buffer contents;
     PREDICATE, the predicate for filtering possible matches;
@@ -155,7 +154,7 @@
   PREDICATE limits completion to a subset of COLLECTION.
   See `try-completion' and `all-completions' for more details
    on completion, COLLECTION, and PREDICATE.
-  
+
   REQUIRE-MATCH can take the following values:
   - t means that the user is not allowed to exit unless
     the input is (or completes to) an element of COLLECTION or is null.
@@ -168,11 +167,11 @@
     and the input is not an element of COLLECTION.
   - anything else behaves like t except that typing RET does not exit if it
     does non-null completion.
-  
+
   If the input is null, `completing-read' returns DEF, or the first element
   of the list of default values, or an empty string if DEF is nil,
   regardless of the value of REQUIRE-MATCH.
-  
+
   If INITIAL-INPUT is non-nil, insert it in the minibuffer initially,
     with point positioned at the end.
     If it is (STRING . POSITION), the initial input is STRING, but point
@@ -182,7 +181,7 @@
     deprecated--it is best to pass nil for INITIAL-INPUT and supply the
     default value DEF instead.  The user can yank the default value into
     the minibuffer easily using M-x next-history-element.
-  
+
   HIST, if non-nil, specifies a history list and optionally the initial
     position in the list.  It can be a symbol, which is the history list
     variable to use, or it can be a cons cell (HISTVAR . HISTPOS).  In
@@ -194,15 +193,15 @@
     INITIAL-INPUT instead of DEF.)  Positions are counted starting from
     1 at the beginning of the list.  The variable `history-length'
     controls the maximum length of a history list.
-  
+
   DEF, if non-nil, is the default value or the list of default values.
-  
+
   If INHERIT-INPUT-METHOD is non-nil, the minibuffer inherits
     the current input method and the setting of `enable-multibyte-characters'.
-  
+
   Completion ignores case if the ambient value of
     `completion-ignore-case' is non-nil.
-  
+
   See also `completing-read-function'."
   )
 
@@ -211,14 +210,14 @@
   The optional second arg INITIAL-CONTENTS is an obsolete alternative to
     DEFAULT-VALUE.  It normally should be nil in new code, except when
     HIST is a cons.  It is discussed in more detail below.
-  
+
   Third arg KEYMAP is a keymap to use whilst reading;
     if omitted or nil, the default is `minibuffer-local-map'.
-  
+
   If fourth arg READ is non-nil, interpret the result as a Lisp object
     and return that object:
     in other words, do `(car (read-from-string INPUT-STRING))'
-  
+
   Fifth arg HIST, if non-nil, specifies a history list and optionally
     the initial position in the list.  It can be a symbol, which is the
     history list variable to use, or a cons cell (HISTVAR . HISTPOS).
@@ -227,24 +226,24 @@
     commands.  For consistency, you should also specify that element of
     the history as the value of INITIAL-CONTENTS.  Positions are counted
     starting from 1 at the beginning of the list.
-  
+
   Sixth arg DEFAULT-VALUE, if non-nil, should be a string, which is used
     as the default to `read' if READ is non-nil and the user enters
     empty input.  But if READ is nil, this function does _not_ return
     DEFAULT-VALUE for empty input!  Instead, it returns the empty string.
-  
+
     Whatever the value of READ, DEFAULT-VALUE is made available via the
     minibuffer history commands.  DEFAULT-VALUE can also be a list of
     strings, in which case all the strings are available in the history,
     and the first string is the default to `read' if READ is non-nil.
-  
+
   Seventh arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
    the current input method and the setting of `enable-multibyte-characters'.
-  
+
   If the variable `minibuffer-allow-text-properties' is non-nil,
    then the string which is returned includes whatever text properties
    were present in the minibuffer.  Otherwise the value has no text properties.
-  
+
   The remainder of this documentation string describes the
   INITIAL-CONTENTS argument in more detail.  It is only relevant when
   studying existing code, or when HIST is a cons.  If non-nil,
@@ -260,13 +259,13 @@
 
 (defun assoc-string (key list &optional case-fold)
   "Like `assoc' but specifically for strings (and symbols).
-  
+
   This returns the first element of LIST whose car matches the string or
   symbol KEY, or nil if no match exists.  When performing the
   comparison, symbols are first converted to strings, and unibyte
   strings to multibyte.  If the optional arg CASE-FOLD is non-nil, case
   is ignored.
-  
+
   Unlike `assoc', KEY can also match an entry in LIST consisting of a
   single string, rather than a cons cell whose car is a string."
   )
@@ -304,7 +303,7 @@
   common to all these matches is the return value.
   If there is no match at all, the return value is nil.
   For a unique match which is exact, the return value is t.
-  
+
   If COLLECTION is an alist, the keys (cars of elements) are the
   possible completions.  If an element is not a cons cell, then the
   element itself is the possible completion.
@@ -312,11 +311,11 @@
   are the possible completions.
   If COLLECTION is an obarray, the names of all symbols in the obarray
   are the possible completions.
-  
+
   COLLECTION can also be a function to do the completion itself.
   It receives three arguments: the values STRING, PREDICATE and nil.
   Whatever it returns becomes the value of `try-completion'.
-  
+
   If optional third argument PREDICATE is non-nil,
   it is used to test each possible match.
   The match is a candidate only if PREDICATE returns non-nil.
@@ -373,7 +372,7 @@
   "Perform completion on buffer names.
   If the argument FLAG is nil, invoke `try-completion', if it's t, invoke
   `all-completions', otherwise invoke `test-completion'.
-  
+
   The arguments STRING and PREDICATE are as in `try-completion',
   `all-completions', and `test-completion'."
   )
@@ -385,7 +384,7 @@
   strings or symbols.  Symbols are converted to strings before testing,
   see `symbol-name'.
   The value is a list of all the possible completions that match STRING.
-  
+
   If COLLECTION is an alist, the keys (cars of elements) are the
   possible completions.  If an element is not a cons cell, then the
   element itself is the possible completion.
@@ -393,11 +392,11 @@
   are the possible completions.
   If COLLECTION is an obarray, the names of all symbols in the obarray
   are the possible completions.
-  
+
   COLLECTION can also be a function to do the completion itself.
   It receives three arguments: the values STRING, PREDICATE and t.
   Whatever it returns becomes the value of `all-completions'.
-  
+
   If optional third argument PREDICATE is non-nil,
   it is used to test each possible match.
   The match is a candidate only if PREDICATE returns non-nil.
@@ -406,7 +405,7 @@
   predicate is called with two arguments: the key and the value.
   Additionally to this predicate, `completion-regexp-list'
   is used to further constrain the set of candidates.
-  
+
   An obsolete optional fourth argument HIDE-SPACES is still accepted for
   backward compatibility.  If non-nil, strings in COLLECTION that start
   with a space are ignored unless STRING itself starts with a space."

@@ -1,5 +1,5 @@
 (ns deuce.test.condition-case
-  (use [deuce.test.common]))
+  (:use [deuce.test.common]))
 
 ;; "10.5.3.3 Writing Code to Handle Errors"[1]
 

@@ -1,23 +1,20 @@
-(ns
- deuce.emacs.fns
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c]
-          [clojure.string :as s]
-          [deuce.emacs.alloc :as alloc]
-          [deuce.emacs.data :as data]
-          [deuce.emacs.lread :as lread]
-          [deuce.emacs-lisp :as el]
-          [deuce.emacs-lisp.globals :as globals])
- (import [clojure.lang IPersistentCollection]
-         [deuce DottedPair]
-         [java.util List]
-         [java.nio CharBuffer]
-         [java.nio.charset Charset]
-         [javax.xml.bind DatatypeConverter]
-         [java.security MessageDigest])
- (:refer-clojure
-  :exclude
-  [concat assoc reverse nth identity require get sort]))
+(ns deuce.emacs.fns
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c]
+            [clojure.string :as s]
+            [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.data :as data]
+            [deuce.emacs.lread :as lread]
+            [deuce.emacs-lisp :as el]
+            [deuce.emacs-lisp.globals :as globals])
+  (import [clojure.lang IPersistentCollection]
+          [deuce DottedPair]
+          [java.util List]
+          [java.nio CharBuffer]
+          [java.nio.charset Charset]
+          [javax.xml.bind DatatypeConverter]
+          [java.security MessageDigest])
+  (:refer-clojure :exclude [concat assoc reverse nth identity require get sort]))
 
 (defvar use-dialog-box nil
   "*Non-nil means mouse commands use dialog boxes to ask questions.

@@ -1,27 +1,26 @@
-(ns
- deuce.emacs.window
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.window
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defvar window-combination-limit nil
   "If t, splitting a window makes a new parent window.
   If this variable is nil, splitting a window will create a new parent
   window only if the window has no parent window or the window shall
   become a combination orthogonal to the one it is part of.
-  
+
   If this variable is t, splitting a window always creates a new parent
   window.  If all splits behave this way, each frame's window tree is a
   binary tree and every window but the frame's root window has exactly one
   sibling.
-  
+
   Other values are reserved for future use.
-  
+
   The value of this variable is also assigned to the combination limit of
   the new parent window.  The combination limit of a window can be
   retrieved via the function `window-combination-limit' and altered by the
   function `set-window-combination-limit'.
-  
+
   You can customize this variable.")
 
 (defvar window-configuration-change-hook nil
@@ -39,20 +38,20 @@
   `current-window-configuration' and `window-state-get' and subsequently
   restored to their previous values by `set-window-configuration' and
   `window-state-put'.
-  
+
   The car of each entry of this alist is the symbol specifying the
   parameter.  The cdr is one of the following:
-  
+
   nil means the parameter is neither saved by `window-state-get' nor by
   `current-window-configuration'.
-  
+
   t means the parameter is saved by `current-window-configuration' and,
   provided its WRITABLE argument is nil, by `window-state-get'.
-  
+
   The symbol `writable' means the parameter is saved unconditionally by
   both `current-window-configuration' and `window-state-get'.  Do not use
   this value for parameters without read syntax (like windows or frames).
-  
+
   Parameters not saved by `current-window-configuration' or
   `window-state-get' are left alone by `set-window-configuration'
   respectively are not installed by `window-state-put'.")
@@ -67,7 +66,7 @@
   "Non-nil means to use `mode-line-inactive' face in non-selected windows.
   If the minibuffer is active, the `minibuffer-scroll-window' mode line
   is displayed in the `mode-line' face.
-  
+
   You can customize this variable.")
 
 (defvar temp-buffer-show-function nil
@@ -76,12 +75,12 @@
   Used by `with-output-to-temp-buffer'.
   If this function is used, then it must do the entire job of showing
   the buffer; `temp-buffer-show-hook' is not run unless this function runs it.
-  
+
   You can customize this variable.")
 
 (defvar next-screen-context-lines nil
   "Number of lines of continuity when scrolling by screenfuls.
-  
+
   You can customize this variable.")
 
 (defvar window-point-insertion-type nil
@@ -92,7 +91,7 @@
   If this option is non-nil, then the `recenter' command with a nil
   argument will redraw the entire frame; the special value `tty' causes
   the frame to be redrawn only if it is a tty frame.
-  
+
   You can customize this variable.")
 
 (defvar scroll-preserve-screen-position nil
@@ -105,7 +104,7 @@
   Any other value means point always keeps its screen position.
   Scroll commands should have the `scroll-command' property
   on their symbols to be controlled by this variable.
-  
+
   You can customize this variable.")
 
 (defvar window-combination-resize nil
@@ -113,17 +112,17 @@
   If this variable is nil, splitting a window gets the entire screen space
   for displaying the new window from the window to split.  Deleting and
   resizing a window preferably resizes one adjacent window only.
-  
+
   If this variable is t, splitting a window tries to get the space
   proportionally from all windows in the same combination.  This also
   allows to split a window that is otherwise too small or of fixed size.
   Resizing and deleting a window proportionally resize all windows in the
   same combination.
-  
+
   Other values are reserved for future use.
-  
+
   This variable takes no effect if `window-combination-limit' is non-nil.
-  
+
   You can customize this variable.")
 
 (defun window-live-p (object)
@@ -142,11 +141,11 @@
 (defun window-total-width (&optional window)
   "Return the total width, in columns, of window WINDOW.
   If WINDOW is omitted or nil, it defaults to the selected window.
-  
+
   The return value includes any vertical dividers or scroll bars
   belonging to WINDOW.  If WINDOW is an internal window, the total width
   is the width of the screen areas spanned by its children.
-  
+
   On a graphical display, this total width is reported as an
   integer multiple of the default character width."
   )
@@ -164,7 +163,7 @@
   if the current one is at the bottom.  Negative ARG means scroll downward.
   If ARG is the atom `-', scroll downward by nearly full screen.
   When calling from a program, supply as argument a number, nil, or `-'.
-  
+
   If `other-window-scroll-buffer' is non-nil, scroll the window
   showing that buffer, popping the buffer up if necessary.
   If in the minibuffer, `minibuffer-scroll-window' if non-nil
@@ -176,7 +175,7 @@
   "Return a list of the edge pixel coordinates of WINDOW's text area.
   The list has the form (LEFT TOP RIGHT BOTTOM), all relative to (0,0)
   at the top left corner of the frame's window area.
-  
+
   RIGHT is one more than the rightmost x position of WINDOW's text area.
   BOTTOM is one more than the bottommost y position of WINDOW's text area.
   The inside edges do not include the space used by WINDOW's scroll bar,
@@ -187,7 +186,7 @@
   "Set number of columns WINDOW is scrolled from left margin to NCOL.
   If WINDOW is nil, the selected window is used.
   Return NCOL.  NCOL should be zero or positive.
-  
+
   Note that if `automatic-hscrolling' is non-nil, you cannot scroll the
   window so that the location of point moves off-window."
   )
@@ -197,14 +196,14 @@
   With prefix argument ARG, recenter putting point on screen line ARG
   relative to the selected window.  If ARG is negative, it counts up from the
   bottom of the window.  (ARG should be less than the height of the window.)
-  
+
   If ARG is omitted or nil, then recenter with point on the middle line of
   the selected window; if the variable `recenter-redisplay' is non-nil,
   also erase the entire frame and redraw it (when `auto-resize-tool-bars'
   is set to `grow-only', this resets the tool-bar's height to the minimum
   height needed); if `recenter-redisplay' has the special value `tty',
   then only tty frames are redrawn.
-  
+
   Just C-u as prefix means put point in the center of the window
   and redisplay normally--don't erase and redraw the frame."
   )
@@ -263,7 +262,7 @@
   If POS is only out of view because of horizontal scrolling, return non-nil.
   If POS is t, it specifies the position of the last visible glyph in WINDOW.
   POS defaults to point in WINDOW; WINDOW defaults to the selected window.
-  
+
   If POS is visible, return t if PARTIALLY is nil; if PARTIALLY is non-nil,
   return value is a list of 2 or 6 elements (X Y [RTOP RBOT ROWH VPOS]),
   where X and Y are the pixel coordinates relative to the top left corner
@@ -306,10 +305,10 @@
 (defun window-point (&optional window)
   "Return current value of point in WINDOW.
   WINDOW must be a live window and defaults to the selected one.
-  
+
   For a nonselected window, this is the value point would have
   if that window were selected.
-  
+
   Note that, when WINDOW is the selected window and its buffer
   is also currently selected, the value returned is the same as (point).
   It would be more strictly correct to return the `top-level' value
@@ -321,7 +320,7 @@
   "Return a list of the edge pixel coordinates of WINDOW.
   The list has the form (LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at
   the top left corner of the frame.
-  
+
   RIGHT is one more than the rightmost x position occupied by WINDOW.
   BOTTOM is one more than the bottommost y position occupied by WINDOW.
   The pixel edges include the space used by WINDOW's scroll bar, display
@@ -334,7 +333,7 @@
   This is the distance, in columns, between the left edge of WINDOW and
   the left edge of the frame's window area.  For instance, the return
   value is 0 if there is no window to the left of WINDOW.
-  
+
   If WINDOW is omitted or nil, it defaults to the selected window."
   )
 
@@ -365,7 +364,7 @@
 
 (defun set-window-redisplay-end-trigger (window value)
   "This function is obsolete since 23.1.
-  
+
   Set WINDOW's redisplay end trigger value to VALUE.
   VALUE should be a buffer position (typically a marker) or nil.
   If it is a buffer position, then if redisplay in WINDOW reaches a position
@@ -416,26 +415,26 @@
   This is the distance, in lines, between the top of WINDOW and the top
   of the frame's window area.  For instance, the return value is 0 if
   there is no window above WINDOW.
-  
+
   If WINDOW is omitted or nil, it defaults to the selected window."
   )
 
 (defun window-line-height (&optional line window)
   "Return height in pixels of text line LINE in window WINDOW.
   WINDOW defaults to the selected window.
-  
+
   Return height of current line if LINE is omitted or nil.  Return height of
   header or mode line if LINE is `header-line' or `mode-line'.
   Otherwise, LINE is a text line number starting from 0.  A negative number
   counts from the end of the window.
-  
+
   Value is a list (HEIGHT VPOS YPOS OFFBOT), where HEIGHT is the height
   in pixels of the visible part of the line, VPOS and YPOS are the
   vertical position in lines and pixels of the line, relative to the top
   of the first text line, and OFFBOT is the number of off-window pixels at
   the bottom of the text line.  If there are off-window pixels at the top
   of the (first) text line, YPOS is negative.
-  
+
   Return nil if window display is not up-to-date.  In that case, use
   `pos-visible-in-window-p' to obtain the information."
   )
@@ -468,11 +467,11 @@
   "Make WINDOW fill its frame.
   Only the frame WINDOW is on is affected.  WINDOW may be any window and
   defaults to the selected one.
-  
+
   Optional argument ROOT, if non-nil, must specify an internal window such
   that WINDOW is in its window subtree.  If this is the case, replace ROOT
   by WINDOW and leave alone any windows not part of ROOT's subtree.
-  
+
   When WINDOW is live try to reduce display jumps by keeping the text
   previously visible in WINDOW in the same place on the frame.  Doing this
   depends on the value of (window-start WINDOW), so if calling this
@@ -484,7 +483,7 @@
   "Return a list of the edge pixel coordinates of WINDOW's text area.
   The list has the form (LEFT TOP RIGHT BOTTOM), all relative to (0,0)
   at the top left corner of the frame's window area.
-  
+
   RIGHT is one more than the rightmost x position of WINDOW's text area.
   BOTTOM is one more than the bottommost y position of WINDOW's text area.
   The inside edges do not include the space used by WINDOW's scroll bar,
@@ -503,22 +502,22 @@
   "Split window OLD.
   Second argument TOTAL-SIZE specifies the number of lines or columns of the
   new window.  In any case TOTAL-SIZE must be a positive integer.
-  
+
   Third argument SIDE nil (or `below') specifies that the new window shall
   be located below WINDOW.  SIDE `above' means the new window shall be
   located above WINDOW.  In both cases TOTAL-SIZE specifies the number of
   lines of the new window including space reserved for the mode and/or
   header line.
-  
+
   SIDE t (or `right') specifies that the new window shall be located on
   the right side of WINDOW.  SIDE `left' means the new window shall be
   located on the left of WINDOW.  In both cases TOTAL-SIZE specifies the
   number of columns of the new window including space reserved for fringes
   and the scrollbar or a divider column.
-  
+
   Fourth argument NORMAL-SIZE specifies the normal size of the new window
   according to the SIDE argument.
-  
+
   The new total and normal sizes of all involved windows must have been
   set correctly.  See the code of `split-window' for how this is done."
   )
@@ -530,10 +529,10 @@
 (defun set-window-new-total (window size &optional add)
   "Set new total size of WINDOW to SIZE.
   Return SIZE.
-  
+
   Optional argument ADD non-nil means add SIZE to the new total size of
   WINDOW and return the sum.
-  
+
   Note: This function does not operate on any child windows of WINDOW."
   )
 
@@ -547,16 +546,16 @@
   "Make WINDOW display BUFFER-OR-NAME as its contents.
   WINDOW has to be a live window and defaults to the selected one.
   BUFFER-OR-NAME must be a buffer or the name of an existing buffer.
-  
+
   Optional third argument KEEP-MARGINS non-nil means that WINDOW's current
   display margins, fringe widths, and scroll bar settings are preserved;
   the default is to reset these from the local settings for BUFFER-OR-NAME
   or the frame defaults.  Return nil.
-  
+
   This function throws an error when WINDOW is strongly dedicated to its
   buffer (that is `window-dedicated-p' returns t for WINDOW) and does not
   already display BUFFER-OR-NAME.
-  
+
   This function runs `window-scroll-functions' before running
   `window-configuration-change-hook'."
   )
@@ -568,7 +567,7 @@
 
 (defun window-redisplay-end-trigger (&optional window)
   "This function is obsolete since 23.1.
-  
+
   Return WINDOW's redisplay end trigger value.
   WINDOW defaults to the selected window.
   See `set-window-redisplay-end-trigger' for more information."
@@ -578,11 +577,11 @@
   "Select WINDOW.  Most editing will apply to WINDOW's buffer.
   Also make WINDOW's buffer current and make WINDOW the frame's selected
   window.  Return WINDOW.
-  
+
   Optional second arg NORECORD non-nil means do not put this buffer at the
   front of the buffer list and do not make this window the most recently
   selected one.
-  
+
   Note that the main editor command loop sets the current buffer to the
   buffer of the selected window before each command."
   )
@@ -591,7 +590,7 @@
   "Return a list of the edge pixel coordinates of WINDOW.
   The list has the form (LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at
   the top left corner of the display.
-  
+
   RIGHT is one more than the rightmost x position occupied by WINDOW.
   BOTTOM is one more than the bottommost y position occupied by WINDOW.
   The pixel edges include the space used by WINDOW's scroll bar, display
@@ -602,11 +601,11 @@
 (defun window-total-height (&optional window)
   "Return the total height, in lines, of window WINDOW.
   If WINDOW is omitted or nil, it defaults to the selected window.
-  
+
   The return value includes the mode line and header line, if any.
   If WINDOW is an internal window, the total height is the height
   of the screen areas spanned by its children.
-  
+
   On a graphical display, this total height is reported as an
   integer multiple of the default character height."
   )
@@ -616,30 +615,30 @@
   WINDOW must be a live window and defaults to the selected one.  The
   optional arguments MINIBUF and ALL-FRAMES specify the set of windows to
   consider.
-  
+
   MINIBUF nil or omitted means consider the minibuffer window only if the
   minibuffer is active.  MINIBUF t means consider the minibuffer window
   even if the minibuffer is not active.  Any other value means do not
   consider the minibuffer window even if the minibuffer is active.
-  
+
   ALL-FRAMES nil or omitted means consider all windows on WINDOW's frame,
   plus the minibuffer window if specified by the MINIBUF argument.  If the
   minibuffer counts, consider all windows on all frames that share that
   minibuffer too.  The following non-nil values of ALL-FRAMES have special
   meanings:
-  
+
   - t means consider all windows on all existing frames.
-  
+
   - `visible' means consider all windows on all visible frames.
-  
+
   - 0 (the number zero) means consider all windows on all visible and
     iconified frames.
-  
+
   - A frame means consider all windows on that frame only.
-  
+
   Anything else means consider all windows on WINDOW's frame and no
   others.
-  
+
   If you use consistent values for MINIBUF and ALL-FRAMES, you can use
   `next-window' to iterate through the entire cycle of acceptable
   windows, eventually ending up back at the window you started with.
@@ -674,13 +673,13 @@
   never called with WINDOW as its argument, or the value set by that
   function was internally reset since its last call.  WINDOW defaults to
   the selected window.
-  
+
   When a window is dedicated to its buffer, `display-buffer' will refrain
   from displaying another buffer in it.  `get-lru-window' and
   `get-largest-window' treat dedicated windows specially.
   `delete-windows-on', `replace-buffer-in-windows', `quit-window' and
   `kill-buffer' can delete a dedicated window and the containing frame.
-  
+
   Functions like `set-window-buffer' may change the buffer displayed by a
   window, unless that window is \"strongly\" dedicated to its buffer, that
   is the value returned by `window-dedicated-p' is t."
@@ -726,18 +725,18 @@
   "Return a window currently displaying BUFFER-OR-NAME, or nil if none.
   BUFFER-OR-NAME may be a buffer or a buffer name and defaults to
   the current buffer.
-  
+
   The optional argument ALL-FRAMES specifies the frames to consider:
-  
+
   - t means consider all windows on all existing frames.
-  
+
   - `visible' means consider all windows on all visible frames.
-  
+
   - 0 (the number zero) means consider all windows on all visible
       and iconified frames.
-  
+
   - A frame means consider all windows on that frame only.
-  
+
   Any other value of ALL-FRAMES means consider all windows on the
   selected frame and no others."
   )
@@ -809,31 +808,31 @@
   "Return a list of all live windows.
   WINDOW specifies the first window to list and defaults to the selected
   window.
-  
+
   Optional argument MINIBUF nil or omitted means consider the minibuffer
   window only if the minibuffer is active.  MINIBUF t means consider the
   minibuffer window even if the minibuffer is not active.  Any other value
   means do not consider the minibuffer window even if the minibuffer is
   active.
-  
+
   Optional argument ALL-FRAMES nil or omitted means consider all windows
   on WINDOW's frame, plus the minibuffer window if specified by the
   MINIBUF argument.  If the minibuffer counts, consider all windows on all
   frames that share that minibuffer too.  The following non-nil values of
   ALL-FRAMES have special meanings:
-  
+
   - t means consider all windows on all existing frames.
-  
+
   - `visible' means consider all windows on all visible frames.
-  
+
   - 0 (the number zero) means consider all windows on all visible and
     iconified frames.
-  
+
   - A frame means consider all windows on that frame only.
-  
+
   Anything else means consider all windows on WINDOW's frame and no
   others.
-  
+
   If WINDOW is not on the list of windows returned, some other window will
   be listed first but no error is signaled."
   )
@@ -873,7 +872,7 @@
   "Return the width, in columns, of WINDOW's text area.
   If WINDOW is omitted or nil, it defaults to the selected window.
   Signal an error if the window is not live.
-  
+
   The return value does not include any vertical dividers, fringe or
   marginal areas, or scroll bars.  On a graphical display, the width is
   expressed as an integer multiple of the default character width."
@@ -882,7 +881,7 @@
 (defun set-window-prev-buffers (window prev-buffers)
   "Set WINDOW's previous buffers to PREV-BUFFERS.
   WINDOW must be a live window and defaults to the selected one.
-  
+
   PREV-BUFFERS should be a list of elements (BUFFER WINDOW-START POS),
   where BUFFER is a buffer, WINDOW-START is the start position of the
   window for that buffer, and POS is a window-specific point value."
@@ -891,7 +890,7 @@
 (defun window-prev-buffers (&optional window)
   "Return buffers previously shown in WINDOW.
   WINDOW must be a live window and defaults to the selected one.
-  
+
   The return value is a list of elements (BUFFER WINDOW-START POS),
   where BUFFER is a buffer, WINDOW-START is the start position of the
   window for that buffer, and POS is a window-specific point value."
@@ -911,14 +910,14 @@
   WINDOW must be a live window and defaults to the selected one.  FLAG
   non-nil means mark WINDOW as dedicated to its buffer.  FLAG nil means
   mark WINDOW as non-dedicated.  Return FLAG.
-  
+
   When a window is dedicated to its buffer, `display-buffer' will refrain
   from displaying another buffer in it.  `get-lru-window' and
   `get-largest-window' treat dedicated windows specially.
   `delete-windows-on', `replace-buffer-in-windows', `quit-window',
   `quit-restore-window' and `kill-buffer' can delete a dedicated window
   and the containing frame.
-  
+
   As a special case, if FLAG is t, mark WINDOW as \"strongly\" dedicated to
   its buffer.  Functions like `set-window-buffer' may change the buffer
   displayed by a window, unless that window is strongly dedicated to its
@@ -929,7 +928,7 @@
 (defun window-text-height (&optional window)
   "Return the height in lines of the text display area of WINDOW.
   If WINDOW is omitted or nil, it defaults to the selected window.
-  
+
   The returned height does not include the mode line, any header line,
   nor any partial-height lines at the bottom of the text area."
   )
@@ -948,7 +947,7 @@
   The list has the form (LEFT TOP RIGHT BOTTOM).
   TOP and BOTTOM count by lines, and LEFT and RIGHT count by columns,
   all relative to 0, 0 at top left corner of frame.
-  
+
   RIGHT is one more than the rightmost column of WINDOW's text area.
   BOTTOM is one more than the bottommost row of WINDOW's text area.
   The inside edges do not include the space used by the WINDOW's scroll
@@ -967,7 +966,7 @@
   "Return the height, in lines, of WINDOW's text area.
   If WINDOW is omitted or nil, it defaults to the selected window.
   Signal an error if the window is not live.
-  
+
   The returned height does not include the mode line or header line.
   On a graphical display, the height is expressed as an integer multiple
   of the default character height.  If a line at the bottom of the text
@@ -980,30 +979,30 @@
   WINDOW must be a live window and defaults to the selected one.  The
   optional arguments MINIBUF and ALL-FRAMES specify the set of windows to
   consider.
-  
+
   MINIBUF nil or omitted means consider the minibuffer window only if the
   minibuffer is active.  MINIBUF t means consider the minibuffer window
   even if the minibuffer is not active.  Any other value means do not
   consider the minibuffer window even if the minibuffer is active.
-  
+
   ALL-FRAMES nil or omitted means consider all windows on WINDOW's frame,
   plus the minibuffer window if specified by the MINIBUF argument.  If the
   minibuffer counts, consider all windows on all frames that share that
   minibuffer too.  The following non-nil values of ALL-FRAMES have special
   meanings:
-  
+
   - t means consider all windows on all existing frames.
-  
+
   - `visible' means consider all windows on all visible frames.
-  
+
   - 0 (the number zero) means consider all windows on all visible and
     iconified frames.
-  
+
   - A frame means consider all windows on that frame only.
-  
+
   Anything else means consider all windows on WINDOW's frame and no
   others.
-  
+
   If you use consistent values for MINIBUF and ALL-FRAMES, you can
   use `previous-window' to iterate through the entire cycle of
   acceptable windows, eventually ending up back at the window you
@@ -1014,7 +1013,7 @@
 (defun set-window-new-normal (window &optional size)
   "Set new normal size of WINDOW to SIZE.
   Return SIZE.
-  
+
   Note: This function does not operate on any child windows of WINDOW."
   )
 
@@ -1076,7 +1075,7 @@
   The list has the form (LEFT TOP RIGHT BOTTOM).
   TOP and BOTTOM count by lines, and LEFT and RIGHT count by columns,
   all relative to 0, 0 at top left corner of frame.
-  
+
   RIGHT is one more than the rightmost column occupied by WINDOW.
   BOTTOM is one more than the bottommost row occupied by WINDOW.
   The edges include the space used by WINDOW's scroll bar, display
@@ -1088,11 +1087,11 @@
   "Apply requested size values for window-tree of FRAME.
   Optional argument HORIZONTAL omitted or nil means apply requested height
   values.  HORIZONTAL non-nil means apply requested width values.
-  
+
   This function checks whether the requested values sum up to a valid
   window layout, recursively assigns the new sizes of all child windows
   and calculates and assigns the new start positions of these windows.
-  
+
   Note: This function does not check any of `window-fixed-size-p',
   `window-min-height' or `window-min-width'.  All these checks have to
   be applied on the Elisp level."

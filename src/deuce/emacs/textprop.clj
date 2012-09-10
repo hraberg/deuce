@@ -1,8 +1,7 @@
-(ns
- deuce.emacs.textprop
- (use [deuce.emacs-lisp :only (defun defvar)])
- (require [clojure.core :as c])
- (:refer-clojure :exclude []))
+(ns deuce.emacs.textprop
+  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:require [clojure.core :as c])
+  (:refer-clojure :exclude []))
 
 (defvar default-text-properties nil
   "Property-list used as default values.
@@ -12,7 +11,7 @@
 (defvar text-property-default-nonsticky nil
   "Alist of properties vs the corresponding non-stickiness.
   Each element has the form (PROPERTY . NONSTICKINESS).
-  
+
   If a character in a buffer has PROPERTY, new text inserted adjacent to
   the character doesn't inherit PROPERTY if NONSTICKINESS is non-nil,
   inherits it if NONSTICKINESS is nil.  The `front-sticky' and
@@ -36,7 +35,7 @@
   it finds a change in some text property, or the beginning or end of an
   overlay, and returns the position of that.
   If none is found up to (point-max), the function returns (point-max).
-  
+
   If the optional second argument LIMIT is non-nil, don't search
   past position LIMIT; return LIMIT if nothing is found before LIMIT.
   LIMIT is a no-op if it is greater than (point-max)."
@@ -60,7 +59,7 @@
   If OBJECT is a string, POSITION is a 0-based index into it.
   Return nil if the property is constant all the way to the end of OBJECT.
   If the value is non-nil, it is a position greater than POSITION, never equal.
-  
+
   If the optional third argument LIMIT is non-nil, don't search
   past position LIMIT; return LIMIT if nothing is found before LIMIT."
   )
@@ -91,10 +90,10 @@
   If the optional third argument OBJECT is a buffer (or nil, which means
   the current buffer), POSITION is a buffer position (integer or marker).
   If OBJECT is a string, POSITION is a 0-based index into it.
-  
+
   In a string, scan runs to the start of the string.
   In a buffer, it runs to (point-min), and the value cannot be less than that.
-  
+
   The property values are compared with `eq'.
   If the property is constant all the way to the start of OBJECT, return the
   first valid position in OBJECT.
@@ -117,7 +116,7 @@
   with the same arguments--that is, the value of POSITION's property
   PROP in OBJECT.  Its cdr is the overlay in which the property was
   found, or nil, if it was found as a text property or not found at all.
-  
+
   OBJECT is optional and defaults to the current buffer.  OBJECT may be
   a string, a buffer or a window.  For strings, the cdr of the return
   value is always nil, since strings do not have overlays.  If OBJECT is
@@ -132,7 +131,7 @@
   finds a change in some text property, or the beginning or end of an
   overlay, and returns the position of that.
   If none is found since (point-min), the function returns (point-min).
-  
+
   If the optional second argument LIMIT is non-nil, don't search
   past position LIMIT; return LIMIT if nothing is found before LIMIT.
   LIMIT is a no-op if it is less than (point-min)."
@@ -156,7 +155,7 @@
   the current buffer), START and END are buffer positions (integers or
   markers).  If OBJECT is a string, START and END are 0-based indices into it.
   Return t if any property was actually removed, nil otherwise.
-  
+
   Use `set-text-properties' if you want to remove all text properties."
   )
 
@@ -178,10 +177,10 @@
   If the optional third argument OBJECT is a buffer (or nil, which means
   the current buffer), POSITION is a buffer position (integer or marker).
   If OBJECT is a string, POSITION is a 0-based index into it.
-  
+
   In a string, scan runs to the end of the string.
   In a buffer, it runs to (point-max), and the value cannot exceed that.
-  
+
   The property values are compared with `eq'.
   If the property is constant all the way to the end of OBJECT, return the
   last valid position in OBJECT.
@@ -199,7 +198,7 @@
   The property values are compared with `eq'.
   Return nil if the property is constant all the way to the end of OBJECT.
   If the value is non-nil, it is a position greater than POSITION, never equal.
-  
+
   If the optional fourth argument LIMIT is non-nil, don't search
   past position LIMIT; return LIMIT if nothing is found before LIMIT."
   )
@@ -238,7 +237,7 @@
   The property values are compared with `eq'.
   Return nil if the property is constant all the way to the start of OBJECT.
   If the value is non-nil, it is a position less than POSITION, never equal.
-  
+
   If the optional fourth argument LIMIT is non-nil, don't search
   back past position LIMIT; return LIMIT if nothing is found until LIMIT."
   )
@@ -252,7 +251,7 @@
   If OBJECT is a string, POSITION is a 0-based index into it.
   Return nil if the property is constant all the way to the start of OBJECT.
   If the value is non-nil, it is a position less than POSITION, never equal.
-  
+
   If the optional third argument LIMIT is non-nil, don't search
   back past position LIMIT; return LIMIT if nothing is found until LIMIT."
   )

@@ -1,5 +1,5 @@
 (ns deuce.test.locals
-  (use [deuce.test.common]))
+  (:use [deuce.test.common]))
 
 ;; "11.3 Local Variables"[1]
 

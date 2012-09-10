@@ -1,10 +1,10 @@
 (ns deuce.scaffold
-  (use [clojure.set :only (intersection)])
-  (require [clojure.java.shell :as sh]
-           [clojure.string :as string]
-           [clojure.walk :as walk]
-           [clojure.java.io :as io]
-           [clojure.pprint :as pprint])
+  (:use [clojure.set :only (intersection)])
+  (:require [clojure.java.shell :as sh]
+            [clojure.string :as string]
+            [clojure.walk :as walk]
+            [clojure.java.io :as io]
+            [clojure.pprint :as pprint])
   (:gen-class))
 
 (defmacro eval-in-emacs [& emacs-lisp]
@@ -90,8 +90,8 @@
 
 (defn print-fn-stubs [namespace fns vars]
   (pprint/pprint (list 'ns namespace
-                       (list 'use ['deuce.emacs-lisp :only '(defun defvar)])
-                       (list 'require ['clojure.core :as 'c])
+                       (list :use ['deuce.emacs-lisp :only '(defun defvar)])
+                       (list :require ['clojure.core :as 'c])
                        (list :refer-clojure :exclude
                              (vec (intersection (set (keys (ns-publics 'clojure.core)))
                                                 (set (keys fns)))))))
