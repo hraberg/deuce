@@ -671,7 +671,8 @@
   "Save the current buffer; execute BODY; restore the current buffer.
   Executes BODY just like `progn'."
   {:arglists '([&rest BODY])}
-  [& body])
+  [& body]
+  `(do ~@body))
 
 (def clojure-special-forms
   (->> (ns-map 'deuce.emacs-lisp)
