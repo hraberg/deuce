@@ -157,11 +157,11 @@ To try to load [`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/
     (clojure.core/require 'deuce.main)
     (deuce.main/loadup)
 
-This is currently broken on [`subr.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/subr.el).
-
 You can load Emacs Lisp (from the class path) with:
 
     (load "subr")
+
+Line numbers for Emacs Lisp are off a bit, but navigation with `M-.` from Clojure to Emacs Lisp should roughly work for `defun` and `defmacro`.
 
 Tests in [`deuce.test`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/) are written in an REPL example style, most are ported from the [GNU Emacs Lisp Reference Manual](http://www.gnu.org/software/emacs/manual/html_node/elisp/index.html), and are mainly targeting core features of Emacs Lisp, not the various library functions.
 
