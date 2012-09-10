@@ -43,14 +43,13 @@
       #"\s" (recur sc)
       #"[)\]]" nil
       #"\(" (with-meta (tokenize-all sc) {:line @line})
-      #"\[" (with-meta (list `object-array (list 'quote (vec (tokenize-all sc)))) {:line @line})
+      #"\[" (with-meta (list 'quote (vec (tokenize-all sc))) {:line @line})
       #"," (list (if (find #"@" 1) (symbol "\\,@") (symbol "\\,")) (tokenize sc))
       #"'" (list 'quote (tokenize sc))
       #"`" (let [form (tokenize sc)] (if (symbol? form)
                                        (list 'quote form)
                                        (list (symbol "\\`") form)))
       #":" (keyword (.next sc))
-      #"\." DottedPair
       #"\?" (parse-character (.next sc))
       #"\"" (let [s (parse-string (str \" (find re-str 0)))]
               (swap! line + (count (butlast (re-seq #"\n" s))))
@@ -75,11 +74,6 @@
                                             s
                                             (s/replace s "/" "_SLASH_"))) {:line @line}))))))
 
-(defn ^:private expand-dotted-pairs [form]
-  (if (and (list? form) (= 3 (count form)) (= DottedPair (second form)))
-    (DottedPair. (first form) (last form))
-    form))
-
 (def ^:private clojure-syntax-quote
   (doto
       (.getDeclaredMethod clojure.lang.LispReader$SyntaxQuoteReader
@@ -99,6 +93,6 @@
   (binding [line (atom 1)]
     (->> (tokenize-all (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
                          (.useDelimiter #"(\s|\]|\)|\"|;)")))
-         (w/postwalk expand-dotted-pairs)
          (w/postwalk-replace {(symbol "nil") nil 't true})
+         (w/postwalk (comp el/expand-dotted-pairs el/vectors-to-arrays))
          syntax-quote)))

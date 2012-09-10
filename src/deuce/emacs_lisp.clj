@@ -5,13 +5,6 @@
   (import [clojure.lang Atom]
           [deuce EmacsLispError DottedPair]))
 
-(defmethod print-method DottedPair [pair writer]
-  (.write writer
-          (str "(" (.car pair) ((fn tail [c]
-                                  (if (instance? DottedPair c)
-                                    (str " " (.car c) (tail (.cdr c)))
-                                    (when (c/and c (not= () c)) (str " . " c)))) (.cdr pair)) ")")))
-
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
 
@@ -62,6 +55,16 @@
     (remove (every-pred seq? (comp `#{comment} first)) form)
     form))
 
+(defn expand-dotted-pairs [form]
+  (if (c/and (seq? form) (= 3 (count form)) (= '. (second form)))
+    (DottedPair. (first form) (last form))
+    form))
+
+(defn vectors-to-arrays [form]
+  (if (vector? form)
+    (object-array form)
+    form))
+
 (defn protect-forms [form]
   (if ('#{defun defmacro} (maybe-sym (first-symbol form)))
     ^:protect-from-expansion (fn [] form)
@@ -75,6 +78,8 @@
     `(fn ~(vec scope)
        ~(->> body
              (w/postwalk (comp strip-comments
+                               expand-dotted-pairs
+                               vectors-to-arrays
                                protect-forms))
              (w/postwalk (comp unprotect-forms
                                qualify-fns

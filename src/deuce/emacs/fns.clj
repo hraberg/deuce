@@ -3,6 +3,7 @@
  (use [deuce.emacs-lisp :only (defun defvar)])
  (require [clojure.core :as c]
           [clojure.string :as s]
+          [deuce.emacs.alloc :as alloc]
           [deuce.emacs.data :as data]
           [deuce.emacs.lread :as lread]
           [deuce.emacs-lisp :as el]
@@ -402,7 +403,9 @@
 (defun fillarray (array item)
   "Store each element of ARRAY with ITEM.
   ARRAY is a vector, string, char-table, or bool-vector."
-  (into (empty array) (repeat (count array) item)))
+  (dotimes [n (count array)]
+    (aset array n item))
+  array)
 
 (defun load-average (&optional use-floats)
   "Return list of 1 minute, 5 minute and 15 minute load averages.
@@ -441,7 +444,7 @@
   "Concatenate all the arguments and make the result a vector.
   The result is a vector whose elements are the elements of all the arguments.
   Each argument may be a list, vector or string."
-  (vec (apply c/concat sequences)))
+  (alloc/make-vector (apply c/concat sequences)))
 
 (defun make-hash-table (&rest keyword-args)
   "Create and return a new hash table.
@@ -640,7 +643,7 @@
 (defun rassq (key list)
   "Return non-nil if KEY is `eq' to the cdr of an element of LIST.
   The value is actually the first element of LIST whose cdr is KEY."
-  )
+  (first (filter #(data/eq key (.cdr %)) (filter #(instance? DottedPair %) list))))
 
 (defun string-make-unibyte (string)
   "Return the unibyte equivalent of STRING.

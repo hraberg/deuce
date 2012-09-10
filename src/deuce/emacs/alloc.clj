@@ -182,9 +182,11 @@
   INIT must be an integer that represents a character."
   (apply str (repeat length init)))
 
+(declare list)
+
 (defun make-list (length init)
   "Return a newly created list of length LENGTH, with each element being INIT."
-  (apply c/list (repeat length init)))
+  (apply list (repeat length init)))
 
 (defun list (&rest objects)
   "Return a newly created list with specified arguments as elements.

@@ -25,6 +25,19 @@
 (defmethod print-method array-class [o w]
   (print-method (vec o) w))
 
+(defmethod print-dup array-class [array out]
+  (.write out (str "#=" `(object-array ~(vec array)))))
+
+(defmethod print-method DottedPair [pair out]
+  (.write out
+          (str "(" (.car pair) ((fn tail [c]
+                                  (if (instance? DottedPair c)
+                                    (str " " (.car c) (tail (.cdr c)))
+                                    (when (c/and c (not= () c)) (str " . " c)))) (.cdr pair)) ")")))
+
+(defmethod print-dup DottedPair [pair out]
+  (.write out (str "#=" `(deuce.DottedPair. ~(.car pair) ~(.cdr pair)))))
+
 (defun natnump (object)
   "Return t if OBJECT is a nonnegative integer."
   ((every-pred neg? integer?) object))
