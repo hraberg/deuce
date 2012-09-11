@@ -129,7 +129,6 @@
         (do
           (error (-> e cause .getMessage) (pprint-arg emacs-lisp))
           (throw e))))))
-(alter-var-root #'compile memoize)
 
 (defn limit-scope [scope]
   (->> scope
