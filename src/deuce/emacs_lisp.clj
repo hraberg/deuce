@@ -133,7 +133,7 @@
 (defn limit-scope [scope]
   (->> scope
        (remove '#{&env &form})
-       (remove #(re-find #"local__\d+" (name %)))
+       (remove #(re-find #"(local|p1)__\d+" (name %)))
        seq))
 
 ;; defined as fn in eval.clj
@@ -152,7 +152,6 @@
   (if (instance? List form)
     (apply clojure.core/list form)
     form))
-
 
 (c/defmacro trace-indent [& args]
   `(c/let [depth# (->> (.getStackTrace (Thread/currentThread))
@@ -177,9 +176,9 @@
     `(c/let [f# (~what ~name ~(vec arglist)
                        ~(when-not (seq body) `(warn ~(c/name name) "NOT IMPLEMENTED"))
                        (binding [*ns* (the-ns 'clojure.core)]
-                         (trace-indent '~name "")
+                         (trace-indent '~name)
                          ~@(for [arg the-args]
-                             `(trace ~(keyword arg) (pprint-arg '~arg))))
+                             `(trace ~(keyword arg) (pprint-arg ~arg))))
 
                        (c/let [result# ~(if emacs-lisp?
                                           `(let-helper* false ~(map #(list % %) the-args)
