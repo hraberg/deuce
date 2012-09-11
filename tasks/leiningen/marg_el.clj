@@ -3,7 +3,7 @@
            [marginalia.parser]))
 
 (defn marg-el
-  "Run Marginalia with Deuce Emacs Lisp macro support"
+  "Run Marginalia with Deuce Emacs Lisp macro support."
   [project & args]
   (defn emacs-lisp-doc [form raw nspace-sym]
     (let [doc (nth form 3)]
