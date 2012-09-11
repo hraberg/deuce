@@ -1,6 +1,8 @@
 (ns deuce.emacs.keymap
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.fns :as fns])
   (:refer-clojure :exclude []))
 
 (defvar emulation-mode-map-alists nil
@@ -51,7 +53,7 @@
 
   The optional arg STRING supplies a menu name for the keymap
   in case you use it as a menu with `x-popup-menu'."
-  (list 'keymap))
+  (alloc/list 'keymap))
 
 (defun define-key (keymap key def)
   "In KEYMAP, define key sequence KEY as DEF.
@@ -82,7 +84,14 @@
   If KEYMAP is a sparse keymap with a binding for KEY, the existing
   binding is altered.  If there is no binding for KEY, the new pair
   binding KEY to DEF is added at the front of KEYMAP."
-  )
+  (let [key (loop [[k & ks] (reverse (butlast key))
+                   acc (alloc/cons (int (last key)) def)]
+              (if k
+                (recur ks (alloc/list (int k) 'keymap  acc))
+                acc))]
+    (when-not (some #{key} keymap)
+      (fns/nconc keymap key)))
+  def)
 
 (defun copy-keymap (keymap)
   "Return a copy of the keymap KEYMAP.

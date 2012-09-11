@@ -756,6 +756,8 @@
 
   You can customize this variable.")
 
+(def ^:dynamic ^:private *current-buffer* (atom nil))
+
 (defun barf-if-buffer-read-only ()
   "Signal a `buffer-read-only' error if the current buffer is read-only."
   )
@@ -863,7 +865,7 @@
 
 (defun current-buffer ()
   "Return the current buffer as a Lisp object."
-  )
+  @*current-buffer*)
 
 (defun delete-overlay (overlay)
   "Delete the overlay OVERLAY from its buffer."
@@ -884,7 +886,7 @@
   Interactively, you can set UNIQUE with a prefix argument.
   We return the name we actually gave the buffer.
   This does not change the name of the visited file (if any)."
-  )
+  (reset! *current-buffer* newname))
 
 (defun overlay-buffer (overlay)
   "Return the buffer OVERLAY belongs to.
@@ -923,7 +925,7 @@
   "Return the name of BUFFER, as a string.
   BUFFER defaults to the current buffer.
   Return nil if BUFFER has been killed."
-  )
+  (or buffer (current-buffer)))
 
 (defun overlay-put (overlay prop value)
   "Set one property of overlay OVERLAY: give property PROP value VALUE.
@@ -937,7 +939,7 @@
   temporarily.  This function does not display the buffer, so its effect
   ends when the current command terminates.  Use `switch-to-buffer' or
   `pop-to-buffer' to switch buffers permanently."
-  )
+  (reset! *current-buffer* buffer-or-name))
 
 (defun buffer-enable-undo (&optional buffer)
   "Start keeping undo information for buffer BUFFER.

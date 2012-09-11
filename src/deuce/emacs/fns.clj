@@ -544,8 +544,12 @@
     IPersistentCollection (c/apply c/concat lists)
     List (let [[car & cdr] lists
                car (if (nil? car) (alloc/list) car)]
-           (doseq [list cdr]
+           (doseq [list (butlast cdr)]
              (.addAll car list))
+           (let [last (last cdr)]
+             (if (atom last)
+               (.add car last)
+               (.addAll car last)))
            car)
     (c/apply c/concat lists)))
 
