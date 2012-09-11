@@ -11,6 +11,10 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Marginalia](http://ghettojedi.org/deuce/)
 
+**2012-09-11 Logging**
+
+Using [Timbre, a (sane) logging library for Clojure](https://github.com/ptaoussanis/timbre) (Taoussanis, 2012).
+
 **2012-09-10 Mutable Data**
 
 Somewhat reluctantly now backing Emacs Lisp with [LinkedList](http://docs.oracle.com/javase/7/docs/api/java/util/LinkedList.html) for [lists](http://www.gnu.org/software/emacs/manual/html_node/elisp/Lists.html) and arrays for [vectors](http://www.gnu.org/software/emacs/manual/html_node/elisp/Sequences-Arrays-Vectors.html), so various destructive updates work. Both [`custom.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/custom.el) and [`mule.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/international/mule.el) are using this to build up various state. I've also decided to represent property lists as meta data on the var for now.

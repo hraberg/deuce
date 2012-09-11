@@ -1,10 +1,21 @@
 (ns deuce.emacs-lisp
   (:require [clojure.core :as c]
-           [clojure.walk :as w])
+            [clojure.string :as s]
+            [clojure.pprint :as pp]
+            [clojure.walk :as w])
+  (:use [taoensso.timbre :as timbre
+         :only (trace debug info warn error fatal spy)])
   (:import [clojure.lang Atom]
            [deuce EmacsLispError DottedPair]
            [java.util LinkedList List])
   (:refer-clojure :exclude [defmacro and or cond let while eval set compile]))
+
+(timbre/set-config! [:prefix-fn]
+                    (fn [{:keys [level timestamp hostname ns]}]
+                      (str timestamp " " (-> level name s/upper-case) " [" ns "]")))
+(timbre/set-config! [:timestamp-pattern] "HH:mm:ss,SSS")
+
+(timbre/set-level! :info)
 
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
@@ -94,6 +105,15 @@
                                (partial qualify-globals (c/set scope))))))
     (merge (meta body) {:scope scope :src body})))
 
+(defn cause [e]
+  (if-let [e (.getCause e)]
+    (recur e)
+    e))
+
+(defn pprint-arg [arg]
+  (c/let [arg (s/trim-newline (with-out-str (pp/pprint arg)))]
+    (if (re-find #"\n" arg) (str "\n" arg) arg)))
+
 (defn compile [emacs-lisp]
   (try
     (c/eval (with-meta emacs-lisp nil))
@@ -103,11 +123,11 @@
                                       (c/re-find #"Unable to resolve symbol: (.+) in this context"
                                                  (.getMessage e)))]
         (do
+          (warn (-> e cause .getMessage))
           (intern 'deuce.emacs (symbol undeclared))
           (compile emacs-lisp))
         (do
-          (println e)
-          (apply println (vals (meta emacs-lisp)))
+          (error (-> e cause .getMessage) (pprint-arg emacs-lisp))
           (throw e))))))
 (alter-var-root #'compile memoize)
 
@@ -134,6 +154,13 @@
     (apply clojure.core/list form)
     form))
 
+
+(c/defmacro trace-indent [& args]
+  `(c/let [depth# (->> (.getStackTrace (Thread/currentThread))
+                       (filter #(re-find #"deuce." (str %)))
+                       count)]
+     (trace (apply str (repeat depth# "-")) ~@args)))
+
 (c/defmacro def-helper* [what line name arglist & body]
   (c/let [[docstring body] (split-with string? body)
           name (sym (if (seq? name) (c/eval name) name))
@@ -148,15 +175,24 @@
           doc (apply str docstring)
           arglist (w/postwalk maybe-sym arglist)
           the-args (remove '#{&} (flatten arglist))]
-;    (println (c/name what) name (c/or (-> name meta :line) ""))
     `(c/let [f# (~what ~name ~(vec arglist)
-                       ~(when-not (seq body) `(println "WARNING" ~(c/name name) "NOT IMPLEMENTED"))
-                       ~(if emacs-lisp?
-                          `(let-helper* false ~(map #(list % %) the-args)
-                             (if (= '~'defmacro '~(sym what))
-                               (w/prewalk linked-lists-to-seqs (eval '(do ~@body)))
-                               (eval '(do ~@body))))
-                          `(do ~@body)))]
+                       ~(when-not (seq body) `(warn ~(c/name name) "NOT IMPLEMENTED"))
+                       (binding [*ns* (the-ns 'clojure.core)]
+                         (trace-indent '~name "")
+                         ~@(for [arg the-args]
+                             `(trace ~(keyword arg) (pprint-arg '~arg))))
+
+                       (c/let [result# ~(if emacs-lisp?
+                                          `(let-helper* false ~(map #(list % %) the-args)
+                                             (if (= '~'defmacro '~(sym what))
+                                               (w/prewalk linked-lists-to-seqs (eval '(do ~@body)))
+                                               (eval '(do ~@body))))
+                                          `(do ~@body))]
+
+                         (binding [*ns* (the-ns 'clojure.core)]
+                           (trace-indent '~name "⇒" (pprint-arg result#)))
+
+                         result#))]
        (if (var? f#)
          (do
            (alter-meta! f# merge (merge {:doc ~doc}
