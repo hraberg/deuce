@@ -2,7 +2,8 @@
   (:use [deuce.emacs-lisp :only (defun defvar setq setq-default)])
   (:require [clojure.core :as c]
             [deuce.emacs-lisp :as el]
-            [deuce.emacs-lisp.globals :as globals])
+            [deuce.emacs-lisp.globals :as globals]
+            [deuce.emacs.alloc :as alloc])
   (:import [clojure.lang IPersistentCollection]
            [deuce EmacsLispError DottedPair]
            [java.nio ByteOrder]
@@ -22,7 +23,7 @@
 (def ^:private max-print-length 12)
 
 (defn ^:private ellipsis [seq]
-  (concat (take max-print-length seq)
+  (concat (doall (take max-print-length seq))
           (when (c/< max-print-length (count seq))
             ['...])))
 
@@ -40,11 +41,11 @@
 
 (defmethod print-method DottedPair [pair w]
   (.write w
-          (str "(" (pr-str (.car pair))
+          (str "(" (str (.car pair))
                ((fn tail [c n]
                   (if (instance? DottedPair c)
-                    (pr-str " " (.car c) (if (c/< max-print-length n) (tail (.cdr c) (inc n)) '...))
-                    (when (c/and c (not= () c)) (str " . " c)))) (.cdr pair)) ")")))
+                    (str " " (.car c) (if (c/> n max-print-length) " ..." (tail (.cdr c) (inc n))))
+                    (when (c/and c (not= () c)) (str " . " c)))) (.cdr pair) 1) ")")))
 
 (defmethod print-dup DottedPair [pair out]
   (.write out (str "#=" `(deuce.DottedPair. ~(.car pair) ~(.cdr pair)))))
@@ -355,9 +356,12 @@
     List (let [car (first cell)]
            (.clear cell)
            (.add cell car)
-           (if (atom newcdr)
-             (.add cell newcdr)
-             (.addAll cell newcdr))))
+           (cond
+             (atom newcdr) (.add cell newcdr)
+             (instance? DottedPair newcdr) (doto cell
+                                             (.add (.car newcdr))
+                                             (.add (.cdr newcdr)))
+             :else (.addAll cell newcdr))))
   newcdr)
 
 (defun set (symbol newval)
@@ -394,7 +398,7 @@
     List (let [c (count list)]
            (if (< c 2)
              nil
-             (.subList list 1 c)))
+             (apply alloc/list (.subList list 1 c))))
     (next list)))
 
 (defun = (num1 num2)

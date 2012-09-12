@@ -1,7 +1,12 @@
 (ns deuce.emacs.charset
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [deuce.emacs.alloc :as alloc])
   (:refer-clojure :exclude []))
+
+(def ^:private ^:dynamic charsets (atom {}))
+(def ^:private ^:dynamic plists (atom {}))
+(def ^:private ^:dynamic aliases (atom {}))
 
 (defvar inhibit-load-charset-map nil
   "Inhibit loading of charset maps.  Used when dumping Emacs.")
@@ -27,11 +32,12 @@
 
 (defun charset-plist (charset)
   "Return the property list of CHARSET."
-  )
+  (apply alloc/list (reduce into [] (@plists charset))))
 
 (defun set-charset-plist (charset plist)
   "Set CHARSET's property list to PLIST."
-  )
+  (swap! plists assoc charset (apply hash-map plist))
+  plist)
 
 (defun charset-after (&optional pos)
   "Return charset of a character in the current buffer at position POS.
@@ -41,15 +47,19 @@
 
 (defun define-charset-internal (&rest args)
   "For internal use only."
-  )
+  (let [name (first args)
+        plist (last args)]
+    (swap! plists update-in [name] merge (apply hash-map plist))
+    (swap! charsets assoc name args)))
 
 (defun define-charset-alias (alias charset)
   "Define ALIAS as an alias for charset CHARSET."
-  )
+  (swap! aliases assoc alias charset)
+  nil)
 
 (defun charsetp (object)
   "Return non-nil if and only if OBJECT is a charset."
-  )
+  (or (contains? @charsets object) (contains? @aliases object)))
 
 (defun encode-char (ch charset &optional restriction)
   "Encode the character CH into a code-point of CHARSET.
@@ -90,7 +100,7 @@
   `define-charset' (which see).
 
   Optional third argument DEUNIFY, if non-nil, means to de-unify CHARSET."
-  )
+  nil)
 
 (defun find-charset-string (str &optional table)
   "Return a list of charsets in STR.

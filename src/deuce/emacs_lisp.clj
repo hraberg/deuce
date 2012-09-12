@@ -290,7 +290,7 @@
   [& clauses]
   `(c/cond
      ~@(->> clauses
-            (map #(if (second %) % (repeat 2 (first %))))
+            (map #(if (second %) [(first %) `(do ~@(rest %))] (repeat 2 (first %))))
             (apply concat))))
 
 (c/defmacro setq-helper* [locals default? sym-vals]

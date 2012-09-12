@@ -309,7 +309,7 @@
   If there is none, one is created by this function and returned.
   A second optional argument specifies the obarray to use;
   it defaults to the value of `obarray'."
-  )
+  (symbol string))
 
 (defun get-load-suffixes ()
   "Return the suffixes that `load' should try if a suffix is required.

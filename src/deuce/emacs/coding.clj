@@ -1,6 +1,7 @@
 (ns deuce.emacs.coding
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [deuce.emacs.alloc :as alloc])
   (:refer-clojure :exclude []))
 
 (defvar inhibit-null-byte-detection nil
@@ -246,6 +247,10 @@
 
   See also the function `find-operation-coding-system'.")
 
+(def ^:private ^:dynamic coding-systems (atom {}))
+(def ^:private ^:dynamic plists (atom {}))
+(def ^:private ^:dynamic aliases (atom {}))
+
 (defun coding-system-base (coding-system)
   "Return the base of CODING-SYSTEM.
   Any alias or subsidiary coding system is not a base coding system."
@@ -278,7 +283,8 @@
 
 (defun define-coding-system-alias (alias coding-system)
   "Define ALIAS as an alias for CODING-SYSTEM."
-  )
+  (swap! aliases assoc alias coding-system)
+  nil)
 
 (defun decode-big5-char (code)
   "Decode a Big5 character which has CODE in BIG5 coding system.
@@ -291,7 +297,7 @@
 
 (defun coding-system-plist (coding-system)
   "Return the property list of CODING-SYSTEM."
-  )
+  (apply alloc/list (reduce into [] (@plists coding-system))))
 
 (defun find-coding-systems-region-internal (start end &optional exclude)
   "Internal use only."
@@ -486,11 +492,14 @@
 
 (defun define-coding-system-internal (&rest args)
   "For internal use only."
-  )
+  (let [name (first args)
+        plist (nth args 11)]
+    (swap! plists update-in [name] merge (apply hash-map plist))
+    (swap! coding-systems assoc name args)))
 
 (defun coding-system-put (coding-system prop val)
   "Change value in CODING-SYSTEM's property list PROP to VAL."
-  )
+  (swap! plists update-in [coding-system prop] val))
 
 (defun decode-coding-string (string coding-system &optional nocopy buffer)
   "Decode STRING which is encoded in CODING-SYSTEM, and return the result.
@@ -537,4 +546,4 @@
   "Return t if OBJECT is nil or a coding-system.
   See the documentation of `define-coding-system' for information
   about coding-system objects."
-  )
+  (or (contains? @coding-systems object) (contains? @aliases object)))
