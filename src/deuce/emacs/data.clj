@@ -40,10 +40,11 @@
 
 (defmethod print-method DottedPair [pair w]
   (.write w
-          (str "(" (pr-str (.car pair)) ((fn tail [c n]
-                                           (if (instance? DottedPair c)
-                                             (pr-str " " (.car c) (if (c/< max-print-length n) (tail (.cdr c) (inc n)) '...))
-                                             (when (c/and c (not= () c)) (str " . " c)))) (.cdr pair)) ")")))
+          (str "(" (pr-str (.car pair))
+               ((fn tail [c n]
+                  (if (instance? DottedPair c)
+                    (pr-str " " (.car c) (if (c/< max-print-length n) (tail (.cdr c) (inc n)) '...))
+                    (when (c/and c (not= () c)) (str " . " c)))) (.cdr pair)) ")")))
 
 (defmethod print-dup DottedPair [pair out]
   (.write out (str "#=" `(deuce.DottedPair. ~(.car pair) ~(.cdr pair)))))
@@ -356,8 +357,7 @@
            (.add cell car)
            (if (atom newcdr)
              (.add cell newcdr)
-             (.addAll cell newcdr)))
-    IPersistentCollection (throw (UnsupportedOperationException.)))
+             (.addAll cell newcdr))))
   newcdr)
 
 (defun set (symbol newval)
@@ -480,8 +480,7 @@
   "Set the car of CELL to be NEWCAR.  Returns NEWCAR."
   (condp instance? cell
     DottedPair (set! (.car  cell) newcar)
-    List (.set cell 0 newcar)
-    IPersistentCollection (throw (UnsupportedOperationException.)))
+    List (.set cell 0 newcar))
   newcar)
 
 (defun symbolp (object)

@@ -196,5 +196,4 @@
 (defun list (&rest objects)
   "Return a newly created list with specified arguments as elements.
   Any number of arguments, even zero arguments, are allowed."
-;  (apply c/list objects)
   (LinkedList. (or objects [])))

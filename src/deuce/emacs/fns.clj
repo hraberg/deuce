@@ -170,7 +170,14 @@
   "Return a copy of a list, vector, string or char-table.
   The elements of a list or vector are not copied; they are shared
   with the original."
-  arg)
+  (condp some [arg]
+    data/listp (apply alloc/list arg)
+    data/vectorp (apply alloc/vector arg)
+    data/stringp (apply alloc/string arg)
+    data/char-table-p (CharTable. (.defalt arg) (atom @(.parent arg)) (.purpose arg)
+                                  (apply alloc/vector (.contents arg))
+                                  (when (.extras arg)
+                                    (apply alloc/vector (.extras arg))))))
 
 (defun string-as-unibyte (string)
   "Return a unibyte string with the same individual bytes as STRING.
