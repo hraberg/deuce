@@ -1,17 +1,24 @@
 (ns deuce.emacs.casetab
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [deuce.emacs.chartab :as chartab]
+            [deuce.emacs.data :as data]
+            [deuce.emacs.fns :as fns])
   (:refer-clojure :exclude []))
+
+(fns/put 'case-table 'char-table-extra-slots 3)
+
+(def ^:dynamic ^:private *standard-case-table* (atom (chartab/make-char-table 'case-table)))
 
 (defun set-standard-case-table (table)
   "Select a new standard case table for new buffers.
   See `set-case-table' for more info on case tables."
-  )
+  (reset! *standard-case-table* table))
 
 (defun case-table-p (object)
   "Return t if OBJECT is a case table.
   See `set-case-table' for more information on these data structures."
-  )
+  (and (data/char-table-p object) (= 'case-table (.purpose object))))
 
 (defun current-case-table ()
   "Return the case table of the current buffer."
@@ -39,4 +46,4 @@
 (defun standard-case-table ()
   "Return the standard case table.
   This is the one used for new buffers."
-  )
+  @*standard-case-table*)

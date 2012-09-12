@@ -178,7 +178,10 @@
 (defun make-vector (length init)
   "Return a newly created vector of length LENGTH, with each element being INIT.
   See also the function `vector'."
-  (object-array (repeat length init)))
+  (let [vector (object-array length)]
+    (dotimes [n length]
+      (aset vector n init))
+    vector))
 
 (defun make-string (length init)
   "Return a newly created string of length LENGTH, with INIT in each element.

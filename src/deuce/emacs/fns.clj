@@ -9,6 +9,7 @@
             [deuce.emacs-lisp.globals :as globals])
   (import [clojure.lang IPersistentCollection]
           [deuce DottedPair]
+          [deuce.emacs.data CharTable]
           [java.util List]
           [java.nio CharBuffer]
           [java.nio.charset Charset]
@@ -568,12 +569,13 @@
   If the string contains multibyte characters, this is not necessarily
   the number of bytes in the string; it is the number of characters.
   To get the number of bytes, use `string-bytes'."
-  (if (instance? DottedPair sequence)
-    (loop [pair sequence
-           length 1]
-      (if (and (.cdr pair) (not= () (.cdr pair)))
-        (recur (.cdr pair) (inc length))
-        length))
+  (condp instance? sequence
+    DottedPair (loop [pair sequence
+                      length 1]
+                 (if (and (.cdr pair) (not= () (.cdr pair)))
+                   (recur (.cdr pair) (inc length))
+                   length))
+    CharTable (count (.contents sequence))
     (count sequence)))
 
 (defun memq (elt list)

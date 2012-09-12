@@ -19,27 +19,59 @@
 
 (def ^:private array-class (Class/forName "[Ljava.lang.Object;"))
 
+(def ^:private max-print-length 12)
+
+(defn ^:private ellipsis [seq]
+  (concat (take max-print-length seq)
+          (when (c/< max-print-length (count seq))
+            ['...])))
+
 (defmethod print-method array-class [o w]
-  (print-method (vec o) w))
+  (print-method (vec (ellipsis o)) w))
 
 (defmethod print-dup array-class [array out]
   (.write out (str "#=" `(object-array ~(vec array)))))
 
 (defmethod print-method LinkedList [o w]
-  (print-method (seq o) w))
+  (print-method (ellipsis (seq o)) w))
 
 (defmethod print-method SubList [o w]
-  (print-method (seq o) w))
+  (print-method (ellipsis (seq o)) w))
 
-(defmethod print-method DottedPair [pair out]
-  (.write out
-          (str "(" (pr-str (.car pair)) ((fn tail [c]
+(defmethod print-method DottedPair [pair w]
+  (.write w
+          (str "(" (pr-str (.car pair)) ((fn tail [c n]
                                            (if (instance? DottedPair c)
-                                             (pr-str " " (.car c) (tail (.cdr c)))
+                                             (pr-str " " (.car c) (if (c/< max-print-length n) (tail (.cdr c) (inc n)) '...))
                                              (when (c/and c (not= () c)) (str " . " c)))) (.cdr pair)) ")")))
 
 (defmethod print-dup DottedPair [pair out]
   (.write out (str "#=" `(deuce.DottedPair. ~(.car pair) ~(.cdr pair)))))
+
+(defrecord CharTable
+    [;; /* This holds a default value,
+     ;; which is used whenever the value for a specific character is nil.  */
+     defalt
+
+     ;; /* This points to another char table, which we inherit from when the
+     ;; value for a specific character is nil.  The `defalt' slot takes
+     ;; precedence over this.  */
+     parent
+
+     ;; /* This is a symbol which says what kind of use this char-table is
+     ;; meant for.  */
+     purpose
+
+     contents ;[(1 << CHARTAB_SIZE_BITS_0)]
+
+     ;; /* These hold additional data.  It is a vector.  */
+     extras])
+
+(defmethod print-method CharTable [char-table w]
+  (.write w (str "#^" (vec (ellipsis (concat [(.defalt char-table)
+                                              @(.parent char-table)
+                                              (.purpose char-table)]
+                                             (.contents char-table)))))))
 
 (defun natnump (object)
   "Return t if OBJECT is a nonnegative integer."
@@ -278,7 +310,8 @@
   "Return the element of ARRAY at index IDX.
   ARRAY may be a vector, a string, a char-table, a bool-vector,
   or a byte-code object.  IDX starts at 0."
-  (get array idx))
+  (let [array (if (instance? CharTable array) (.contents array) array)]
+    (get array idx)))
 
 (defun wholenump (object)
   "Return t if OBJECT is a nonnegative integer."
@@ -288,7 +321,8 @@
   "Store into the element of ARRAY at index IDX the value NEWELT.
   Return NEWELT.  ARRAY may be a vector, a string, a char-table or a
   bool-vector.  IDX starts at 0."
-  (c/aset array idx newelt))
+  (let [array (if (instance? CharTable array) (.contents array) array)]
+    (c/aset array idx newelt)))
 
 (declare vectorp)
 
@@ -386,9 +420,11 @@
   "Return t if OBJECT is a character or a string."
   ((some-fn char? string?) object))
 
+(declare char-table-p)
+
 (defun vector-or-char-table-p (object)
   "Return t if OBJECT is a char-table or vector."
-  (c/or (vectorp object)))
+  ((some-fn vectorp char-table-p) object))
 
 (defun bufferp (object)
   "Return t if OBJECT is an editor buffer."
@@ -541,7 +577,7 @@
 
 (defun char-table-p (object)
   "Return t if OBJECT is a char-table."
-  )
+  (instance? CharTable object))
 
 (defun make-variable-frame-local (variable)
   "This function is obsolete since 22.2;
