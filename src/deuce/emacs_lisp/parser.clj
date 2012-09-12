@@ -18,7 +18,9 @@
                               "\\M" 0x8000000})
 
 (defn ^:private parse-string [s]
-  (.sval (doto (StreamTokenizer. (StringReader. (s/replace s "\n" "\\\n")))
+  (.sval (doto (StreamTokenizer. (StringReader. (reduce (fn [s [m r]] (s/replace s m r)) s
+                                                        [["\\\n" ""]
+                                                         ["\n" "\\\n"]])))
            (.nextToken))))
 
 (defn ^:private parse-character [c]
