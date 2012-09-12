@@ -97,11 +97,12 @@
       (count list)
       0)))
 
+(declare equal)
+
 (defun member (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.
   The value is actually the tail of LIST whose car is ELT."
-  (when (and (list? list) (some #{elt} list))
-    list))
+  (seq (drop-while #(not (equal elt %)) list)))
 
 (defun copy-hash-table (table)
   "Return a copy of hash table TABLE."
@@ -229,7 +230,13 @@
   is not a side effect; it is simply using a different sequence.
   Therefore, write `(setq foo (delete element foo))'
   to be sure of changing the value of `foo'."
-  (seq (remove #{elt} seq)))
+  (when seq
+    (loop [i (.iterator seq)]
+      (when (.hasNext i)
+        (when (equal elt (.next i))
+          (.remove i))
+        (recur i))))
+  seq)
 
 (defun locale-info (item)
   "Access locale data ITEM for the current C locale, if available.
@@ -332,7 +339,7 @@
 (defun assoc (key list)
   "Return non-nil if KEY is `equal' to the car of an element of LIST.
   The value is actually the first element of LIST whose car equals KEY."
-  (some #(c/and (instance? DottedPair %) (= key (.car %)) %) list))
+  (some #(c/and (instance? DottedPair %) (equal key (.car %)) %) list))
 
 (defun remhash (key table)
   "Remove KEY from TABLE."
@@ -365,7 +372,13 @@
   If the first member of LIST is ELT, there is no way to remove it by side effect;
   therefore, write `(setq foo (delq element foo))'
   to be sure of changing the value of `foo'."
-  (seq (remove #{elt} list)))
+  (when list
+    (loop [i (.iterator list)]
+      (when (.hasNext i)
+        (when (data/eq elt (.next i))
+          (.remove i))
+        (recur i))))
+  list)
 
 (defun assq (key list)
   "Return non-nil if KEY is `eq' to the car of an element of LIST.
@@ -478,7 +491,7 @@
 (defun rassoc (key list)
   "Return non-nil if KEY is `equal' to the cdr of an element of LIST.
   The value is actually the first element of LIST whose cdr equals KEY."
-  (some #(c/and (instance? DottedPair %) (= key (.cdr %)) %) list))
+  (some #(c/and (instance? DottedPair %) (equal key (.cdr %)) %) list))
 
 (defun equal (o1 o2)
   "Return t if two Lisp objects have similar structure and contents.
@@ -539,19 +552,15 @@
 (defun nconc (&rest lists)
   "Concatenate any number of lists by altering them.
   Only the last argument is not altered, and need not be a list."
-  (condp instance? (first lists)
-;    IPersistentCollection (throw (UnsupportedOperationException.))
-    IPersistentCollection (c/apply c/concat lists)
-    List (let [[car & cdr] lists
-               car (if (nil? car) (alloc/list) car)]
-           (doseq [list (butlast cdr)]
-             (.addAll car list))
-           (let [last (last cdr)]
-             (if (atom last)
-               (.add car last)
-               (.addAll car last)))
-           car)
-    (c/apply c/concat lists)))
+  (let [[car & cdr] lists
+        car (if (nil? car) (alloc/list) car)]
+    (doseq [list (butlast cdr)]
+      (.addAll car list))
+    (let [last (last cdr)]
+      (if (atom last)
+        (.add car last)
+        (.addAll car last)))
+    car))
 
 (defun length (sequence)
   "Return the length of vector, list or string SEQUENCE.
