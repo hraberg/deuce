@@ -33,10 +33,10 @@
 
 (defmethod print-method DottedPair [pair out]
   (.write out
-          (str "(" (.car pair) ((fn tail [c]
-                                  (if (instance? DottedPair c)
-                                    (str " " (.car c) (tail (.cdr c)))
-                                    (when (c/and c (not= () c)) (str " . " c)))) (.cdr pair)) ")")))
+          (str "(" (pr-str (.car pair)) ((fn tail [c]
+                                           (if (instance? DottedPair c)
+                                             (pr-str " " (.car c) (tail (.cdr c)))
+                                             (when (c/and c (not= () c)) (str " . " c)))) (.cdr pair)) ")")))
 
 (defmethod print-dup DottedPair [pair out]
   (.write out (str "#=" `(deuce.DottedPair. ~(.car pair) ~(.cdr pair)))))

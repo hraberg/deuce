@@ -1,7 +1,8 @@
 (ns deuce.emacs-lisp.parser
   (:require [clojure.walk :as w]
             [clojure.string :as s]
-            [deuce.emacs-lisp :as el])
+            [deuce.emacs-lisp :as el]
+            [deuce.emacs.alloc :as alloc])
   (:import [java.util Scanner]
            [java.io StringReader StreamTokenizer]
            [java.util.regex Pattern]
@@ -89,11 +90,19 @@
                       (.invoke clojure-syntax-quote nil (into-array [(second %)]))
                       %))))
 
+(def scanner-position (doto (.getDeclaredField Scanner "position")
+                        (.setAccessible true)))
+
+(defn parse-internal [r & [all?]]
+  (let [scanner (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
+                  (.useDelimiter #"(\s|\]|\)|\"|;)"))]
+    (binding [line (atom 1)]
+      (alloc/cons
+       (->> ((if all? tokenize-all tokenize) scanner)
+            (w/postwalk-replace {(symbol "nil") nil 't true})
+            (w/postwalk (comp el/expand-dotted-pairs el/vectors-to-arrays))
+            syntax-quote)
+       (.get scanner-position scanner)))))
+
 (defn parse [r]
-  (binding [line (atom 1)]
-    (->> (tokenize-all (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
-                         (.useDelimiter #"(\s|\]|\)|\"|;)")))
-         (w/postwalk-replace {(symbol "nil") nil 't true})
-         (w/postwalk (comp el/expand-dotted-pairs el/vectors-to-arrays))
-         syntax-quote
-         (w/postwalk el/lists-to-linked-lists))))
+  (.car (parse-internal r :all)))

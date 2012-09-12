@@ -285,10 +285,10 @@
   (let [string (subs string (or start 0) (or end (count string)))]
     (try
       (if (= \{ (first string))
-        (read-string string)
-        (first (parser/parse string)))
+        (alloc/cons (read-string string) (count string))
+        (parser/parse-internal string))
       (catch Exception e
-        (first (parser/parse string))))))
+        (parser/parse-internal string)))))
 
 (defun eval-region (start end &optional printflag read-function)
   "Execute the region as Lisp code.

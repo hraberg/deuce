@@ -55,7 +55,7 @@
 (defn qualify-fns [form]
   (if-let [s (when-let [s (first-symbol form)]
                (c/and
-                (not (= "clojure.core" (namespace s)))
+                (not= "clojure.core" (namespace s))
                 (fun s)))]
     (cons (symbol (-> s meta :ns str) (-> s meta :name str)) (next form))
     (if (c/and (symbol? form) (= "deuce.emacs" (namespace form)))
@@ -77,10 +77,11 @@
     (object-array form)
     form))
 
+; doesn't work as intended
 (defn lists-to-linked-lists [form]
   (if (c/and (seq? form) (= 'quote (first form))
              (seq? (second form)))
-    (list `LinkedList. form)
+    (list 'quote  (LinkedList. (second form)))
     form))
 
 (defn protect-forms [form]
@@ -97,7 +98,6 @@
        ~(->> body
              (w/postwalk (comp strip-comments
                                expand-dotted-pairs
-                               lists-to-linked-lists
                                vectors-to-arrays
                                protect-forms))
              (w/postwalk (comp unprotect-forms
