@@ -49,7 +49,7 @@
   "For internal use only."
   (let [name (first args)
         plist (last args)]
-    (swap! plists update-in [name] merge (apply hash-map plist))
+    (swap! plists update-in [name] merge (into {} (map vec (partition 2 plist))))
     (swap! charsets assoc name args)))
 
 (defun define-charset-alias (alias charset)

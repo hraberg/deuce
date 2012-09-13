@@ -168,6 +168,7 @@
 (c/defmacro def-helper* [what line name arglist & body]
   (c/let [[docstring body] (split-with string? body)
           name (sym (if (seq? name) (c/eval name) name))
+          rest-arg (second (drop-while (complement '#{&rest}) arglist))
           [arg & args :as arglist] (replace '{&rest &} arglist)
           [arglist &optional optional-args] (if (= '&optional arg)
                                               [() arg args]
@@ -185,12 +186,12 @@
                          (trace-indent '~name)
                          ~@(for [arg the-args]
                              `(trace ~(keyword arg) (pprint-arg ~arg))))
-
                        (c/let [result# ~(if emacs-lisp?
-                                          `(let-helper* false ~(map #(list % %) the-args)
-                                             (if (= '~'defmacro '~(sym what))
-                                               (w/prewalk linked-lists-to-seqs (eval '(do ~@body)))
-                                               (eval '(do ~@body))))
+                                          `(c/let ~(if rest-arg `[~rest-arg (LinkedList. ~rest-arg)] [])
+                                             (let-helper* false ~(map #(list % %) the-args)
+                                               (if (= '~'defmacro '~(sym what))
+                                                 (w/prewalk linked-lists-to-seqs (eval '(do ~@body)))
+                                                 (eval '(do ~@body)))))
                                           `(do ~@body))]
 
                          (binding [*ns* (the-ns 'clojure.core)]

@@ -494,7 +494,7 @@
   "For internal use only."
   (let [name (first args)
         plist (nth args 11)]
-    (swap! plists update-in [name] merge (apply hash-map plist))
+    (swap! plists update-in [name] merge (into {} (map vec (partition 2 plist))))
     (swap! coding-systems assoc name args)))
 
 (defun coding-system-put (coding-system prop val)

@@ -288,7 +288,7 @@
     :else (data/eq obj1 obj2)))
 
 (defn ^:private plist-map [plist]
-  (if (map? plist) plist (into {} (map vec (partition 2 plist)))))
+  (if (instance? Map plist) plist (into {} (map vec (partition 2 plist)))))
 
 (defun plist-get (plist prop)
   "Extract a value from a property list.
