@@ -44,7 +44,8 @@
   (ns-resolve 'deuce.emacs-lisp.globals (sym s)))
 
 (defn fun [s]
-  (ns-resolve 'deuce.emacs (sym s)))
+  (if (fn? s) s
+      (ns-resolve 'deuce.emacs (sym s))))
 
 (defn maybe-sym [x]
   (if (symbol? x) (sym x) x))

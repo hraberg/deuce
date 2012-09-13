@@ -1,5 +1,5 @@
 (ns deuce.emacs.fns
-  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
             [clojure.string :as s]
             [deuce.emacs.alloc :as alloc]
@@ -10,7 +10,7 @@
   (import [clojure.lang IPersistentCollection]
           [deuce DottedPair]
           [deuce.emacs.data CharTable]
-          [java.util List]
+          [java.util List Map HashMap]
           [java.nio CharBuffer]
           [java.nio.charset Charset]
           [javax.xml.bind DatatypeConverter]
@@ -107,7 +107,7 @@
 
 (defun copy-hash-table (table)
   "Return a copy of hash table TABLE."
-  table)
+  (HashMap. table))
 
 (defun append (&rest sequences)
   "Concatenate all the arguments and make the result a list.
@@ -121,7 +121,7 @@
   In between each pair of results, stick in SEPARATOR.  Thus, \" \" as
   SEPARATOR results in spaces between the values returned by FUNCTION.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  (s/join separator (map (if (symbol? function) (data/symbol-function function) function) sequence)))
+  (s/join separator (map (el/fun function) sequence)))
 
 (defun compare-strings (str1 start1 end1 str2 start2 end2 &optional ignore-case)
   "Compare the contents of two strings, converting to multibyte if needed.
@@ -228,7 +228,7 @@
 
 (defun hash-table-p (obj)
   "Return t if OBJ is a Lisp hash table object."
-  (map? obj))
+  (instance? Map obj))
 
 (defun delete (elt seq)
   "Delete by side effect any occurrences of ELT as a member of SEQ.
@@ -351,7 +351,8 @@
 
 (defun remhash (key table)
   "Remove KEY from TABLE."
-  (dissoc table key))
+  (.remove table key)
+  nil)
 
 (defun yes-or-no-p (prompt)
   "Ask user a yes-or-no question.  Return t if answer is yes.
@@ -416,7 +417,7 @@
   "Apply FUNCTION to each element of SEQUENCE, and make a list of the results.
   The result is a list just as long as SEQUENCE.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  (c/apply alloc/list (map (if (symbol? function) (data/symbol-function function) function) sequence)))
+  (c/apply alloc/list (map (el/fun function) sequence)))
 
 (defun fillarray (array item)
   "Store each element of ARRAY with ITEM.
@@ -452,7 +453,7 @@
 
 (defun hash-table-weakness (table)
   "Return the weakness of TABLE."
-  )
+  nil)
 
 (defun clrhash (table)
   "Clear hash table TABLE and return it."
@@ -494,7 +495,8 @@
   key, value, one of key or value, or both key and value, depending on
   WEAK.  WEAK t is equivalent to `key-and-value'.  Default value of WEAK
   is nil."
-  (apply hash-map keyword-args))
+  (let [{:keys [size rehash-threshold] :or {size 65 rehash-threshold 0.8}} (apply hash-map keyword-args)]
+    (HashMap. size rehash-threshold)))
 
 (defun rassoc (key list)
   "Return non-nil if KEY is `equal' to the cdr of an element of LIST.
@@ -565,9 +567,11 @@
     (doseq [list (butlast cdr)]
       (.addAll car list))
     (let [last (last cdr)]
-      (if (atom last)
-        (.add car last)
-        (.addAll car last)))
+      (cond
+        (data/atom last) (.add car last)
+        (instance? DottedPair last) (do (.add car (.car last))
+                                        (.add car (.cdr last)))
+        :else (.addAll car last)))
     car))
 
 (defun length (sequence)
@@ -658,7 +662,8 @@
 (defun maphash (function table)
   "Call FUNCTION for all entries in hash table TABLE.
   FUNCTION is called with two arguments, KEY and VALUE."
-  (into {} (map function table)))
+  (map (el/fun function) table)
+  nil)
 
 (defun rassq (key list)
   "Return non-nil if KEY is `eq' to the cdr of an element of LIST.
@@ -720,13 +725,18 @@
   otherwise the new PROP VAL pair is added.  The new plist is returned;
   use `(setq x (plist-put x prop val))' to be sure to use the new value.
   The PLIST is modified by side effects."
-  (c/apply list (reduce into [] (c/assoc (plist-map plist) prop val))))
+  (let [idx (.indexOf plist prop)]
+    (if-not (neg? idx)
+      (.set plist (inc idx) val)
+      (nconc plist [prop val])))
+  plist)
 
 (defun puthash (key value table)
   "Associate KEY with VALUE in hash table TABLE.
   If KEY is already present in table, replace its current value with
   VALUE.  In any case, return VALUE."
-  (c/assoc table key value))
+  (.put table key value)
+  value)
 
 (defun hash-table-test (table)
   "Return the test TABLE uses."
@@ -736,7 +746,7 @@
   "Apply FUNCTION to each element of SEQUENCE for side effects only.
   Unlike `mapcar', don't accumulate the results.  Return SEQUENCE.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  (dorun (map (if (symbol? function) (data/symbol-function function) function) sequence))
+  (dorun (map (el/fun function) sequence))
   sequence)
 
 (defun plist-member (plist prop)
