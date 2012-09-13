@@ -25,6 +25,11 @@
 (defn sym [s]
   (symbol (name s)))
 
+; "reused" from data.clj
+(defn not-null? [object]
+  (when-not (c/or (nil? object) (c/= () object) (false? object))
+    object))
+
 (defn first-symbol [form]
   (when ((every-pred (some-fn seq? list?) (comp symbol? first)) form)
     (first form)))
@@ -290,7 +295,7 @@
   [& clauses]
   `(c/cond
      ~@(->> clauses
-            (map #(if (second %) [(first %) `(do ~@(rest %))] (repeat 2 (first %))))
+            (map #(do [`(not-null? ~(first %)) (if (second %) `(do ~@(rest %)) (first %))]))
             (apply concat))))
 
 (c/defmacro setq-helper* [locals default? sym-vals]
@@ -450,7 +455,7 @@
   If all args return nil, return nil."
   {:arglists '([CONDITIONS...])}
   [& conditions]
-  `(c/or ~@conditions))
+  `(c/or ~@(map #(do `(not-null? ~%)) conditions)))
 
 (c/defmacro while
   "If TEST yields non-nil, eval BODY... and repeat.
@@ -458,7 +463,7 @@
   until TEST returns nil."
   {:arglists '([TEST BODY...])}
   [test & body]
-  `(c/while ~test ~@body))
+  `(c/while (not-null? ~test) ~@body))
 
 (c/defmacro defmacro
   "Define NAME as a macro.
@@ -504,7 +509,7 @@
   If no arg yields nil, return the last arg's value."
   {:arglists '([CONDITIONS...])}
   [& conditions]
-  `(c/and ~@conditions))
+  `(c/and ~@(map #(do `(not-null? ~%)) conditions)))
 
 (c/defmacro progn
   "Eval BODY forms sequentially and return value of last one."
@@ -600,7 +605,7 @@
   If COND yields nil, and there are no ELSE's, the value is nil."
   {:arglists '([COND THEN ELSE...])}
   [cond then & else]
-  `(c/cond ~cond ~then
+  `(c/cond (not-null? ~cond) ~then
            :else (do ~@else)))
 
 (c/defmacro save-restriction

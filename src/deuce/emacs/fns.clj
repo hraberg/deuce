@@ -416,7 +416,7 @@
   "Apply FUNCTION to each element of SEQUENCE, and make a list of the results.
   The result is a list just as long as SEQUENCE.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  (map (if (symbol? function) (data/symbol-function function) function) sequence))
+  (c/apply alloc/list (map (if (symbol? function) (data/symbol-function function) function) sequence)))
 
 (defun fillarray (array item)
   "Store each element of ARRAY with ITEM.
