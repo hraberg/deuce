@@ -1,7 +1,9 @@
 (ns deuce.emacs.coding
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
-            [deuce.emacs.alloc :as alloc])
+            [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.fns :as fns]
+            [deuce.emacs-lisp.globals :as globals])
   (:refer-clojure :exclude []))
 
 (defvar inhibit-null-byte-detection nil
@@ -67,7 +69,7 @@
   to explicitly specify some coding system that doesn't use ISO-2022
   escape sequence (e.g `latin-1') on reading by C-x RET c.")
 
-(defvar coding-system-list nil
+(defvar coding-system-list (alloc/list)
   "List of coding systems.
 
   Do not alter the value of this variable manually.  This variable should be
@@ -283,6 +285,7 @@
 
 (defun define-coding-system-alias (alias coding-system)
   "Define ALIAS as an alias for CODING-SYSTEM."
+  (fns/nconc globals/coding-system-list [alias])
   (swap! aliases assoc alias coding-system)
   nil)
 
@@ -494,6 +497,8 @@
   "For internal use only."
   (let [name (first args)
         plist (nth args 11)]
+    (println name)
+    (fns/nconc globals/coding-system-list [name])
     (swap! plists update-in [name] merge (into {} (map vec (partition 2 plist))))
     (swap! coding-systems assoc name args)))
 

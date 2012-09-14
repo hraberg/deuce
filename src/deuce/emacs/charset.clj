@@ -1,7 +1,9 @@
 (ns deuce.emacs.charset
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
-            [deuce.emacs.alloc :as alloc])
+            [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.fns :as fns]
+            [deuce.emacs-lisp.globals :as globals])
   (:refer-clojure :exclude []))
 
 (def ^:private ^:dynamic charsets (atom {}))
@@ -16,7 +18,7 @@
   If the current language environment is for multiple languages (e.g. \"Latin-1\"),
   the value may be a list of mnemonics.")
 
-(defvar charset-list nil
+(defvar charset-list (alloc/list)
   "List of all charsets ever defined.")
 
 (defvar charset-map-path nil
@@ -49,11 +51,13 @@
   "For internal use only."
   (let [name (first args)
         plist (last args)]
+    (fns/nconc globals/charset-list [name])
     (swap! plists update-in [name] merge (into {} (map vec (partition 2 plist))))
     (swap! charsets assoc name args)))
 
 (defun define-charset-alias (alias charset)
   "Define ALIAS as an alias for charset CHARSET."
+  (fns/nconc globals/charset-list [alias])
   (swap! aliases assoc alias charset)
   nil)
 

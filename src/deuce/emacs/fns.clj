@@ -5,7 +5,6 @@
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.data :as data]
             [deuce.emacs.lread :as lread]
-            [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals])
   (import [clojure.lang IPersistentCollection]
           [deuce DottedPair]

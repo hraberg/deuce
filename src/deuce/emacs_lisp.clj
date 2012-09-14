@@ -355,17 +355,26 @@
                      lexical-vars false (rest form))
       '#{setq-helper*} (concat [`setq-helper*
                                 (into (second form) lexical-vars)] (drop 2 form))
+      '#{deref} (list `deref (nested-first-symbol form))
       form)))
 
 (c/defmacro let-helper* [can-refer? varlist & body]
-  (c/let [varlist (->> varlist
-                       (map #(if (symbol? %) [% nil] %))
-                       (map (fn [[s v]] [(nested-first-symbol s) v])))
+  (c/let [varlist (map #(if (symbol? %) [% nil] %) varlist)
+          fn-vars (->> varlist
+                       (map first)
+                       (filter namespace)
+                       (remove (comp #{"deuce.emacs-lisp.globals"} namespace)))
+          fn-vars-fix (merge (zipmap fn-vars (map sym fn-vars))
+                             (zipmap (map #(symbol "deuce.emacs-lisp.globals" (name %)) fn-vars)
+                                     (map sym fn-vars)))
+          varlist (map (fn [[s v]] [(c/let [s (nested-first-symbol s)]
+                                      (fn-vars-fix s s)) v]) varlist)
           {:keys [lexical dynamic]} (group-by (comp #(if (namespace %) :dynamic :lexical) first) varlist)
           lexical-vars (into {} (map vec lexical))
           dynamic-vars (into {} (map vec dynamic))
           fix-lexical-setq (partial fix-lexical-setq (c/set (keys lexical-vars)))
           body (w/postwalk fix-lexical-setq body)
+          body (w/postwalk-replace fn-vars-fix body)
           all-vars (map first varlist)
           temps (zipmap all-vars (repeatedly #(gensym "local__")))
           [lexical-vars dynamic-vars] (map #(if can-refer? % (select-keys temps (keys %)))

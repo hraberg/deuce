@@ -59,7 +59,7 @@
               s)
       #";" (do (swap! line inc) (list 'clojure.core/comment (.nextLine sc)))
       #"#" (condp find 1
-             #"'" (list 'var (tokenize sc))
+             #"'" (list 'quote (tokenize sc))
              #"\(" (let [[object start end properties] (tokenize-all sc)]
                      (list 'set-text-properties start end properties object))
              #"x" (.nextInt sc (int 16))
