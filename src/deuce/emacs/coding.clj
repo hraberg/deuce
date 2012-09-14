@@ -497,7 +497,6 @@
   "For internal use only."
   (let [name (first args)
         plist (nth args 11)]
-    (println name)
     (fns/nconc globals/coding-system-list [name])
     (swap! plists update-in [name] merge (into {} (map vec (partition 2 plist))))
     (swap! coding-systems assoc name args)))
