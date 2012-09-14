@@ -1,5 +1,5 @@
 (ns deuce.emacs.data
-  (:use [deuce.emacs-lisp :only (defun defvar setq setq-default)])
+  (:use [deuce.emacs-lisp :only (defun defvar setq setq-default) :as el])
   (:require [clojure.core :as c]
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals]
@@ -74,6 +74,9 @@
                                               @(.parent char-table)
                                               (.purpose char-table)]
                                              (.contents char-table)))))))
+
+(defn ^:private promote-chars [xs]
+  (map #(if (char? %) (int %) %) xs))
 
 (defun natnump (object)
   "Return t if OBJECT is a nonnegative integer."
@@ -194,7 +197,7 @@
 
 (defun + (&rest numbers-or-markers)
   "Return sum of any number of arguments, which are numbers or markers."
-  (apply c/+ numbers-or-markers))
+  (apply c/+ (promote-chars numbers-or-markers)))
 
 (defun lsh (value count)
   "Return VALUE with its bits shifted left by COUNT.
@@ -215,13 +218,13 @@
 
 (defun * (&rest numbers-or-markers)
   "Return product of any number of arguments, which are numbers or markers."
-  (apply c/* numbers-or-markers))
+  (apply c/* (promote-chars numbers-or-markers)))
 
 (defun - (&optional number-or-marker &rest more-numbers-or-markers)
   "Negate number or subtract numbers or markers and return the result.
   With one arg, negates it.  With more than one arg,
   subtracts all but the first from the first."
-  (apply c/- number-or-marker more-numbers-or-markers))
+  (apply c/- (promote-chars (c/cons number-or-marker more-numbers-or-markers))))
 
 (defun multibyte-string-p (object)
   "Return t if OBJECT is a multibyte string."
@@ -250,9 +253,9 @@
   The arguments must be numbers or markers."
   (if (zero? divisor)
     (throw (EmacsLispError. 'arith-error nil))
-    (c/reduce / (c/let [r (clojure.core// dividend divisor)]
+    (c/reduce / (c/let [r (c/apply clojure.core// (promote-chars [dividend divisor]))]
                   (if (ratio? r) (long r) r))
-              divisors)))
+              (promote-chars divisors))))
 
 (defun byteorder ()
   "Return the byteorder for the machine.
@@ -489,7 +492,8 @@
 
 (defun symbolp (object)
   "Return t if OBJECT is a symbol."
-  ((some-fn symbol? keyword?) object))
+  ((some-fn symbol? keyword?)
+   (try (el/nested-first-symbol object) (catch Exception _))))
 
 (defun <= (num1 num2)
   "Return t if first arg is less than or equal to second arg.
@@ -515,6 +519,7 @@
                           (when-let [v (el/fun definition)]
                             @v)
                           definition)]
+    (ns-unmap 'deuce.emacs symbol)
     (el/defvar-helper* 'deuce.emacs symbol definition docstring))
   definition)
 

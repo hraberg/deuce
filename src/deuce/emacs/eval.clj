@@ -3,7 +3,7 @@
   (:require [clojure.core :as c]
             [deuce.emacs.data :as data]
             [deuce.emacs-lisp :as el])
-  (:refer-clojure :exclude [apply eval]))
+  (:refer-clojure :exclude [apply eval macroexpand]))
 
 (defvar debugger nil
   "Function to call to invoke debugger.
@@ -352,3 +352,13 @@
   If the optional argument FOR-CALL-INTERACTIVELY is non-nil,
   then strings and vectors are not accepted."
   )
+
+(defun macroexpand (form &optional environment)
+  "Return result of expanding macros at top level of FORM.
+  If FORM is not a macro call, it is returned unchanged.
+  Otherwise, the macro is expanded and the expansion is considered
+  in place of FORM.  When a non-macro-call results, it is returned.
+
+  The second optional arg ENVIRONMENT specifies an environment of macro
+  definitions to shadow the loaded ones for use in file byte-compilation."
+  (c/macroexpand form))

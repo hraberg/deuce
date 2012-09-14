@@ -168,7 +168,7 @@
 (c/defmacro def-helper* [what line name arglist & body]
   (c/let [[docstring body] (split-with string? body)
           name (sym (if (seq? name) (c/eval name) name))
-          rest-arg (second (drop-while (complement '#{&rest}) arglist))
+          rest-arg (maybe-sym (second (drop-while (complement '#{&rest}) arglist)))
           [arg & args :as arglist] (replace '{&rest &} arglist)
           [arglist &optional optional-args] (if (= '&optional arg)
                                               [() arg args]
