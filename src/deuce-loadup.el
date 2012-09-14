@@ -91,3 +91,4 @@
 (load "emacs-lisp/map-ynp")
 (load "cus-start")
 (load "international/mule")
+(load "international/mule-conf")

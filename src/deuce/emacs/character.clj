@@ -90,4 +90,4 @@
 
 (defun max-char ()
   "Return the character of the maximum code."
-  )
+  (Character/MAX_VALUE))

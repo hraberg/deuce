@@ -1,5 +1,5 @@
 (ns deuce.emacs.coding
-  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.fns :as fns]
@@ -22,7 +22,7 @@
 
   You can customize this variable.")
 
-(defvar latin-extra-code-table nil
+(defvar latin-extra-code-table (alloc/make-vector 256 nil)
   "Table of extra Latin codes in the range 128..159 (inclusive).
   This is a vector of length 256.
   If Nth element is non-nil, the existence of code N in a file
@@ -252,6 +252,7 @@
 (def ^:private ^:dynamic coding-systems (atom {}))
 (def ^:private ^:dynamic plists (atom {}))
 (def ^:private ^:dynamic aliases (atom {}))
+(def ^:private ^:dynamic safe-terminal-coding-system (atom {}))
 
 (defun coding-system-base (coding-system)
   "Return the base of CODING-SYSTEM.
@@ -281,7 +282,8 @@
 
 (defun set-safe-terminal-coding-system-internal (coding-system)
   "Internal use only."
-  )
+  (swap! safe-terminal-coding-system coding-system)
+  nil)
 
 (defun define-coding-system-alias (alias coding-system)
   "Define ALIAS as an alias for CODING-SYSTEM."
@@ -537,7 +539,8 @@
   "Assign higher priority to the coding systems given as arguments.
   If multiple coding systems belong to the same category,
   all but the first one are ignored."
-  )
+ (el/setq coding-category-list coding-systems)
+ nil)
 
 (defun check-coding-system (coding-system)
   "Check validity of CODING-SYSTEM.

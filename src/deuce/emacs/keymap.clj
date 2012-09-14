@@ -1,7 +1,9 @@
 (ns deuce.emacs.keymap
-  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:use [deuce.emacs-lisp :only (defun defvar setq) :as el])
   (:require [clojure.core :as c]
+            [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.chartab :as chartab]
             [deuce.emacs.fns :as fns])
   (:refer-clojure :exclude []))
 
@@ -36,7 +38,7 @@
   If two active keymaps bind the same key, the keymap appearing earlier
   in the list takes precedence.")
 
-(defvar define-key-rebound-commands nil
+(defvar define-key-rebound-commands true
   "List of commands given new key bindings recently.
   This is used for internal purposes during Emacs startup;
   don't alter it yourself.")
@@ -241,7 +243,7 @@
 
   The optional arg STRING supplies a menu name for the keymap
   in case you use it as a menu with `x-popup-menu'."
-  )
+  (fns/nconc (alloc/list 'keymap (chartab/make-char-table 'keymap)) (if string [string nil] [nil])))
 
 (defun describe-buffer-bindings (buffer &optional prefix menus)
   "Insert the list of all defined keys and their definitions.
@@ -336,9 +338,11 @@
   bindings; see the description of `lookup-key' for more details about this."
   )
 
+(def ^:private ^:dynamic *current-global-map* (atom {}))
+
 (defun current-global-map ()
   "Return the current global keymap."
-  )
+  @*current-global-map*)
 
 (defun command-remapping (command &optional position keymaps)
   "Return the remapping for command COMMAND.
@@ -378,4 +382,14 @@
 
 (defun use-global-map (keymap)
   "Select KEYMAP as the global keymap."
-  )
+  (reset! *current-global-map* keymap)
+  nil)
+
+(setq global-map (make-keymap))
+(use-global-map globals/global-map)
+(setq esc-map (make-keymap))
+(setq ctrl-x-map (make-keymap))
+
+(setq minibuffer-local-map (make-sparse-keymap))
+(setq minibuffer-local-ns-map (make-sparse-keymap))
+; (set-keymap-parent globals/minibuffer-local-ns-map globals/minibuffer-local-map)

@@ -2,8 +2,10 @@
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
             [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.data :as data]
             [deuce.emacs.fns :as fns])
-  (:import [deuce.emacs.data CharTable])
+  (:import [deuce DottedPair]
+           [deuce.emacs.data CharTable])
   (:refer-clojure :exclude []))
 
 (defvar char-code-property-alist nil
@@ -43,7 +45,11 @@
   RANGE should be t (for all characters), nil (for the default value),
   a cons of character codes (for characters in the range),
   or a character code.  Return VALUE."
-  )
+  (doseq [n (if (instance? DottedPair range)
+              (c/range (int (.car range)) (int (.cdr range)))
+              (c/range (count (.contents char-table))))]
+    (data/aset (.contents char-table) n (if (nil? range) (.defalt char-table) value)))
+  value)
 
 (defun get-unicode-property-internal (char-table ch)
   "Return an element of CHAR-TABLE for character CH.
