@@ -6,7 +6,6 @@
 /.lein-failures
 /checkouts
 /.lein-deps-sum
-/emacs*
 \#*
 *~
 TAGS

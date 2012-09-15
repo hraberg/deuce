@@ -1,17 +1,12 @@
 #!/bin/bash
 
-EMACS_VERSION=24.2
+EMACS_TAG=emacs-24.2
 
-test -e emacs || curl -L http://ftp.gnu.org/pub/gnu/emacs/emacs-$EMACS_VERSION.tar.bz2 | tar xj
-
-mv emacs-$EMACS_VERSION emacs 2> /dev/null
-
+git submodule update --init emacs
 cd emacs
+git checkout $EMACS_TAG
 
-# LLVM is faster than gcc, at least without tweaking options, but broken atm.
-# if [[ -e $(which llvm-gcc) ]] ; then
-#     export CC=llvm-gcc
-# fi
+test -e ./configure || ./autogen.sh
 
 ./configure -with-x=no --without-xpm --without-jpeg --without-tiff --without-gif --without-png \
     --without-toolkit-scroll-bars --without-xim --without-sound --without-makeinfo --without-selinux \

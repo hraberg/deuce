@@ -187,8 +187,6 @@ Clojure placeholders for some of the Emacs primitives live under [`deuce.emacs`]
 
 The actual porting of the C will be done using a tactic of avoidance until a function is needed, auto generation of its signatures second, and hand crafting the actual implementation last.
 
-[`etrace`](http://ndevilla.free.fr/etrace/) can be linked to Emacs and when compiling with `-finstrument-functions` to get a crazy amount of tracing "insight" into what Emacs is doing. [`strace`](http://sourceforge.net/projects/strace/) is another alternative to see what Emacs is doing system call-wise, like to simply see just what files it opens.
-
 
 ### The Editor
 

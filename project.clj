@@ -10,6 +10,7 @@
   :plugins [[lein-swank "1.4.4"]
             [lein-difftest "2.0.0"]
             [lein-marginalia "0.7.1"]]
+  :profiles {:dev {:resource-paths ["emacs/test/automated"]}}
   :resource-paths ["emacs/lisp"]
   :jar-exclusions [#".*\.elc"]
   :java-source-paths ["src"]
