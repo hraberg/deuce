@@ -2,7 +2,7 @@
 
 EMACS_TAG=emacs-24.2
 
-git submodule update --init emacs
+test -e emacs || git submodule update --init emacs
 cd emacs
 git checkout $EMACS_TAG
 
