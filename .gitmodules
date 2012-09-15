@@ -4,3 +4,4 @@
 [submodule "emacs"]
 	path = emacs
 	url = https://github.com/emacsmirror/emacs.git
+	ignore = dirty

@@ -102,11 +102,11 @@ It can read all the `.el` files under `emacs/lisp`, but the actual representatio
 
 ### Preparing Emacs
 
-The target version of Emacs is 24.2. It's assumed to live under `emacs`. `configure-emacs` will download it if not.
+The target version of Emacs is 24.2. It lives under `emacs` as a git submodule.
 
 For a minimal [Emacs build](http://www.gnu.org/software/emacs/manual/html_node/elisp/Building-Emacs.html):
 
-    ./configure-emacs # downloads emacs-24.2.tar.bz if needed
+    ./configure-emacs # Might complain about missing `libtool`.
     make -C emacs # takes a few minutes.
 
     ./emacs/src/temacs -Q --batch --eval "(print (emacs-version))" # ./smoke
