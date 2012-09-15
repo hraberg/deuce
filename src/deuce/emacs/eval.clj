@@ -142,7 +142,6 @@
   If FUNCTION is already defined other than as an autoload,
   this does nothing and returns nil."
   (let [loader (fn [& args]
-                 (println "AUTOLOAD" function "FROM" file)
                  (ns-unmap 'deuce.emacs (el/sym function))
                  ((ns-resolve 'deuce.emacs 'load) file nil true)
                  (eval `(~(el/sym function) ~@args)))]

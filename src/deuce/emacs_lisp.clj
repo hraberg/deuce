@@ -170,6 +170,8 @@
     (nested-first-symbol form)
     form))
 
+(declare progn)
+
 (c/defmacro def-helper* [what line name arglist & body]
   (c/let [[docstring body] (split-with string? body)
           name (sym (if (seq? name) (c/eval name) name))
@@ -195,10 +197,10 @@
                                           `(c/let ~(if rest-arg `[~rest-arg (LinkedList. ~rest-arg)] [])
                                              (if (= '~'defmacro '~(sym what))
                                                (c/let [expansion# (let-helper* false ~(map #(list % %) the-args)
-                                                                    (eval '(do ~@body)))]
+                                                                    (eval '(progn ~@body)))]
                                                  (w/prewalk linked-lists-to-seqs expansion#))
                                                (let-helper* false ~(map #(list % %) the-args)
-                                                 (eval '(do ~@body)))))
+                                                 (eval '(progn ~@body)))))
                                           `(do ~@body))]
 
                          (binding [*ns* (the-ns 'clojure.core)]
