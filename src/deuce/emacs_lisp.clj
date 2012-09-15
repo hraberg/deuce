@@ -15,7 +15,7 @@
                       (str timestamp " " (-> level name s/upper-case) " [" ns "]")))
 (timbre/set-config! [:timestamp-pattern] "HH:mm:ss,SSS")
 
-(timbre/set-level! :info)
+(timbre/set-level! :debug)
 
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
@@ -165,6 +165,11 @@
                        count)]
      (trace (apply str (repeat depth# "-")) ~@args)))
 
+(defn underef [form]
+  (if (c/and (seq? form) (= `deref (first form)))
+    (nested-first-symbol form)
+    form))
+
 (c/defmacro def-helper* [what line name arglist & body]
   (c/let [[docstring body] (split-with string? body)
           name (sym (if (seq? name) (c/eval name) name))
@@ -188,9 +193,13 @@
                              `(trace ~(keyword arg) (pprint-arg ~arg))))
                        (c/let [result# ~(if emacs-lisp?
                                           `(c/let ~(if rest-arg `[~rest-arg (LinkedList. ~rest-arg)] [])
-                                             (let-helper* false ~(map #(list % %) the-args)
-                                               (if (= '~'defmacro '~(sym what))
-                                                 (w/prewalk linked-lists-to-seqs (eval '(do ~@body)))
+                                             (if (= '~'defmacro '~(sym what))
+                                               (->> (c/let [~(vec (map underef the-args)) (vec (map underef ~(vec the-args)))]
+                                                                                (let-helper* false ~(map #(list % %) the-args)
+                                                                                  (eval '(do ~@body))))
+                                                    (w/postwalk-replace (zipmap (map underef ~(vec the-args)) ~(vec the-args)))
+                                                    (w/prewalk linked-lists-to-seqs))
+                                               (let-helper* false ~(map #(list % %) the-args)
                                                  (eval '(do ~@body)))))
                                           `(do ~@body))]
 

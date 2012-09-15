@@ -492,8 +492,7 @@
 
 (defun symbolp (object)
   "Return t if OBJECT is a symbol."
-  ((some-fn symbol? keyword?)
-   (try (el/nested-first-symbol object) (catch Exception _))))
+  ((some-fn symbol? keyword?) object))
 
 (defun <= (num1 num2)
   "Return t if first arg is less than or equal to second arg.
