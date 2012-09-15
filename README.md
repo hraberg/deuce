@@ -106,8 +106,8 @@ The target version of Emacs is 24.2. It lives under `emacs` as a git submodule.
 
 For a minimal [Emacs build](http://www.gnu.org/software/emacs/manual/html_node/elisp/Building-Emacs.html):
 
-    ./configure-emacs # Might complain about missing `libtool`.
-    make -C emacs # takes a few minutes.
+    ./configure-emacs #  Will clone [emacs](https://github.com/emacsmirror/emacs) the first time (~1Gb). Might complain about missing `libtool`.
+    make -C emacs # takes a few minutes, only needs to be run once, then you can use ./make-emacs.
 
     ./emacs/src/temacs -Q --batch --eval "(print (emacs-version))" # ./smoke
 
