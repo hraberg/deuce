@@ -126,6 +126,8 @@
   "Non-nil if OBJECT is a function."
   (fn? object))
 
+(declare eval)
+
 (defun autoload (function file &optional docstring interactive type)
   "Define FUNCTION to autoload from FILE.
   FUNCTION is a symbol; FILE is a file name string to pass to `load'.
@@ -139,7 +141,13 @@
   They default to nil.
   If FUNCTION is already defined other than as an autoload,
   this does nothing and returns nil."
-  )
+  (let [loader (fn [& args]
+                 (println "AUTOLOAD" function "FROM" file)
+                 (ns-unmap 'deuce.emacs (el/sym function))
+                 ((ns-resolve 'deuce.emacs 'load) file nil true)
+                 (eval `(~(el/sym function) ~@args)))]
+    (ns-unmap 'deuce.emacs function)
+    (el/defvar-helper* 'deuce.emacs (el/sym function) loader docstring)))
 
 (defun fetch-bytecode (object)
   "If byte-compiled OBJECT is lazy-loaded, fetch it now."

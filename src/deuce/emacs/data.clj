@@ -492,7 +492,8 @@
 
 (defun symbolp (object)
   "Return t if OBJECT is a symbol."
-  ((some-fn symbol? keyword?) object))
+  (or ((some-fn symbol? keyword?) object)
+      (and (seq? object) (c/= `deref (first object)) (symbolp (second object)))))
 
 (defun <= (num1 num2)
   "Return t if first arg is less than or equal to second arg.
@@ -515,8 +516,7 @@
   for SYMBOL; if it is omitted or nil, SYMBOL uses the documentation string
   determined by DEFINITION."
   (when-let [definition (if (symbol? definition)
-                          (when-let [v (el/fun definition)]
-                            @v)
+                          (fn [& args] (apply (ns-resolve 'deuce.emacs (el/sym definition)) args))
                           definition)]
     (ns-unmap 'deuce.emacs symbol)
     (el/defvar-helper* 'deuce.emacs symbol definition docstring))

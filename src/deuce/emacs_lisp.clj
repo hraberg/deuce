@@ -194,11 +194,9 @@
                        (c/let [result# ~(if emacs-lisp?
                                           `(c/let ~(if rest-arg `[~rest-arg (LinkedList. ~rest-arg)] [])
                                              (if (= '~'defmacro '~(sym what))
-                                               (->> (c/let [~(vec (map underef the-args)) (vec (map underef ~(vec the-args)))]
-                                                                                (let-helper* false ~(map #(list % %) the-args)
-                                                                                  (eval '(do ~@body))))
-                                                    (w/postwalk-replace (zipmap (map underef ~(vec the-args)) ~(vec the-args)))
-                                                    (w/prewalk linked-lists-to-seqs))
+                                               (c/let [expansion# (let-helper* false ~(map #(list % %) the-args)
+                                                                    (eval '(do ~@body)))]
+                                                 (w/prewalk linked-lists-to-seqs expansion#))
                                                (let-helper* false ~(map #(list % %) the-args)
                                                  (eval '(do ~@body)))))
                                           `(do ~@body))]
