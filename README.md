@@ -11,6 +11,11 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Marginalia](http://ghettojedi.org/deuce/)
 
+**2012-09-21**
+
+I've been working on [Shen.java](https://github.com/hraberg/Shen.java) last week, so no progress here.
+Currently [`cl-macs.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/cl-macs.el)) fails with `ClassFormatError: Invalid method Code length` in `cl-parse-loop-clause`.
+
 **2012-09-11 Logging**
 
 Using [Timbre, a (sane) logging library for Clojure](https://github.com/ptaoussanis/timbre) (Taoussanis, 2012).
