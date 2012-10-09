@@ -11,6 +11,11 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Marginalia](http://ghettojedi.org/deuce/)
 
+**2012-10-09**
+
+Deuce is not dead. I've been to the US past few weeks, reflecting on StrangeLoop - hacking on a few new things.
+I'm now back in London, gearing up to tackle the method length issue, see below.
+
 **2012-09-21**
 
 I've been working on [Shen.java](https://github.com/hraberg/Shen.java) last week, so no progress here.
