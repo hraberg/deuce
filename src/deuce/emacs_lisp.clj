@@ -124,10 +124,10 @@
   (try
     (c/eval (with-meta emacs-lisp nil))
     (catch RuntimeException e
-      (if-let [[_  undeclared] (c/and (global 'load-in-progress)
-                                      @(global 'load-in-progress)
-                                      (c/re-find #"Unable to resolve symbol: (.+) in this context"
-                                                 (.getMessage e)))]
+      (if-let [[_ undeclared] (c/and (global 'load-in-progress)
+                                     @(global 'load-in-progress)
+                                     (c/re-find #"Unable to resolve symbol: (.+) in this context"
+                                                (.getMessage e)))]
         (do
           (warn (-> e cause .getMessage))
           (intern 'deuce.emacs (symbol undeclared))
@@ -139,7 +139,7 @@
 (defn limit-scope [scope]
   (->> scope
        (remove '#{&env &form})
-       (remove #(re-find #"(local|p1)__\d+" (name %)))
+       (remove #(re-find #"\w__\d+" (name %)))
        seq))
 
 ;; defined as fn in eval.clj
@@ -194,7 +194,7 @@
                          ~@(for [arg the-args]
                              `(trace ~(keyword arg) (pprint-arg ~arg))))
                        (c/let [result# ~(if emacs-lisp?
-                                          `(c/let ~(if rest-arg `[~rest-arg (LinkedList. ~rest-arg)] [])
+                                          `(c/let ~(if rest-arg `[~rest-arg (if-let [r# (seq ~rest-arg)] (LinkedList. r#) (LinkedList.))] [])
                                              (if (= '~'defmacro '~(sym what))
                                                (c/let [expansion# (let-helper* false ~(map #(list % %) the-args)
                                                                     (eval '(progn ~@body)))]
@@ -306,7 +306,7 @@
   [& clauses]
   `(c/cond
      ~@(->> clauses
-            (map #(do [`(not-null? ~(first %)) (if (second %) `(do ~@(rest %)) (first %))]))
+            (map #(do [`(not-null? ~(first %)) (if (second %) `(progn ~@(rest %)) (first %))]))
             (apply concat))))
 
 (c/defmacro setq-helper* [locals default? sym-vals]
@@ -391,8 +391,8 @@
     `(c/let ~(if can-refer? [] (vec (interleave (map temps (map first varlist)) (map second varlist))))
        ~((fn build-let [[v & vs]]
            (if v
-             (if-let [local (lexical-vars v)]
-               `(c/let [~v (atom ~(w/postwalk fix-lexical-setq local))]
+             (if (contains? lexical-vars v)
+               `(c/let [~v (atom ~(w/postwalk fix-lexical-setq (lexical-vars v)))]
                   ~(build-let vs))
                `(c/binding [~v ~(dynamic-vars v)]
                   ~(build-let vs)))
