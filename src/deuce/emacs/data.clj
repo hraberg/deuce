@@ -359,12 +359,13 @@
     List (let [car (first cell)]
            (.clear cell)
            (.add cell car)
-           (cond
-             (atom newcdr) (.add cell newcdr)
-             (instance? DottedPair newcdr) (doto cell
-                                             (.add (.car newcdr))
-                                             (.add (.cdr newcdr)))
-             :else (.addAll cell newcdr))))
+           (when newcdr
+             (cond
+               (atom newcdr) (.add cell newcdr)
+               (instance? DottedPair newcdr) (doto cell
+                                               (.add (.car newcdr))
+                                               (.add (.cdr newcdr)))
+               :else (.addAll cell newcdr)))))
   newcdr)
 
 (defun set (symbol newval)
@@ -464,7 +465,7 @@
 
 (defun nlistp (object)
   "Return t if OBJECT is not a list.  Lists include nil."
-  ((complement (some-fn list? nil?)) object))
+  ((complement (some-fn listp nil?)) object))
 
 (defun >= (num1 num2)
   "Return t if first arg is greater than or equal to second arg.

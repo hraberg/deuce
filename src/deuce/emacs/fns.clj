@@ -9,7 +9,7 @@
   (import [clojure.lang IPersistentCollection]
           [deuce DottedPair]
           [deuce.emacs.data CharTable]
-          [java.util List Map HashMap]
+          [java.util List Map HashMap Collections]
           [java.nio CharBuffer]
           [java.nio.charset Charset]
           [javax.xml.bind DatatypeConverter]
@@ -105,7 +105,7 @@
 (defun member (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.
   The value is actually the tail of LIST whose car is ELT."
-  (seq (drop-while #(not (equal elt %)) list)))
+  (apply alloc/list (drop-while #(not (equal elt %)) list)))
 
 (defun copy-hash-table (table)
   "Return a copy of hash table TABLE."
@@ -116,7 +116,7 @@
   The result is a list whose elements are the elements of all the arguments.
   Each argument may be a list, vector or string.
   The last argument is not copied, just used as the tail of the new list."
-  (apply c/concat sequences))
+  (apply alloc/list (apply c/concat sequences)))
 
 (defun mapconcat (function sequence separator)
   "Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.
@@ -515,19 +515,25 @@
   Symbols must match exactly."
   (= o1 o2))
 
+(declare reverse)
+
 (defun nreverse (list)
   "Reverse LIST by modifying cdr pointers.
   Return the reversed list."
-  (seq (c/reverse list)))
+  ;; (when (seq list)
+  ;;   (Collections/reverse list)
+  ;;   list)
+  (reverse list))
 
 (defun reverse (list)
   "Reverse LIST, copying.  Return the reversed list.
   See also the function `nreverse', which is used more often."
-  (seq (c/reverse list)))
+  (when (seq list)
+    (apply alloc/list (c/reverse list))))
 
 (defun nthcdr (n list)
   "Take cdr N times on LIST, return the result."
-  (seq (drop n list)))
+  (apply alloc/list (drop n list)))
 
 (defun hash-table-rehash-size (table)
   "Return the current rehash size of TABLE."
@@ -564,9 +570,9 @@
   Only the last argument is not altered, and need not be a list."
   (let [[car & cdr] lists
         car (if (nil? car) (alloc/list) car)]
-    (doseq [list (butlast cdr)]
+    (doseq [list (remove nil? (butlast cdr))]
       (.addAll car list))
-    (let [last (last cdr)]
+    (when-let [last (last cdr)]
       (cond
         (data/atom last) (.add car last)
         (instance? DottedPair last) (do (.add car (.car last))
@@ -592,12 +598,12 @@
 (defun memq (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
   The value is actually the tail of LIST whose car is ELT."
-  (seq (drop-while #(not (data/eq elt %)) list)))
+  (apply alloc/list (drop-while #(not (data/eq elt %)) list)))
 
 (defun memql (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `eql'.
   The value is actually the tail of LIST whose car is ELT."
-  (seq (drop-while #(not (eql elt %)) list)))
+  (apply alloc/list  (drop-while #(not (eql elt %)) list)))
 
 (defun gethash (key table &optional dflt)
   "Look up KEY in TABLE and return its associated value.

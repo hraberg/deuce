@@ -1,5 +1,7 @@
 (ns deuce.emacs.alloc
-  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:use [deuce.emacs-lisp :only (defun defvar)]
+        [taoensso.timbre :as timbre
+         :only (trace debug info warn error fatal spy)])
   (:require [clojure.core :as c])
   (:import [deuce DottedPair]
            [java.util LinkedList])
@@ -151,7 +153,10 @@
   (cond
     (instance? LinkedList cdr) (doto (list car)
                                  (.addAll cdr))
-    (or (coll? cdr) (nil? cdr) (= () cdr)) (c/cons car cdr)
+    (or (coll? cdr) (nil? cdr) (= () cdr)) (let [cdr (c/apply list cdr)]
+                                             (when (seq cdr)
+                                               (trace "cons: cdr was immutable" cdr))
+                                             (cons car cdr))
     :else (DottedPair. car cdr)))
 
 (defun (clojure.core/symbol "slash-equals") (num1 num2)

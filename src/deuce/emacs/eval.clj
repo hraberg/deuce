@@ -141,12 +141,14 @@
   They default to nil.
   If FUNCTION is already defined other than as an autoload,
   this does nothing and returns nil."
-  (let [loader (fn [& args]
+  (let [loader (fn autoload [& args]
                  (ns-unmap 'deuce.emacs (el/sym function))
                  ((ns-resolve 'deuce.emacs 'load) file nil true)
                  (eval `(~(el/sym function) ~@args)))]
     (ns-unmap 'deuce.emacs function)
-    (el/defvar-helper* 'deuce.emacs (el/sym function) loader docstring)))
+    (let [v (el/defvar-helper* 'deuce.emacs (el/sym function) loader docstring)]
+      (when (= 'macro type) (.setMacro (el/fun function)))
+      v)))
 
 (defun fetch-bytecode (object)
   "If byte-compiled OBJECT is lazy-loaded, fetch it now."
@@ -189,6 +191,8 @@
   (not (or executing-kbd-macro noninteractive))."
   nil)
 
+(declare funcall)
+
 (defun run-hook-with-args (hook &rest args)
   "Run HOOK with the specified arguments ARGS.
   HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
@@ -202,8 +206,9 @@
 
   Do not use `make-local-variable' to make a hook variable buffer-local.
   Instead, use `add-hook' and specify t for the LOCAL argument."
-  (let [hook (data/symbol-value hook)]
-    (dorun (map #(c/apply % args) (if (fn? hook) [hook] hook)))))
+  (when-let [hook (el/global hook)]
+    (let [hook @hook]
+      (dorun (map #(c/apply funcall % args) (if (fn? hook) [hook] hook))))))
 
 (defun funcall (function &rest arguments)
   "Call first argument as a function, passing remaining arguments to it.
