@@ -42,6 +42,10 @@
 
 (def ^:dynamic ^:private *symbol-plists* (atom {}))
 
+(defn ^:private list-or-nil [x]
+  (when (seq x)
+    (apply alloc/list x)))
+
 (defun provide (feature &optional subfeatures)
   "Announce that FEATURE is a feature of the current Emacs.
   The optional argument SUBFEATURES should be a list of symbols listing
@@ -105,7 +109,7 @@
 (defun member (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.
   The value is actually the tail of LIST whose car is ELT."
-  (apply alloc/list (drop-while #(not (equal elt %)) list)))
+  (list-or-nil (drop-while #(not (equal elt %)) list)))
 
 (defun copy-hash-table (table)
   "Return a copy of hash table TABLE."
@@ -419,7 +423,7 @@
   "Apply FUNCTION to each element of SEQUENCE, and make a list of the results.
   The result is a list just as long as SEQUENCE.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  (c/apply alloc/list (map (el/fun function) sequence)))
+  (list-or-nil (map (el/fun function) sequence)))
 
 (defun fillarray (array item)
   "Store each element of ARRAY with ITEM.
@@ -533,7 +537,7 @@
 
 (defun nthcdr (n list)
   "Take cdr N times on LIST, return the result."
-  (apply alloc/list (drop n list)))
+  (list-or-nil (drop n list)))
 
 (defun hash-table-rehash-size (table)
   "Return the current rehash size of TABLE."
@@ -598,12 +602,12 @@
 (defun memq (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
   The value is actually the tail of LIST whose car is ELT."
-  (apply alloc/list (drop-while #(not (data/eq elt %)) list)))
+  (list-or-nil (drop-while #(not (data/eq elt %)) list)))
 
 (defun memql (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `eql'.
   The value is actually the tail of LIST whose car is ELT."
-  (apply alloc/list  (drop-while #(not (eql elt %)) list)))
+  (list-or-nil  (drop-while #(not (eql elt %)) list)))
 
 (defun gethash (key table &optional dflt)
   "Look up KEY in TABLE and return its associated value.
