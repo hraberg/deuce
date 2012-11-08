@@ -13,7 +13,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 **2012-11-08**
 
-After many false starts, `cl.el` now loads. I don't expect much of it to actually work, but some things do. See [EmacsWiki](http://www.emacswiki.org/emacs/CommonLispForEmacs) [CommonLispForEmacs](http://www.emacswiki.org/emacs/CommonLispForEmacs) for a discussion about when this file is actually supposed to be loaded. `eval-when-compile` says
+After many false starts, `cl.el` now loads. I don't expect much of it to actually work, but some things do. See the [EmacsWiki](http://www.emacswiki.org/emacs/CommonLispForEmacs) [CommonLispForEmacs](http://www.emacswiki.org/emacs/CommonLispForEmacs) page for a discussion about when this file is actually supposed to be loaded. `eval-when-compile` says
 
 > In interpreted code, this is entirely equivalent to `progn'
 
