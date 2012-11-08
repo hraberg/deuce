@@ -17,7 +17,7 @@ After many false starts, [`cl.el`](https://github.com/emacsmirror/emacs/blob/ema
 
 > Packages distributed within GNU Emacs don’t use cl at runtime
 
-Instead files like [`env.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/env.el) use
+Instead files like [`env.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/env.el) use
 
 ```el
     (eval-when-compile (require 'cl))
@@ -27,9 +27,9 @@ The documentation to `eval-when-compile` says
 
 > In interpreted code, this is entirely equivalent to `progn'
 
-Compiling Emacs Lisp to Clojure counts as interpreting in Deuce - but anything in [`loadup.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/loadup.el) is normally already compiled when starting Emacs. When running Emacs with `-Q` you can see that `(featurep 'cl)` actually is `nil`, so in theory `cl.el` shouldn't be loaded, but this distinction is messy as things can depend on the `cl.el` macros. For obvious reasons it would be nice to avoid it, as we have a situation where Deuce contains an ad hoc, informally-specified, bug-ridden, slow implementation of half of Common Lisp in an ad hoc, informally-specified, bug-ridden, slow implementation of half of Emacs Lisp in Clojure.
+Compiling Emacs Lisp to Clojure counts as interpreting in Deuce - but anything in [`loadup.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/loadup.el) is normally already compiled when starting Emacs. When running Emacs with `-Q` you can see that `(featurep 'cl)` actually is `nil`, so in theory `cl.el` shouldn't be loaded, but this distinction is messy as things can depend on the `cl.el` macros. For obvious reasons it would be nice to avoid it, as we have a situation where Deuce contains an ad hoc, informally-specified, bug-ridden, slow implementation of half of Common Lisp in an ad hoc, informally-specified, bug-ridden, slow implementation of half of Emacs Lisp in Clojure.
 
-Next up is [`bindings.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/bindings.el) which is its own area of strangeness, but at least something related to the actual editor.
+Next up is [`bindings.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/bindings.el) which is its own area of strangeness, but at least something related to the actual editor.
 
 
 **2012-10-09**
