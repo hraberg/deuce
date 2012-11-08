@@ -19,7 +19,9 @@ After many false starts, `cl.el` now loads. I don't expect much of it to actuall
 
 Instead files like `env.el` use
 
-  (eval-when-compile (require 'cl))
+```el
+    (eval-when-compile (require 'cl))
+```
 
 The documentation to `eval-when-compile` says
 
