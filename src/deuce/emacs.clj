@@ -63,3 +63,6 @@
 (setq ns-version-string "")
 (setq x-toolkit-scroll-bars nil)
 (setq msdos-long-file-names nil)
+
+;; Hack for a predicate in cl.el, this is defined in emacs-lisp/bytecomp.el, which we're not using
+(defun byte-compile-file-form (form))

@@ -450,7 +450,7 @@
   First argument is the string to copy.
   Remaining arguments form a sequence of PROPERTY VALUE pairs for text
   properties to add to the result."
-  )
+  string)
 
 (defun current-time-string (&optional specified-time)
   "Return the current local time, as a human-readable string.
@@ -560,7 +560,7 @@
 
 (defun char-to-string (char)
   "Convert arg CHAR to a string containing that character."
-  )
+  (str (c/char char)))
 
 (defun delete-region (start end)
   "Delete the text between START and END.

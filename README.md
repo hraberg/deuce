@@ -11,6 +11,13 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Marginalia](http://ghettojedi.org/deuce/)
 
+**2012-11-08**
+
+After many false starts, `cl.el` now loads. I don't expect much of it to actually work, but some things do. See [EmacsWiki](http://www.emacswiki.org/emacs/CommonLispForEmacs) [CommonLispForEmacs](http://www.emacswiki.org/emacs/CommonLispForEmacs) for a discussion about when this file is actually supposed to be loaded. `eval-when-compile` says "In interpreted code, this is entirely equivalent to `progn'" - compiling Emacs Lisp to Clojure counts as interpreting in this case - but anything in `loadup.el` is normally already compiled when starting Emacs. So running Emacs with `-Q` you can see that `(featurep 'cl)` actually is `nil`, so in theory `cl.el` shouldn't be loaded, but this distinction is messy. For obvious reasons it would be nice to avoid it, as we have a situation where Deuce contains an ad hoc, informally-specified, bug-ridden, slow implementation of half of Common Lisp in an ad hoc, informally-specified, bug-ridden, slow implementation of half of Emacs Lisp in Clojure.
+
+Next up is `bindings.el` which is its own area of strangeness, but at least something related to the actual editor.
+
+
 **2012-10-09**
 
 Deuce is not dead. I've been to the US past few weeks, reflecting on StrangeLoop - hacking on a few new things.

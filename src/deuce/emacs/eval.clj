@@ -214,7 +214,9 @@
   "Call first argument as a function, passing remaining arguments to it.
   Return the value that function returns.
   Thus, (funcall 'cons 'x 'y) returns (x . y)."
-  (c/apply (if (symbol? function) (data/symbol-function function) function) arguments))
+  (c/apply (cond (symbol? function) (data/symbol-function function)
+                 (data/listp function) (eval function)
+                 :else function) arguments))
 
 (defun run-hook-wrapped (hook wrap-function &rest args)
   "Run HOOK, passing each function through WRAP-FUNCTION.

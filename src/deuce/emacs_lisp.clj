@@ -188,9 +188,9 @@
           arglist (w/postwalk maybe-sym arglist)
           the-args (remove '#{&} (flatten arglist))]
     `(c/let [f# (~what ~name ~(vec arglist)
-                       ~(when-not (seq body) `(warn ~(c/name name) "NOT IMPLEMENTED"))
                        (binding [*ns* (the-ns 'clojure.core)]
                          (trace-indent '~name)
+                         ~(when-not (seq body) `(warn ~(c/name name) "NOT IMPLEMENTED"))
                          ~@(for [arg the-args]
                              `(trace ~(keyword arg) (pprint-arg ~arg))))
                        (c/let [result# ~(if emacs-lisp?

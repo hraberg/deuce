@@ -3,6 +3,7 @@
   (:require [clojure.core :as c]
             [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.data :as data]
             [deuce.emacs.chartab :as chartab]
             [deuce.emacs.fns :as fns])
   (:refer-clojure :exclude []))
@@ -86,11 +87,12 @@
   If KEYMAP is a sparse keymap with a binding for KEY, the existing
   binding is altered.  If there is no binding for KEY, the new pair
   binding KEY to DEF is added at the front of KEYMAP."
-  (let [key (loop [[k & ks] (reverse (butlast key))
-                   acc (alloc/cons (int (last key)) def)]
-              (if k
-                (recur ks (alloc/list (int k) 'keymap  acc))
-                acc))]
+  (let [key (if (data/vectorp key) key ;; DEF is apparently an XEmacs-style keyboard macro.
+                (loop [[k & ks] (reverse (butlast key))
+                       acc (alloc/cons (int (last key)) def)]
+                  (if k
+                    (recur ks (alloc/list (int k) 'keymap  acc))
+                    acc)))]
     (when-not (some #{key} keymap)
       (fns/nconc keymap key)))
   def)
