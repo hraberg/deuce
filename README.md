@@ -20,7 +20,7 @@ After many false starts, [`cl.el`](https://github.com/emacsmirror/emacs/blob/ema
 Instead files like [`env.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/env.el) use
 
 ```el
-    (eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl))
 ```
 
 The documentation to `eval-when-compile` says
@@ -165,12 +165,14 @@ Clojure will be a first class citizen along Emacs Lisp in this new world. There 
 
 Run [`./collect-tags`](https://github.com/hraberg/deuce/blob/master/collect-tags) and add something like this to your `init.el`:
 
-    ;; To navigate between C and Emacs Lisp
-    (require 'etags-select)
-    (require 'etags-table)
+```el
+;; To navigate between C and Emacs Lisp
+(require 'etags-select)
+(require 'etags-table)
 
-    (global-set-key "\M-." 'etags-select-find-tag)
-    (setq etags-table-search-up-depth 10)
+(global-set-key "\M-." 'etags-select-find-tag)
+(setq etags-table-search-up-depth 10)
+```
 
 There are probably better and cleaner ways of doing this, as TAGS includes TAGS-LISP (there's a hint at [here](http://www.emacswiki.org/emacs/EtagsSelect)).
 
@@ -186,15 +188,21 @@ After a few days of hacking, I found that it's easiest to load and switch to the
 
 Once in [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs.clj) you can either evaluate Emacs Lisp as raw Clojure or via `eval` - the latter is more realistic as there's (often needed) processing done to the Clojure forms before they are really evaluated as Emacs Lisp. So normally do this:
 
-    (eval '(setq x 2))
+```el
+(eval '(setq x 2))
+```
 
 To try to load [`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/src/deuce-loadup.el), do:
 
-    (load "deuce-loadup")
+```el
+(load "deuce-loadup")
+```
 
 You can also load other Emacs Lisp (from the class path) with:
 
-    (load "subr")
+```el
+(load "subr")
+```
 
 Line numbers for Emacs Lisp are off a bit, but navigation with `M-.` from Clojure to Emacs Lisp should roughly work for `defun` and `defmacro`.
 
