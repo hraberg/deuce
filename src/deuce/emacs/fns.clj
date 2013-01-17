@@ -9,7 +9,7 @@
   (import [clojure.lang IPersistentCollection]
           [deuce DottedPair]
           [deuce.emacs.data CharTable]
-          [java.util List Map HashMap Collections]
+          [java.util List Map HashMap Collections Objects]
           [java.nio CharBuffer]
           [java.nio.charset Charset]
           [javax.xml.bind DatatypeConverter]
@@ -517,7 +517,7 @@
   Numbers are compared by value, but integers cannot equal floats.
    (Use `=' if you want integers and floats to be able to be equal.)
   Symbols must match exactly."
-  (= o1 o2))
+  (Objects/deepEquals o1 o2))
 
 (declare reverse)
 
