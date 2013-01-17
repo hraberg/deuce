@@ -4,10 +4,10 @@
             :url "http://www.gnu.org/licenses/"
             :distribution :repo}
   :url "http://www.gnu.org/software/emacs/"
-  :dependencies [[org.clojure/clojure "1.5.0-RC1"]
+  :dependencies [[org.clojure/clojure "1.5.0-RC2"]
                  [clojure-lanterna "0.9.2"]
-                 [com.taoensso/timbre "1.0.0"]]
-  :plugins [[lein-swank "1.4.4"]
+                 [com.taoensso/timbre "1.2.0"]]
+  :plugins [[lein-swank "1.4.5"]
             [lein-difftest "2.0.0"]
             [lein-marginalia "0.7.1"]]
   :profiles {:dev {:resource-paths ["emacs/test/automated"]}}
