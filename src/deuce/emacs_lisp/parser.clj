@@ -6,7 +6,7 @@
   (:import [java.util Scanner]
            [java.io StringReader StreamTokenizer]
            [java.util.regex Pattern]
-           [deuce DottedPair]))
+           [deuce.dotted_pair DottedPair]))
 
 (declare tokenize)
 

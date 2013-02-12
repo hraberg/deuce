@@ -6,7 +6,7 @@
   (:use [taoensso.timbre :as timbre
          :only (trace debug info warn error fatal spy)])
   (:import [clojure.lang Atom]
-           [deuce EmacsLispError DottedPair]
+           [deuce EmacsLispError dotted_pair.DottedPair]
            [java.util LinkedList List])
   (:refer-clojure :exclude [defmacro and or cond let while eval set compile]))
 
@@ -73,9 +73,12 @@
     (remove (every-pred seq? (comp `#{comment} first)) form)
     form))
 
+(c/defmacro dotted-pair [car cdr]
+  `(quote (DottedPair. ~car ~cdr)))
+
 (defn expand-dotted-pairs [form]
   (if (c/and (seq? form) (= 3 (count form)) (= '. (second form)))
-    (DottedPair. (first form) (last form))
+    (dotted-pair (first form) (last form))
     form))
 
 (defn vectors-to-arrays [form]

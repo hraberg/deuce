@@ -7,7 +7,7 @@
             [deuce.emacs.lread :as lread]
             [deuce.emacs-lisp.globals :as globals])
   (import [clojure.lang IPersistentCollection]
-          [deuce DottedPair]
+          [deuce.dotted_pair DottedPair]
           [deuce.emacs.data CharTable]
           [java.util List Map HashMap Collections Objects]
           [java.nio CharBuffer]

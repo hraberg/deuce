@@ -3,9 +3,10 @@
   (:require [clojure.core :as c]
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals]
-            [deuce.emacs.alloc :as alloc])
+            [deuce.emacs.alloc :as alloc]
+            [deuce.dotted-pair :refer [set-car! set-cdr!]])
   (:import [clojure.lang IPersistentCollection]
-           [deuce EmacsLispError DottedPair]
+           [deuce EmacsLispError dotted_pair.DottedPair]
            [java.nio ByteOrder]
            [java.util List LinkedList SubList])
   (:refer-clojure :exclude [+ * - / aset set < = > max >= <= mod atom min]))
@@ -48,7 +49,7 @@
                     (when (c/and c (not= () c)) (str " . " c)))) (.cdr pair) 1) ")")))
 
 (defmethod print-dup DottedPair [pair out]
-  (.write out (str "#=" `(deuce.DottedPair. ~(.car pair) ~(.cdr pair)))))
+  (.write out (str "#=" `(deuce.dotted_pair.DottedPair. ~(.car pair) ~(.cdr pair)))))
 
 (defrecord CharTable
     [;; /* This holds a default value,
@@ -355,7 +356,7 @@
 (defun setcdr (cell newcdr)
   "Set the cdr of CELL to be NEWCDR.  Returns NEWCDR."
   (condp instance? cell
-    DottedPair (set! (.cdr  cell) newcdr)
+    DottedPair (set-cdr! cell newcdr)
     List (let [car (first cell)]
            (.clear cell)
            (.add cell car)
@@ -487,7 +488,7 @@
 (defun setcar (cell newcar)
   "Set the car of CELL to be NEWCAR.  Returns NEWCAR."
   (condp instance? cell
-    DottedPair (set! (.car  cell) newcar)
+    DottedPair (set-car! cell newcar)
     List (.set cell 0 newcar))
   newcar)
 
