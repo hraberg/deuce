@@ -3,7 +3,7 @@
         [taoensso.timbre :as timbre
          :only (trace debug info warn error fatal spy)])
   (:require [clojure.core :as c])
-  (:import [deuce DottedPair]
+  (:import [deuce.dotted_pair DottedPair]
            [java.util LinkedList])
   (:refer-clojure :exclude [vector cons list]))
 
