@@ -16,8 +16,7 @@
   Object
   (equals [this that]
     (or (identical? this that)
-        (and (not (nil? that))
-             (instance? DottedPair that)
+        (and (instance? DottedPair that)
              (= fst (car that))
              (= snd (cdr that)))))
   (hashCode [_]
