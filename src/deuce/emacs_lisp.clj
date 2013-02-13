@@ -287,8 +287,8 @@
   `(try
      ~bodyform
      (catch EmacsLispError e#
-       (c/let [~(if var var (gensym "_")) (.data e#)]
-         (case (.symbol e#)
+       (c/let [~(if var var (gensym "_")) (:data (.state e#))]
+         (case (:symbol (.state e#))
            ~@(apply concat (for [[c & h] handlers]
                              `[~(sym c) (do ~@h)]))
            (throw e#))))))
@@ -599,7 +599,7 @@
   Both TAG and VALUE are evalled."
   {:arglists '([TAG VALUE])}
   [tag value]
-  `(throw (EmacsLispError. ~tag ~value)))
+  `(throw (EmacsLispError. ~value ~tag)))
 
 (c/defmacro ^:clojure-special-form catch
   "Eval BODY allowing nonlocal exits using `throw'.
@@ -614,8 +614,8 @@
   `(try
      ~@body
      (catch EmacsLispError e#
-       (if (= ~tag (.symbol e#))
-         (.data e#)
+       (if (= ~tag (:symbol (.state e#)))
+         (:data (.state e#))
          (throw e#)))))
 
 (c/defmacro ^:clojure-special-form if

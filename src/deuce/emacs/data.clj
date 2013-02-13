@@ -252,7 +252,7 @@
   "Return first argument divided by all the remaining arguments.
   The arguments must be numbers or markers."
   (if (zero? divisor)
-    (throw (EmacsLispError. 'arith-error nil))
+    (throw (EmacsLispError. nil 'arith-error))
     (c/reduce / (c/let [r (c/apply clojure.core// (promote-chars [dividend divisor]))]
                   (if (ratio? r) (long r) r))
               (promote-chars divisors))))
