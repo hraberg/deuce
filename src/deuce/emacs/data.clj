@@ -335,19 +335,7 @@
 
 (defun setcdr (cell newcdr)
   "Set the cdr of CELL to be NEWCDR.  Returns NEWCDR."
-  (condp instance? cell
-    DottedPair (set-cdr! cell newcdr)
-    List (let [car (first cell)]
-           (.clear cell)
-           (.add cell car)
-           (when newcdr
-             (cond
-               (atom newcdr) (.add cell newcdr)
-               (instance? DottedPair newcdr) (doto cell
-                                               (.add (.car newcdr))
-                                               (.add (.cdr newcdr)))
-               :else (.addAll cell newcdr)))))
-  newcdr)
+  (util/setcdr cell newcdr))
 
 (defun set (symbol newval)
   "Set SYMBOL's value to NEWVAL, and return NEWVAL."
@@ -377,14 +365,7 @@
 
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as cdr, car, cons cell and list."
-  (condp instance? list
-    IPersistentCollection (next list)
-    DottedPair (.cdr list)
-    List (let [c (count list)]
-           (if (< c 2)
-             nil
-             (apply alloc/list (.subList list 1 c))))
-    (next list)))
+  (util/cdr list))
 
 (defun = (num1 num2)
   "Return t if two args, both numbers or markers, are equal."
@@ -467,10 +448,7 @@
 
 (defun setcar (cell newcar)
   "Set the car of CELL to be NEWCAR.  Returns NEWCAR."
-  (condp instance? cell
-    DottedPair (set-car! cell newcar)
-    List (.set cell 0 newcar))
-  newcar)
+  (util/setcar cell newcar))
 
 (defun symbolp (object)
   "Return t if OBJECT is a symbol."
@@ -529,9 +507,7 @@
 
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as car, cdr, cons cell and list."
-  (if (instance? DottedPair list)
-    (.car list)
-    (c/first list)))
+  (util/car list))
 
 (defun bool-vector-p (object)
   "Return t if OBJECT is a bool-vector."
