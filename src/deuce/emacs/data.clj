@@ -34,23 +34,6 @@
 (defmethod print-dup array-class [array out]
   (.write out (str "#=" `(object-array ~(vec array)))))
 
-(defmethod print-method LinkedList [o w]
-  (print-method (ellipsis (seq o)) w))
-
-(defmethod print-method SubList [o w]
-  (print-method (ellipsis (seq o)) w))
-
-(defmethod print-method DottedPair [pair w]
-  (.write w
-          (str "(" (str (.car pair))
-               ((fn tail [c n]
-                  (if (instance? DottedPair c)
-                    (str " " (.car c) (if (c/> n max-print-length) " ..." (tail (.cdr c) (inc n))))
-                    (when (c/and c (not= () c)) (str " . " c)))) (.cdr pair) 1) ")")))
-
-(defmethod print-dup DottedPair [pair out]
-  (.write out (str "#=" `(deuce.dotted_pair.DottedPair. ~(.car pair) ~(.cdr pair)))))
-
 (defrecord CharTable
     [;; /* This holds a default value,
      ;; which is used whenever the value for a specific character is nil.  */
