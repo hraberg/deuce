@@ -1,14 +1,15 @@
 (ns deuce.emacs.fns
-  (:use [deuce.emacs-lisp :only (defun defvar) :as el])
+  (:use [deuce.emacs-lisp :only (defun defvar) :as el]
+        [deuce.util :exclude (car cdr setcar setcdr list)])
   (:require [clojure.core :as c]
             [clojure.string :as s]
             [deuce.emacs.alloc :as alloc]
-            [deuce.emacs.data :as data]
+            [deuce.emacs.data :refer [car cdr setcar setcdr] :as data]
             [deuce.emacs.lread :as lread]
             [deuce.emacs-lisp.globals :as globals])
-  (import [clojure.lang IPersistentCollection]
-          [deuce.dotted_pair DottedPair]
+  (import [clojure.lang IPersistentCollection PersistentVector]
           [deuce.emacs.data CharTable]
+          [deuce.util Cons]
           [java.util List Map HashMap Collections Objects]
           [java.nio CharBuffer]
           [java.nio.charset Charset]
@@ -94,11 +95,11 @@
   This function never gets an error.  If LIST is not really a list,
   it returns 0.  If LIST is circular, it returns a finite value
   which is at least the number of distinct elements."
-  (if (instance? DottedPair list)
+  (if (instance? Cons list)
     (loop [pair list
            length 1]
-      (if (and (instance? DottedPair (.cdr pair)))
-        (recur (.cdr pair) (inc length))
+      (if (and (instance? Cons (cdr pair)))
+        (recur (cdr pair) (inc length))
         length))
     (if (coll? list)
       (count list)
