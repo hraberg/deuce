@@ -427,7 +427,7 @@
 
 (defun nlistp (object)
   "Return t if OBJECT is not a list.  Lists include nil."
-  ((complement (some-fn listp nil?)) object))
+  ((complement listp) object))
 
 (defun >= (num1 num2)
   "Return t if first arg is greater than or equal to second arg.
