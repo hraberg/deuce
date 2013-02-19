@@ -285,9 +285,7 @@
 
 (defun consp (object)
   "Return t if OBJECT is a cons cell."
-  (or (instance? DottedPair object)
-      ((every-pred seq? seq) object)
-      ((every-pred (partial instance? List) seq) object)))
+  (satisfies? ICons object))
 
 (defun listp (object)
   "Return t if OBJECT is a list, that is, a cons cell or nil.
