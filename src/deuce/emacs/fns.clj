@@ -580,17 +580,15 @@
 (defun nconc (&rest lists)
   "Concatenate any number of lists by altering them.
   Only the last argument is not altered, and need not be a list."
-  (let [[car & cdr] lists
-        car (if (nil? car) (alloc/list) car)]
-    (doseq [list (remove nil? (butlast cdr))]
-      (.addAll car list))
-    (when-let [last (last cdr)]
-      (cond
-        (data/atom last) (.add car last)
-        (instance? DottedPair last) (do (.add car (.car last))
-                                        (.add car (.cdr last)))
-        :else (.addAll car last)))
-    car))
+  (letfn [(last-cons [l]
+            (if (not (data/consp (cdr l))) l (recur (cdr l))))]
+    (loop [ls (rest lists)
+           last (last-cons (first lists))]
+      (setcdr last (first ls))
+      (when (seq (rest ls))
+        (recur (rest ls)
+               (last-cons (first ls))))))
+  (first lists))
 
 (defun length (sequence)
   "Return the length of vector, list or string SEQUENCE.
