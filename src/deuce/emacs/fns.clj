@@ -529,10 +529,13 @@
 (defun nreverse (list)
   "Reverse LIST by modifying cdr pointers.
   Return the reversed list."
-  ;; (when (seq list)
-  ;;   (Collections/reverse list)
-  ;;   list)
-  (reverse list))
+  (loop [l list
+         n (cdr list)
+         r nil]
+    (if (data/consp n)
+      (do (setcdr l r)
+          (recur n (cdr n) l))
+      r)))
 
 (defun reverse (list)
   "Reverse LIST, copying.  Return the reversed list.
