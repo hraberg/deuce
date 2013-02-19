@@ -2,13 +2,16 @@
   (:require [clojure.core :as c]
             [clojure.string :as s]
             [clojure.pprint :as pp]
-            [clojure.walk :as w])
+            [clojure.walk :as w]
+            [deuce.util :refer [list]])
   (:use [taoensso.timbre :as timbre
-         :only (trace debug info warn error fatal spy)])
+         :only (trace debug info warn error fatal spy)]
+        deuce.util)
   (:import [clojure.lang Atom]
-           [deuce EmacsLispError dotted_pair.DottedPair]
-           [java.util LinkedList List])
-  (:refer-clojure :exclude [defmacro and or cond let while eval set compile]))
+           [deuce EmacsLispError]
+           [java.util List]
+           [deuce.util Cons])
+  (:refer-clojure :exclude [defmacro and or cond let while eval set compile list]))
 
 (timbre/set-config! [:prefix-fn]
                     (fn [{:keys [level timestamp hostname ns]}]
@@ -73,12 +76,12 @@
     (remove (every-pred seq? (comp `#{comment} first)) form)
     form))
 
-(c/defmacro dotted-pair [car cdr]
-  `(quote (DottedPair. ~car ~cdr)))
+(c/defmacro emacs-cons [car cdr]
+  `(quote (alloc/cons ~car ~cdr)))
 
-(defn expand-dotted-pairs [form]
+(defn expand-cons [form]
   (if (c/and (seq? form) (= 3 (count form)) (= '. (second form)))
-    (dotted-pair (first form) (last form))
+    (emacs-cons (first form) (last form))
     form))
 
 (defn vectors-to-arrays [form]
@@ -87,10 +90,10 @@
     form))
 
 ; doesn't work as intended
-(defn lists-to-linked-lists [form]
+(defn lists-to-cons [form]
   (if (c/and (seq? form) (= 'quote (first form))
              (seq? (second form)))
-    (list 'quote  (LinkedList. (second form)))
+    (c/list 'quote  (apply list (second form)))
     form))
 
 (defn protect-forms [form]
@@ -106,7 +109,7 @@
     `(fn ~(vec scope)
        ~(->> body
              (w/postwalk (comp strip-comments
-                               expand-dotted-pairs
+                               expand-cons
                                vectors-to-arrays
                                protect-forms))
              (w/postwalk (comp unprotect-forms
@@ -159,7 +162,7 @@
 
 (defn linked-lists-to-seqs [form]
   (if (instance? List form)
-    (apply clojure.core/list form)
+    (apply c/list form)
     form))
 
 (c/defmacro trace-indent [& args]
@@ -197,12 +200,12 @@
                          ~@(for [arg the-args]
                              `(trace ~(keyword arg) (pprint-arg ~arg))))
                        (c/let [result# ~(if emacs-lisp?
-                                          `(c/let ~(if rest-arg `[~rest-arg (if-let [r# (seq ~rest-arg)] (LinkedList. r#) (LinkedList.))] [])
+                                          `(c/let ~(if rest-arg `[~rest-arg (if-let [r# (seq ~rest-arg)] (apply list r#) nil)] [])
                                              (if (= '~'defmacro '~(sym what))
-                                               (c/let [expansion# (let-helper* false ~(map #(list % %) the-args)
+                                               (c/let [expansion# (let-helper* false ~(map #(c/list % %) the-args)
                                                                     (eval '(progn ~@body)))]
                                                  (w/prewalk linked-lists-to-seqs expansion#))
-                                               (let-helper* false ~(map #(list % %) the-args)
+                                               (let-helper* false ~(map #(c/list % %) the-args)
                                                  (eval '(progn ~@body)))))
                                           `(do ~@body))]
 
@@ -361,13 +364,13 @@
 
 (defn fix-lexical-setq [lexical-vars form]
   (if (lexical-vars form)
-    (list `deref form)
+    (c/list `deref form)
     (condp some [(maybe-sym (first-symbol form))]
-      '#{setq} (list `setq-helper*
+      '#{setq} (c/list `setq-helper*
                      lexical-vars false (rest form))
       '#{setq-helper*} (concat [`setq-helper*
                                 (into (second form) lexical-vars)] (drop 2 form))
-      '#{deref} (list `deref (nested-first-symbol form))
+      '#{deref} (c/list `deref (nested-first-symbol form))
       form)))
 
 (c/defmacro let-helper* [can-refer? varlist & body]
