@@ -597,11 +597,11 @@
   the number of bytes in the string; it is the number of characters.
   To get the number of bytes, use `string-bytes'."
   (condp instance? sequence
-    DottedPair (loop [pair sequence
-                      length 1]
-                 (if (and (.cdr pair) (not= () (.cdr pair)))
-                   (recur (.cdr pair) (inc length))
-                   length))
+    Cons (loop [cons sequence
+                length 1]
+           (if (data/consp cons)
+             (recur (cdr cons) (inc length))
+             length))
     CharTable (count (.contents sequence))
     (count sequence)))
 
