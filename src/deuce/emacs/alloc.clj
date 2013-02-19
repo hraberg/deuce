@@ -2,9 +2,9 @@
   (:use [deuce.emacs-lisp :only (defun defvar)]
         [taoensso.timbre :as timbre
          :only (trace debug info warn error fatal spy)])
-  (:require [clojure.core :as c])
-  (:import [deuce.dotted_pair DottedPair]
-           [java.util LinkedList])
+  (:require [clojure.core :as c]
+            [deuce.util :as util])
+  (:import [deuce.util Cons])
   (:refer-clojure :exclude [vector cons list]))
 
 (defvar purify-flag nil
@@ -150,14 +150,7 @@
 
 (defun cons (car cdr)
   "Create a new cons, give it CAR and CDR as components, and return it."
-  (cond
-    (instance? LinkedList cdr) (doto (list car)
-                                 (.addAll cdr))
-    (or (coll? cdr) (nil? cdr) (= () cdr)) (let [cdr (c/apply list cdr)]
-                                             (when (seq cdr)
-                                               (trace "cons: cdr was immutable" cdr))
-                                             (cons car cdr))
-    :else (DottedPair. car cdr)))
+  (Cons. car cdr))
 
 (defun (clojure.core/symbol "slash-equals") (num1 num2)
   "Return t if first arg is not equal to second arg.  Both must be numbers or markers."
@@ -201,4 +194,4 @@
 (defun list (&rest objects)
   "Return a newly created list with specified arguments as elements.
   Any number of arguments, even zero arguments, are allowed."
-  (LinkedList. (or objects [])))
+  (apply util/list objects))
