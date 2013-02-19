@@ -110,7 +110,7 @@
 (defun member (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.
   The value is actually the tail of LIST whose car is ELT."
-  (list-or-nil (drop-while #(not (equal elt %)) list)))
+  (list-or-nil (drop-while #(not (equal elt %)) (seq list))))
 
 (defun copy-hash-table (table)
   "Return a copy of hash table TABLE."
@@ -121,14 +121,14 @@
   The result is a list whose elements are the elements of all the arguments.
   Each argument may be a list, vector or string.
   The last argument is not copied, just used as the tail of the new list."
-  (apply alloc/list (apply c/concat sequences)))
+  (apply alloc/list (apply c/concat (seq sequences))))
 
 (defun mapconcat (function sequence separator)
   "Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.
   In between each pair of results, stick in SEPARATOR.  Thus, \" \" as
   SEPARATOR results in spaces between the values returned by FUNCTION.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  (s/join separator (map (el/fun function) sequence)))
+  (s/join separator (map (el/fun function) (seq sequence))))
 
 (defun compare-strings (str1 start1 end1 str2 start2 end2 &optional ignore-case)
   "Compare the contents of two strings, converting to multibyte if needed.
@@ -354,7 +354,6 @@
 (defun assoc (key list)
   "Return non-nil if KEY is `equal' to the car of an element of LIST.
   The value is actually the first element of LIST whose car equals KEY."
-  (some #(c/and (instance? DottedPair %) (equal key (.car %)) %) list))
 
 (defun remhash (key table)
   "Remove KEY from TABLE."
@@ -400,7 +399,7 @@
   "Return non-nil if KEY is `eq' to the car of an element of LIST.
   The value is actually the first element of LIST whose car is KEY.
   Elements of LIST that are not conses are ignored."
-  (first (filter #(data/eq key (data/car-safe %)) list)))
+  (first (filter #(data/eq key (data/car-safe %)) (seq list))))
 
 (defun string-make-multibyte (string)
   "Return the multibyte equivalent of STRING.
@@ -424,7 +423,7 @@
   "Apply FUNCTION to each element of SEQUENCE, and make a list of the results.
   The result is a list just as long as SEQUENCE.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  (list-or-nil (map (el/fun function) sequence)))
+  (list-or-nil (map (el/fun function) (seq sequence))))
 
 (defun fillarray (array item)
   "Store each element of ARRAY with ITEM.
@@ -508,7 +507,7 @@
 (defun rassoc (key list)
   "Return non-nil if KEY is `equal' to the cdr of an element of LIST.
   The value is actually the first element of LIST whose cdr equals KEY."
-  (some #(c/and (instance? DottedPair %) (equal key (.cdr %)) %) list))
+  (some #(c/and (instance? Cons %) (equal key (cdr %)) %) (seq list)))
 
 (defun equal (o1 o2)
   "Return t if two Lisp objects have similar structure and contents.
@@ -534,11 +533,11 @@
   "Reverse LIST, copying.  Return the reversed list.
   See also the function `nreverse', which is used more often."
   (when (seq list)
-    (apply alloc/list (c/reverse list))))
+    (apply alloc/list (c/reverse (seq list)))))
 
 (defun nthcdr (n list)
   "Take cdr N times on LIST, return the result."
-  (list-or-nil (drop n list)))
+  (list-or-nil (drop n (seq list))))
 
 (defun hash-table-rehash-size (table)
   "Return the current rehash size of TABLE."
