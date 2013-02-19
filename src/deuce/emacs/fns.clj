@@ -237,6 +237,8 @@
   "Return t if OBJ is a Lisp hash table object."
   (instance? Map obj))
 
+(declare del)
+
 (defun delete (elt seq)
   "Delete by side effect any occurrences of ELT as a member of SEQ.
   SEQ must be a list, a vector, or a string.
@@ -245,13 +247,10 @@
   is not a side effect; it is simply using a different sequence.
   Therefore, write `(setq foo (delete element foo))'
   to be sure of changing the value of `foo'."
-  (when seq
-    (loop [i (.iterator seq)]
-      (when (.hasNext i)
-        (when (equal elt (.next i))
-          (.remove i))
-        (recur i))))
-  seq)
+  (condp instance? seq
+    Cons (del data/= elt seq)
+    PersistentVector (filterv (partial data/= elt) seq)
+    String (clojure.string/replace seq elt "")))
 
 (defun locale-info (item)
   "Access locale data ITEM for the current C locale, if available.
