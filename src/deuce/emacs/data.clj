@@ -290,7 +290,7 @@
 (defun listp (object)
   "Return t if OBJECT is a list, that is, a cons cell or nil.
   Otherwise, return nil."
-  ((some-fn list? nil? (partial instance? List)) object))
+  (satisfies? IList object))
 
 (defun aref (array idx)
   "Return the element of ARRAY at index IDX.
