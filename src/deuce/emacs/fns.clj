@@ -353,6 +353,7 @@
 (defun assoc (key list)
   "Return non-nil if KEY is `equal' to the car of an element of LIST.
   The value is actually the first element of LIST whose car equals KEY."
+  (some #(c/and (instance? Cons %) (equal key (.car %)) %) (seq list)))
 
 (defun remhash (key table)
   "Remove KEY from TABLE."
