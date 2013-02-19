@@ -381,19 +381,24 @@
   This makes STRING unibyte and may change its length."
   )
 
+(defn- del [f elt list]
+  (loop [prev list
+         curr (cdr list)]
+    (when (car curr)
+      (when (f elt (car curr))
+        (setcar prev (cdr curr)))
+      (recur (cdr prev)
+             (cdr curr))))
+  (if (data/eq elt (car list))
+    (cdr list) list))
+
 (defun delq (elt list)
   "Delete by side effect any occurrences of ELT as a member of LIST.
   The modified LIST is returned.  Comparison is done with `eq'.
   If the first member of LIST is ELT, there is no way to remove it by side effect;
   therefore, write `(setq foo (delq element foo))'
   to be sure of changing the value of `foo'."
-  (when list
-    (loop [i (.iterator list)]
-      (when (.hasNext i)
-        (when (data/eq elt (.next i))
-          (.remove i))
-        (recur i))))
-  list)
+  (del data/eq elt list))
 
 (defun assq (key list)
   "Return non-nil if KEY is `eq' to the car of an element of LIST.
