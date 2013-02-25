@@ -421,7 +421,10 @@
         sym (el/fun symbol)]
     (when sym
       (when (and (consp @sym) (c/= (car @sym) 'autoload))
-        (deuce.emacs.fns/put symbol 'autoload (cdr @sym))))
+        ;; Creates a cyclic load dependency chain.
+        ;; TODO: deuce.emacs.fns/put must be below deuce.emacs.data
+        ;; (fns/put symbol 'autoload (cdr @sym))
+        ))
     (intern 'deuce.emacs symbol definition)
     definition))
 
