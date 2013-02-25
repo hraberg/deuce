@@ -15,7 +15,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 After a long break from Deuce, I'm now in Agonda, Goa, specifically with the aim to hack on Deuce for two months. Thanks to [Bjarte](https://github.com/ljos) and [Navgeet](https://github.com/Navgeet) for their pull requests, despite my lack of focus here.
 
-I plan to start with a rethink of how the Emacs Lisp evaluation model works - it's currently way too slow, and relies heavily on Clojure's `eval`. I'm also considering to just ditch or stub out some parts of `loadup` (specifically `mule`) for now to slim the boot down and aim to get the editor actually starting in some form.
+I plan to start with a rethink of how the Emacs Lisp evaluation model works - it's currently way too slow, and relies heavily on Clojure's `eval`. I'm also considering to just ditch or stub out some parts of `loadup` (specifically `mule`) for now and aim to get the editor actually starting in some form.
 
 
 **2012-11-08**
