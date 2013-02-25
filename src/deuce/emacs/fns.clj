@@ -119,11 +119,12 @@
   The result is a list whose elements are the elements of all the arguments.
   Each argument may be a list, vector or string.
   The last argument is not copied, just used as the tail of the new list."
-  (if (= 1 (count sequences))
-    (first sequences)
-    (let [l (apply alloc/list (apply c/concat (seq (butlast sequences))))]
-      (setcdr (last-cons l) (last sequences))
-      l)))
+  (let [sequences (remove empty? sequences)]
+    (if (> (count sequences) 1)
+      (let [l (apply alloc/list (apply c/concat (seq (butlast sequences))))]
+        (setcdr (last-cons l) (last sequences))
+        l)
+      (first sequences))))
 
 (defun mapconcat (function sequence separator)
   "Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.
