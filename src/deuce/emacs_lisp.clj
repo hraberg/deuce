@@ -630,6 +630,21 @@
   [tag value]
   `(throw (EmacsLispError. ~value ~tag)))
 
+(c/defmacro try-with-tag [& exprs]
+  "try EXPRS and catch exceptions specifying tag name instead of Exception class."
+  (c/let [catch-clauses (c/filter #(c/= (first %) 'catch) exprs)
+        finally-clause (c/filter #(c/= (first %) 'finally) exprs)
+        try-exprs (c/remove #(or (c/= (first %) 'finally) (c/= (first %) 'catch)) exprs)]
+    `(try ~@try-exprs
+          ~@(for [expr catch-clauses]
+             (c/let [[_ tag e & exprs] expr]
+               `(catch EmacsLispError e#
+                  (if (= ~tag (.symbol e#))
+                    (c/let [~e e#]
+                      (do ~@exprs))
+                    (throw e#)))))
+          ~@finally-clause)))
+
 (c/defmacro ^:clojure-special-form catch
   "Eval BODY allowing nonlocal exits using `throw'.
   TAG is evalled to get the tag to use; it must not be nil.
