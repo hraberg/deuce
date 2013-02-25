@@ -42,10 +42,6 @@
 
 (def ^:dynamic ^:private *symbol-plists* (atom {}))
 
-(defn ^:private list-or-nil [x]
-  (when (seq x)
-    (apply alloc/list x)))
-
 (defn ^:private last-cons [l]
   (if (not (data/consp (cdr l))) l (recur (cdr l))))
 
@@ -107,12 +103,12 @@
       (count list)
       0)))
 
-(declare equal)
+(declare equal mem)
 
 (defun member (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.
   The value is actually the tail of LIST whose car is ELT."
-  (list-or-nil (drop-while #(not (equal elt %)) (seq list))))
+  (mem equal elt list))
 
 (defun copy-hash-table (table)
   "Return a copy of hash table TABLE."
@@ -387,7 +383,7 @@
   This makes STRING unibyte and may change its length."
   )
 
-(defn- del [f elt list]
+(defn ^:private del [f elt list]
   (loop [prev list
          curr (cdr list)]
     (when (car curr)
@@ -397,6 +393,13 @@
              (cdr curr))))
   (if (data/eq elt (car list))
     (cdr list) list))
+
+(defn ^:private mem [f elt list]
+  (loop [list list]
+    (if (f elt (car list))
+      list
+      (when-let [list (cdr list)]
+        (recur list)))))
 
 (defun delq (elt list)
   "Delete by side effect any occurrences of ELT as a member of LIST.
@@ -434,7 +437,7 @@
   "Apply FUNCTION to each element of SEQUENCE, and make a list of the results.
   The result is a list just as long as SEQUENCE.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  (list-or-nil (map (el/fun function) (seq sequence))))
+  (apply alloc/list (map (el/fun function) (seq sequence))))
 
 (defun fillarray (array item)
   "Store each element of ARRAY with ITEM.
@@ -551,7 +554,10 @@
 
 (defun nthcdr (n list)
   "Take cdr N times on LIST, return the result."
-  (list-or-nil (drop n (seq list))))
+  (loop [n n list list]
+    (if (pos? n)
+      (recur (dec n) (cdr list))
+      list)))
 
 (defun hash-table-rehash-size (table)
   "Return the current rehash size of TABLE."
@@ -614,12 +620,12 @@
 (defun memq (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
   The value is actually the tail of LIST whose car is ELT."
-  (list-or-nil (drop-while #(not (data/eq elt %)) list)))
+  (mem data/eq elt list))
 
 (defun memql (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `eql'.
   The value is actually the tail of LIST whose car is ELT."
-  (list-or-nil  (drop-while #(not (eql elt %)) list)))
+  (mem eql elt list))
 
 (defun gethash (key table &optional dflt)
   "Look up KEY in TABLE and return its associated value.
