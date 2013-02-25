@@ -186,10 +186,9 @@
     form))
 
 (c/defmacro trace-indent [& args]
-  `(c/let [depth# (->> (.getStackTrace (Thread/currentThread))
-                       (filter #(re-find #"deuce." (str %)))
-                       count)]
-     (trace (apply str (repeat depth# "-")) ~@args)))
+  `(trace (apply str (repeat (->> (.getStackTrace (Thread/currentThread))
+                                  (filter #(re-find #"deuce." (str %)))
+                                  count) "-")) ~@args))
 
 (defn underef [form]
   (if (c/and (seq? form) (= `deref (first form)))
