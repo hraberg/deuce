@@ -4,7 +4,7 @@
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.data :as data]
             [deuce.emacs.fns :as fns])
-  (:import [deuce DottedPair]
+  (:import [deuce.dotted_pair DottedPair]
            [deuce.emacs.data CharTable])
   (:refer-clojure :exclude []))
 
