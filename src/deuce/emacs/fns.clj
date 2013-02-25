@@ -755,11 +755,10 @@
   otherwise the new PROP VAL pair is added.  The new plist is returned;
   use `(setq x (plist-put x prop val))' to be sure to use the new value.
   The PLIST is modified by side effects."
-  (let [idx (.indexOf plist prop)]
-    (if-not (neg? idx)
-      (.set plist (inc idx) val)
-      (nconc plist [prop val])))
-  plist)
+  (if-let [rest (memq prop plist)]
+    (do (setcar (cdr rest) val)
+        plist)
+    (nconc plist (alloc/list prop val))))
 
 (defun puthash (key value table)
   "Associate KEY with VALUE in hash table TABLE.

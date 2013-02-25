@@ -193,3 +193,29 @@
   See the documentation of the function `charset-info' for the meanings of
   DIMENSION, CHARS, and FINAL-CHAR."
   )
+
+(define-charset-internal 'ascii
+  [:dimension 1
+   :code-space (alloc/vector 0 127)
+   :iso-final-char \B
+   :ascii-compatible-p true
+   :emacs-mule-id 0
+   :code-offset 0])
+
+(define-charset-internal 'unicode
+  [:dimension 3
+   :code-space (alloc/vector 0 255 0 255 0 16)
+   :ascii-compatible-p true
+   :code-offset 0])
+
+(define-charset-internal 'emacs
+  [:dimension 3
+   :code-space (alloc/vector 0 255 0 255 0 63)
+   :ascii-compatible-p true
+   :supplementary-p true
+   :code-offset 0])
+
+(define-charset-internal 'eight-bit
+  [:dimension 1
+   :code-space (alloc/vector 128 255)
+   :code-offset 0x3FFF80])
