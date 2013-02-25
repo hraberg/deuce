@@ -15,5 +15,5 @@
   :jar-exclusions [#".*\.elc"]
   :java-source-paths ["src"]
   :jvm-opts ["-Xss4m"]
-  :aot [deuce.EmacsLispError deuce.dotted-pair           ]
+  :aot [deuce.EmacsLispError deuce.util]
   :main deuce.main)

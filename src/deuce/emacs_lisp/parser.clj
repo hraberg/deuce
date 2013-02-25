@@ -5,8 +5,7 @@
             [deuce.emacs.alloc :as alloc])
   (:import [java.util Scanner]
            [java.io StringReader StreamTokenizer]
-           [java.util.regex Pattern]
-           [deuce.dotted_pair DottedPair]))
+           [java.util.regex Pattern]))
 
 (declare tokenize)
 
@@ -102,7 +101,7 @@
       (alloc/cons
        (->> ((if all? tokenize-all tokenize) scanner)
             (w/postwalk-replace {(symbol "nil") nil 't true})
-            (w/postwalk (comp el/expand-dotted-pairs el/vectors-to-arrays))
+            (w/postwalk (comp el/expand-cons el/vectors-to-arrays))
             syntax-quote)
        (.get scanner-position scanner)))))
 

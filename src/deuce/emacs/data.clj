@@ -1,14 +1,13 @@
 (ns deuce.emacs.data
-  (:use [deuce.emacs-lisp :only (defun defvar setq setq-default) :as el])
+  (:use [deuce.emacs-lisp :only (defun defvar setq setq-default) :as el]
+        [deuce.util :exclude (car cdr setcar setcdr list)])
   (:require [clojure.core :as c]
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs.alloc :as alloc]
-            [deuce.dotted-pair :refer [set-car! set-cdr!]])
-  (:import [clojure.lang IPersistentCollection]
-           [deuce EmacsLispError dotted_pair.DottedPair]
-           [java.nio ByteOrder]
-           [java.util List LinkedList SubList])
+            [deuce.util :as util])
+  (:import [deuce EmacsLispError]
+           [java.nio ByteOrder])
   (:refer-clojure :exclude [+ * - / aset set < = > max >= <= mod atom min]))
 
 (declare consp car cdr)
@@ -33,23 +32,6 @@
 
 (defmethod print-dup array-class [array out]
   (.write out (str "#=" `(object-array ~(vec array)))))
-
-(defmethod print-method LinkedList [o w]
-  (print-method (ellipsis (seq o)) w))
-
-(defmethod print-method SubList [o w]
-  (print-method (ellipsis (seq o)) w))
-
-(defmethod print-method DottedPair [pair w]
-  (.write w
-          (str "(" (str (.car pair))
-               ((fn tail [c n]
-                  (if (instance? DottedPair c)
-                    (str " " (.car c) (if (c/> n max-print-length) " ..." (tail (.cdr c) (inc n))))
-                    (when (c/and c (not= () c)) (str " . " c)))) (.cdr pair) 1) ")")))
-
-(defmethod print-dup DottedPair [pair out]
-  (.write out (str "#=" `(deuce.dotted_pair.DottedPair. ~(.car pair) ~(.cdr pair)))))
 
 (defrecord CharTable
     [;; /* This holds a default value,
@@ -303,14 +285,12 @@
 
 (defun consp (object)
   "Return t if OBJECT is a cons cell."
-  (or (instance? DottedPair object)
-      ((every-pred seq? seq) object)
-      ((every-pred (partial instance? List) seq) object)))
+  (satisfies? ICons object))
 
 (defun listp (object)
   "Return t if OBJECT is a list, that is, a cons cell or nil.
   Otherwise, return nil."
-  ((some-fn list? nil? (partial instance? List)) object))
+  (satisfies? IList object))
 
 (defun aref (array idx)
   "Return the element of ARRAY at index IDX.
@@ -355,19 +335,7 @@
 
 (defun setcdr (cell newcdr)
   "Set the cdr of CELL to be NEWCDR.  Returns NEWCDR."
-  (condp instance? cell
-    DottedPair (set-cdr! cell newcdr)
-    List (let [car (first cell)]
-           (.clear cell)
-           (.add cell car)
-           (when newcdr
-             (cond
-               (atom newcdr) (.add cell newcdr)
-               (instance? DottedPair newcdr) (doto cell
-                                               (.add (.car newcdr))
-                                               (.add (.cdr newcdr)))
-               :else (.addAll cell newcdr)))))
-  newcdr)
+  (util/setcdr cell newcdr))
 
 (defun set (symbol newval)
   "Set SYMBOL's value to NEWVAL, and return NEWVAL."
@@ -397,14 +365,7 @@
 
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as cdr, car, cons cell and list."
-  (condp instance? list
-    IPersistentCollection (next list)
-    DottedPair (.cdr list)
-    List (let [c (count list)]
-           (if (< c 2)
-             nil
-             (apply alloc/list (.subList list 1 c))))
-    (next list)))
+  (util/cdr list))
 
 (defun = (num1 num2)
   "Return t if two args, both numbers or markers, are equal."
@@ -466,7 +427,7 @@
 
 (defun nlistp (object)
   "Return t if OBJECT is not a list.  Lists include nil."
-  ((complement (some-fn listp nil?)) object))
+  ((complement listp) object))
 
 (defun >= (num1 num2)
   "Return t if first arg is greater than or equal to second arg.
@@ -487,10 +448,7 @@
 
 (defun setcar (cell newcar)
   "Set the car of CELL to be NEWCAR.  Returns NEWCAR."
-  (condp instance? cell
-    DottedPair (set-car! cell newcar)
-    List (.set cell 0 newcar))
-  newcar)
+  (util/setcar cell newcar))
 
 (defun symbolp (object)
   "Return t if OBJECT is a symbol."
@@ -549,9 +507,7 @@
 
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as car, cdr, cons cell and list."
-  (if (instance? DottedPair list)
-    (.car list)
-    (c/first list)))
+  (util/car list))
 
 (defun bool-vector-p (object)
   "Return t if OBJECT is a bool-vector."
@@ -582,7 +538,7 @@
 
 (defun null (object)
   "Return t if OBJECT is nil."
-  (or (nil? object) (c/= () object) (false? object)))
+  (or (c/= object nil) (c/= () object) (false? object)))
 
 (defun char-table-p (object)
   "Return t if OBJECT is a char-table."

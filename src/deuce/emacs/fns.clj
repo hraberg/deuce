@@ -1,14 +1,15 @@
 (ns deuce.emacs.fns
-  (:use [deuce.emacs-lisp :only (defun defvar) :as el])
+  (:use [deuce.emacs-lisp :only (defun defvar) :as el]
+        [deuce.util :exclude (car cdr setcar setcdr list)])
   (:require [clojure.core :as c]
             [clojure.string :as s]
             [deuce.emacs.alloc :as alloc]
-            [deuce.emacs.data :as data]
+            [deuce.emacs.data :refer [car cdr setcar setcdr] :as data]
             [deuce.emacs.lread :as lread]
             [deuce.emacs-lisp.globals :as globals])
-  (import [clojure.lang IPersistentCollection]
-          [deuce.dotted_pair DottedPair]
+  (import [clojure.lang IPersistentCollection PersistentVector]
           [deuce.emacs.data CharTable]
+          [deuce.util Cons]
           [java.util List Map HashMap Collections Objects]
           [java.nio CharBuffer]
           [java.nio.charset Charset]
@@ -94,11 +95,11 @@
   This function never gets an error.  If LIST is not really a list,
   it returns 0.  If LIST is circular, it returns a finite value
   which is at least the number of distinct elements."
-  (if (instance? DottedPair list)
+  (if (instance? Cons list)
     (loop [pair list
            length 1]
-      (if (and (instance? DottedPair (.cdr pair)))
-        (recur (.cdr pair) (inc length))
+      (if (and (instance? Cons (cdr pair)))
+        (recur (cdr pair) (inc length))
         length))
     (if (coll? list)
       (count list)
@@ -109,7 +110,7 @@
 (defun member (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.
   The value is actually the tail of LIST whose car is ELT."
-  (list-or-nil (drop-while #(not (equal elt %)) list)))
+  (list-or-nil (drop-while #(not (equal elt %)) (seq list))))
 
 (defun copy-hash-table (table)
   "Return a copy of hash table TABLE."
@@ -120,14 +121,14 @@
   The result is a list whose elements are the elements of all the arguments.
   Each argument may be a list, vector or string.
   The last argument is not copied, just used as the tail of the new list."
-  (apply alloc/list (apply c/concat sequences)))
+  (apply alloc/list (apply c/concat (seq sequences))))
 
 (defun mapconcat (function sequence separator)
   "Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.
   In between each pair of results, stick in SEPARATOR.  Thus, \" \" as
   SEPARATOR results in spaces between the values returned by FUNCTION.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  (s/join separator (map (el/fun function) sequence)))
+  (s/join separator (map (el/fun function) (seq sequence))))
 
 (defun compare-strings (str1 start1 end1 str2 start2 end2 &optional ignore-case)
   "Compare the contents of two strings, converting to multibyte if needed.
@@ -236,6 +237,8 @@
   "Return t if OBJ is a Lisp hash table object."
   (instance? Map obj))
 
+(declare del)
+
 (defun delete (elt seq)
   "Delete by side effect any occurrences of ELT as a member of SEQ.
   SEQ must be a list, a vector, or a string.
@@ -244,13 +247,10 @@
   is not a side effect; it is simply using a different sequence.
   Therefore, write `(setq foo (delete element foo))'
   to be sure of changing the value of `foo'."
-  (when seq
-    (loop [i (.iterator seq)]
-      (when (.hasNext i)
-        (when (equal elt (.next i))
-          (.remove i))
-        (recur i))))
-  seq)
+  (condp instance? seq
+    Cons (del data/= elt seq)
+    PersistentVector (filterv (partial data/= elt) seq)
+    String (clojure.string/replace seq elt "")))
 
 (defun locale-info (item)
   "Access locale data ITEM for the current C locale, if available.
@@ -353,7 +353,7 @@
 (defun assoc (key list)
   "Return non-nil if KEY is `equal' to the car of an element of LIST.
   The value is actually the first element of LIST whose car equals KEY."
-  (some #(c/and (instance? DottedPair %) (equal key (.car %)) %) list))
+  (some #(c/and (instance? Cons %) (equal key (.car %)) %) (seq list)))
 
 (defun remhash (key table)
   "Remove KEY from TABLE."
@@ -381,25 +381,30 @@
   This makes STRING unibyte and may change its length."
   )
 
+(defn- del [f elt list]
+  (loop [prev list
+         curr (cdr list)]
+    (when (car curr)
+      (when (f elt (car curr))
+        (setcar prev (cdr curr)))
+      (recur (cdr prev)
+             (cdr curr))))
+  (if (data/eq elt (car list))
+    (cdr list) list))
+
 (defun delq (elt list)
   "Delete by side effect any occurrences of ELT as a member of LIST.
   The modified LIST is returned.  Comparison is done with `eq'.
   If the first member of LIST is ELT, there is no way to remove it by side effect;
   therefore, write `(setq foo (delq element foo))'
   to be sure of changing the value of `foo'."
-  (when list
-    (loop [i (.iterator list)]
-      (when (.hasNext i)
-        (when (data/eq elt (.next i))
-          (.remove i))
-        (recur i))))
-  list)
+  (del data/eq elt list))
 
 (defun assq (key list)
   "Return non-nil if KEY is `eq' to the car of an element of LIST.
   The value is actually the first element of LIST whose car is KEY.
   Elements of LIST that are not conses are ignored."
-  (first (filter #(data/eq key (data/car-safe %)) list)))
+  (first (filter #(data/eq key (data/car-safe %)) (seq list))))
 
 (defun string-make-multibyte (string)
   "Return the multibyte equivalent of STRING.
@@ -423,7 +428,7 @@
   "Apply FUNCTION to each element of SEQUENCE, and make a list of the results.
   The result is a list just as long as SEQUENCE.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  (list-or-nil (map (el/fun function) sequence)))
+  (list-or-nil (map (el/fun function) (seq sequence))))
 
 (defun fillarray (array item)
   "Store each element of ARRAY with ITEM.
@@ -507,7 +512,7 @@
 (defun rassoc (key list)
   "Return non-nil if KEY is `equal' to the cdr of an element of LIST.
   The value is actually the first element of LIST whose cdr equals KEY."
-  (some #(c/and (instance? DottedPair %) (equal key (.cdr %)) %) list))
+  (some #(c/and (instance? Cons %) (equal key (cdr %)) %) (seq list)))
 
 (defun equal (o1 o2)
   "Return t if two Lisp objects have similar structure and contents.
@@ -524,20 +529,23 @@
 (defun nreverse (list)
   "Reverse LIST by modifying cdr pointers.
   Return the reversed list."
-  ;; (when (seq list)
-  ;;   (Collections/reverse list)
-  ;;   list)
-  (reverse list))
+  (loop [l list
+         n (cdr list)
+         r nil]
+    (if (data/consp n)
+      (do (setcdr l r)
+          (recur n (cdr n) l))
+      r)))
 
 (defun reverse (list)
   "Reverse LIST, copying.  Return the reversed list.
   See also the function `nreverse', which is used more often."
   (when (seq list)
-    (apply alloc/list (c/reverse list))))
+    (apply alloc/list (c/reverse (seq list)))))
 
 (defun nthcdr (n list)
   "Take cdr N times on LIST, return the result."
-  (list-or-nil (drop n list)))
+  (list-or-nil (drop n (seq list))))
 
 (defun hash-table-rehash-size (table)
   "Return the current rehash size of TABLE."
@@ -572,17 +580,15 @@
 (defun nconc (&rest lists)
   "Concatenate any number of lists by altering them.
   Only the last argument is not altered, and need not be a list."
-  (let [[car & cdr] lists
-        car (if (nil? car) (alloc/list) car)]
-    (doseq [list (remove nil? (butlast cdr))]
-      (.addAll car list))
-    (when-let [last (last cdr)]
-      (cond
-        (data/atom last) (.add car last)
-        (instance? DottedPair last) (do (.add car (.car last))
-                                        (.add car (.cdr last)))
-        :else (.addAll car last)))
-    car))
+  (letfn [(last-cons [l]
+            (if (not (data/consp (cdr l))) l (recur (cdr l))))]
+    (loop [ls (rest lists)
+           last (last-cons (first lists))]
+      (setcdr last (first ls))
+      (when (seq (rest ls))
+        (recur (rest ls)
+               (last-cons (first ls))))))
+  (first lists))
 
 (defun length (sequence)
   "Return the length of vector, list or string SEQUENCE.
@@ -591,11 +597,11 @@
   the number of bytes in the string; it is the number of characters.
   To get the number of bytes, use `string-bytes'."
   (condp instance? sequence
-    DottedPair (loop [pair sequence
-                      length 1]
-                 (if (and (.cdr pair) (not= () (.cdr pair)))
-                   (recur (.cdr pair) (inc length))
-                   length))
+    Cons (loop [cons sequence
+                length 1]
+           (if (data/consp cons)
+             (recur (cdr cons) (inc length))
+             length))
     CharTable (count (.contents sequence))
     (count sequence)))
 
