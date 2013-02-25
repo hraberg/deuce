@@ -3,15 +3,14 @@
             [clojure.string :as s]
             [clojure.pprint :as pp]
             [clojure.walk :as w]
-            [deuce.util :refer [list]])
+            [deuce.emacs-lisp.cons :as cons])
   (:use [taoensso.timbre :as timbre
-         :only (trace debug info warn error fatal spy)]
-        deuce.util)
+         :only (trace debug info warn error fatal spy)])
   (:import [clojure.lang Atom]
-           [deuce EmacsLispError]
-           [java.util List]
-           [deuce.util Cons])
-  (:refer-clojure :exclude [defmacro and or cond let while eval set compile list]))
+           [deuce.emacs_lisp.error]
+           [deuce.emacs_lisp.cons Cons]
+           [java.util List])
+  (:refer-clojure :exclude [defmacro and or cond let while eval set compile]))
 
 (timbre/set-config! [:prefix-fn]
                     (fn [{:keys [level timestamp hostname ns]}]
@@ -33,7 +32,7 @@
     `@~name
     `(if-let [v# ((some-fn *dynamic-vars* global) '~name)]
        @v#
-       (throw '~'void-variable '~name))))
+       (deuce.emacs-lisp/throw '~'void-variable (cons/list '~name)))))
 
 (c/defmacro el-var-set [name value]
   (if (name &env)
@@ -116,8 +115,8 @@
 (defn lists-to-cons [form]
   (if (c/and (seq? form) (= 'quote (first form))
              (seq? (second form)))
-    (c/list 'quote  (apply list (second form)))
-    form))
+    (c/list `cons/list (second form)
+            form)))
 
 (defn protect-forms [form]
   (if ('#{defun defmacro} (maybe-sym (first-symbol form)))
@@ -183,8 +182,8 @@
 
 (declare let-helper*)
 
-(defn linked-lists-to-seqs [form]
-  (if (instance? List form)
+(defn cons-lists-to-seqs [form]
+  (if (instance? Cons form)
     (apply list form)
     form))
 
@@ -222,13 +221,15 @@
                          ~@(for [arg the-args]
                              `(trace ~(keyword arg) (pprint-arg ~arg))))
                        (c/let [result# ~(if emacs-lisp?
-                                          `(c/let ~(if rest-arg `[~rest-arg (if-let [r# (seq ~rest-arg)] (apply list r#) nil)] [])
+                                          `(c/let ~(if rest-arg
+                                                     `[~rest-arg (if-let [r# (seq ~rest-arg)] (apply cons/list r#) nil)]
+                                                     [])
                                              (if (= '~'defmacro '~(sym what))
                                                (c/let [expansion# (let-helper* false ~(map #(c/list % %) the-args)
                                                                     (eval '(progn ~@body)))]
-                                                 (w/prewalk linked-lists-to-seqs expansion#))
+                                                 (w/prewalk cons-lists-to-seqs expansion#))
                                                (let-helper* false ~(map #(c/list % %) the-args)
-                                                 (eval '(progn ~@body)))))
+                                                            (eval '(progn ~@body)))))
                                           `(do ~@body))]
 
                          (binding [*ns* (the-ns 'clojure.core)]
@@ -314,7 +315,7 @@
   [var bodyform & handlers]
   `(try
      ~bodyform
-     (catch EmacsLispError e#
+     (catch deuce.emacs_lisp.error e#
        (c/let [~(if var var (gensym "_")) (:data (.state e#))]
          (case (:symbol (.state e#))
            ~@(apply concat (for [[c & h] handlers]
@@ -627,7 +628,7 @@
   Both TAG and VALUE are evalled."
   {:arglists '([TAG VALUE])}
   [tag value]
-  `(throw (EmacsLispError. ~value ~tag)))
+  `(throw (deuce.emacs_lisp.error. ~value ~tag)))
 
 (c/defmacro ^:clojure-special-form catch
   "Eval BODY allowing nonlocal exits using `throw'.
@@ -641,7 +642,7 @@
   [tag & body]
   `(try
      ~@body
-     (catch EmacsLispError e#
+     (catch deuce.emacs_lisp.error e#
        (if (= ~tag (:symbol (.state e#)))
          (:data (.state e#))
          (throw e#)))))
@@ -770,3 +771,7 @@
   (->> (ns-map 'deuce.emacs-lisp)
        (filter (comp :clojure-special-form meta val))
        (into {})))
+
+(defn check-type [pred x]
+  (when-not ((fun pred) x)
+    (deuce.emacs-lisp/throw 'wrong-type-argument (cons/list pred x))))

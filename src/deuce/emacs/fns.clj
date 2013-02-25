@@ -1,6 +1,5 @@
 (ns deuce.emacs.fns
-  (:use [deuce.emacs-lisp :only (defun defvar) :as el]
-        [deuce.util :exclude (car cdr setcar setcdr list)])
+  (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
             [clojure.string :as s]
             [deuce.emacs.alloc :as alloc]
@@ -9,7 +8,7 @@
             [deuce.emacs-lisp.globals :as globals])
   (import [clojure.lang IPersistentCollection PersistentVector]
           [deuce.emacs.data CharTable]
-          [deuce.util Cons]
+          [deuce.emacs_lisp.cons Cons]
           [java.util List Map HashMap Collections Objects]
           [java.nio CharBuffer]
           [java.nio.charset Charset]
@@ -46,6 +45,9 @@
 (defn ^:private list-or-nil [x]
   (when (seq x)
     (apply alloc/list x)))
+
+(defn ^:private last-cons [l]
+  (if (not (data/consp (cdr l))) l (recur (cdr l))))
 
 (defun provide (feature &optional subfeatures)
   "Announce that FEATURE is a feature of the current Emacs.
@@ -121,7 +123,11 @@
   The result is a list whose elements are the elements of all the arguments.
   Each argument may be a list, vector or string.
   The last argument is not copied, just used as the tail of the new list."
-  (apply alloc/list (apply c/concat (seq sequences))))
+  (if (= 1 (count sequences))
+    (first sequences)
+    (let [l (apply alloc/list (apply c/concat (seq (butlast sequences))))]
+      (setcdr (last-cons l) (last sequences))
+      l)))
 
 (defun mapconcat (function sequence separator)
   "Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.
@@ -580,14 +586,12 @@
 (defun nconc (&rest lists)
   "Concatenate any number of lists by altering them.
   Only the last argument is not altered, and need not be a list."
-  (letfn [(last-cons [l]
-            (if (not (data/consp (cdr l))) l (recur (cdr l))))]
-    (loop [ls (rest lists)
-           last (last-cons (first lists))]
-      (setcdr last (first ls))
-      (when (seq (rest ls))
-        (recur (rest ls)
-               (last-cons (first ls))))))
+  (loop [ls (rest lists)
+         last (last-cons (first lists))]
+    (setcdr last (first ls))
+    (when (seq (rest ls))
+      (recur (rest ls)
+             (last-cons (first ls)))))
   (first lists))
 
 (defun length (sequence)
@@ -598,10 +602,12 @@
   To get the number of bytes, use `string-bytes'."
   (condp instance? sequence
     Cons (loop [cons sequence
-                length 1]
+                length 0]
            (if (data/consp cons)
              (recur (cdr cons) (inc length))
-             length))
+             (do
+               (el/check-type 'listp cons)
+               length)))
     CharTable (count (.contents sequence))
     (count sequence)))
 

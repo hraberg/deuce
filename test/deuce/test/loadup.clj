@@ -1,6 +1,6 @@
 (ns deuce.test.loadup
   (:use [deuce.test.common])
-  (:import [java.util List]))
+  (:import [clojure.lang Sequential]))
 
 ;; "E.1 Building Emacs"[1]
 
@@ -33,7 +33,7 @@
                                 (expand-file-name "emacs-lisp" dir)
                                 (expand-file-name "language" dir)
                                 (expand-file-name "international" dir)
-                                (expand-file-name "textmodes" dir))))) ⇒ List
+                                (expand-file-name "textmodes" dir))))) ⇒ Sequential
       (if (eq t purify-flag)
         ;; Hash consing saved around 11% of pure space in my tests.
         (setq purify-flag (make-hash-table :test 'equal)))             ⇒ nil

@@ -1,13 +1,11 @@
 (ns deuce.emacs.data
-  (:use [deuce.emacs-lisp :only (defun defvar setq setq-default) :as el]
-        [deuce.util :exclude (car cdr setcar setcdr list)])
+  (:use [deuce.emacs-lisp :only (defun defvar setq setq-default) :as el])
   (:require [clojure.core :as c]
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs.alloc :as alloc]
-            [deuce.util :as util])
-  (:import [deuce EmacsLispError]
-           [java.nio ByteOrder])
+            [deuce.emacs-lisp.cons :refer [ICons IList] :as cons])
+  (:import [java.nio ByteOrder])
   (:refer-clojure :exclude [+ * - / aset set < = > max >= <= mod atom min]))
 
 (declare consp car cdr)
@@ -21,7 +19,7 @@
 (def ^:private array-class (Class/forName "[Ljava.lang.Object;"))
 
 (defmethod print-method array-class [o w]
-  (print-method (vec (util/ellipsis o)) w))
+  (print-method (vec (cons/ellipsis o)) w))
 
 (defmethod print-dup array-class [array out]
   (.write out (str "#=" `(object-array ~(vec array)))))
@@ -46,7 +44,7 @@
      extras])
 
 (defmethod print-method CharTable [char-table w]
-  (.write w (str "#^" (vec (util/ellipsis (concat [(.defalt char-table)
+  (.write w (str "#^" (vec (cons/ellipsis (concat [(.defalt char-table)
                                                    @(.parent char-table)
                                                    (.purpose char-table)]
                                                   (.contents char-table)))))))
@@ -228,7 +226,7 @@
   "Return first argument divided by all the remaining arguments.
   The arguments must be numbers or markers."
   (if (zero? divisor)
-    (throw (EmacsLispError. nil 'arith-error))
+    (el/throw 'arith-error nil)
     (c/reduce / (c/let [r (c/apply clojure.core// (promote-chars [dividend divisor]))]
                   (if (ratio? r) (long r) r))
               (promote-chars divisors))))
@@ -328,7 +326,8 @@
 
 (defun setcdr (cell newcdr)
   "Set the cdr of CELL to be NEWCDR.  Returns NEWCDR."
-  (util/setcdr cell newcdr))
+  (el/check-type 'consp cell)
+  (cons/setcdr cell newcdr))
 
 (defun set (symbol newval)
   "Set SYMBOL's value to NEWVAL, and return NEWVAL."
@@ -358,7 +357,7 @@
 
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as cdr, car, cons cell and list."
-  (util/cdr list))
+  (cons/cdr list))
 
 (defun = (num1 num2)
   "Return t if two args, both numbers or markers, are equal."
@@ -441,7 +440,8 @@
 
 (defun setcar (cell newcar)
   "Set the car of CELL to be NEWCAR.  Returns NEWCAR."
-  (util/setcar cell newcar))
+  (el/check-type 'consp cell)
+  (cons/setcar cell newcar))
 
 (defun symbolp (object)
   "Return t if OBJECT is a symbol."
@@ -500,7 +500,7 @@
 
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as car, cdr, cons cell and list."
-  (util/car list))
+  (cons/car list))
 
 (defun bool-vector-p (object)
   "Return t if OBJECT is a bool-vector."

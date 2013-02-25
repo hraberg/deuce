@@ -3,8 +3,8 @@
         [taoensso.timbre :as timbre
          :only (trace debug info warn error fatal spy)])
   (:require [clojure.core :as c]
-            [deuce.util :as util])
-  (:import [deuce.util Cons])
+            [deuce.emacs-lisp.cons :as cons])
+  (:import [deuce.emacs_lisp.cons Cons])
   (:refer-clojure :exclude [vector cons list]))
 
 (defvar purify-flag nil
@@ -194,4 +194,4 @@
 (defun list (&rest objects)
   "Return a newly created list with specified arguments as elements.
   Any number of arguments, even zero arguments, are allowed."
-  (apply util/list objects))
+  (apply cons/list objects))

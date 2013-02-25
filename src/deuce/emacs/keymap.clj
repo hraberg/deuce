@@ -91,7 +91,7 @@
                 (loop [[k & ks] (reverse (butlast key))
                        acc (alloc/cons (int (last key)) def)]
                   (if k
-                    (recur ks (alloc/list (int k) 'keymap  acc))
+                    (recur ks (alloc/list (int k) 'keymap acc))
                     acc)))]
     (when-not (some #{key} keymap)
       (fns/nconc keymap key)))
@@ -390,7 +390,7 @@
 (setq global-map (make-keymap))
 (use-global-map globals/global-map)
 (setq esc-map (make-keymap))
-(setq ctrl-x-map (make-keymap))
+(setq ctl-x-map (make-keymap))
 
 (setq minibuffer-local-map (make-sparse-keymap))
 (setq minibuffer-local-ns-map (make-sparse-keymap))
