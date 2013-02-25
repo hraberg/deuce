@@ -20,15 +20,8 @@
 
 (def ^:private array-class (Class/forName "[Ljava.lang.Object;"))
 
-(def ^:private max-print-length 12)
-
-(defn ^:private ellipsis [seq]
-  (concat (doall (take max-print-length seq))
-          (when (c/< max-print-length (count seq))
-            ['...])))
-
 (defmethod print-method array-class [o w]
-  (print-method (vec (ellipsis o)) w))
+  (print-method (vec (util/ellipsis o)) w))
 
 (defmethod print-dup array-class [array out]
   (.write out (str "#=" `(object-array ~(vec array)))))
@@ -53,10 +46,10 @@
      extras])
 
 (defmethod print-method CharTable [char-table w]
-  (.write w (str "#^" (vec (ellipsis (concat [(.defalt char-table)
-                                              @(.parent char-table)
-                                              (.purpose char-table)]
-                                             (.contents char-table)))))))
+  (.write w (str "#^" (vec (util/ellipsis (concat [(.defalt char-table)
+                                                   @(.parent char-table)
+                                                   (.purpose char-table)]
+                                                  (.contents char-table)))))))
 
 (defn ^:private promote-chars [xs]
   (map #(if (char? %) (int %) %) xs))

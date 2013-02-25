@@ -44,21 +44,18 @@
     (+ (* 31 (if (nil? fst) 0 (.hashCode fst)))
        (if (nil? rst) 0 (.hashCode rst)))))
 
+
+(def ^:private max-print-length 12)
+
+(defn ellipsis [seq]
+  (concat (doall (take max-print-length seq))
+          (when (< max-print-length (count seq))
+            ['...])))
+
 (defmethod print-method Cons [c w]
-  (loop [s (str "(" (car c))
-         c c]
-    (cond (not (satisfies? IList (cdr c)))
-          (.write w (str s " . " (cdr c) ")"))
-
-          (nil? (cdr c))
-          (.write w (str s ")"))
-
-          (> (count s) 20)
-          (.write w (str s "...)"))
-
-          :else
-          (recur (str s " " (car (cdr c)))
-                 (cdr c)))))
+  (if (not (satisfies? IList (cdr c)))
+    (.write w (str "(" (car c) " . " (cdr c) ")"))
+    (print-method (ellipsis (seq c)) w)))
 
 (defmethod print-dup Cons [c out]
   (.write out (str "#=" `(deuce.util.Cons. ~(str (car c)) ~(str (cdr c))))))
