@@ -51,13 +51,13 @@
   "For internal use only."
   (let [name (first args)
         plist (last args)]
-    (fns/nconc globals/charset-list [name])
+    (fns/nconc globals/charset-list (alloc/list name))
     (swap! plists update-in [name] merge (into {} (map vec (partition 2 plist))))
     (swap! charsets assoc name args)))
 
 (defun define-charset-alias (alias charset)
   "Define ALIAS as an alias for charset CHARSET."
-  (fns/nconc globals/charset-list [alias])
+  (fns/nconc globals/charset-list (alloc/list alias))
   (swap! aliases assoc alias charset)
   nil)
 

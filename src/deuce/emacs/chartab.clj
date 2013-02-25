@@ -4,8 +4,7 @@
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.data :as data]
             [deuce.emacs.fns :as fns])
-  (:import [deuce.emacs_lisp.cons Cons]
-           [deuce.emacs.data CharTable])
+  (:import [deuce.emacs.data CharTable])
   (:refer-clojure :exclude []))
 
 (defvar char-code-property-alist nil

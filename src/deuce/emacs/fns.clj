@@ -180,13 +180,13 @@
   The elements of a list or vector are not copied; they are shared
   with the original."
   (condp some [arg]
-    data/listp (apply alloc/list arg)
-    data/vectorp (apply alloc/vector arg)
-    data/stringp (apply alloc/string arg)
     data/char-table-p (CharTable. (.defalt arg) (atom @(.parent arg)) (.purpose arg)
                                   (apply alloc/vector (.contents arg))
                                   (when (.extras arg)
-                                    (apply alloc/vector (.extras arg))))))
+                                    (apply alloc/vector (.extras arg))))
+    data/listp (apply alloc/list arg)
+    data/vectorp (apply alloc/vector arg)
+    data/stringp (apply alloc/string arg)))
 
 (defun string-as-unibyte (string)
   "Return a unibyte string with the same individual bytes as STRING.
@@ -592,13 +592,15 @@
 (defun nconc (&rest lists)
   "Concatenate any number of lists by altering them.
   Only the last argument is not altered, and need not be a list."
-  (loop [ls (rest lists)
-         last (last-cons (first lists))]
-    (setcdr last (first ls))
-    (when (seq (rest ls))
-      (recur (rest ls)
-             (last-cons (first ls)))))
-  (first lists))
+  (let [lists (remove empty? lists)]
+    (when (> (count lists) 1)
+      (loop [ls (rest lists)
+             last (last-cons (first lists))]
+        (setcdr last (first ls))
+        (when (seq (rest ls))
+          (recur (rest ls)
+                 (last-cons (first ls))))))
+    (first lists)))
 
 (defun length (sequence)
   "Return the length of vector, list or string SEQUENCE.
