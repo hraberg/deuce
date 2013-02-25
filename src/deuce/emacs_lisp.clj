@@ -20,7 +20,33 @@
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
 
-(declare clojure-special-forms)
+(declare clojure-special-forms throw global defvar)
+
+;; New Dynamic Binding Logic - still to be integrated and tested. Fully Var based.
+(def ^:dynamic *dynamic-vars* {})
+
+(c/defmacro el-var-get [name]
+  (if (name &env)
+    `@~name
+    `(if-let [v# ((some-fn *dynamic-vars* global) '~name)]
+       @v#
+       (throw '~'void-variable '~name))))
+
+(c/defmacro el-var-set [name value]
+  (if (name &env)
+    `(var-set ~name ~value)
+    `(if-let [v# (*dynamic-vars* '~name)]
+       (var-set v# ~value)
+       (if-let [var# (global '~name)]
+         (alter-var-root var# (constantly ~value))
+         @(global (defvar ~name ~value))))))
+
+(c/defmacro with-local-el-vars [bindings & body]
+  (c/let [vars (vec (take-nth 2 bindings))]
+         `(with-local-vars ~bindings
+            (binding [*dynamic-vars* (merge *dynamic-vars* (zipmap '~vars ~vars))]
+              ~@body))))
+;; New Dynamic Binding Logic End
 
 (defn sym [s]
   (symbol (name s)))
@@ -75,12 +101,12 @@
 
 (defn expand-dotted-pairs [form]
   (if (c/and (seq? form) (= 3 (count form)) (= '. (second form)))
-    (DottedPair. (first form) (last form))
+    (list `DottedPair. (first form) (last form))
     form))
 
 (defn vectors-to-arrays [form]
   (if (vector? form)
-    (object-array form)
+    (list `object-array form)
     form))
 
 ; doesn't work as intended
@@ -156,7 +182,7 @@
 
 (defn linked-lists-to-seqs [form]
   (if (instance? List form)
-    (apply clojure.core/list form)
+    (apply list form)
     form))
 
 (c/defmacro trace-indent [& args]
