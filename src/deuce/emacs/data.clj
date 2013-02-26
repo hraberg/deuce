@@ -117,7 +117,7 @@
           (let [hare2 (symbol-function hare1)
                 tortoise1 (symbol-function tortoise)]
             (if (eq hare2 tortoise1)
-              (el/throw 'cyclic_function_indirection '(object))
+              (el/throw 'cyclic-function-indirection '(object))
               (recur hare2 tortoise1)))
           hare1))
       hare)))
@@ -137,8 +137,8 @@
         (if (symbolp result)
           (indirect_function result)
           result))
-      (catch 'void_function e
-                    (if noerror nil (throw e))))
+      (catch 'void-function e
+        (if noerror nil (throw e))))
     object))
 
 (defun symbol-name (symbol)
@@ -413,7 +413,7 @@
 (defn check_symbol [symbol]
   "Throw exception if SYMBOL is not a symbol"
   (when-not (symbolp symbol)
-    (el/throw 'wrong_type_argument '(symbol))))
+    (el/throw 'wrong-type-argument '(symbol))))
 
 (defun fset (symbol definition)
   "Set SYMBOL's function definition to DEFINITION, and return DEFINITION."
@@ -577,7 +577,7 @@
   (check_symbol symbol)
   (if-let [sym (el/fun symbol)]
     @sym
-    (el/throw 'void_function symbol)))
+    (el/throw 'void-function symbol)))
 
 (defun kill-local-variable (variable)
   "Make VARIABLE no longer have a separate value in the current buffer.

@@ -172,6 +172,21 @@
        (remove #(re-find #"\w__\d+" (name %)))
        seq))
 
+;; Navgeet's helper macro, will revisit, basically condition-case but for use from Clojure
+(c/defmacro try-with-tag [& exprs]
+  (c/let [catch-clauses (c/filter #(c/= (first %) 'catch) exprs)
+          finally-clause (c/filter #(c/= (first %) 'finally) exprs)
+          try-exprs (c/remove #(c/or (c/= (first %) 'finally) (c/= (first %) 'catch)) exprs)]
+         `(try ~@try-exprs
+               ~@(for [expr catch-clauses]
+                   (c/let [[_ tag e & exprs] expr]
+                          `(catch EmacsLispError e#
+                             (if (= ~tag (:symbol (.state e#)))
+                               (c/let [~e e#]
+                                      (do ~@exprs))
+                               (throw e#)))))
+               ~@finally-clause)))
+
 ;; defined as fn in eval.clj
 (c/defmacro eval
   "Evaluate FORM and return its value.
@@ -629,21 +644,6 @@
   {:arglists '([TAG VALUE])}
   [tag value]
   `(throw (EmacsLispError. ~value ~tag)))
-
-(c/defmacro try-with-tag [& exprs]
-  "try EXPRS and catch exceptions specifying tag name instead of Exception class."
-  (c/let [catch-clauses (c/filter #(c/= (first %) 'catch) exprs)
-        finally-clause (c/filter #(c/= (first %) 'finally) exprs)
-        try-exprs (c/remove #(or (c/= (first %) 'finally) (c/= (first %) 'catch)) exprs)]
-    `(try ~@try-exprs
-          ~@(for [expr catch-clauses]
-             (c/let [[_ tag e & exprs] expr]
-               `(catch EmacsLispError e#
-                  (if (= ~tag (.symbol e#))
-                    (c/let [~e e#]
-                      (do ~@exprs))
-                    (throw e#)))))
-          ~@finally-clause)))
 
 (c/defmacro ^:clojure-special-form catch
   "Eval BODY allowing nonlocal exits using `throw'.
