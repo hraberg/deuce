@@ -11,6 +11,13 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Marginalia](http://ghettojedi.org/deuce/)
 
+**2013-02-25**
+
+After a long break from Deuce, I'm now in Agonda, Goa, specifically with the aim to hack on Deuce for two months. Thanks to [Bjarte](https://github.com/ljos) and [Navgeet](https://github.com/Navgeet) for their pull requests, despite my lack of focus here.
+
+I plan to start with a rethink of how the Emacs Lisp evaluation model works - it's currently way too slow, and relies heavily on Clojure's `eval`. I'm also considering to just ditch or stub out some parts of `loadup` (specifically `mule`) for now and aim to get the editor actually starting in some form.
+
+
 **2012-11-08**
 
 After many false starts, [`cl.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/cl.el) now loads. I don't expect much of it to actually work, but some things do. See the [EmacsWiki](http://www.emacswiki.org/emacs/CommonLispForEmacs) [CommonLispForEmacs](http://www.emacswiki.org/emacs/CommonLispForEmacs) page for a discussion about when this file is actually supposed to be loaded.
