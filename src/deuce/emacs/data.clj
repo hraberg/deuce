@@ -76,7 +76,7 @@
 
 (declare symbol-function symbolp eq)
 
-(defn indirect_function [object]
+(defn ^:private indirect_function [object]
   "Return the function at the end of OBJECT's function chain.
   If the final symbol in the chain is unbound, signal a void-function error.
   Optional arg NOERROR non-nil means to return nil instead of signaling.
