@@ -77,11 +77,6 @@
 (declare symbol-function symbolp eq)
 
 (defn ^:private indirect_function [object]
-  "Return the function at the end of OBJECT's function chain.
-  If the final symbol in the chain is unbound, signal a void-function error.
-  Optional arg NOERROR non-nil means to return nil instead of signaling.
-  Signal a cyclic-function-indirection error if there is a loop in the
-  function chain of symbols."
   (loop [hare object
          tortoise object]
     (if (symbolp hare)
