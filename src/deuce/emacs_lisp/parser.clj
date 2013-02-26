@@ -39,6 +39,17 @@
                           (into-array [Object]))
     (.setAccessible true)))
 
+(defn ^:private strip-comments [form]
+  (remove (every-pred seq? (comp `#{comment} first)) form))
+
+(defn ^:private expand-cons [form]
+  (if (and  (= 3 (count form)) (= '. (second form)))
+    (list 'deuce.emacs.alloc/cons (first form) (last form))
+    form))
+
+(defn ^:private as-vector [form]
+  (list `object-array (list 'quote (vec form))))
+
 (defn ^:private syntax-quote [form]
   (.invoke clojure-syntax-quote nil (into-array [form])))
 
@@ -47,7 +58,7 @@
 (def ^:dynamic line (atom (int 1)))
 
 (defn ^:private tokenize-all [^Scanner sc]
-  (take-while (complement #{`end}) (repeatedly (partial tokenize sc))))
+  (strip-comments (take-while (complement #{`end}) (repeatedly (partial tokenize sc)))))
 
 (defn ^:private tokenize [^Scanner sc]
   (let [find (fn [^Pattern re h] (.findWithinHorizon sc re (int h)))]
@@ -55,8 +66,8 @@
       #"\n" (do (swap! line inc) (recur sc))
       #"\s" (recur sc)
       #"[)\]]" `end
-      #"\(" (with-meta (el/expand-cons (tokenize-all sc)) {:line @line})
-      #"\[" (with-meta (list `object-array (list 'quote (vec (tokenize-all sc)))) {:line @line})
+      #"\(" (with-meta (expand-cons (tokenize-all sc)) {:line @line})
+      #"\[" (with-meta (as-vector (tokenize-all sc)) {:line @line})
       #"," (list (if (find #"@" 1) `unquote-splicing `unquote) (tokenize sc))
       #"'" (list 'quote (tokenize sc))
       #"`" (let [form (tokenize sc)] (if (symbol? form)

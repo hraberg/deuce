@@ -88,20 +88,16 @@
   The PLIST is modified by side effects."
   (plist-put prop val))
 
+(declare length)
+
 (defun safe-length (list)
   "Return the length of a list, but avoid error or infinite loop.
   This function never gets an error.  If LIST is not really a list,
   it returns 0.  If LIST is circular, it returns a finite value
   which is at least the number of distinct elements."
-  (if (instance? Cons list)
-    (loop [pair list
-           length 1]
-      (if (and (instance? Cons (cdr pair)))
-        (recur (cdr pair) (inc length))
-        length))
-    (if (coll? list)
-      (count list)
-      0)))
+  (if (data/sequencep list)
+    (length list)
+    0))
 
 (declare equal mem)
 
@@ -611,6 +607,7 @@
   If the string contains multibyte characters, this is not necessarily
   the number of bytes in the string; it is the number of characters.
   To get the number of bytes, use `string-bytes'."
+  (el/check-type 'sequencep sequence)
   (condp instance? sequence
     Cons (loop [cons sequence
                 length 0]

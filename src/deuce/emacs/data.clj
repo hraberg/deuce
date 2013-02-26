@@ -138,9 +138,11 @@
   Arguments may be integers, or markers converted to integers."
   (apply bit-or ints-or-markers))
 
+(declare arrayp listp)
+
 (defun sequencep (object)
   "Return t if OBJECT is a sequence (list or array)."
-  (seq? object))
+  ((some-fn sequential? arrayp listp) object))
 
 (defun zerop (number)
   "Return t if NUMBER is zero."
@@ -335,7 +337,7 @@
 
 (defun arrayp (object)
   "Return t if OBJECT is an array (string or vector)."
-  ((some-fn vectorp string?) object))
+  ((some-fn vectorp stringp) object))
 
 (defun vectorp (object)
   "Return t if OBJECT is a vector."
@@ -397,6 +399,7 @@
 
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as cdr, car, cons cell and list."
+  (el/check-type 'listp list)
   (cons/cdr list))
 
 (defun = (num1 num2)
@@ -543,6 +546,7 @@
 
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as car, cdr, cons cell and list."
+  (el/check-type 'listp list)
   (cons/car list))
 
 (defun bool-vector-p (object)

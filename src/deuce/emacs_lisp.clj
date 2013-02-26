@@ -96,28 +96,6 @@
       (sym form)
       form)))
 
-(defn strip-comments [form]
-  (if (seq? form)
-    (remove (every-pred seq? (comp `#{comment} first)) form)
-    form))
-
-(defn expand-cons [form]
-  (if (c/and (seq? form) (= 3 (count form)) (= '. (second form)))
-    (list 'deuce.emacs.alloc/cons (first form) (last form))
-    form))
-
-(defn vectors-to-arrays [form]
-  (if (vector? form)
-    (list `object-array form)
-    form))
-
-; doesn't work as intended
-(defn lists-to-cons [form]
-  (if (c/and (seq? form) (= 'quote (first form))
-             (seq? (second form)))
-    (c/list `cons/list (second form)
-            form)))
-
 (defn protect-forms [form]
   (if ('#{defun defmacro} (maybe-sym (first-symbol form)))
     ^:protect-from-expansion (fn [] form)
@@ -130,10 +108,7 @@
   (with-meta
     `(fn ~(vec scope)
        ~(->> body
-             (w/postwalk (comp strip-comments
-                               expand-cons
-                               vectors-to-arrays
-                               protect-forms))
+             (w/postwalk protect-forms)
              (w/postwalk (comp unprotect-forms
                                qualify-fns
                                (partial qualify-globals (c/set scope))))))
@@ -209,11 +184,6 @@
                                   (filter #(re-find #"deuce." (str %)))
                                   count) "-")) ~@args))
 
-(defn underef [form]
-  (if (c/and (seq? form) (= `deref (first form)))
-    (nested-first-symbol form)
-    form))
-
 (declare progn)
 
 (c/defmacro def-helper* [what line name arglist & body]
@@ -228,6 +198,7 @@
           [[interactive] body] (split-with #(c/and (seq? %)
                                                    (= 'interactive (first %))) body)
           emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)
+          macro? (= `c/defmacro what)
           doc (apply str docstring)
           arglist (w/postwalk maybe-sym arglist)
           the-args (remove '#{&} (flatten arglist))]
@@ -241,12 +212,11 @@
                                           `(c/let ~(if rest-arg
                                                      `[~rest-arg (if-let [r# (seq ~rest-arg)] (apply cons/list r#) nil)]
                                                      [])
-                                             (if (= '~'defmacro '~(sym what))
-                                               (c/let [expansion# (let-helper* false ~(map #(c/list % %) the-args)
-                                                                    (eval '(progn ~@body)))]
-                                                 (w/prewalk cons-lists-to-seqs expansion#))
-                                               (let-helper* false ~(map #(c/list % %) the-args)
-                                                            (eval '(progn ~@body)))))
+                                                  (c/let [result# (let-helper* false ~(map #(c/list % %) the-args)
+                                                                               (eval '(progn ~@body)))]
+                                                         (if ~macro?
+                                                           (w/prewalk cons-lists-to-seqs result#)
+                                                           result#)))
                                           `(do ~@body))]
 
                          (binding [*ns* (the-ns 'clojure.core)]
