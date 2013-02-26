@@ -101,7 +101,26 @@
   for example, (type-of 1) returns `integer'."
   (type object))
 
-(declare symbol-function)
+(declare symbol-function symbolp eq)
+
+(defn indirect_function [object]
+  "Return the function at the end of OBJECT's function chain.
+  If the final symbol in the chain is unbound, signal a void-function error.
+  Optional arg NOERROR non-nil means to return nil instead of signaling.
+  Signal a cyclic-function-indirection error if there is a loop in the
+  function chain of symbols."
+  (loop [hare object
+         tortoise object]
+    (if (symbolp hare)
+      (let [hare1 (symbol-function hare)]
+        (if (symbolp hare1)
+          (let [hare2 (symbol-function hare1)
+                tortoise1 (symbol-function tortoise)]
+            (if (eq hare2 tortoise1)
+              (el/throw 'cyclic_function_indirection '(object))
+              (recur hare2 tortoise1)))
+          hare1))
+      hare)))
 
 (defun indirect-function (object &optional noerror)
   "Return the function at the end of OBJECT's function chain.
@@ -111,7 +130,16 @@
   Optional arg NOERROR non-nil means to return nil instead of signaling.
   Signal a cyclic-function-indirection error if there is a loop in the
   function chain of symbols."
-  (symbol-function object))
+  (if (symbolp object)
+    (el/try-with-tag
+      (let [result (symbol-function object)]
+        ;; Optimize for no indirection.
+        (if (symbolp result)
+          (indirect_function result)
+          result))
+      (catch 'void_function e
+                    (if noerror nil (throw e))))
+    object))
 
 (defun symbol-name (symbol)
   "Return SYMBOL's name, a string."
@@ -382,13 +410,23 @@
   (when (consp object)
     (car object)))
 
+(defn check_symbol [symbol]
+  "Throw exception if SYMBOL is not a symbol"
+  (when-not (symbolp symbol)
+    (el/throw 'wrong_type_argument '(symbol))))
+
 (defun fset (symbol definition)
   "Set SYMBOL's function definition to DEFINITION, and return DEFINITION."
-  (let [symbol (el/sym symbol)]
-    (ns-unmap 'deuce.emacs symbol)
-    (intern (the-ns 'deuce.emacs) symbol
-            (if (fn? definition) definition
-                @(el/fun definition)))
+  (check_symbol symbol)
+  (let [symbol (el/sym symbol)
+        sym (el/fun symbol)]
+    (when sym
+      (when (and (consp @sym) (c/= (car @sym) 'autoload))
+        ;; Creates a cyclic load dependency chain.
+        ;; TODO: deuce.emacs.fns/put must be below deuce.emacs.data
+        ;; (fns/put symbol 'autoload (cdr @sym))
+        ))
+    (intern 'deuce.emacs symbol definition)
     definition))
 
 (defun cdr (list)
@@ -536,7 +574,10 @@
 
 (defun symbol-function (symbol)
   "Return SYMBOL's function definition.  Error if that is void."
-  @(el/fun symbol))
+  (check_symbol symbol)
+  (if-let [sym (el/fun symbol)]
+    @sym
+    (el/throw 'void_function symbol)))
 
 (defun kill-local-variable (variable)
   "Make VARIABLE no longer have a separate value in the current buffer.
