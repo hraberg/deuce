@@ -4,6 +4,7 @@
             [deuce.emacs-lisp :as el]
             [deuce.emacs.alloc :as alloc])
   (:import [java.util Scanner]
+           [java.lang.reflect Method]
            [java.io StringReader StreamTokenizer]
            [java.util.regex Pattern]))
 
@@ -31,26 +32,36 @@
            :else (int (first (parse-string (str \" c \")))))]
     (reduce bit-xor c (map character-modifier-bits (disj mods "\\C")))))
 
+(def ^:private ^Method clojure-syntax-quote
+  (doto
+      (.getDeclaredMethod clojure.lang.LispReader$SyntaxQuoteReader
+                          "syntaxQuote"
+                          (into-array [Object]))
+    (.setAccessible true)))
+
+(defn ^:private syntax-quote [form]
+  (.invoke clojure-syntax-quote nil (into-array [form])))
+
 (def ^:private ^Pattern re-str #"(?s)([^\"\\]*(?:\\.[^\"\\]*)*)\"")
 
-(def ^:dynamic line (atom 1))
+(def ^:dynamic line (atom (int 1)))
 
 (defn ^:private tokenize-all [^Scanner sc]
-  (take-while identity (repeatedly (partial tokenize sc))))
+  (take-while (complement #{`end}) (repeatedly (partial tokenize sc))))
 
 (defn ^:private tokenize [^Scanner sc]
   (let [find (fn [^Pattern re h] (.findWithinHorizon sc re (int h)))]
     (condp find 1
       #"\n" (do (swap! line inc) (recur sc))
       #"\s" (recur sc)
-      #"[)\]]" nil
-      #"\(" (with-meta (tokenize-all sc) {:line @line})
-      #"\[" (with-meta (list 'quote (vec (tokenize-all sc))) {:line @line})
-      #"," (list (if (find #"@" 1) (symbol "\\,@") (symbol "\\,")) (tokenize sc))
+      #"[)\]]" `end
+      #"\(" (with-meta (el/expand-cons (tokenize-all sc)) {:line @line})
+      #"\[" (with-meta (list `object-array (list 'quote (vec (tokenize-all sc)))) {:line @line})
+      #"," (list (if (find #"@" 1) `unquote-splicing `unquote) (tokenize sc))
       #"'" (list 'quote (tokenize sc))
       #"`" (let [form (tokenize sc)] (if (symbol? form)
                                        (list 'quote form)
-                                       (list (symbol "\\`") form)))
+                                       (syntax-quote form)))
       #":" (keyword (.next sc))
       #"\?" (parse-character (.next sc))
       #"\"" (let [s (parse-string (str \" (find re-str 0)))]
@@ -72,24 +83,12 @@
        (.hasNextLong sc) (.nextLong sc)
        (.hasNextDouble sc) (.nextDouble sc)
        (.hasNext sc) (let [s (.next sc)]
-                       (with-meta (symbol (if (= "/" s)
-                                            s
-                                            (s/replace s "/" "_SLASH_"))) {:line @line}))))))
-
-(def ^:private clojure-syntax-quote
-  (doto
-      (.getDeclaredMethod clojure.lang.LispReader$SyntaxQuoteReader
-                          "syntaxQuote"
-                          (into-array [Object]))
-    (.setAccessible true)))
-
-(defn ^:private syntax-quote [form]
-  (->> form
-       (w/postwalk-replace {(symbol "\\,") `unquote
-                            (symbol "\\,@") `unquote-splicing})
-       (w/postwalk #(if (and (list? %) (= (symbol "\\`") (first %)))
-                      (.invoke clojure-syntax-quote nil (into-array [(second %)]))
-                      %))))
+                       (case s
+                         "/" '/
+                         "t" true
+                         "nil" nil
+                         (with-meta (symbol (s/replace s "/" "_SLASH_")) {:line @line})))
+       :else `end))))
 
 (def scanner-position (doto (.getDeclaredField Scanner "position")
                         (.setAccessible true)))
@@ -97,12 +96,9 @@
 (defn parse-internal [r & [all?]]
   (let [scanner (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
                   (.useDelimiter #"(\s|\]|\)|\"|;)"))]
-    (binding [line (atom 1)]
+    (binding [line (atom (int 1))]
       (alloc/cons
-       (->> ((if all? tokenize-all tokenize) scanner)
-            (w/postwalk-replace {(symbol "nil") nil 't true})
-            (w/postwalk (comp el/expand-cons el/vectors-to-arrays))
-            syntax-quote)
+       ((if all? tokenize-all tokenize) scanner)
        (.get scanner-position scanner)))))
 
 (defn parse [r]

@@ -19,7 +19,7 @@
   (or from its parents, if necessary)."
   @(.parent char-table))
 
-(defun set-char-table-parent (char-table parent)
+(defun set-char-table-parent (^CharTable char-table parent)
   "Set the parent char-table of CHAR-TABLE to PARENT.
   Return PARENT.  PARENT must be either nil or another char-table."
   (reset! (.parent char-table) parent))
@@ -31,15 +31,15 @@
   range of characters that have the same value."
   )
 
-(defun char-table-extra-slot (char-table n)
+(defun char-table-extra-slot (^CharTable char-table n)
   "Return the value of CHAR-TABLE's extra-slot number N."
   (aget (.extras char-table) n))
 
-(defun char-table-subtype (char-table)
+(defun char-table-subtype (^CharTable char-table)
   "Return the subtype of char-table CHAR-TABLE.  The value is a symbol."
   (.purpose char-table))
 
-(defun set-char-table-range (char-table range value)
+(defun set-char-table-range (^CharTable char-table range value)
   "Set the value in CHAR-TABLE for a range of characters RANGE to VALUE.
   RANGE should be t (for all characters), nil (for the default value),
   a cons of character codes (for characters in the range),

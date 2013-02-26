@@ -164,6 +164,8 @@
           (error (-> e cause .getMessage) (pprint-arg emacs-lisp))
           (throw e))))))
 
+(alter-var-root #'compile memoize)
+
 (defn limit-scope [scope]
   (->> scope
        (remove '#{&env &form})
@@ -178,7 +180,7 @@
          `(try ~@try-exprs
                ~@(for [expr catch-clauses]
                    (c/let [[_ tag e & exprs] expr]
-                          `(catch EmacsLispError e#
+                          `(catch deuce.emacs_lisp.error e#
                              (if (= ~tag (:symbol (.state e#)))
                                (c/let [~e e#]
                                       (do ~@exprs))
