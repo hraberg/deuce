@@ -23,7 +23,28 @@
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
 
-(declare clojure-special-forms throw global fun defvar sym first-symbol)
+(declare clojure-special-forms throw defvar)
+
+(defn sym [s]
+  (symbol (name s)))
+
+; "reused" from data.clj
+(defn not-null? [object]
+  (when-not (c/or (nil? object) (c/= () object) (false? object))
+    object))
+
+(defn global [s]
+  (ns-resolve 'deuce.emacs-lisp.globals (sym s)))
+
+(defn fun [s]
+  (if (fn? s) s
+      (ns-resolve 'deuce.emacs (sym s))))
+
+(defn maybe-sym [x]
+  (if (symbol? x) (sym x) x))
+
+(defn expand-symbol [x]
+  (sym (if (seq? x) (c/eval x) x)))
 
 ;; New Dynamic Binding Logic - still to be integrated and tested. Fully Var based.
 (def ^:dynamic *dynamic-vars* {})
@@ -60,7 +81,7 @@
                   (if (clojure-special-forms fst)
                     (if (= 'quote fst)
                       (if (c/and (symbol? (first rst)) (not (next rst)))
-                        (list 'quote (sym (first-symbol rst)))
+                        (list 'quote (sym (first rst)))
                         x)
                       (cons (symbol "deuce.emacs-lisp" (name fst)) rst))
                     x)
@@ -82,75 +103,6 @@
     symbol? (if (namespace x) x (list `el-var-get x))
     x))
 ;; New Dynamic Binding Logic End
-
-(defn sym [s]
-  (symbol (name s)))
-
-; "reused" from data.clj
-(defn not-null? [object]
-  (when-not (c/or (nil? object) (c/= () object) (false? object))
-    object))
-
-(defn first-symbol [form]
-  (when ((every-pred (some-fn seq? list?) (comp symbol? first)) form)
-    (first form)))
-
-(defn nested-first-symbol [s]
-  (if ((some-fn symbol? (complement seq?)) s)
-    s
-    (when s
-      (recur (second s)))))
-
-(defn global [s]
-  (ns-resolve 'deuce.emacs-lisp.globals (sym s)))
-
-(defn fun [s]
-  (if (fn? s) s
-      (ns-resolve 'deuce.emacs (sym s))))
-
-(defn maybe-sym [x]
-  (if (symbol? x) (sym x) x))
-
-(defn expand-symbol [x]
-  (sym (if (seq? x) (c/eval x) x)))
-
-(defn qualify-globals [locals form]
-  (if-let [s (c/and (symbol? form)
-                    (not (locals form))
-                    (not (re-find #"\." (name form)))
-                    ((some-fn clojure-special-forms global) (sym form)))]
-    (symbol (-> s meta :ns str) (-> s meta :name str))
-    (if (c/and (seq? form) (= `symbol (first form)))
-      (qualify-globals locals (expand-symbol form))
-      form)))
-
-(defn qualify-fns [form]
-  (if-let [s (when-let [s (first-symbol form)]
-               (c/and
-                (not= "clojure.core" (namespace s))
-                (fun s)))]
-    (cons (symbol (-> s meta :ns str) (-> s meta :name str)) (next form))
-    (if (c/and (symbol? form) (= "deuce.emacs" (namespace form)))
-      (sym form)
-      form)))
-
-(defn protect-forms [form]
-  (if ('#{defun defmacro} (maybe-sym (first-symbol form)))
-    (Box. form)
-    form))
-
-(defn unprotect-forms [form]
-  (if (instance? Box form) (.val ^Box form) form))
-
-(defn preprocess [scope body]
-  (with-meta
-    `(fn ~(vec scope)
-       ~(->> body
-             (w/postwalk protect-forms)
-             (w/postwalk (comp unprotect-forms
-                               qualify-fns
-                               (partial qualify-globals (c/set scope))))))
-    (merge (meta body) {:scope scope :src body})))
 
 (defn ^Throwable cause [^Throwable e]
   (if-let [e (.getCause e)]
@@ -177,14 +129,6 @@
           (error (-> e cause .getMessage) (pprint-arg emacs-lisp))
           (throw e))))))
 
-;(alter-var-root #'compile memoize)
-
-(defn limit-scope [scope]
-  (->> scope
-       (remove '#{&env &form})
-       (remove #(re-find #"\w__\d+" (name %)))
-       seq))
-
 ;; Navgeet's helper macro, will revisit, basically condition-case but for use from Clojure
 (c/defmacro try-with-tag [& exprs]
   (c/let [catch-clauses (c/filter #(c/= (first %) 'catch) exprs)
@@ -206,10 +150,8 @@
   If LEXICAL is t, evaluate using lexical scoping."
   {:arglists '([FORM &optional LEXICAL])}
   [body & [lexical]]
-  (c/let [scope (limit-scope (keys &env))]
-         `(binding [*ns* (the-ns 'deuce.emacs)]
-                                        ;            (maybe-sym ((compile (preprocess '~scope ~body)) ~@scope))
-            (maybe-sym (compile ~(el->clj body))))))
+  `(binding [*ns* (the-ns 'deuce.emacs)]
+     (maybe-sym (compile ~(el->clj body)))))
 
 (declare let-helper*)
 
@@ -267,9 +209,8 @@
          (do
            (alter-meta! f# merge (merge {:doc ~doc}
                                         (when ~emacs-lisp?
-                                          {:line ~line
-                                           :file (when-let [file# (global 'load-file-name)]
-                                                   @file#)})))
+                                          {:el-file (when-let [file# (global 'load-file-name)]
+                                                      @file#)})))
            (alter-var-root f# (constantly (with-meta @f# (meta f#)))))
          (with-meta f# (assoc (meta f#) :doc ~doc))))))
 
@@ -371,7 +312,7 @@
   `(c/let
        ~(reduce into []
                 (for [[s v] (partition 2 sym-vals)
-                      :let [s (nested-first-symbol s)]]
+                      :let [s (expand-symbol s)]]
                   [(sym s) `(el-var-set ~s ~(el->clj v))]))
      ~(last (butlast sym-vals))))
 
@@ -564,7 +505,7 @@
     `(let-helper* true ~varlist ~@body)))
 
 (defn defvar-helper* [ns symbol & [initvalue docstring]]
-  (c/let [symbol (sym (nested-first-symbol symbol))
+  (c/let [symbol (expand-symbol symbol)
           ^Var default (global symbol)
           m (meta default)]
     (->
