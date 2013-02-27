@@ -6,10 +6,9 @@
             [deuce.emacs-lisp.cons :as cons])
   (:use [taoensso.timbre :as timbre
          :only (trace debug info warn error fatal spy)])
-  (:import [clojure.lang Atom Box Var]
+  (:import [clojure.lang Var]
            [deuce.emacs_lisp.error]
-           [deuce.emacs_lisp.cons Cons]
-           [java.util List])
+           [deuce.emacs_lisp.cons Cons])
   (:refer-clojure :exclude [defmacro and or cond let while eval set compile]))
 
 (timbre/set-config! [:prefix-fn]
@@ -46,7 +45,6 @@
 (defn expand-symbol [x]
   (sym (if (seq? x) (c/eval x) x)))
 
-;; New Dynamic Binding Logic - still to be integrated and tested. Fully Var based.
 (def ^:dynamic *dynamic-vars* {})
 
 (defn dynamic-binding? []
@@ -110,7 +108,6 @@
                           (map el->clj rst)))))
     symbol? (if (namespace x) x (list `el-var-get x))
     x))
-;; New Dynamic Binding Logic End
 
 (defn ^Throwable cause [^Throwable e]
   (if-let [e (.getCause e)]
@@ -130,7 +127,7 @@
           (intern 'deuce.emacs (symbol undeclared))
           (compile emacs-lisp))
         (do
-          (error (-> e cause .getMessage) (pprint-arg emacs-lisp))
+          (error (-> e cause .getMessage) (with-out-str (pp/pprint emacs-lisp)))
           (throw e))))))
 
 ;; defined as fn in eval.clj
