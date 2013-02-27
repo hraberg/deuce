@@ -386,12 +386,3 @@
   "Select KEYMAP as the global keymap."
   (reset! *current-global-map* keymap)
   nil)
-
-(setq global-map (make-keymap))
-(use-global-map globals/global-map)
-(setq esc-map (make-keymap))
-(setq ctl-x-map (make-keymap))
-
-(setq minibuffer-local-map (make-sparse-keymap))
-(setq minibuffer-local-ns-map (make-sparse-keymap))
-; (set-keymap-parent globals/minibuffer-local-ns-map globals/minibuffer-local-map)

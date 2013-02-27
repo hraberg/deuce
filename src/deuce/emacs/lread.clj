@@ -3,6 +3,9 @@
   (:require [clojure.core :as c]
             [clojure.java.io :as io]
             [clojure.string :as s]
+            [clojure.pprint :as pp]
+            [clojure.walk :as w]
+            [taoensso.timbre :as timbre]
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs.alloc :as alloc]
@@ -316,6 +319,27 @@
   This uses the variables `load-suffixes' and `load-file-rep-suffixes'."
   )
 
+(defn ^:private sanitise-symbols [x]
+  (cond
+   (and (symbol? x) (re-find  #"([\\,]|^\d)" (name x))) (if (namespace x)
+                                                          (list `symbol (namespace x) (name x))
+                                                          (list `symbol (name x)))
+   (and (seq? x) (= 'quote  (first x)) (seq? (second x)) (= `symbol (first (second x)))) (second x)
+   :else x))
+
+(defn ^:private write-clojure [el clj]
+  (io/make-parents clj)
+  (let [level (:current-level @timbre/config)]
+    (try
+      (timbre/set-level! :fatal)
+      (with-open [w (io/writer clj)]
+        (doseq [form  (concat ['(ns deuce.emacs
+                                  (:refer-clojure :only []))]
+                              el)]
+          (pp/pprint form w)
+          (.write w "\n")))
+      (finally (timbre/set-level! level)))))
+
 (defun load (file &optional noerror nomessage nosuffix must-suffix)
   "Execute a file of Lisp code named FILE.
   First try FILE with `.elc' appended, then try with `.el',
@@ -370,8 +394,21 @@
         (with-open [in (io/input-stream url)]
           (when-not nomessage
             (editfns/message "Loading %s..." file))
-          (doseq [form (parser/parse in)]
-            (eval/eval form))
+          (let [file (s/replace file  #".el$" "")]
+            (try
+              (c/require (symbol (s/replace file "/" ".")))
+              (catch java.io.FileNotFoundException _
+                (let [el (parser/parse in)
+                      clj-file (s/replace file "-" "_")]
+                  (write-clojure (map #(let [clj (el/el->clj %)]
+                                         (try
+                                           (eval/eval clj)
+                                           (catch Exception e
+                                             (pp/pprint clj)
+                                             (throw e))) clj)
+                                      (w/postwalk sanitise-symbols el))
+                                 (io/file *compile-path* (str clj-file ".clj")))
+                  (binding [*compile-files* true] (require (symbol (s/replace file "/" "."))))))))
           true)))
     (catch Exception e
       (when-not noerror

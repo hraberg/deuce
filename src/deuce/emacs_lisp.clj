@@ -6,7 +6,7 @@
             [deuce.emacs-lisp.cons :as cons])
   (:use [taoensso.timbre :as timbre
          :only (trace debug info warn error fatal spy)])
-  (:import [clojure.lang Atom]
+  (:import [clojure.lang Atom Box Var]
            [deuce.emacs_lisp.error]
            [deuce.emacs_lisp.cons Cons]
            [java.util List])
@@ -18,36 +18,69 @@
 (timbre/set-config! [:timestamp-pattern] "HH:mm:ss,SSS")
 
 (timbre/set-level! :debug)
+(var-set #'*warn-on-reflection* true)
 
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
 
-(declare clojure-special-forms throw global defvar)
+(declare clojure-special-forms throw global fun defvar sym first-symbol)
 
 ;; New Dynamic Binding Logic - still to be integrated and tested. Fully Var based.
 (def ^:dynamic *dynamic-vars* {})
 
 (c/defmacro el-var-get [name]
-  (if (name &env)
-    `@~name
-    `(if-let [v# ((some-fn *dynamic-vars* global) '~name)]
-       @v#
-       (deuce.emacs-lisp/throw '~'void-variable (cons/list '~name)))))
+  `(if-let [v# ((some-fn *dynamic-vars* global) '~name)]
+     @v#
+     ~(if (c/and (symbol? name) (name &env))
+        `(do ~name)
+        `(deuce.emacs-lisp/throw '~'void-variable (cons/list '~name)))))
 
 (c/defmacro el-var-set [name value]
-  (if (name &env)
-    `(var-set ~name ~value)
-    `(if-let [v# (*dynamic-vars* '~name)]
-       (var-set v# ~value)
-       (if-let [var# (global '~name)]
-         (alter-var-root var# (constantly ~value))
-         @(global (defvar ~name ~value))))))
+  `(if-let [v# (*dynamic-vars* '~name)]
+     (var-set v# ~value)
+     (if-let [v# (global '~name)]
+       (alter-var-root v# (constantly ~value))
+       @(global (defvar ~name ~value)))))
 
-(c/defmacro with-local-el-vars [bindings & body]
-  (c/let [vars (vec (take-nth 2 bindings))]
-         `(with-local-vars ~bindings
-            (binding [*dynamic-vars* (merge *dynamic-vars* (zipmap '~vars ~vars))]
-              ~@body))))
+(c/defmacro with-local-el-vars [name-vals-vec & body]
+  (c/let [vars (vec (take-nth 2 name-vals-vec))]
+         `(c/let [vars# (hash-map ~@(interleave (map #(list 'quote %) (take-nth 2 name-vals-vec))
+                                                (repeat '(c/doto (clojure.lang.Var/create) .setDynamic))))]
+                 (with-bindings (zipmap (map vars# '~vars) ~(vec (take-nth 2 (rest name-vals-vec))))
+                   (binding [*dynamic-vars* (merge *dynamic-vars* vars#)]
+                     ~@body)))))
+
+(defn el->clj [x]
+  (condp some [x]
+    #{()} nil
+    seq? (c/let [[fst & rst] x]
+                (if (c/and (symbol? fst)
+                           (not= 'progn fst)
+                           (-> (fun fst) meta :macro))
+                  (if (clojure-special-forms fst)
+                    (if (= 'quote fst)
+                      (if (c/and (symbol? (first rst)) (not (next rst)))
+                        (list 'quote (sym (first-symbol rst)))
+                        x)
+                      (cons (symbol "deuce.emacs-lisp" (name fst)) rst))
+                    x)
+                  (if (#{`el-var-get `el-var-set} fst)
+                    x
+                    (cons (c/cond
+                           (c/and (symbol? fst)
+                                  (not (namespace fst))
+                                  (not (fun fst)))
+                           (do (warn (format "Unable to resolve symbol: %s in this context" fst))
+                               (intern 'deuce.emacs fst)
+                               (list `fun (list 'quote fst)))
+
+                           (c/and (c/seq? fst) (= `symbol (first fst)))
+                           (list `fun fst)
+
+                           :else fst)
+                          (map el->clj rst)))))
+    symbol? (if (namespace x) x (list `el-var-get x))
+    x))
 ;; New Dynamic Binding Logic End
 
 (defn sym [s]
@@ -78,13 +111,18 @@
 (defn maybe-sym [x]
   (if (symbol? x) (sym x) x))
 
+(defn expand-symbol [x]
+  (sym (if (seq? x) (c/eval x) x)))
+
 (defn qualify-globals [locals form]
   (if-let [s (c/and (symbol? form)
                     (not (locals form))
                     (not (re-find #"\." (name form)))
                     ((some-fn clojure-special-forms global) (sym form)))]
     (symbol (-> s meta :ns str) (-> s meta :name str))
-    form))
+    (if (c/and (seq? form) (= `symbol (first form)))
+      (qualify-globals locals (expand-symbol form))
+      form)))
 
 (defn qualify-fns [form]
   (if-let [s (when-let [s (first-symbol form)]
@@ -98,11 +136,11 @@
 
 (defn protect-forms [form]
   (if ('#{defun defmacro} (maybe-sym (first-symbol form)))
-    ^:protect-from-expansion (fn [] form)
+    (Box. form)
     form))
 
 (defn unprotect-forms [form]
-  (if (-> form meta :protect-from-expansion) (form) form))
+  (if (instance? Box form) (.val ^Box form) form))
 
 (defn preprocess [scope body]
   (with-meta
@@ -114,7 +152,7 @@
                                (partial qualify-globals (c/set scope))))))
     (merge (meta body) {:scope scope :src body})))
 
-(defn cause [e]
+(defn ^Throwable cause [^Throwable e]
   (if-let [e (.getCause e)]
     (recur e)
     e))
@@ -139,7 +177,7 @@
           (error (-> e cause .getMessage) (pprint-arg emacs-lisp))
           (throw e))))))
 
-(alter-var-root #'compile memoize)
+;(alter-var-root #'compile memoize)
 
 (defn limit-scope [scope]
   (->> scope
@@ -169,8 +207,9 @@
   {:arglists '([FORM &optional LEXICAL])}
   [body & [lexical]]
   (c/let [scope (limit-scope (keys &env))]
-    `(binding [*ns* (the-ns 'deuce.emacs)]
-       (maybe-sym ((compile (preprocess '~scope ~body)) ~@scope)))))
+         `(binding [*ns* (the-ns 'deuce.emacs)]
+                                        ;            (maybe-sym ((compile (preprocess '~scope ~body)) ~@scope))
+            (maybe-sym (compile ~(el->clj body))))))
 
 (declare let-helper*)
 
@@ -188,9 +227,9 @@
 
 (c/defmacro def-helper* [what line name arglist & body]
   (c/let [[docstring body] (split-with string? body)
-          name (sym (if (seq? name) (c/eval name) name))
+          name (expand-symbol name)
           rest-arg (maybe-sym (second (drop-while (complement '#{&rest}) arglist)))
-          [arg & args :as arglist] (replace '{&rest &} arglist)
+          [arg & args :as arglist] (map expand-symbol (replace '{&rest &} arglist))
           [arglist &optional optional-args] (if (= '&optional arg)
                                               [() arg args]
                                               (partition-by '#{&optional} arglist))
@@ -204,23 +243,24 @@
           the-args (remove '#{&} (flatten arglist))]
     `(c/let [f# (~what ~name ~(vec arglist)
                        (binding [*ns* (the-ns 'clojure.core)]
-                         (trace-indent '~name)
+;                         (trace-indent '~name)
                          ~(when-not (seq body) `(warn ~(c/name name) "NOT IMPLEMENTED"))
-                         ~@(for [arg the-args]
-                             `(trace ~(keyword arg) (pprint-arg ~arg))))
+                         ;; ~@(for [arg the-args]
+                         ;;     `(trace ~(keyword arg) (pprint-arg ~arg)))
+                         )
                        (c/let [result# ~(if emacs-lisp?
                                           `(c/let ~(if rest-arg
                                                      `[~rest-arg (if-let [r# (seq ~rest-arg)] (apply cons/list r#) nil)]
                                                      [])
-                                                  (c/let [result# (let-helper* false ~(map #(c/list % %) the-args)
-                                                                               (eval '(progn ~@body)))]
+                                                  (c/let [result# (with-local-el-vars ~(vec (mapcat #(c/list % %) the-args))
+                                                                    (progn ~@body))]
                                                          (if ~macro?
-                                                           (w/prewalk cons-lists-to-seqs result#)
+                                                           (el->clj (w/prewalk cons-lists-to-seqs result#))
                                                            result#)))
                                           `(do ~@body))]
 
-                         (binding [*ns* (the-ns 'clojure.core)]
-                           (trace-indent '~name "⇒" (pprint-arg result#)))
+                         ;; (binding [*ns* (the-ns 'clojure.core)]
+                         ;;   (trace-indent '~name "⇒" (pprint-arg result#)))
 
                          result#))]
        (if (var? f#)
@@ -270,8 +310,8 @@
   {:arglists '([BODYFORM UNWINDFORMS...])}
   [bodyform & unwindforms]
   `(try
-     ~bodyform
-     (finally ~@unwindforms)))
+     ~(el->clj bodyform)
+     (finally (progn ~@unwindforms))))
 
 (c/defmacro condition-case
   "Regain control when an error is signaled.
@@ -300,14 +340,15 @@
   See also the function `signal' for more info."
   {:arglists '([VAR BODYFORM &rest HANDLERS])}
   [var bodyform & handlers]
-  `(try
-     ~bodyform
-     (catch deuce.emacs_lisp.error e#
-       (c/let [~(if var var (gensym "_")) (:data (.state e#))]
-         (case (:symbol (.state e#))
-           ~@(apply concat (for [[c & h] handlers]
-                             `[~(sym c) (do ~@h)]))
-           (throw e#))))))
+  (c/let [var (if (= () var) nil var)]
+         `(try
+            ~(el->clj bodyform)
+            (catch deuce.emacs_lisp.error e#
+              (c/let [~(if var var (gensym "_")) (:data (.state e#))]
+                     (case (:symbol (.state e#))
+                       ~@(apply concat (for [[c & h] handlers]
+                                         `[~(sym c) (progn ~@h)]))
+                       (throw e#)))))))
 
 (c/defmacro cond
   "Try each clause until one succeeds.
@@ -322,7 +363,8 @@
   [& clauses]
   `(c/cond
      ~@(->> clauses
-            (map #(do [`(not-null? ~(first %)) (if (second %) `(progn ~@(rest %)) (first %))]))
+            (map #(do [`(not-null? ~(el->clj (first %)))
+                       (if (second %) `(progn ~@(rest %)) (el->clj (first %)))]))
             (apply concat))))
 
 (c/defmacro setq-helper* [locals default? sym-vals]
@@ -330,20 +372,7 @@
        ~(reduce into []
                 (for [[s v] (partition 2 sym-vals)
                       :let [s (nested-first-symbol s)]]
-                  [(sym s)
-                   (if (contains? locals s)
-                     `(do (reset! ~s ~v) ~s)
-                     `(if-let [var# (global '~s)]
-                        (if (c/and (contains? (get-thread-bindings) var#)
-                                   (not ~default?))
-                          (var-set var# ~v)
-                          (c/let [m# (meta var#)]
-                            (alter-var-root var# (constantly ~v))
-                            (alter-meta! var# (constantly m#))
-                            @var#))
-                        (do
-                          (defvar ~s ~v)
-                          ~v)))]))
+                  [(sym s) `(el-var-set ~s ~(el->clj v))]))
      ~(last (butlast sym-vals))))
 
 (c/defmacro setq
@@ -372,17 +401,6 @@
   [arg]
   `(quote ~arg))
 
-(defn fix-lexical-setq [lexical-vars form]
-  (if (lexical-vars form)
-    (c/list `deref form)
-    (condp some [(maybe-sym (first-symbol form))]
-      '#{setq} (c/list `setq-helper*
-                     lexical-vars false (rest form))
-      '#{setq-helper*} (concat [`setq-helper*
-                                (into (second form) lexical-vars)] (drop 2 form))
-      '#{deref} (c/list `deref (nested-first-symbol form))
-      form)))
-
 (c/defmacro let-helper* [can-refer? varlist & body]
   (c/let [varlist (map #(if (symbol? %) [% nil] %) varlist)
           fn-vars (->> varlist
@@ -394,25 +412,15 @@
                                      (map sym fn-vars)))
           varlist (map (fn [[s v]] [(c/let [s (nested-first-symbol s)]
                                       (fn-vars-fix s s)) v]) varlist)
-          {:keys [lexical dynamic]} (group-by (comp #(if (namespace %) :dynamic :lexical) first) varlist)
-          lexical-vars (into {} (map vec lexical))
-          dynamic-vars (into {} (map vec dynamic))
-          fix-lexical-setq (partial fix-lexical-setq (c/set (keys lexical-vars)))
-          body (w/postwalk fix-lexical-setq body)
           body (w/postwalk-replace fn-vars-fix body)
           all-vars (map first varlist)
-          temps (zipmap all-vars (repeatedly #(gensym "local__")))
-          [lexical-vars dynamic-vars] (map #(if can-refer? % (select-keys temps (keys %)))
-                                           [lexical-vars dynamic-vars])]
-    `(c/let ~(if can-refer? [] (vec (interleave (map temps (map first varlist)) (map second varlist))))
-       ~((fn build-let [[v & vs]]
-           (if v
-             (if (contains? lexical-vars v)
-               `(c/let [~v (atom ~(w/postwalk fix-lexical-setq (lexical-vars v)))]
-                  ~(build-let vs))
-               `(c/binding [~v ~(dynamic-vars v)]
-                  ~(build-let vs)))
-             `(do ~@body))) all-vars))))
+          temps (zipmap all-vars (repeatedly #(gensym "local__")))]
+         `(c/let ~(vec (concat
+                        (interleave (map (if can-refer? identity temps) (map first varlist))
+                                    (map (comp el->clj second) varlist))
+                        (when-not can-refer? (interleave all-vars (map temps all-vars)))))
+                 (with-local-el-vars ~(interleave all-vars all-vars)
+                   (progn ~@body)))))
 
 (c/defmacro let
   "Bind variables according to VARLIST then eval BODY.
@@ -441,11 +449,11 @@
   The optional DOCSTRING specifies the variable's documentation string."
   {:arglists '([SYMBOL INITVALUE [DOCSTRING]])}
   [symbol initvalue & [docstring]]
-  (c/let [symbol (sym symbol)]
+  (c/let [symbol (expand-symbol symbol)]
     `(do
        (-> (intern (create-ns 'deuce.emacs-lisp.globals)
                    '~symbol
-                   ~initvalue)
+                   ~(el->clj initvalue))
            (alter-meta! merge {:doc ~(apply str docstring)}))
        '~symbol)))
 
@@ -455,9 +463,9 @@
   whose values are discarded."
   {:arglists '([FIRST BODY...])}
   [first & body]
-  `(c/let [result# ~first]
-     ~@body
-     result#))
+  `(c/let [result# ~(el->clj first)]
+          (progn ~@body)
+          result#))
 
 (c/defmacro prog2
   "Eval FORM1, FORM2 and BODY sequentially; return value from FORM2.
@@ -465,9 +473,9 @@
   remaining args, whose values are discarded."
   {:arglists '([FORM1 FORM2 BODY...])}
   [form1 form2 & body]
-  `(do ~form1
-       (prog1 ~form2
-              ~@body)))
+  `(progn ~form1
+          (prog1 ~form2
+                 ~@body)))
 
 (c/defmacro setq-default
   "Set the default value of variable VAR to VALUE.
@@ -491,7 +499,7 @@
   If all args return nil, return nil."
   {:arglists '([CONDITIONS...])}
   [& conditions]
-  `(c/or ~@(map #(do `(not-null? ~%)) conditions)))
+  `(c/or ~@(map #(do `(not-null? ~(el->clj %))) conditions)))
 
 (c/defmacro while
   "If TEST yields non-nil, eval BODY... and repeat.
@@ -499,7 +507,7 @@
   until TEST returns nil."
   {:arglists '([TEST BODY...])}
   [test & body]
-  `(c/while (not-null? ~test) ~@body))
+  `(c/while (not-null? ~(el->clj test)) (progn ~@body)))
 
 (c/defmacro defmacro
   "Define NAME as a macro.
@@ -545,13 +553,13 @@
   If no arg yields nil, return the last arg's value."
   {:arglists '([CONDITIONS...])}
   [& conditions]
-  `(c/and ~@(map #(do `(not-null? ~%)) conditions)))
+  `(c/and ~@(map #(do `(not-null? ~(el->clj %))) conditions)))
 
 (c/defmacro progn
   "Eval BODY forms sequentially and return value of last one."
   {:arglists '([BODY...])}
   [& body]
-  `(do ~@body))
+  `(do ~@(map el->clj body)))
 
 (c/defmacro ^:clojure-special-form let*
   "Bind variables according to VARLIST then eval BODY.
@@ -567,14 +575,14 @@
 
 (defn defvar-helper* [ns symbol & [initvalue docstring]]
   (c/let [symbol (sym (nested-first-symbol symbol))
-          default (global symbol)
+          ^Var default (global symbol)
           m (meta default)]
     (->
-     (intern (create-ns ns)
-             symbol
-             (c/or (when default
-                     (.getRawRoot default))
-                   initvalue))
+     ^Var (intern (create-ns ns)
+                  symbol
+                  (c/or (when default
+                          (.getRawRoot default))
+                        initvalue))
      .setDynamic
      (alter-meta! merge (merge m {:doc (apply str docstring)})))
     symbol))
@@ -607,7 +615,9 @@
   option if its DOCSTRING starts with *, but this behavior is obsolete."
   {:arglists '([SYMBOL &optional INITVALUE DOCSTRING])}
   [symbol & [initvalue docstring]]
-  `(defvar-helper* 'deuce.emacs-lisp.globals '~symbol ~initvalue ~docstring))
+  (c/let [emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)]
+         `(defvar-helper* 'deuce.emacs-lisp.globals '~(expand-symbol symbol)
+            ~(if emacs-lisp? (el->clj initvalue) initvalue) ~docstring)))
 
 ;; defined as fn in eval.clj
 (c/defmacro ^:clojure-special-form throw
@@ -628,7 +638,7 @@
   {:arglists '([TAG BODY...])}
   [tag & body]
   `(try
-     ~@body
+     (progn ~@body)
      (catch deuce.emacs_lisp.error e#
        (if (= ~tag (:symbol (.state e#)))
          (:data (.state e#))
@@ -641,8 +651,8 @@
   If COND yields nil, and there are no ELSE's, the value is nil."
   {:arglists '([COND THEN ELSE...])}
   [cond then & else]
-  `(c/cond (not-null? ~cond) ~then
-           :else (do ~@else)))
+  `(c/cond (not-null? ~(el->clj cond)) ~(el->clj then)
+           :else (progn ~@else)))
 
 (c/defmacro save-restriction
   "Execute BODY, saving and restoring current buffer's restrictions.
@@ -661,7 +671,7 @@
       (save-excursion (save-restriction ...))"
   {:arglists '([&rest BODY])}
   [& body]
-  `(do ~@body))
+  `(progn ~@body))
 
 (c/defmacro save-excursion
   "Save point, mark, and current buffer; execute BODY; restore those things.
@@ -678,7 +688,7 @@
   If you only want to save the current buffer but not point nor mark,
   then just use `save-current-buffer', or even `with-current-buffer'."
   [& body]
-  `(do ~@body))
+  `(progn ~@body))
 
 (c/defmacro interactive
   "Specify a way of parsing arguments for interactive use of a function.
@@ -752,7 +762,7 @@
   Executes BODY just like `progn'."
   {:arglists '([&rest BODY])}
   [& body]
-  `(do ~@body))
+  `(progn ~@body))
 
 (def clojure-special-forms
   (->> (ns-map 'deuce.emacs-lisp)

@@ -66,3 +66,17 @@
 
 ;; Hack for a predicate in cl.el, this is defined in emacs-lisp/bytecomp.el, which we're not using
 (defun byte-compile-file-form (form))
+
+;; Hack to ensure these gets treated as a macros even before loaded
+(defmacro declare (&rest _specs) nil)
+(defmacro dolist (spec &rest body) nil)
+
+;; Keymap setup
+(setq global-map (make-keymap))
+(use-global-map globals/global-map)
+(setq esc-map (make-keymap))
+(setq ctl-x-map (make-keymap))
+
+(setq minibuffer-local-map (make-sparse-keymap))
+(setq minibuffer-local-ns-map (make-sparse-keymap))
+; (set-keymap-parent globals/minibuffer-local-ns-map globals/minibuffer-local-map)
