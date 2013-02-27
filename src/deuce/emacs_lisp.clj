@@ -137,21 +137,6 @@
           (error (-> e cause .getMessage) (pprint-arg emacs-lisp))
           (throw e))))))
 
-;; Navgeet's helper macro, will revisit, basically condition-case but for use from Clojure
-(c/defmacro try-with-tag [& exprs]
-  (c/let [catch-clauses (c/filter #(c/= (first %) 'catch) exprs)
-          finally-clause (c/filter #(c/= (first %) 'finally) exprs)
-          try-exprs (c/remove #(c/or (c/= (first %) 'finally) (c/= (first %) 'catch)) exprs)]
-         `(try ~@try-exprs
-               ~@(for [expr catch-clauses]
-                   (c/let [[_ tag e & exprs] expr]
-                          `(catch deuce.emacs_lisp.error e#
-                             (if (= ~tag (:symbol (.state e#)))
-                               (c/let [~e e#]
-                                      (do ~@exprs))
-                               (throw e#)))))
-               ~@finally-clause)))
-
 ;; defined as fn in eval.clj
 (c/defmacro eval
   "Evaluate FORM and return its value.
@@ -718,3 +703,18 @@
 (defn check-type [pred x]
   (when-not ((fun pred) x)
     (deuce.emacs-lisp/throw 'wrong-type-argument (cons/list pred x))))
+
+;; Navgeet's helper macro, will revisit, basically condition-case but for use from Clojure
+(c/defmacro try-with-tag [& exprs]
+  (c/let [catch-clauses (c/filter #(c/= (first %) 'catch) exprs)
+          finally-clause (c/filter #(c/= (first %) 'finally) exprs)
+          try-exprs (c/remove #(c/or (c/= (first %) 'finally) (c/= (first %) 'catch)) exprs)]
+         `(try ~@try-exprs
+               ~@(for [expr catch-clauses]
+                   (c/let [[_ tag e & exprs] expr]
+                          `(catch deuce.emacs_lisp.error e#
+                             (if (= ~tag (:symbol (.state e#)))
+                               (c/let [~e e#]
+                                      (do ~@exprs))
+                               (throw e#)))))
+               ~@finally-clause)))
