@@ -38,4 +38,6 @@
 
      (funcall my-ticker) ⇒ 2
 
-     (funcall my-ticker) ⇒ 3)
+     (funcall my-ticker) ⇒ 3
+
+     x                   ⇒ Exception)

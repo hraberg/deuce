@@ -4,7 +4,7 @@
             [deuce.emacs]))
 
 (defmacro emacs [& body]
-  `(last (map #(el/eval %) '~body)))
+  `(last (map deuce.emacs.eval/eval '~body)))
 
 (defn remove-vars [ns vars]
   (dorun (map #(ns-unmap ns %) vars)))

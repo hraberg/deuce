@@ -58,7 +58,9 @@
 
 (c/defmacro el-var-set [name value]
   `(if-let [v# (*dynamic-vars* '~name)]
-     (var-set v# ~value)
+     (if (c/and (.hasRoot v#) (not (.getThreadBinding v#)))
+       (alter-var-root v# (constantly ~value))
+       (var-set v# ~value))
      (if-let [v# (global '~name)]
        (alter-var-root v# (constantly ~value))
        @(global (defvar ~name ~value)))))
@@ -241,7 +243,12 @@
   BODY should be a list of Lisp expressions."
   {:arglists '([ARGS [DOCSTRING] [INTERACTIVE] BODY])}
   [& cdr]
-  `(def-helper* fn nil lambda ~(first cdr) ~@(rest cdr)))
+  `(c/let [closure# (zipmap (keys *dynamic-vars*)
+                            (map #(doto (Var/create (deref %)) .setDynamic)
+                                 (vals *dynamic-vars*)))]
+          (def-helper* fn nil lambda ~(first cdr)
+            (binding [*dynamic-vars* (merge *dynamic-vars* closure#)]
+              ~@(rest cdr)))))
 
 (c/defmacro unwind-protect
   "Do BODYFORM, protecting with UNWINDFORMS.
