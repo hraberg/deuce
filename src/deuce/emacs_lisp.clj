@@ -117,10 +117,6 @@
     (recur e)
     e))
 
-(defn pprint-arg [arg]
-  (c/let [arg (s/trim-newline (with-out-str (pp/pprint arg)))]
-    (if (re-find #"\n" arg) (str "\n" arg) arg)))
-
 (defn compile [emacs-lisp]
   (try
     (c/eval (with-meta emacs-lisp nil))
@@ -153,11 +149,6 @@
     (apply list form)
     form))
 
-(c/defmacro trace-indent [& args]
-  `(trace (apply str (repeat (->> (.getStackTrace (Thread/currentThread))
-                                  (filter #(re-find #"deuce." (str %)))
-                                  count) "-")) ~@args))
-
 (declare progn)
 
 (c/defmacro def-helper* [what line name arglist & body]
@@ -178,11 +169,7 @@
           the-args (remove '#{&} (flatten arglist))]
     `(c/let [f# (~what ~name ~(vec arglist)
                        (binding [*ns* (the-ns 'clojure.core)]
-;                         (trace-indent '~name)
-                         ~(when-not (seq body) `(warn ~(c/name name) "NOT IMPLEMENTED"))
-                         ;; ~@(for [arg the-args]
-                         ;;     `(trace ~(keyword arg) (pprint-arg ~arg)))
-                         )
+                         ~(when-not (seq body) `(warn ~(c/name name) "NOT IMPLEMENTED")))
                        (c/let [result# ~(if emacs-lisp?
                                           `(c/let ~(if rest-arg
                                                      `[~rest-arg (if-let [r# (seq ~rest-arg)] (apply cons/list r#) nil)]
@@ -193,10 +180,6 @@
                                                            (el->clj (w/prewalk cons-lists-to-seqs result#))
                                                            result#)))
                                           `(do ~@body))]
-
-                         ;; (binding [*ns* (the-ns 'clojure.core)]
-                         ;;   (trace-indent '~name "⇒" (pprint-arg result#)))
-
                          result#))]
        (if (var? f#)
          (do
