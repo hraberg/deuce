@@ -403,16 +403,6 @@
 
 (c/defmacro let-helper* [can-refer? varlist & body]
   (c/let [varlist (map #(if (symbol? %) [% nil] %) varlist)
-          fn-vars (->> varlist
-                       (map first)
-                       (filter namespace)
-                       (remove (comp #{"deuce.emacs-lisp.globals"} namespace)))
-          fn-vars-fix (merge (zipmap fn-vars (map sym fn-vars))
-                             (zipmap (map #(symbol "deuce.emacs-lisp.globals" (name %)) fn-vars)
-                                     (map sym fn-vars)))
-          varlist (map (fn [[s v]] [(c/let [s (nested-first-symbol s)]
-                                      (fn-vars-fix s s)) v]) varlist)
-          body (w/postwalk-replace fn-vars-fix body)
           all-vars (map first varlist)
           temps (zipmap all-vars (repeatedly #(gensym "local__")))]
          `(c/let ~(vec (concat
