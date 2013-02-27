@@ -5,7 +5,7 @@
   (:use [deuce.emacs-lisp :only [and catch cond condition-case defconst defmacro defun defvar
                                  function if interactive lambda let let* or prog1 prog2 progn quote
                                  save-current-buffer save-excursion save-restriction setq setq-default
-                                 unwind-protect while]]
+                                 unwind-protect while throw]]
         [deuce.emacs.alloc]
         [deuce.emacs.buffer]
         [deuce.emacs.bytecode]

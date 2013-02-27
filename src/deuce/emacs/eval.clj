@@ -280,11 +280,6 @@
   Instead, use `add-hook' and specify t for the LOCAL argument."
   )
 
-(defun throw (tag value)
-  "Throw to the catch for TAG and return VALUE from it.
-  Both TAG and VALUE are evalled."
-  (el/throw tag value))
-
 (defun backtrace ()
   "Print a trace of Lisp function calls currently active.
   Output stream used is value of `standard-output'."

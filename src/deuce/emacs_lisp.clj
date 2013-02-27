@@ -49,15 +49,20 @@
 ;; New Dynamic Binding Logic - still to be integrated and tested. Fully Var based.
 (def ^:dynamic *dynamic-vars* {})
 
+(defn dynamic-binding? []
+  (not (when-let [lexical (global 'lexical-binding)] @lexical)))
+
 (c/defmacro el-var-get [name]
-  `(if-let [v# ((some-fn *dynamic-vars* global) '~name)]
-     @v#
-     ~(if (c/and (symbol? name) (name &env))
-        `(do ~name)
-        `(deuce.emacs-lisp/throw '~'void-variable (cons/list '~name)))))
+  (if (c/and (symbol? name) (name &env))
+    `(c/let [v# ~name]
+            (if (instance? Var v#) @v# v#))
+    `(if-let [v# ((some-fn *dynamic-vars* global) '~name)]
+       @v#
+       (deuce.emacs-lisp/throw '~'void-variable (cons/list '~name)))))
 
 (c/defmacro el-var-set [name value]
-  `(if-let [v# (*dynamic-vars* '~name)]
+  `(if-let [v# (c/or ~(c/and (symbol? name) (name &env) name)
+                     (*dynamic-vars* '~name))]
      (if (c/and (.hasRoot v#) (not (.getThreadBinding v#)))
        (alter-var-root v# (constantly ~value))
        (var-set v# ~value))
@@ -70,8 +75,9 @@
          `(c/let [vars# (hash-map ~@(interleave (map #(list 'quote %) (take-nth 2 name-vals-vec))
                                                 (repeat '(c/doto (clojure.lang.Var/create) .setDynamic))))]
                  (with-bindings (zipmap (map vars# '~vars) ~(vec (take-nth 2 (rest name-vals-vec))))
-                   (binding [*dynamic-vars* (merge *dynamic-vars* vars#)]
-                     ~@body)))))
+                   (binding [*dynamic-vars* (if (dynamic-binding?) (merge *dynamic-vars* vars#) {})]
+                     (c/let [{:syms ~vars} vars#]
+                            ~@body))))))
 
 (defn el->clj [x]
   (condp some [x]
@@ -243,12 +249,14 @@
   BODY should be a list of Lisp expressions."
   {:arglists '([ARGS [DOCSTRING] [INTERACTIVE] BODY])}
   [& cdr]
-  `(c/let [closure# (zipmap (keys *dynamic-vars*)
-                            (map #(doto (Var/create (deref %)) .setDynamic)
-                                 (vals *dynamic-vars*)))]
-          (def-helper* fn nil lambda ~(first cdr)
-            (binding [*dynamic-vars* (merge *dynamic-vars* closure#)]
-              ~@(rest cdr)))))
+  (c/let [vars (vec (keys &env))]
+         `(c/let [closure# (zipmap '~vars
+                                   (map #(doto (Var/create (if (instance? Var %) (deref %) %)) .setDynamic)
+                                        ~vars))]
+                 (def-helper* fn nil lambda ~(first cdr)
+                   (binding [*dynamic-vars* (if (dynamic-binding?) (merge *dynamic-vars* closure#) {})]
+                     (c/let [{:syms ~(vec (keys &env))} closure#]
+                            ~@(rest cdr)))))))
 
 (c/defmacro unwind-protect
   "Do BODYFORM, protecting with UNWINDFORMS.
@@ -578,7 +586,7 @@
   `(try
      (progn ~@body)
      (catch deuce.emacs_lisp.error e#
-       (if (= ~tag (:symbol (.state e#)))
+       (if (= ~(el->clj tag) (:symbol (.state e#)))
          (:data (.state e#))
          (throw e#)))))
 
