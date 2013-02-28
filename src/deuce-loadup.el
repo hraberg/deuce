@@ -292,6 +292,8 @@
 ;; (load "vc/ediff-hook")
 ;; (if (fboundp 'x-show-tip) (load "tooltip"))
 
+;; DEUCE: Relevant parts of loadup done. A vanilla emacs -nw -q. Release 0.2.0.
+
 ;; DEUCE: site-load, not supported, will revisit.
 ;; ;If you want additional libraries to be preloaded and their
 ;; ;doc strings kept in the DOC file rather than in core,
