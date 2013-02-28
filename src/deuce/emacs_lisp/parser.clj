@@ -95,10 +95,9 @@
        (.hasNextDouble sc) (.nextDouble sc)
        (.hasNext sc) (let [s (.next sc)]
                        (case s
-                         "/" '/
                          "t" true
                          "nil" nil
-                         (with-meta (symbol (s/replace s "/" "_SLASH_")) {:line @line})))
+                         (with-meta (symbol nil s) {:line @line})))
        :else `end))))
 
 (def scanner-position (doto (.getDeclaredField Scanner "position")

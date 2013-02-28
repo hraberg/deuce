@@ -25,7 +25,7 @@
 (declare clojure-special-forms throw defvar)
 
 (defn sym [s]
-  (symbol (name s)))
+  (symbol nil (name s)))
 
 ; "reused" from data.clj
 (defn not-null? [object]
@@ -53,10 +53,15 @@
 (c/defmacro el-var-get [name]
   (if (c/and (symbol? name) (name &env))
     `(c/let [v# ~name]
-            (if (instance? Var v#) @v# v#))
+            (if (var? v#) @v# v#))
     `(if-let [v# ((some-fn *dynamic-vars* global) '~name)]
        @v#
        (deuce.emacs-lisp/throw '~'void-variable (cons/list '~name)))))
+
+(c/defmacro el-var-set-default [name value]
+  `(if-let [v# (global '~name)]
+     (alter-var-root v# (constantly ~value))
+     @(global (defvar ~name ~value))))
 
 (c/defmacro el-var-set [name value]
   `(if-let [v# (c/or ~(c/and (symbol? name) (name &env) name)
@@ -64,9 +69,7 @@
      (if (c/and (.hasRoot v#) (not (.getThreadBinding v#)))
        (alter-var-root v# (constantly ~value))
        (var-set v# ~value))
-     (if-let [v# (global '~name)]
-       (alter-var-root v# (constantly ~value))
-       @(global (defvar ~name ~value)))))
+     (el-var-set-default ~name ~value)))
 
 (c/defmacro with-local-el-vars [name-vals-vec & body]
   (c/let [vars (vec (take-nth 2 name-vals-vec))]
@@ -118,6 +121,8 @@
   (try
     (c/eval (with-meta emacs-lisp nil))
     (catch RuntimeException e
+      (when-not (.getMessage e)
+        (throw e))
       (if-let [[_ undeclared] (c/and (global 'load-in-progress)
                                      @(global 'load-in-progress)
                                      (c/re-find #"Unable to resolve symbol: (.+) in this context"
@@ -163,29 +168,33 @@
           macro? (= `c/defmacro what)
           doc (apply str docstring)
           arglist (w/postwalk maybe-sym arglist)
-          the-args (remove '#{&} (flatten arglist))]
-    `(c/let [f# (~what ~name ~(vec arglist)
-                       (binding [*ns* (the-ns 'clojure.core)]
-                         ~(when-not (seq body) `(warn ~(c/name name) "NOT IMPLEMENTED")))
-                       (c/let [result# ~(if emacs-lisp?
-                                          `(c/let ~(if rest-arg
-                                                     `[~rest-arg (if-let [r# (seq ~rest-arg)] (apply cons/list r#) nil)]
-                                                     [])
-                                                  (c/let [result# (with-local-el-vars ~(vec (mapcat #(c/list % %) the-args))
-                                                                    (progn ~@body))]
-                                                         (if ~macro?
-                                                           (el->clj (w/prewalk cons-lists-to-seqs result#))
-                                                           result#)))
-                                          `(do ~@body))]
-                         result#))]
-       (if (var? f#)
-         (do
-           (alter-meta! f# merge (merge {:doc ~doc}
-                                        (when ~emacs-lisp?
-                                          {:el-file (when-let [file# (global 'load-file-name)]
-                                                      @file#)})))
-           (alter-var-root f# (constantly (with-meta @f# (meta f#)))))
-         (with-meta f# (assoc (meta f#) :doc ~doc))))))
+          the-args (remove '#{&} (flatten arglist))
+          needs-intern? (when (c/and (re-find #"/" (c/name name)) (not= '/ name)) (gensym))]
+         `(c/let [f# (~what ~(if needs-intern? needs-intern? name) ~(vec arglist)
+                            ~(when-not (seq body)
+                               `(binding [*ns* (the-ns 'clojure.core)]
+                                  (warn ~(c/name name) "NOT IMPLEMENTED")))
+                            ~(if emacs-lisp?
+                               `(c/let ~(if rest-arg
+                                          `[~rest-arg (if-let [r# (seq ~rest-arg)] (apply cons/list r#) nil)]
+                                          [])
+                                       (c/let [result# (with-local-el-vars ~(vec (mapcat #(c/list % %) the-args))
+                                                         (progn ~@body))]
+                                              (if ~macro?
+                                                (el->clj (w/prewalk cons-lists-to-seqs result#))
+                                                result#)))
+                               `(do ~@body)))]
+                 (if (var? f#)
+                   (do
+                     (alter-meta! f# merge (merge {:doc ~doc}
+                                                  (when ~emacs-lisp?
+                                                    {:el-file (when-let [file# (global 'load-file-name)]
+                                                                @file#)})))
+                     (alter-var-root f# (constantly (with-meta @f# (meta f#))))
+                     (when ~needs-intern?
+                       (intern 'deuce.emacs (with-meta '~name (dissoc (meta f#) :name)) @f#)
+                       (ns-unmap 'deuce.emacs '~needs-intern?)))
+                   (with-meta f# (assoc (meta f#) :doc ~doc))))))
 
 (c/defmacro defun
   "Define NAME as a function.
@@ -193,8 +202,9 @@
   See also the function `interactive'."
   {:arglists '([NAME ARGLIST [DOCSTRING] BODY...])}
   [name arglist & body]
-  `(do (def-helper* defn ~(-> name meta :line) ~name ~arglist ~@body)
-       '~name))
+  (c/let [name (expand-symbol name)]
+         `(do (def-helper* defn ~(-> name meta :line) ~name ~arglist ~@body)
+              '~name)))
 
 ;; defined in subr.el
 (c/defmacro lambda
@@ -216,7 +226,7 @@
   [& cdr]
   (c/let [vars (vec (keys &env))]
          `(c/let [closure# (zipmap '~vars
-                                   (map #(doto (Var/create (if (instance? Var %) (deref %) %)) .setDynamic)
+                                   (map #(doto (Var/create (if (var? %) (deref %) %)) .setDynamic)
                                         ~vars))]
                  (def-helper* fn nil lambda ~(first cdr)
                    (binding [*dynamic-vars* (if (dynamic-binding?) (merge *dynamic-vars* closure#) {})]
@@ -288,12 +298,14 @@
                        (if (second %) `(progn ~@(rest %)) (el->clj (first %)))]))
             (apply concat))))
 
-(c/defmacro setq-helper* [locals default? sym-vals]
+(c/defmacro setq-helper* [default? sym-vals]
   `(c/let
        ~(reduce into []
                 (for [[s v] (partition 2 sym-vals)
                       :let [s (expand-symbol s)]]
-                  [(sym s) `(el-var-set ~s ~(el->clj v))]))
+                  [(sym s) (if default?
+                             `(el-var-set-default ~s ~(el->clj v))
+                             `(el-var-set ~s ~(el->clj v)))]))
      ~(last (butlast sym-vals))))
 
 (c/defmacro setq
@@ -306,7 +318,7 @@
   The return value of the `setq' form is the value of the last VAL."
   {:arglists '([[SYM VAL]...])}
   [& sym-vals]
-  `(setq-helper* ~(c/set (keys &env)) false ~sym-vals))
+  `(setq-helper* nil ~sym-vals))
 
 (c/defmacro ^:clojure-special-form quote
   "Return the argument, without evaluating it.  `(quote x)' yields `x'.
@@ -324,10 +336,10 @@
 
 (c/defmacro let-helper* [can-refer? varlist & body]
   (c/let [varlist (map #(if (symbol? %) [% nil] %) varlist)
-          all-vars (map first varlist)
+          all-vars (map (comp expand-symbol first) varlist)
           temps (zipmap all-vars (repeatedly #(gensym "local__")))]
          `(c/let ~(vec (concat
-                        (interleave (map (if can-refer? identity temps) (map first varlist))
+                        (interleave (map (if can-refer? identity temps) all-vars)
                                     (map (comp el->clj second) varlist))
                         (when-not can-refer? (interleave all-vars (map temps all-vars)))))
                  (with-local-el-vars ~(interleave all-vars all-vars)
@@ -402,7 +414,7 @@
   of previous VARs."
   {:arglists '([[VAR VALUE]...])}
   [& var-values]
-  `(setq-helper* #{} :default ~var-values))
+  `(setq-helper* :default? ~var-values))
 
 (c/defmacro or
   "Eval args until one of them yields non-nil, then return that value.

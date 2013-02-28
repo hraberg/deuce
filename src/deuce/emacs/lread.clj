@@ -13,7 +13,8 @@
             [deuce.emacs.editfns :as editfns]
             [deuce.emacs.eval :as eval]
             [deuce.emacs-lisp.parser :as parser])
-  (:refer-clojure :exclude [read intern load]))
+  (:refer-clojure :exclude [read intern load])
+  (:import [java.io FileNotFoundException]))
 
 (defvar old-style-backquotes nil
   "Set to non-nil when `read' encounters an old-style backquote.")
@@ -321,9 +322,11 @@
 
 (defn ^:private sanitise-symbols [x]
   (cond
-   (and (symbol? x) (re-find  #"([\\,]|^\d)" (name x))) (if (namespace x)
-                                                          (list `symbol (namespace x) (name x))
-                                                          (list `symbol (name x)))
+   (and (symbol? x) (re-find  #"([\\,/]|^\d)" (name x))) (if (namespace x)
+                                                           (list `symbol (namespace x) (name x))
+                                                           (if (re-find #"/" (name x))
+                                                             (list `symbol nil (name x))
+                                                             (list `symbol (name x))))
    (and (seq? x) (= 'quote  (first x)) (seq? (second x)) (= `symbol (first (second x)))) (second x)
    :else x))
 
@@ -394,20 +397,24 @@
         (with-open [in (io/input-stream url)]
           (when-not nomessage
             (editfns/message "Loading %s..." file))
-          (let [file (s/replace file  #".el$" "")]
+          (let [file (s/replace file  #".el$" "")
+                clj-file (str (s/replace file "-" "_") ".clj")
+                last-modified #(if % (.getLastModified (.openConnection %)) -1)]
             (try
+              (when (> (last-modified url) (last-modified (io/resource clj-file)))
+                (throw (FileNotFoundException. "out of date")))
               (c/require (symbol (s/replace file "/" ".")))
-              (catch java.io.FileNotFoundException _
-                (let [el (parser/parse in)
-                      clj-file (s/replace file "-" "_")]
+              (catch FileNotFoundException _
+                (let [el (parser/parse in)]
                   (write-clojure (map #(let [clj (el/el->clj %)]
                                          (try
                                            (eval/eval clj)
+                                           clj
                                            (catch Exception e
                                              (pp/pprint clj)
-                                             (throw e))) clj)
+                                             (throw e))))
                                       (w/postwalk sanitise-symbols el))
-                                 (io/file *compile-path* (str clj-file ".clj")))
+                                 (io/file *compile-path* clj-file))
                   (binding [*compile-files* true] (require (symbol (s/replace file "/" "."))))))))
           true)))
     (catch Exception e
