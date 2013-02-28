@@ -97,6 +97,7 @@
 ;;        No real intention of supporting it, but custom assumes its there.
 (load "widget")
 ;; DEUCE: custom subsystem, not strictly necessary, but other things depend on it being there.
+;; ------ Current state of 2013-02-28.
 (load "custom")
 ;; DEUCE: Yes/No prompt.
 (load "emacs-lisp/map-ynp")
