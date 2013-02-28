@@ -374,7 +374,7 @@
 (if (null (garbage-collect))
     (setq pure-space-overflow t))
 
-;; DEUCE: This writes out and dumps the actual emacs binary, we used lein uberjar
+;; DEUCE: This writes out and dumps the actual emacs binary, we will use lein uberjar with AOT.
 ;; (if (or (member (nth 3 command-line-args) '("dump" "bootstrap"))
 ;; 	(member (nth 4 command-line-args) '("dump" "bootstrap")))
 ;;     (progn
