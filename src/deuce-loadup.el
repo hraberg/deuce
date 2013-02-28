@@ -124,10 +124,11 @@
 (load "button")
 ;; DEUCE: Actual startup of Emacs, parses command lines, opens the first frame and displays welcome and *scratch*
 ;;        Loads init.el, but we'll surpress that for now. We want to support emacs -nw -q
+;;        Also loads subdirs.el which extends the load-path. Tries to load leim for international input, but should not be needed.
 (load "startup")
 
 ;; DEUCE: At this point normal-top-level will be available.
-;;        Calling it should start Emacs and clojure-lanterna can be intialized.
+;;        Calling it (see end of this file) should start Emacs and clojure-lanterna can be intialized.
 ;;        I want to drive out the boot backwards based on what's needed at this point - not mimic the C.
 ;;        Actual details of the init of different subsystems are a mix of C (hence .clj) and Emacs Lisp.
 ;;        See emacs.c for the lowlevel init, also: frame.c and window.c.
