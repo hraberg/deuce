@@ -159,7 +159,8 @@
 ;;        M-x butterfly is defined in misc.el, loaded via autoload, see loaddef above. It depends on play/animate.
 
 ;; DEUCE: About half-way through loadup.el here. Next up is languages (to skip), various search/replace and actual major modes.
-;;        At the end of loadup some addditional actual initialization happens, see commented out lines below:
+;;        At the end of loadup some addditional actual initialization happens, see commented out lines below.
+;;        The following section is more sparsely commented and analyzed than that above, will revisit after 0.1.0.
 
 ;; DEUCE: All the following block can probably be skipped unless referenced.
 ;; (load "jka-cmpr-hook")
