@@ -42,6 +42,9 @@
 
 ;;; Code:
 
+;; DEUCE: deuce.main loads this file and prepend src/bootstrap-emacs to the command line to emulate CANNOT_DUMP.
+;;        Unlike in Emacs, this file is loaded every time Deuce starts, but all referenced Emacs Lisp will normally be AOT compiled.
+
 ;; Add subdirectories to the load-path for files that might get
 ;; autoloaded when bootstrapping.
 (if (or (equal (nth 3 command-line-args) "bootstrap")
@@ -415,7 +418,7 @@
 	 (equal (nth 2 command-line-args) "loadup"))
     (setcdr command-line-args (nthcdr 3 command-line-args)))
 
-;; DEUCE: Starts Emacs. This entire file will be AOT together with referenced Emacs Lisp.
+;; DEUCE: Starts Emacs. This entire file will be AOT compiled together with referenced Emacs Lisp.
 ;;        deuce-loadup.el is loaded in deuce.main. Further C init goes into deuce.emacs.
 (eval top-level)
 
