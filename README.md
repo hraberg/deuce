@@ -13,7 +13,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 **2013-02-28**
 
-The new evaluation model is in. This creates a `.clj` file for each `.el` file it loads, which can then be compiled into a `.class` file. The use of Clojure's `eval` is gone, and the dynamic scoping is now all done by vars (which may be accessed via lexically). The core is also vastly simplified, it had many defensive post-walks for opaque root causes which the slow load time made very hard (for the impatient) to debug.
+The new evaluation model is in. This creates a `.clj` file for each `.el` file it loads, which can then be compiled into a `.class` file. The use of Clojure's `eval` is gone, and the dynamic scoping is now all done by vars (which may be accessed lexically). The core is also vastly simplified, it had many defensive post-walks for opaque root causes which the slow load time made very hard (for the impatient) to debug.
 
 While the initial compilation actually is slower, it opens up for a better development model overall, as you can actually see and reevaluate the generated Clojure while solving an issue (and get proper line numbers), and once compiled, it loads much faster - `lein uberjar` can now basically be used to create an Emacs which isn't "bare".
 
