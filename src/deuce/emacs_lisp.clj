@@ -318,7 +318,7 @@
   The return value of the `setq' form is the value of the last VAL."
   {:arglists '([[SYM VAL]...])}
   [& sym-vals]
-  `(setq-helper* nil ~sym-vals))
+  `(setq-helper* false ~sym-vals))
 
 (c/defmacro ^:clojure-special-form quote
   "Return the argument, without evaluating it.  `(quote x)' yields `x'.
@@ -414,7 +414,7 @@
   of previous VARs."
   {:arglists '([[VAR VALUE]...])}
   [& var-values]
-  `(setq-helper* :default? ~var-values))
+  `(setq-helper* true ~var-values))
 
 (c/defmacro or
   "Eval args until one of them yields non-nil, then return that value.
@@ -492,9 +492,7 @@
   Each VALUEFORM can refer to the symbols already bound by this VARLIST."
   {:arglists '([VARLIST BODY...])}
   [varlist & body]
-  (if (vector? varlist)
-    `(c/let ~varlist ~@body)
-    `(let-helper* true ~varlist ~@body)))
+  `(let-helper* true ~varlist ~@body))
 
 (defn defvar-helper* [ns symbol & [initvalue docstring]]
   (c/let [symbol (expand-symbol symbol)
