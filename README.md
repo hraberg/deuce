@@ -31,7 +31,7 @@ Also new is [Bjarte](https://github.com/ljos)'s work on proper Cons lists, which
      of 2013-02-28 on X202E
 
 
-I've managed established a hacking base in Agonda now. No sleep until `M-x butterfly`.
+I've managed to establish a hacking base in Agonda now. No sleep until `M-x butterfly`.
 
 
 **2013-02-25**
