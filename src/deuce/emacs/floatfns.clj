@@ -53,9 +53,7 @@
 (defun log (arg &optional base)
   "Return the natural logarithm of ARG.
   If the optional argument BASE is given, return log ARG using that base."
-  (if base
-    (/ (Math/log arg) (Math/log base))
-    (Math/log arg)))
+  (/ (Math/log arg) (if base (Math/log base) 1)))
 
 (defun floor (arg &optional divisor)
   "Return the largest integer no greater than ARG.
