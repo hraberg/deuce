@@ -75,9 +75,9 @@
 (set-buffer "*scratch*")
 (setq buffer-undo-list t)
 
-;; DEUCE: handles inlining, won't be used, but other parts references its macros.
+;; DEUCE: Handles inlining, won't be used, but other parts references its macros.
 (load "emacs-lisp/byte-run")
-;; DEUCE: backquotes handling used by lread.c, not used in Deuce to avoid having the reader depending on Emacs Lisp.
+;; DEUCE: backquote is used by lread.c, and not used in Deuce to avoid having the reader depending on Emacs Lisp.
 ;;        Instead I use the internal SyntaxQuoteReader from Clojure - may revisit.
 (load "emacs-lisp/backquote")
 ;; DEUCE: Lisp helpers/setup, some things, like dolist etc, are replaced by cl.el
@@ -90,7 +90,7 @@
 ;; We specify .el in case someone compiled version.el by mistake.
 (load "version.el")
 
-;; DEUCE: support for defining widgets as used by customize. Not used for hyperlinks etc, see button below.
+;; DEUCE: Support for defining widgets as used by customize. Not used for hyperlinks etc, see button below.
 ;;        No real intention of supporting it, but custom assumes its there.
 (load "widget")
 ;; DEUCE: custom subsystem, not strictly necessary, but other things depend on it being there.
@@ -104,15 +104,15 @@
 ;; (load "international/mule-conf")
 ;; DEUCE: unix environment helpers, causes cl.el to be loaded.
 ;; (load "env")
-;; DEUCE: support for loading files with different encodings, won't be used. Mapping to Java encodings might be needed.
+;; DEUCE: Support for loading files with different encodings, won't be used. Mapping to Java encodings might be needed.
 ;; (load "format")
 
-;; DEUCE: all basic editor key bindings are setup here - many refer to fns loaded later on.
+;; DEUCE: All basic editor key bindings are setup here - many refer to fns loaded later on.
 ;; (load "bindings")
-;; DEUCE: defines C-x 2, C-x o etc.
+;; DEUCE: Defines C-x 2, C-x o etc.
 ;; (load "window")  ; Needed here for `replace-buffer-in-windows'.
 ;; (setq load-source-file-function 'load-with-code-conversion)
-;; DEUCE: defines C-x C-f, C-x C-s etc.
+;; DEUCE: Defines C-x C-f, C-x C-s etc.
 ;; (load "files")
 
 ;; DEUCE: custom extensions for faces
@@ -122,7 +122,7 @@
 
 ;; DEUCE: button provides hyperlinks even in keyboard mode, needed for the startup screen.
 ;; (load "button")
-;; DEUCE: actual startup of Emacs, parses command lines, opens the first frame and displays welcome and *scratch*
+;; DEUCE: Actual startup of Emacs, parses command lines, opens the first frame and displays welcome and *scratch*
 ;; (load "startup")
 
 ;; DEUCE: At this point normal-top-level will be available.
@@ -132,7 +132,7 @@
 ;;        See emacs.c for the lowlevel init, also: frame.c and window.c.
 ;;        The GNU Emacs buffer will be shown: "Welcome to GNU Emacs, one component of the GNU/Linux operating system."
 
-;; DEUCE: large autoload loaddefs, not strictly necessary to just start Emacs.
+;; DEUCE: Large autoload loaddefs, not strictly necessary to just start Emacs.
 ;; (condition-case nil
 ;;     ;; Don't get confused if someone compiled this by mistake.
 ;;     (load "loaddefs.el")
@@ -141,12 +141,13 @@
 
 ;; DEUCE: minibuffer and simple (which defines fundamental mode) are argubly necessary to be "Emacs".
 ;; (load "minibuffer")
-;; DEUCE: abbrev mode, references by simple below (to turn it off at times)
+;; DEUCE: abbrev mode, referenced by simple below (to turn it off at times)
 ;; (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
-;; DEUCE: large support file for Emacs, adds completion, paren matching, line movement and various things.
+;; DEUCE: Massive support file for Emacs, adds completion, paren matching, line movement and various things.
 ;; (load "simple")
 
-;; DEUCE: the help system isn't critical, but a non-trivial interactive Emacs extension to get working.
+;; DEUCE: The help system isn't critical, but a non-trivial interactive Emacs extension to get working.
+;;        The tutorial is defined in tutorial.el, loaded by autoload, not loadup.
 ;; (load "help")
 
 ;; DEUCE: We should now have Emacs running with only fundamental-mode available. Release 0.1.0.
