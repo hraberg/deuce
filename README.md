@@ -17,7 +17,7 @@ The new evaluation model is in. This creates a `.clj` file for each `.el` file i
 
 While the initial compilation actually is slower, it opens up for a better development model overall, as you can actually see and reevaluate the generated Clojure while solving an issue (and get proper line numbers), and once compiled, it loads much faster - `lein uberjar` can now basically be used to create an Emacs which isn't "bare".
 
-Also new is [Bjarte](https://github.com/ljos)'s work on proper Cons lists, which allows for proper (but insane) semantics of destructive updates on mutually shared cells. `deuce-loadup` has slipped back a bit, but now I can refocus on the boot. As mentioned below, I will likely move to a more hand coded version of `loadup` which skips cumbersome parts of dubious immediate value of the full Emacs boot
+Also new is [Bjarte](https://github.com/ljos)'s work on proper Cons lists, which allows for proper (but insane) semantics of destructive updates on mutually shared cells. `deuce-loadup` has slipped back a bit, but now I can refocus on the boot. As mentioned below, I will likely move to a more hand coded version of `loadup` which skips cumbersome parts of dubious immediate value of the full Emacs boot.
 
     $ lein run --batch --eval "(print (emacs-version))"
 
