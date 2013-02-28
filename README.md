@@ -11,6 +11,29 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Marginalia](http://ghettojedi.org/deuce/)
 
+**2013-02-28**
+
+The new evaluation model is in. This creates a `.clj` file for each `.el` file it loads, which can then be compiled into a `.class` file. The use of Clojure's `eval` is gone, and the dynamic scoping is now all done by vars (which may be accessed via lexically). The core is also vastly simplified, it had many defensive post-walks for opaque root causes which the slow load time made very hard (for the impatient) to debug.
+
+While the initial compilation actually is slower, it opens up for a better development model overall, as you can actually see and reevaluate the generated Clojure while solving an issue (and get proper line numbers), and once compiled, it loads much faster - `lein uberjar` can now basically be used to create an Emacs which isn't "bare".
+
+Also new is [Bjarte](https://github.com/ljos)'s work on proper Cons lists, which allows for proper (but insane) semantics of destructive updates on mutually shared cells. `deuce-loadup` has slipped back a bit, but now I can refocus on the boot. As mentioned below, I will likely move to a more hand coded version of `loadup` which skips cumbersome parts of dubious immediate value of the full Emacs boot
+
+    $ lein run --batch --eval "(print (emacs-version))"
+
+    Loading deuce-loadup.el...
+    Using load-path ("" "emacs-lisp" "language" "international" "textmodes")
+    Loading emacs-lisp/byte-run...
+    Loading emacs-lisp/backquote...
+    Loading subr...
+    Loading version.el...
+    GNU Emacs 24.2 (jvm-1.7.0_13_clojure-1.5.0-RC17)
+     of 2013-02-28 on X202E
+
+
+I've managed established a hacking base in Agonda now. No sleep until `M-x butterfly`.
+
+
 **2013-02-25**
 
 After a long break from Deuce, I'm now in Agonda, Goa, specifically with the aim to hack on Deuce for two months. Thanks to [Bjarte](https://github.com/ljos) and [Navgeet](https://github.com/Navgeet) for their pull requests, despite my lack of focus here.
