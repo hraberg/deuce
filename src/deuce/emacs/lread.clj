@@ -412,6 +412,7 @@
                                            clj
                                            (catch Exception e
                                              (pp/pprint clj)
+                                             (flush)
                                              (throw e))))
                                       (w/postwalk sanitise-symbols el))
                                  (io/file *compile-path* clj-file))

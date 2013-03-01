@@ -238,7 +238,7 @@
                  (def-helper* fn nil lambda ~(first cdr)
                    (binding [*dynamic-vars* (if (dynamic-binding?) (merge *dynamic-vars* closure#) {})]
                      (c/let [{:syms ~(vec (keys &env))} closure#]
-                            ~@(rest cdr)))))))
+                            (progn ~@(rest cdr))))))))
 
 (c/defmacro unwind-protect
   "Do BODYFORM, protecting with UNWINDFORMS.
