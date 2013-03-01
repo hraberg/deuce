@@ -332,7 +332,11 @@
    (and (seq? x) (= 'quote  (first x)) (seq? (second x))
         (= `symbol (first (second x)))) (second x)
 
-   :else x))
+        :else x))
+
+(alter-var-root ((ns-map 'clojure.pprint) 'reader-macros)
+                merge `{el/syntax-quote "`"
+                        unquote-splicing "~@"})
 
 (defn ^:private write-clojure [el clj]
   (io/make-parents clj)

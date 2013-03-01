@@ -7,6 +7,7 @@
   (:use [taoensso.timbre :as timbre
          :only (trace debug info warn error fatal spy)])
   (:import [clojure.lang Var]
+           [java.lang.reflect Method]
            [deuce.emacs_lisp.error]
            [deuce.emacs_lisp.cons Cons])
   (:refer-clojure :exclude [defmacro and or cond let while eval set compile]))
@@ -103,7 +104,7 @@
                         x)
                       (cons (symbol "deuce.emacs-lisp" (name fst)) rst))
                     x)
-                  (if (`#{el-var-get el-var-set el-var-set-default} fst)
+                  (if (`#{el-var-get el-var-set el-var-set-default syntax-quote} fst)
                     x
                     (cons (c/cond
                            (c/and (symbol? fst)
@@ -125,6 +126,16 @@
   (if-let [e (.getCause e)]
     (recur e)
     e))
+
+(def ^Method clojure-syntax-quote
+  (doto
+      (.getDeclaredMethod clojure.lang.LispReader$SyntaxQuoteReader
+                          "syntaxQuote"
+                          (into-array [Object]))
+    (.setAccessible true)))
+
+(c/defmacro syntax-quote [form]
+  (el->clj (.invoke clojure-syntax-quote nil (into-array [form]))))
 
 (defn compile [emacs-lisp]
   (try

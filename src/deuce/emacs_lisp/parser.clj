@@ -1,10 +1,11 @@
 (ns deuce.emacs-lisp.parser
   (:require [clojure.walk :as w]
             [clojure.string :as s]
+            [clojure.pprint :as pp]
             [deuce.emacs-lisp :as el]
-            [deuce.emacs.alloc :as alloc])
+            [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.textprop :as textprop])
   (:import [java.util Scanner]
-           [java.lang.reflect Method]
            [java.io StringReader StreamTokenizer]
            [java.util.regex Pattern]))
 
@@ -32,13 +33,6 @@
            :else (int (first (parse-string (str \" c \")))))]
     (reduce bit-xor c (map character-modifier-bits (disj mods "\\C")))))
 
-(def ^:private ^Method clojure-syntax-quote
-  (doto
-      (.getDeclaredMethod clojure.lang.LispReader$SyntaxQuoteReader
-                          "syntaxQuote"
-                          (into-array [Object]))
-    (.setAccessible true)))
-
 (defn ^:private strip-comments [form]
   (remove (every-pred seq? (comp `#{comment} first)) form))
 
@@ -49,9 +43,6 @@
 
 (defn ^:private as-vector [form]
   (list `object-array (list 'quote (vec form))))
-
-(defn ^:private syntax-quote [form]
-  (.invoke clojure-syntax-quote nil (into-array [form])))
 
 (def ^:private ^Pattern re-str #"(?s)([^\"\\]*(?:\\.[^\"\\]*)*)\"")
 
@@ -72,17 +63,17 @@
       #"'" (list 'quote (tokenize sc))
       #"`" (let [form (tokenize sc)] (if (symbol? form)
                                        (list 'quote form)
-                                       (syntax-quote form)))
+                                       (list `el/syntax-quote form)))
       #":" (keyword (.next sc))
       #"\?" (parse-character (.next sc))
       #"\"" (let [s (parse-string (str \" (find re-str 0)))]
               (swap! line + (count (butlast (re-seq #"\n" s))))
               s)
-      #";" (do (swap! line inc) (list 'clojure.core/comment (.nextLine sc)))
+      #";" (do (swap! line inc) (list `comment (.nextLine sc)))
       #"#" (condp find 1
              #"'" (list 'quote (tokenize sc))
              #"\(" (let [[object start end properties] (tokenize-all sc)]
-                     (list 'set-text-properties start end properties object))
+                     (list `textprop/set-text-properties start end properties object))
              #"x" (.nextInt sc (int 16))
              #"o" (.nextInt sc (int 8))
              #"b" (.nextInt sc (int 2))
