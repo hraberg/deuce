@@ -97,12 +97,12 @@
                            (-> (fun fst) meta :macro))
                   (if (clojure-special-forms fst)
                     (if (= 'quote fst)
-                      (if (c/and (symbol? (first rst)) (not (next rst)))
-                        (list 'quote (sym (first rst)))
+                      (if-let [s (c/and (symbol? (first rst)) (not (next rst)) (first rst))]
+                        (list 'quote (if (= "deuce.emacs" (namespace s)) (sym s) s))
                         x)
                       (cons (symbol "deuce.emacs-lisp" (name fst)) rst))
                     x)
-                  (if (#{`el-var-get `el-var-set} fst)
+                  (if (`#{el-var-get el-var-set} fst)
                     x
                     (cons (c/cond
                            (c/and (symbol? fst)

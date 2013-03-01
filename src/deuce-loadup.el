@@ -104,9 +104,9 @@
 (load "cus-start")
 ;; DEUCE: MULE defines and deals with character encodings, won't be used, but some fns might be needed.
 (load "international/mule")
-;; ------ Current state of 2013-03-01.
 (load "international/mule-conf")
 ;; DEUCE: unix environment helpers, causes cl.el to be loaded.
+;; ------ Current state of 2013-03-01.
 (load "env")
 ;; DEUCE: Support for loading files with different encodings, won't be used. Mapping to Java encodings might be needed.
 (load "format")
