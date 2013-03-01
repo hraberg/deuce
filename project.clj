@@ -10,7 +10,7 @@
   :plugins [[lein-swank "1.4.5"]
             [lein-difftest "2.0.0"]
             [lein-marginalia "0.7.1"]]
-  :profiles {:dev {:resource-paths ["emacs/test/automated"]
+  :profiles {:dev {; :resource-paths ["emacs/test/automated"] ;; files.el clashes with loadup
                    :dependencies [[org.clojure/tools.trace "0.7.3"]]}}
   :resource-paths ["emacs/lisp"]
   :jar-exclusions [#".*\.elc"]

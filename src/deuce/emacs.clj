@@ -66,6 +66,8 @@
 
 ;; Hack for a predicate in cl.el, this is defined in emacs-lisp/bytecomp.el, which we're not using
 (defun byte-compile-file-form (form))
+;; AOT cl.el gets confused by this alias
+(defalias 'cl-block-wrapper 'identity)
 
 ;; Hack to ensure these gets treated as a macros even before loaded
 (defmacro declare (&rest _specs) nil)
@@ -73,9 +75,12 @@
 
 ;; Keymap setup
 (setq global-map (make-keymap))
-(use-global-map globals/global-map)
 (setq esc-map (make-keymap))
 (setq ctl-x-map (make-keymap))
+;; var is definied in keyboard.clj
+(setq function-key-map (make-sparse-keymap))
+;; This map has a few low-level (like delete-frame) key defs in keybaoard.c
+(setq special-event-map (make-sparse-keymap))
 
 (setq minibuffer-local-map (make-sparse-keymap))
 (setq minibuffer-local-ns-map (make-sparse-keymap))

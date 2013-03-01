@@ -358,6 +358,9 @@
 
 ;; (defmethod pp/code-dispatch String [astr] (print (s/replace (pr-str astr) #"\\n" "\n")))
 
+(defmethod pp/simple-dispatch (type (object-array 0)) [arr]
+  (print (str "(" `object-array " '" (vec arr) ")")))
+
 ;; (pp/set-pprint-dispatch pp/code-dispatch)
 
 (defn ^:private write-clojure [el clj]

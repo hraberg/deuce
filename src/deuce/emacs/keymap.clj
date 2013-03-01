@@ -2,6 +2,7 @@
   (:use [deuce.emacs-lisp :only (defun defvar setq) :as el])
   (:require [clojure.core :as c]
             [deuce.emacs-lisp.globals :as globals]
+            [deuce.emacs-lisp.parser :as parser]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.data :as data]
             [deuce.emacs.chartab :as chartab]
@@ -87,15 +88,30 @@
   If KEYMAP is a sparse keymap with a binding for KEY, the existing
   binding is altered.  If there is no binding for KEY, the new pair
   binding KEY to DEF is added at the front of KEYMAP."
-  (let [key (if (data/vectorp key) key ;; DEF is apparently an XEmacs-style keyboard macro.
-                (loop [[k & ks] (reverse (butlast key))
-                       acc (alloc/cons (int (last key)) def)]
-                  (if k
-                    (recur ks (alloc/list (int k) 'keymap acc))
-                    acc)))]
-    (when-not (some #{key} keymap)
-      (fns/nconc keymap key)))
-  def)
+  (if (data/vectorp key)
+    (if (= 1 (count key))
+      (define-key keymap (data/aref key 0) def)
+      (let [alist (data/cdr keymap)  ;; DEF is apparently an XEmacs-style keyboard macro.)
+            submap-name (data/aref key 0)
+            submap (data/cdr
+                    (or (fns/assoc submap-name alist)
+                        (data/car (data/setcdr keymap (alloc/cons (alloc/cons submap-name (make-sparse-keymap)) alist)))))]
+        (define-key submap (data/aref key 1) def))) ;; DEF is apparently an XEmacs-style keyboard macro.)
+    (let [alist (data/cdr keymap)
+          keydef (if (string? key)
+                   (if (= \\ (first key))
+                     (alloc/cons (int (data/car (parser/parse (str "?" key))))
+                                 def)
+                     (loop [[k & ks] (reverse (butlast key))
+                            acc (alloc/cons (int (last key)) def)]
+                       (if k
+                         (recur ks (alloc/list (int k) 'keymap acc))
+                         acc)))
+                   (alloc/cons key def))]
+      (if-let [existing (fns/assoc (data/car keydef) alist)]
+        (data/setcdr existing (data/cdr keydef))
+        (data/setcdr keymap (alloc/cons keydef alist)))
+      def)))
 
 (defun copy-keymap (keymap)
   "Return a copy of the keymap KEYMAP.
@@ -340,11 +356,9 @@
   bindings; see the description of `lookup-key' for more details about this."
   )
 
-(def ^:private ^:dynamic *current-global-map* (atom {}))
-
 (defun current-global-map ()
   "Return the current global keymap."
-  @*current-global-map*)
+  (data/symbol-value 'global-map))
 
 (defun command-remapping (command &optional position keymaps)
   "Return the remapping for command COMMAND.
@@ -384,5 +398,5 @@
 
 (defun use-global-map (keymap)
   "Select KEYMAP as the global keymap."
-  (reset! *current-global-map* keymap)
+  (data/set 'global-map keymap)
   nil)

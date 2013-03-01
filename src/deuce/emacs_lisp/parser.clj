@@ -43,7 +43,7 @@
     form))
 
 (defn ^:private as-vector [form]
-  (list `object-array (list 'quote (vec form))))
+  (object-array (vec form)))
 
 (def ^:private ^Pattern re-str #"(?s)([^\"\\]*(?:\\.[^\"\\]*)*)\"")
 
@@ -59,7 +59,7 @@
       #"\s" (recur sc)
       #"[)\]]" `end
       #"\(" (with-meta (expand-cons (tokenize-all sc)) {:line @line})
-      #"\[" (with-meta (as-vector (tokenize-all sc)) {:line @line})
+      #"\[" (as-vector (tokenize-all sc))
       #"," (list (if (find #"@" 1) `unquote-splicing `unquote) (tokenize sc))
       #"'" (list 'quote (tokenize sc))
       #"`" (let [form (tokenize sc)] (if (symbol? form)

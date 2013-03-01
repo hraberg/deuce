@@ -139,7 +139,7 @@
 
 (defn compile [emacs-lisp]
   (try
-    (when emacs-lisp (c/eval (with-meta emacs-lisp nil)))
+    (when emacs-lisp (c/eval (if (meta emacs-lisp) (with-meta emacs-lisp nil) emacs-lisp)))
     (catch RuntimeException e
       (when-not (.getMessage e)
         (throw e))
