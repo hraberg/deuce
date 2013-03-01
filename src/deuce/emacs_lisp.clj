@@ -476,10 +476,11 @@
   	Set NAME's `doc-string-elt' property to ELT."
   {:arglists '([NAME ARGLIST [DOCSTRING] [DECL] BODY...])}
   [name arglist & body]
-  `(do
-     ~(when-not ((ns-interns 'deuce.emacs-lisp) name)
-        `(def-helper* c/defmacro ~(-> name meta :line) ~name ~arglist ~@body))
-     '~name))
+  (c/let [name (expand-symbol name)]
+         `(do
+            ~(when-not ((ns-interns 'deuce.emacs-lisp) name)
+               `(def-helper* c/defmacro ~(-> name meta :line) ~name ~arglist ~@body))
+            '~name)))
 
 (c/defmacro function
   "Like `quote', but preferred for objects which are functions.
