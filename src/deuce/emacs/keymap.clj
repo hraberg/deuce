@@ -227,7 +227,8 @@
   If KEYMAP has a parent, the parent's bindings are included as well.
   This works recursively: if the parent has itself a parent, then the
   grandparent's bindings are also included and so on."
-  )
+  (dorun (map (fn [[char defn]] ((el/fun function) char defn))
+              (filter data/consp (data/cdr keymap)))))
 
 (defun keymap-prompt (map)
   "Return the prompt-string of a keymap MAP.

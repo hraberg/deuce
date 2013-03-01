@@ -111,12 +111,12 @@
 (load "format")
 
 ;; DEUCE: All basic editor key bindings are setup here - many refer to fns loaded later on.
-;; ------ Current state of 2013-03-01.
 (load "bindings")
 ;; DEUCE: Defines C-x 2, C-x o etc.
 (load "window")  ; Needed here for `replace-buffer-in-windows'.
 (setq load-source-file-function 'load-with-code-conversion)
 ;; DEUCE: Defines C-x C-f, C-x C-s etc.
+;; ------ Current state of 2013-03-02.
 (load "files")
 
 ;; DEUCE: custom extensions for faces
