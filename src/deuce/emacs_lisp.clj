@@ -55,24 +55,25 @@
 
 (c/defmacro el-var-get [name]
   (if (c/and (symbol? name) (name &env))
-    `(c/let [v# ~name]
-            (if (var? v#) @v# v#))
+    `(if (var? ~name) @~name ~name)
     `(if-let [v# ((some-fn *dynamic-vars* el-var-buffer-local global) '~name)]
        @v#
        (deuce.emacs-lisp/throw '~'void-variable (cons/list '~name)))))
 
 (c/defmacro el-var-set-default [name value]
-  `(if-let [v# (global '~name)]
-     (alter-var-root v# (constantly ~value))
-     @(global (defvar ~name ~value))))
+  `(c/let [value# ~value]
+          (if-let [v# (global '~name)]
+            (alter-var-root v# (constantly ~value))
+            @(global (defvar ~name ~value)))))
 
 (c/defmacro el-var-set [name value]
-  `(if-let [v# (c/or ~(c/and (symbol? name) (name &env) name)
-                     ((some-fn *dynamic-vars* el-var-buffer-local) '~name))]
-     (if (c/and (.hasRoot v#) (not (.getThreadBinding v#)))
-       (alter-var-root v# (constantly ~value))
-       (var-set v# ~value))
-     (el-var-set-default ~name ~value)))
+  `(c/let [value# ~value]
+    (if-let [v# (c/or ~(c/and (symbol? name) (name &env) name)
+                      ((some-fn *dynamic-vars* el-var-buffer-local) '~name))]
+      (if (c/and (.hasRoot v#) (not (.getThreadBinding v#)))
+        (alter-var-root v# (constantly value#))
+        (var-set v# value#))
+      (el-var-set-default ~name value#))))
 
 (defn dynamic-binding? []
   (not (el-var-get lexical-binding)))
@@ -102,7 +103,7 @@
                         x)
                       (cons (symbol "deuce.emacs-lisp" (name fst)) rst))
                     x)
-                  (if (`#{el-var-get el-var-set} fst)
+                  (if (`#{el-var-get el-var-set el-var-set-default} fst)
                     x
                     (cons (c/cond
                            (c/and (symbol? fst)

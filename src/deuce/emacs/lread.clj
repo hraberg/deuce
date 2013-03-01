@@ -340,7 +340,8 @@
                                   (:refer-clojure :only []))]
                               el)]
           (pp/pprint form w)
-          (.write w "\n")))
+          (.write w "\n")
+          (.flush w)))
       (finally (timbre/set-level! level)))))
 
 (defun load (file &optional noerror nomessage nosuffix must-suffix)
@@ -405,17 +406,18 @@
                 (throw (FileNotFoundException. "out of date")))
               (c/require (symbol (s/replace file "/" ".")))
               (catch FileNotFoundException _
-                (let [el (parser/parse in)]
+                (let [el (parser/parse in)
+                      clj-file (io/file *compile-path* clj-file)]
                   (write-clojure (map #(let [clj (el/el->clj %)]
                                          (try
                                            (eval/eval clj)
                                            clj
                                            (catch Exception e
-                                             (pp/pprint clj)
-                                             (flush)
+                                             (with-open [w (io/writer clj-file :append true)]
+                                               (pp/pprint clj w))
                                              (throw e))))
                                       (w/postwalk sanitise-symbols el))
-                                 (io/file *compile-path* clj-file))
+                                 clj-file)
                   (binding [*compile-files* true] (require (symbol (s/replace file "/" "."))))))))
           true)))
     (catch Exception e
