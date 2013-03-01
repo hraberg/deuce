@@ -78,10 +78,12 @@
      (el-var-set-default ~name ~value)))
 
 (c/defmacro with-local-el-vars [name-vals-vec & body]
-  (c/let [vars (vec (take-nth 2 name-vals-vec))]
-         `(c/let [vars# (hash-map ~@(interleave (map #(list 'quote %) (take-nth 2 name-vals-vec))
-                                                (repeat '(c/doto (clojure.lang.Var/create) .setDynamic))))]
-                 (with-bindings (zipmap (map vars# '~vars) ~(vec (take-nth 2 (rest name-vals-vec))))
+  (c/let [vars (vec (take-nth 2 name-vals-vec))
+          vals (vec (take-nth 2 (rest name-vals-vec)))]
+         `(c/let [vars# (hash-map ~@(interleave (map #(list 'quote %) vars)
+                                                (map #(do `(c/or (*dynamic-vars* '~%)
+                                                                 (c/doto (clojure.lang.Var/create) .setDynamic))) vars)))]
+                 (with-bindings (zipmap (map vars# '~vars) ~vals)
                    (binding [*dynamic-vars* (if (dynamic-binding?) (merge *dynamic-vars* vars#) {})]
                      (c/let [{:syms ~vars} vars#]
                             ~@body))))))
