@@ -174,7 +174,7 @@
   ALIST elements look like (CHAR . DEFN) or (SYMBOL . DEFN);
   a vector of densely packed bindings for small character codes
   is also allowed as an element."
-  )
+  (and (data/consp object) (= 'keymap (data/car object))))
 
 (defun text-char-description (character)
   "Return a pretty description of file-character CHARACTER.
