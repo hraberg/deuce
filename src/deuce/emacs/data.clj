@@ -354,7 +354,7 @@
 (defun setcdr (cell newcdr)
   "Set the cdr of CELL to be NEWCDR.  Returns NEWCDR."
   (el/check-type 'consp cell)
-  (cons/setcdr cell newcdr))
+  (cons/setcdr cell (cons/maybe-seq newcdr)))
 
 (defun set (symbol newval)
   "Set SYMBOL's value to NEWVAL, and return NEWVAL."
@@ -395,7 +395,7 @@
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as cdr, car, cons cell and list."
   (el/check-type 'listp list)
-  (cons/cdr list))
+  (cons/cdr (cons/maybe-seq list)))
 
 (defun = (num1 num2)
   "Return t if two args, both numbers or markers, are equal."
@@ -479,7 +479,7 @@
 (defun setcar (cell newcar)
   "Set the car of CELL to be NEWCAR.  Returns NEWCAR."
   (el/check-type 'consp cell)
-  (cons/setcar cell newcar))
+  (cons/setcar cell (cons/maybe-seq newcar)))
 
 (defun symbolp (object)
   "Return t if OBJECT is a symbol."
@@ -542,7 +542,7 @@
   See Info node `(elisp)Cons Cells' for a discussion of related basic
   Lisp concepts such as car, cdr, cons cell and list."
   (el/check-type 'listp list)
-  (cons/car list))
+  (cons/maybe-seq (cons/car list)))
 
 (defun bool-vector-p (object)
   "Return t if OBJECT is a bool-vector."

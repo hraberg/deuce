@@ -150,7 +150,7 @@
 
 (defun cons (car cdr)
   "Create a new cons, give it CAR and CDR as components, and return it."
-  (Cons. car cdr))
+  (Cons. (cons/maybe-seq car) (cons/maybe-seq cdr)))
 
 (defun (clojure.core/symbol nil "/=") (num1 num2)
   "Return t if first arg is not equal to second arg.  Both must be numbers or markers."

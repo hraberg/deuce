@@ -106,12 +106,12 @@
 (load "international/mule")
 (load "international/mule-conf")
 ;; DEUCE: unix environment helpers, causes cl.el to be loaded.
-;; ------ Current state of 2013-03-01.
 (load "env")
 ;; DEUCE: Support for loading files with different encodings, won't be used. Mapping to Java encodings might be needed.
 (load "format")
 
 ;; DEUCE: All basic editor key bindings are setup here - many refer to fns loaded later on.
+;; ------ Current state of 2013-03-01.
 (load "bindings")
 ;; DEUCE: Defines C-x 2, C-x o etc.
 (load "window")  ; Needed here for `replace-buffer-in-windows'.

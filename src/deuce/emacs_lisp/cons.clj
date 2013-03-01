@@ -72,3 +72,6 @@
   (when (seq objects)
     (Cons. (first objects)
            (apply list (rest objects)))))
+
+(defn maybe-seq [x]
+  (if (seq? x) (apply list x) x))

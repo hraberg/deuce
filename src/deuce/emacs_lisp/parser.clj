@@ -5,7 +5,8 @@
             [deuce.emacs-lisp :as el]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.textprop :as textprop])
-  (:import [java.util Scanner]
+  (:import [deuce.emacs_lisp.cons Cons]
+           [java.util Scanner]
            [java.io StringReader StreamTokenizer]
            [java.util.regex Pattern]))
 
@@ -98,7 +99,7 @@
   (let [scanner (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
                   (.useDelimiter #"(\s|\]|\)|\"|;)"))]
     (binding [line (atom (int 1))]
-      (alloc/cons
+      (Cons.
        ((if all? tokenize-all tokenize) scanner)
        (.get scanner-position scanner)))))
 

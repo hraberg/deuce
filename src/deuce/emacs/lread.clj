@@ -338,14 +338,35 @@
                 merge `{el/syntax-quote "`"
                         unquote-splicing "~@"})
 
+;; (let [code-table ((ns-map 'clojure.pprint) '*code-table*)
+;;       pp-if ('def @code-table)
+;;       pp-let ('lef @code-table)
+;;       pp-cond ('cond @code-table)
+;;       pp-fn ('fn @code-table)
+;;       pp-def ('def @code-table)
+;;       pp-defn ('defh @code-table)]
+;;   (alter-var-root code-table
+;;                   merge {`el/defun pp-defn
+;;                          `el/defmacro pp-defn
+;;                          `el/defvar pp-def
+;;                          `el/defconst pp-def
+;;                          `el/if pp-if
+;;                          `e/let pp-let
+;;                          `e/let* pp-let
+;;                          `e/cond pp-cond
+;;                          `e/lambda pp-fn}))
+
+;; (defmethod pp/code-dispatch String [astr] (print (s/replace (pr-str astr) #"\\n" "\n")))
+
+;; (pp/set-pprint-dispatch pp/code-dispatch)
+
 (defn ^:private write-clojure [el clj]
   (io/make-parents clj)
   (let [level (:current-level @timbre/config)]
     (try
       (timbre/set-level! :fatal)
       (with-open [w (io/writer clj)]
-        (doseq [form  (concat ['(ns deuce.emacs
-                                  (:refer-clojure :only []))]
+        (doseq [form  (concat '[(ns deuce.emacs (:refer-clojure :only []))]
                               el)]
           (pp/pprint form w)
           (.write w "\n")
