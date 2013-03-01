@@ -225,6 +225,8 @@
   {:arglists '([ARGS [DOCSTRING] [INTERACTIVE] BODY])}
   [& cdr]
   (c/let [vars (vec (keys &env))]
+         ;; This is wrong as it won't share updates between original definition and the lambda var.
+         ;; Yet to see if this ends up being a real issue.
          `(c/let [closure# (zipmap '~vars
                                    (map #(doto (Var/create (if (var? %) (deref %) %)) .setDynamic)
                                         ~vars))]

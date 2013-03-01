@@ -141,7 +141,7 @@
   is a list of functions (of no args),
   all of which are called before Emacs is actually killed."
   (doall (map #(%) globals/kill-emacs-hook))
-  (System/exit 0))
+  (System/exit (if (integer? arg) arg 0)))
 
 (defun dump-emacs (filename symfile)
   "Dump current state of Emacs into executable file FILENAME.
