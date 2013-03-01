@@ -54,11 +54,13 @@
 ;; These vars are introduced by deuce.emacs.data/make-local-variable or make-variable-buffer-local
 ;; There's also an obsolete (as of Emacs 22.2) concept of frame locals.
 ;; See deuce.emacs.data/make-variable-frame-local and deuce.emacs.frame/modify-frame-parameters
+(defn el-var-buffer-local [name])
+
 (c/defmacro el-var-get [name]
   (if (c/and (symbol? name) (name &env))
     `(c/let [v# ~name]
             (if (var? v#) @v# v#))
-    `(if-let [v# ((some-fn *dynamic-vars* global) '~name)]
+    `(if-let [v# ((some-fn *dynamic-vars* el-var-buffer-local global) '~name)]
        @v#
        (deuce.emacs-lisp/throw '~'void-variable (cons/list '~name)))))
 
@@ -69,7 +71,7 @@
 
 (c/defmacro el-var-set [name value]
   `(if-let [v# (c/or ~(c/and (symbol? name) (name &env) name)
-                     (*dynamic-vars* '~name))]
+                     ((some-fn *dynamic-vars* el-var-buffer-local) '~name))]
      (if (c/and (.hasRoot v#) (not (.getThreadBinding v#)))
        (alter-var-root v# (constantly ~value))
        (var-set v# ~value))
