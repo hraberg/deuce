@@ -326,7 +326,7 @@
 (defun eval (form &optional lexical)
   "Evaluate FORM and return its value.
   If LEXICAL is t, evaluate using lexical scoping."
-  (el/eval (el/el->clj form) lexical))
+  (el/eval form lexical))
 
 (defun backtrace-debug (level flag)
   "Set the debug-on-exit flag of eval frame LEVEL levels down to FLAG.

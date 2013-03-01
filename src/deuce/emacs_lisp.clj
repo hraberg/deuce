@@ -47,9 +47,6 @@
 
 (def ^:dynamic *dynamic-vars* {})
 
-(defn dynamic-binding? []
-  (not (when-let [lexical (global 'lexical-binding)] @lexical)))
-
 ;; There're also buffer local variables, which will be using deuce.emacs.buffer/current-buffer
 ;; These vars are introduced by deuce.emacs.data/make-local-variable or make-variable-buffer-local
 ;; There's also an obsolete (as of Emacs 22.2) concept of frame locals.
@@ -77,11 +74,14 @@
        (var-set v# ~value))
      (el-var-set-default ~name ~value)))
 
+(defn dynamic-binding? []
+  (not (el-var-get lexical-binding)))
+
 (c/defmacro with-local-el-vars [name-vals-vec & body]
-  (c/let [vars (vec (take-nth 2 name-vals-vec))
+  (c/let [vars (vec (map sym (take-nth 2 name-vals-vec)))
           vals (vec (take-nth 2 (rest name-vals-vec)))]
          `(c/let [vars# (hash-map ~@(interleave (map #(list 'quote %) vars)
-                                                (map #(do `(c/or (*dynamic-vars* '~%)
+                                                (map #(do `(c/or (*dynamic-vars* '~%) (global '~%)
                                                                  (c/doto (Var/create) .setDynamic))) vars)))]
                  (with-bindings (zipmap (map vars# '~vars) ~vals)
                    (binding [*dynamic-vars* (if (dynamic-binding?) (merge *dynamic-vars* vars#) {})]
@@ -143,14 +143,11 @@
           (error (-> e cause .getMessage) (with-out-str (pp/pprint emacs-lisp)))
           (throw e))))))
 
-;; defined as fn in eval.clj
-(c/defmacro eval
-  "Evaluate FORM and return its value.
-  If LEXICAL is t, evaluate using lexical scoping."
-  {:arglists '([FORM &optional LEXICAL])}
-  [body & [lexical]]
-  `(binding [*ns* (the-ns 'deuce.emacs)]
-     (maybe-sym (compile ~(el->clj body)))))
+;; defined in eval.clj
+(defn eval [body & [lexical]]
+  (binding [*ns* (the-ns 'deuce.emacs)]
+    (with-bindings (if lexical {(global 'lexical-binding) true} {})
+      (maybe-sym (compile (el->clj body))))))
 
 (declare let-helper*)
 
