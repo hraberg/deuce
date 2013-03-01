@@ -82,7 +82,7 @@
           vals (vec (take-nth 2 (rest name-vals-vec)))]
          `(c/let [vars# (hash-map ~@(interleave (map #(list 'quote %) vars)
                                                 (map #(do `(c/or (*dynamic-vars* '~%)
-                                                                 (c/doto (clojure.lang.Var/create) .setDynamic))) vars)))]
+                                                                 (c/doto (Var/create) .setDynamic))) vars)))]
                  (with-bindings (zipmap (map vars# '~vars) ~vals)
                    (binding [*dynamic-vars* (if (dynamic-binding?) (merge *dynamic-vars* vars#) {})]
                      (c/let [{:syms ~vars} vars#]
