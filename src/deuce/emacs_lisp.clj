@@ -50,6 +50,10 @@
 (defn dynamic-binding? []
   (not (when-let [lexical (global 'lexical-binding)] @lexical)))
 
+;; There're also buffer local variables, which will be using deuce.emacs.buffer/current-buffer
+;; These vars are introduced by deuce.emacs.data/make-local-variable or make-variable-buffer-local
+;; There's also an obsolete (as of Emacs 22.2) concept of frame locals.
+;; See deuce.emacs.data/make-variable-frame-local and deuce.emacs.frame/modify-frame-parameters
 (c/defmacro el-var-get [name]
   (if (c/and (symbol? name) (name &env))
     `(c/let [v# ~name]
