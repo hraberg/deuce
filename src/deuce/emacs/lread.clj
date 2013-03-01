@@ -322,12 +322,16 @@
 
 (defn ^:private sanitise-symbols [x]
   (cond
-   (and (symbol? x) (re-find  #"([\\,/]|^\d)" (name x))) (if (namespace x)
-                                                           (list `symbol (namespace x) (name x))
-                                                           (if (re-find #"/" (name x))
-                                                             (list `symbol nil (name x))
-                                                             (list `symbol (name x))))
-   (and (seq? x) (= 'quote  (first x)) (seq? (second x)) (= `symbol (first (second x)))) (second x)
+   (and (symbol? x) (re-find  #"([\\,/]|^\d)" (name x)) (not= "/" (name x)))
+   (if (namespace x)
+     (list `symbol (namespace x) (name x))
+     (if (re-find #"/" (name x))
+       (list `symbol nil (name x))
+       (list `symbol (name x))))
+
+   (and (seq? x) (= 'quote  (first x)) (seq? (second x))
+        (= `symbol (first (second x)))) (second x)
+
    :else x))
 
 (defn ^:private write-clojure [el clj]
