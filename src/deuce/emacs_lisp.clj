@@ -101,7 +101,7 @@
                     (if (= 'quote fst)
                       (if-let [s (c/and (symbol? (first rst)) (not (next rst)) (first rst))]
                         (list 'quote (if (= "deuce.emacs" (namespace s)) (sym s) s))
-                        x)
+                        (if (= '(()) rst) () x))
                       (cons (symbol "deuce.emacs-lisp" (name fst)) rst))
                     x)
                   (if (`#{el-var-get el-var-set el-var-set-default syntax-quote} fst)
