@@ -13,7 +13,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 **2013-03-02**
 
-[`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/src/deuce-loadup.el) now contains comments and road map towards 0.1.0. I aim to get out of the low-level Emacs Lisp fight during the next week and start focus on the rough implementations of the actual Emacs primitives like keymaps, buffers, windows and the terminal and tie it all together to an actual editor.
+[`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/src/deuce-loadup.el) now contains comments and road map towards [0.1.0](https://github.com/hraberg/deuce/issues?milestone=1). I aim to get out of the low-level Emacs Lisp fight during the next week and start focus on the rough implementations of the actual Emacs primitives like keymaps, buffers, windows and the terminal and tie it all together to an actual editor.
 
 
 **2013-02-28**
