@@ -53,6 +53,7 @@
       (str (ellipsis this))))
   (equals [this that]
     (cond (identical? this that) true
+          (nil? that) false
           (satisfies? IList that) (and
                                    (= fst (car that))
                                    (= rst (cdr that)))
