@@ -30,6 +30,8 @@
         [mods c] [(set (butlast parts)) (last parts)]
         c (cond
            (re-find #"\\\^(.)" c) (- (int (last c)) 64)
+           (re-find #"\\\d+" c) (Integer/parseInt (subs c 1) 8)
+           (re-find #"\\x\d+" c) (Integer/parseInt (subs c 2) 16)
            (mods "\\C") (- (int (first (s/upper-case c))) 64)
            :else (int (first (parse-string (str \" c \")))))]
     (reduce bit-xor c (map character-modifier-bits (disj mods "\\C")))))
@@ -46,6 +48,7 @@
   (object-array (vec form)))
 
 (def ^:private ^Pattern re-str #"(?s)([^\"\\]*(?:\\.[^\"\\]*)*)\"")
+(def ^:private ^Pattern re-char #"((\\[CSM]-)*(\\x?\d+|(\\\^?)?.))")
 
 (def ^:dynamic line (atom (int 1)))
 
@@ -66,7 +69,7 @@
                                        (list 'quote form)
                                        (list `el/syntax-quote form)))
       #":" (keyword (.next sc))
-      #"\?" (parse-character (.next sc))
+      #"\?" (parse-character (find re-char 0))
       #"\"" (let [s (parse-string (str \" (find re-str 0)))]
               (swap! line + (count (butlast (re-seq #"\n" s))))
               s)

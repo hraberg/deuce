@@ -113,8 +113,8 @@
 ;; DEUCE: All basic editor key bindings are setup here - many refer to fns loaded later on.
 (load "bindings")
 ;; DEUCE: Defines C-x 2, C-x o etc.
-;; ------ Current state of 2013-03-02.
 (load "window")  ; Needed here for `replace-buffer-in-windows'.
+;; ------ Current state of 2013-03-02.
 (setq load-source-file-function 'load-with-code-conversion)
 ;; DEUCE: Defines C-x C-f, C-x C-s etc.
 (load "files")

@@ -97,7 +97,7 @@
                 (if (c/and (symbol? fst)
                            (not= 'progn fst)
                            (-> (fun fst) meta :macro))
-                  (if (clojure-special-forms fst)
+                  (if (c/or (clojure-special-forms fst) (= 'lambda fst))
                     (if (= 'quote fst)
                       (if-let [s (c/and (symbol? (first rst)) (not (next rst)) (first rst))]
                         (list 'quote (if (= "deuce.emacs" (namespace s)) (sym s) s))
@@ -119,7 +119,7 @@
 
                            :else fst)
                           (map el->clj rst)))))
-    symbol? (if (namespace x) x (list `el-var-get x))
+    symbol? (if (namespace x) (if (-> (resolve x) meta :macro) (resolve x) x) (list `el-var-get x))
     x))
 
 (defn ^Throwable cause [^Throwable e]
@@ -488,7 +488,9 @@
   `quote' cannot do that."
   {:arglists '([ARG])}
   [arg]
-  `(quote ~arg))
+  (if (c/and (seq? arg) (symbol? (first arg)) (= 'lambda (sym (first arg))))
+    arg
+    `(quote ~arg)))
 
 (c/defmacro and
   "Eval args until one of them yields nil, then return nil.
