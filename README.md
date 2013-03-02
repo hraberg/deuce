@@ -11,6 +11,11 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Marginalia](http://ghettojedi.org/deuce/)
 
+**2013-03-02**
+
+[`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/src/deuce-loadup.el) now contains comments and road map towards 0.1.0. I aim to get out of the low-level Emacs Lisp fight during the next week and start focus on the rough implementations of the actual Emacs primitives like keymaps, buffers, windows and the terminal and tie it all together to an actual editor.
+
+
 **2013-02-28**
 
 The new evaluation model is in. This creates a `.clj` file for each `.el` file it loads, which can then be compiled into a `.class` file. The use of Clojure's `eval` is gone, and the dynamic scoping is now all done by vars (which may be accessed lexically). The core is also vastly simplified, it had many defensive post-walks for opaque root causes which the slow load time made very hard (for the impatient) to debug.
