@@ -39,7 +39,7 @@
   TERMINAL can be a terminal object, a frame, or nil (meaning the
   selected frame's terminal).  This function always returns nil if
   TERMINAL does not refer to a text-only terminal."
-  )
+  nil)
 
 (defun tty-no-underline (&optional terminal)
   "Declare that the tty used by TERMINAL does not handle underlining.
@@ -58,7 +58,7 @@
 
   TERMINAL can be a terminal object, a frame, or nil (meaning the
   selected frame's terminal)."
-  )
+  (System/getenv "TERM"))
 
 (defun tty-display-color-cells (&optional terminal)
   "Return the number of colors supported by the tty device TERMINAL.

@@ -5,10 +5,11 @@
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.data :refer [car cdr setcar setcdr] :as data]
             [deuce.emacs.lread :as lread]
+            [deuce.emacs-lisp.cons :refer [ICons] :as cons]
             [deuce.emacs-lisp.globals :as globals])
   (import [clojure.lang IPersistentCollection PersistentVector]
           [deuce.emacs.data CharTable]
-          [deuce.emacs_lisp.cons Cons]
+          [deuce.emacs_lisp Cons]
           [java.util List Map HashMap Collections Objects]
           [java.nio CharBuffer]
           [java.nio.charset Charset]
@@ -50,7 +51,7 @@
   The optional argument SUBFEATURES should be a list of symbols listing
   particular subfeatures supported in this version of FEATURE."
   (when-not (some #{feature} globals/features)
-    (el/setq features (cons feature globals/features)))
+    (el/setq features (alloc/cons feature globals/features)))
   feature)
 
 (defun widget-get (widget property)
@@ -247,8 +248,8 @@
   Therefore, write `(setq foo (delete element foo))'
   to be sure of changing the value of `foo'."
   (condp instance? seq
-    Cons (del data/= elt seq)
-    PersistentVector (filterv (partial data/= elt) seq)
+    Cons (del equal elt seq)
+    PersistentVector (filterv (partial equal elt) seq)
     String (clojure.string/replace seq elt "")))
 
 (defun locale-info (item)
@@ -352,7 +353,7 @@
 (defun assoc (key list)
   "Return non-nil if KEY is `equal' to the car of an element of LIST.
   The value is actually the first element of LIST whose car equals KEY."
-  (some #(c/and (instance? Cons %) (equal key (.car %)) %) (seq list)))
+  (some #(c/and (satisfies? ICons %) (equal key (car %)) %) (seq list)))
 
 (defun remhash (key table)
   "Remove KEY from TABLE."
@@ -518,7 +519,7 @@
 (defun rassoc (key list)
   "Return non-nil if KEY is `equal' to the cdr of an element of LIST.
   The value is actually the first element of LIST whose cdr equals KEY."
-  (some #(c/and (instance? Cons %) (equal key (cdr %)) %) (seq list)))
+  (some #(c/and (satisfies? ICons %) (equal key (cdr %)) %) (seq list)))
 
 (defun equal (o1 o2)
   "Return t if two Lisp objects have similar structure and contents.
@@ -556,7 +557,7 @@
   (loop [n n list list]
     (if (pos? n)
       (recur (dec n) (cdr list))
-      list)))
+      (cons/maybe-seq list))))
 
 (defun hash-table-rehash-size (table)
   "Return the current rehash size of TABLE."

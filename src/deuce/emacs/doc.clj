@@ -38,7 +38,7 @@
 
   Return the original STRING if no substitutions are made.
   Otherwise, return a new string, without any text properties."
-  )
+  string)
 
 (defun documentation-property (symbol prop &optional raw)
   "Return the documentation string that is SYMBOL's PROP property.

@@ -5,7 +5,8 @@
             [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs-lisp.cons :refer [ICons IList] :as cons])
-  (:import [java.nio ByteOrder])
+  (:import [java.nio ByteOrder]
+           [java.io Writer])
   (:refer-clojure :exclude [+ * - / aset set < = > max >= <= mod atom min]))
 
 (declare consp car cdr)
@@ -18,11 +19,11 @@
 
 (def ^:private array-class (Class/forName "[Ljava.lang.Object;"))
 
-(defmethod print-method array-class [o w]
+(defmethod print-method array-class [o ^Writer w]
   (print-method (vec (cons/ellipsis o)) w))
 
-(defmethod print-dup array-class [array out]
-  (.write out (str "#=" `(object-array ~(vec array)))))
+(defmethod print-dup array-class [array ^Writer w]
+  (.write w (str "#=" `(object-array ~(vec array)))))
 
 (defrecord CharTable
     [;; /* This holds a default value,
@@ -163,7 +164,7 @@
   interned in the initial obarray."
   (keyword? object))
 
-(defun (clojure.core/symbol "1+") (number)
+(defun #deuce/symbol "1+" (number)
   "Return NUMBER plus one.  NUMBER may be a number or a marker.
   Markers are converted to integers."
   (inc number))
@@ -186,7 +187,7 @@
 
 (defun fboundp (symbol)
   "Return t if SYMBOL's function definition is not void."
-  (when-let [v (el/fun symbol)]
+  (when-let [v (and symbol (el/fun symbol))]
     (bound? v)))
 
 (defun % (x y)
@@ -358,7 +359,9 @@
 
 (defun set (symbol newval)
   "Set SYMBOL's value to NEWVAL, and return NEWVAL."
-  ((eval `(fn set [v#] (setq ~symbol v#))) newval))
+  (if (c/= symbol (c/symbol ""))
+    nil ;; Hack for anonymous symbol used by abbrev.el, needs proper fix.
+    ((eval `(fn set [v#] (setq ~symbol v#))) newval)))
 
 (defun < (num1 num2)
   "Return t if first arg is less than second arg.  Both must be numbers or markers."
@@ -385,6 +388,7 @@
         ;; TODO: deuce.emacs.fns/put must be below deuce.emacs.data
         ;; (fns/put symbol 'autoload (cdr @sym))
         ))
+    (ns-unmap 'deuce.emacs symbol)
     (intern 'deuce.emacs symbol definition)
     definition))
 
@@ -452,8 +456,9 @@
   "Return t if SYMBOL has a non-void default value.
   This is the value that is seen in buffers that do not have their own values
   for this variable."
-  (when-let [v (el/global symbol)]
-    (.hasRoot v)))
+  (or (nil? symbol)
+      (when-let [v (el/global symbol)]
+        (.hasRoot v))))
 
 (defun nlistp (object)
   "Return t if OBJECT is not a list.  Lists include nil."
@@ -466,8 +471,9 @@
 
 (defun boundp (symbol)
   "Return t if SYMBOL's value is not void."
-  (when-let [v (el/global symbol)]
-    (bound? v)))
+  (or (nil? symbol)
+      (when-let [v (el/global symbol)]
+        (bound? v))))
 
 (defun default-value (symbol)
   "Return SYMBOL's default value.
@@ -483,7 +489,7 @@
 
 (defun symbolp (object)
   "Return t if OBJECT is a symbol."
-  (or ((some-fn symbol? keyword?) object)
+  (or ((some-fn symbol? keyword? nil?) object)
       (and (seq? object) (c/= `deref (first object)) (symbolp (second object)))))
 
 (defun <= (num1 num2)
@@ -562,7 +568,7 @@
   Both X and Y must be numbers or markers."
   (c/mod x y))
 
-(defun (clojure.core/symbol "1-") (number)
+(defun #deuce/symbol "1-" (number)
   "Return NUMBER minus one.  NUMBER may be a number or a marker.
   Markers are converted to integers."
   (dec number))

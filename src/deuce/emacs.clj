@@ -73,6 +73,27 @@
 (defmacro declare (&rest _specs) nil)
 (defmacro dolist (spec &rest body) nil)
 
+;; Hacks to get a sneak peek of the welcome screen:
+;; avoid loading frame.el yet
+(setq frame-initial-frame nil)
+(defun frame-initialize ())
+(defun normal-erase-is-backspace-setup-frame ())
+(defun newline (&optional arg) (c/println))
+(defun make-frame (&optional parameters))
+(defun display-graphic-p (&optional display))
+(defun display-mouse-p (&optional display))
+
+;; Stubs for modes defined in simple
+(defun special-mode ())
+(defun transient-mark-mode (arg))
+
+;; Same for abbrev.el
+(setq abbrev-file-name "~/.emacs.d/.abbrev_defs")
+;; End welcome screen hacks, these files has to be loaded for real.
+
+;; Hack to avoid loading mule-cmds.el
+(defun set-locale-environment (&optional locale-name frame))
+
 ;; Keymap setup
 (setq global-map (make-keymap))
 (setq esc-map (make-keymap))

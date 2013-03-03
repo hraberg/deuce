@@ -7,6 +7,7 @@
             [clojure.walk :as w]
             [taoensso.timbre :as timbre]
             [deuce.emacs-lisp :as el]
+            [deuce.emacs-lisp.cons :as cons]
             [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.data :as data]
@@ -14,7 +15,9 @@
             [deuce.emacs.eval :as eval]
             [deuce.emacs-lisp.parser :as parser])
   (:refer-clojure :exclude [read intern load])
-  (:import [java.io FileNotFoundException]))
+  (:import [java.io FileNotFoundException]
+           [clojure.lang Symbol]
+           [deuce.emacs_lisp Cons]))
 
 (defvar old-style-backquotes nil
   "Set to non-nil when `read' encounters an old-style backquote.")
@@ -320,48 +323,22 @@
   This uses the variables `load-suffixes' and `load-file-rep-suffixes'."
   )
 
-(defn ^:private sanitise-symbols [x]
-  (cond
-   (and (symbol? x) (re-find  #"([\\,/]|^\d)" (name x)) (not= "/" (name x)))
-   (if (namespace x)
-     (list `symbol (namespace x) (name x))
-     (if (re-find #"/" (name x))
-       (list `symbol nil (name x))
-       (list `symbol (name x))))
-
-   (and (seq? x) (= 'quote  (first x)) (seq? (second x))
-        (= `symbol (first (second x)))) (second x)
-
-        :else x))
-
 (alter-var-root ((ns-map 'clojure.pprint) 'reader-macros)
-                merge `{el/syntax-quote "`"
-                        unquote-splicing "~@"})
-
-;; (let [code-table ((ns-map 'clojure.pprint) '*code-table*)
-;;       pp-if ('def @code-table)
-;;       pp-let ('lef @code-table)
-;;       pp-cond ('cond @code-table)
-;;       pp-fn ('fn @code-table)
-;;       pp-def ('def @code-table)
-;;       pp-defn ('defh @code-table)]
-;;   (alter-var-root code-table
-;;                   merge {`el/defun pp-defn
-;;                          `el/defmacro pp-defn
-;;                          `el/defvar pp-def
-;;                          `el/defconst pp-def
-;;                          `el/if pp-if
-;;                          `e/let pp-let
-;;                          `e/let* pp-let
-;;                          `e/cond pp-cond
-;;                          `e/lambda pp-fn}))
-
-;; (defmethod pp/code-dispatch String [astr] (print (s/replace (pr-str astr) #"\\n" "\n")))
+                merge `{el/syntax-quote "`" unquote-splicing "~@"})
+(alter-var-root ((ns-map 'clojure.pprint) 'reader-macros)
+                dissoc 'var)
 
 (defmethod pp/simple-dispatch (type (object-array 0)) [arr]
-  (print (str "(" `object-array " '" (vec arr) ")")))
+  (print (str "#deuce/vector " (vec arr))))
 
-;; (pp/set-pprint-dispatch pp/code-dispatch)
+(defmethod pp/simple-dispatch Cons [cons]
+  (binding [*print-dup* true]
+    (pr cons)))
+
+(defmethod pp/simple-dispatch Symbol [s]
+  (if (and (re-find  #"([\\,/]|^\d)" (name s)) (not= "/" (name s)))
+    (print "#deuce/symbol" (pr-str (name s)))
+    (pr s)))
 
 (defn ^:private write-clojure [el clj]
   (io/make-parents clj)
@@ -430,8 +407,9 @@
         (with-open [in (io/input-stream url)]
           (when-not nomessage
             (editfns/message "Loading %s..." file))
-          (let [file (s/replace file  #".el$" "")
-                clj-file (str (s/replace file "-" "_") ".clj")
+          (let [el-extension? (re-find #".el$" file)
+                file (s/replace file  #".el$" "")
+                clj-file (str (s/replace file "-" "_") ".clj") ;; should use actual classpath relative location, not loadpath
                 last-modified #(if % (.getLastModified (.openConnection %)) -1)]
             (try
               (when (> (last-modified url) (last-modified (io/resource clj-file)))
@@ -448,9 +426,10 @@
                                              (with-open [w (io/writer clj-file :append true)]
                                                (pp/pprint clj w))
                                              (throw e))))
-                                      (w/postwalk sanitise-symbols el))
+                                      el)
                                  clj-file)
-                  (binding [*compile-files* true] (require (symbol (s/replace file "/" "."))))))))
+                  (when-not el-extension?
+                    (binding [*compile-files* true] (require (symbol (s/replace file "/" ".")))))))))
           true)))
     (catch Exception e
       (when-not noerror

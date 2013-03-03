@@ -4,7 +4,6 @@
          :only (trace debug info warn error fatal spy)])
   (:require [clojure.core :as c]
             [deuce.emacs-lisp.cons :as cons])
-  (:import [deuce.emacs_lisp.cons Cons])
   (:refer-clojure :exclude [vector cons list]))
 
 (defvar purify-flag nil
@@ -132,6 +131,8 @@
   "Return a newly allocated marker which does not point at any place."
   )
 
+(declare list)
+
 (defun garbage-collect ()
   "Reclaim storage for Lisp objects no longer needed.
   Garbage collection happens automatically if you cons more than
@@ -144,15 +145,14 @@
   However, if there was overflow in pure space, `garbage-collect'
   returns nil, because real GC can't be done.
   See Info node `(elisp)Garbage Collection'."
-  (System/gc))
-
-(declare list)
+  (System/gc)
+  (list (list)))
 
 (defun cons (car cdr)
   "Create a new cons, give it CAR and CDR as components, and return it."
-  (Cons. (cons/maybe-seq car) (cons/maybe-seq cdr)))
+  (cons/pair (cons/maybe-seq car) (cons/maybe-seq cdr)))
 
-(defun (clojure.core/symbol nil "/=") (num1 num2)
+(defun #deuce/symbol "/=" (num1 num2)
   "Return t if first arg is not equal to second arg.  Both must be numbers or markers."
   (not (== num1 num2)))
 

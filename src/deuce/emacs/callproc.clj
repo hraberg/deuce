@@ -64,7 +64,7 @@
   More generally, this includes any architecture-dependent files
   that are built and installed from the Emacs distribution.")
 
-(defvar configure-info-directory nil
+(defvar configure-info-directory "/use/share/info"
   "For internal use by the build procedure only.
   This is the name of the directory in which the build procedure installed
   Emacs's info files; the default value for `Info-default-directory-list'
@@ -80,7 +80,9 @@
   If optional parameter ENV is a list, then search this list instead of
   `process-environment', and return t when encountering a negative entry
   (an entry for a variable with no value)."
-  )
+  (if-not env
+    (System/getenv variable)
+    (throw (IllegalArgumentException. "doesn't yet support env argument"))))
 
 (defun call-process-region (start end program &optional delete buffer display &rest args)
   "Send text from START to END to a synchronous process running PROGRAM.

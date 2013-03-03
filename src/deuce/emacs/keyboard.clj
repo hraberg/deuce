@@ -1,6 +1,7 @@
 (ns deuce.emacs.keyboard
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [deuce.emacs.lread :as lread])
   (:refer-clojure :exclude []))
 
 (defvar last-command-event nil
@@ -357,7 +358,7 @@
 (defvar real-last-command nil
   "Same as `last-command', but never altered by Lisp code.")
 
-(defvar help-char nil
+(defvar help-char (lread/read "?\\C-H")
   "Character to recognize as meaning Help.
   When it is read, do `(eval help-form)', and display result if it's a string.
   If the value of `help-form' is nil, this char can be read normally.

@@ -1,6 +1,8 @@
 (ns deuce.emacs-lisp.cons
-  (:refer-clojure :exclude [list])
-  (:import [clojure.lang Seqable Sequential IPersistentCollection]))
+  (:refer-clojure :exclude [list cons])
+  (:import [clojure.lang Seqable Sequential IPersistentCollection]
+           [java.io Writer]
+           [deuce.emacs_lisp Cons]))
 
 (defprotocol IList
   (car [this])
@@ -28,51 +30,39 @@
                  (when (< max-print-length (count s))
                    ['...])))))
 
-(deftype Cons [^:volatile-mutable fst ^:volatile-mutable rst]
-  Sequential
-
+(extend-type Cons
   IList
-  (car [this] fst)
-  (cdr [this] rst)
+  (car [this] (.fst this))
+  (cdr [this] (.rst this))
 
   ICons
-  (setcar [this val] (set! fst val))
-  (setcdr [this val] (set! rst val))
+  (setcar [this val] (set! (.fst this) val))
+  (setcdr [this val] (set! (.rst this) val)))
 
-  Seqable
-  (seq [this]
-    (cons fst
-          (if (satisfies? IList rst)
-            (seq rst)
-            [rst])))
+(defmethod print-method Cons [c ^Writer w]
+  (.write w "(")
+  (loop [c c idx 1]
+    (if (> idx max-print-length)
+      (.write w "...)")
+      (do
+        (.write w (str (.fst c)))
+        (cond
+         (not (satisfies? IList (.rst c))) (.write w (str " . " (.rst c) ")"))
+          (.rst c) (do
+                     (.write w " ")
+                     (recur (.rst c) (inc idx)))
+          :else (.write w ")"))))))
 
-  Object
-  (toString [this]
-    (if (not (satisfies? IList rst))
-      (str "(" fst " . " rst ")")
-      (str (ellipsis this))))
-  (equals [this that]
-    (cond (identical? this that) true
-          (nil? that) false
-          (satisfies? IList that) (and
-                                   (= fst (car that))
-                                   (= rst (cdr that)))
-          (instance? Sequential that) (= (seq this) that)
-          :else false))
-  (hashCode [_]
-    (+ (* 31 (if (nil? fst) 0 (.hashCode fst)))
-       (if (nil? rst) 0 (.hashCode rst)))))
+(defmethod print-dup Cons [c ^Writer out]
+  (.write out (str "#deuce/cons (" (pr-str (.fst c)) " . " (pr-str (.rst c)) ")")))
 
-(defmethod print-method Cons [c w]
-  (.write w (str c)))
-
-(defmethod print-dup Cons [c out]
-  (.write out (str "#=" `(deuce.util.Cons. ~(str (car c)) ~(str (cdr c))))))
+(defn pair [car cdr]
+  (Cons. car cdr))
 
 (defn list [& objects]
   (when (seq objects)
-    (Cons. (first objects)
-           (apply list (rest objects)))))
+    (pair (first objects)
+          (apply list (rest objects)))))
 
 (defn maybe-seq [x]
   (if (seq? x) (apply list x) x))

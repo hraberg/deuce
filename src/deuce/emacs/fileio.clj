@@ -2,6 +2,7 @@
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
             [clojure.java.io :as io])
+  (:import [java.nio.file Files LinkOption])
   (:refer-clojure :exclude []))
 
 (defvar file-name-coding-system nil
@@ -141,7 +142,7 @@
 (defun file-name-absolute-p (filename)
   "Return t if file FILENAME specifies an absolute file name.
   On Unix, this is a name starting with a `/' or a `~'."
-  )
+  (.isAbsolute (io/file filename)))
 
 (defun set-visited-file-modtime (&optional time-list)
   "Update buffer's recorded modification time from the visited file's time.
@@ -160,7 +161,7 @@
 
 (defun file-writable-p (filename)
   "Return t if file FILENAME can be written or created by you."
-  )
+  (Files/isWritable (.toPath (io/file filename))))
 
 (defun car-less-than-car (a b)
   "Return t if (car A) is numerically less than (car B)."
@@ -238,7 +239,7 @@
   See also `file-readable-p' and `file-attributes'.
   This returns nil for a symlink to a nonexistent file.
   Use `file-symlink-p' to test for such links."
-  )
+  (.exists (io/file filename)))
 
 (defun set-file-selinux-context (filename context)
   "Set SELinux context of file named FILENAME to CONTEXT.
@@ -357,7 +358,7 @@
 (defun file-readable-p (filename)
   "Return t if file FILENAME exists and you can read it.
   See also `file-exists-p' and `file-attributes'."
-  )
+  (Files/isReadable (.toPath (io/file filename))))
 
 (defun delete-file (filename &optional trash)
   "Delete file named FILENAME.  If it is a symlink, remove the symlink.
@@ -372,7 +373,7 @@
 (defun file-executable-p (filename)
   "Return t if FILENAME can be executed by you.
   For a directory, this means you can access files in that directory."
-  )
+  (Files/isExecutable (.toPath (io/file filename))))
 
 (defun make-temp-name (prefix)
   "Generate temporary file name (string) starting with PREFIX (a string).
@@ -460,7 +461,7 @@
   "Return t if FILENAME names an existing directory.
   Symbolic links to directories count as directories.
   See `file-symlink-p' to distinguish symlinks."
-  )
+  (.isDirectory (io/file filename)))
 
 (defun set-buffer-auto-saved ()
   "Mark current buffer as auto-saved with its current text.
@@ -491,7 +492,7 @@
   A directory name spec may be given instead; then the value is t
   if the directory so specified exists and really is a readable and
   searchable directory."
-  )
+  (file-directory-p filename))
 
 (defun file-name-as-directory (file)
   "Return a string representing the file name FILE interpreted as a directory.
@@ -500,7 +501,9 @@
   The result can be used as the value of `default-directory'
   or passed as second argument to `expand-file-name'.
   For a Unix-syntax file name, just appends a slash."
-  )
+  (if (re-find #"/$" file)
+    file
+    (str file "/")))
 
 (defun copy-file (file newname &optional ok-if-already-exists keep-time preserve-uid-gid preserve-selinux-context)
   "Copy FILE to NEWNAME.  Both args must be strings.
@@ -534,14 +537,14 @@
   This is the sort of file that holds an ordinary stream of data bytes.
   Symbolic links to regular files count as regular files.
   See `file-symlink-p' to distinguish symlinks."
-  )
+  (Files/isRegularFile (.toPath (io/file filename)) (make-array LinkOption 0)))
 
 (defun file-name-directory (filename)
   "Return the directory component in file name FILENAME.
   Return nil if FILENAME does not include a directory.
   Otherwise return a directory name.
   Given a Unix syntax file name, returns a string ending in slash."
-  )
+  (file-name-as-directory (.getAbsolutePath (.getParentFile (io/file filename)))))
 
 (defun file-symlink-p (filename)
   "Return non-nil if file FILENAME is the name of a symbolic link.
@@ -550,7 +553,7 @@
 
   This function returns t when given the name of a symlink that
   points to a nonexistent file."
-  )
+  (Files/isSymbolicLink (.toPath (io/file filename))))
 
 (defun unhandled-file-name-directory (filename)
   "Return a directly usable directory name somehow associated with FILENAME.

@@ -1,6 +1,7 @@
 (ns deuce.emacs.buffer
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
+            [deuce.emacs.alloc :as alloc]
             [deuce.emacs-lisp.globals :as globals])
   (:refer-clojure :exclude []))
 
@@ -388,7 +389,7 @@
   "Default value of `left-margin-width' for buffers that don't override it.
   This is the same as (default-value 'left-margin-width).")
 
-(defvar default-directory nil
+(defvar default-directory (System/getProperty "user.dir")
   "Name of default directory of current buffer.  Should end with slash.
   To interactively change the default directory, use command `cd'.")
 
@@ -776,12 +777,12 @@
   The fifth arg REAR-ADVANCE, if non-nil, makes the marker
   for the rear of the overlay advance when text is inserted there
   (which means the text *is* included in the overlay)."
-  )
+  beg)
 
 (defun buffer-live-p (object)
   "Return non-nil if OBJECT is a buffer which has not been killed.
   Value is nil if OBJECT is not a buffer or if it has been killed."
-  )
+  object)
 
 (defun restore-buffer-modified-p (flag)
   "Like `set-buffer-modified-p', with a difference concerning redisplay.
@@ -841,7 +842,7 @@
 
   If BUFFER-OR-NAME is a buffer instead of a string, return it as given,
   even if it is dead.  The return value is never nil."
-  )
+  buffer-or-name)
 
 (defun overlay-start (overlay)
   "Return the position at which OVERLAY starts."
@@ -951,7 +952,7 @@
   If the optional arg FRAME is a frame, we return the buffer list in the
   proper order for that frame: the buffers show in FRAME come first,
   followed by the rest of the buffers."
-  )
+  (alloc/list @*current-buffer*))
 
 (defun bury-buffer-internal (buffer)
   "Move BUFFER to the end of the buffer list."

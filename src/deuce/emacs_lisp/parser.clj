@@ -3,10 +3,10 @@
             [clojure.string :as s]
             [clojure.pprint :as pp]
             [deuce.emacs-lisp :as el]
+            [deuce.emacs-lisp.cons :as cons]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.textprop :as textprop])
-  (:import [deuce.emacs_lisp.cons Cons]
-           [java.util Scanner]
+  (:import [java.util Scanner]
            [java.io StringReader StreamTokenizer]
            [java.util.regex Pattern]))
 
@@ -39,9 +39,10 @@
 (defn ^:private strip-comments [form]
   (remove (every-pred seq? (comp `#{comment} first)) form))
 
+;; We want to use Clojure 1.5 reader tags for this.
 (defn ^:private expand-cons [form]
   (if (and  (= 3 (count form)) (= '. (second form)))
-    (list 'deuce.emacs.alloc/cons (first form) (last form))
+    (alloc/cons (first form) (last form))
     form))
 
 (defn ^:private as-vector [form]
@@ -50,18 +51,15 @@
 (def ^:private ^Pattern re-str #"(?s)([^\"\\]*(?:\\.[^\"\\]*)*)\"")
 (def ^:private ^Pattern re-char #"((\\[CSM]-)*(\\x?\d+|(\\\^?)?.))")
 
-(def ^:dynamic line (atom (int 1)))
-
 (defn ^:private tokenize-all [^Scanner sc]
   (strip-comments (take-while (complement #{`end}) (repeatedly (partial tokenize sc)))))
 
 (defn ^:private tokenize [^Scanner sc]
   (let [find (fn [^Pattern re h] (.findWithinHorizon sc re (int h)))]
     (condp find 1
-      #"\n" (do (swap! line inc) (recur sc))
       #"\s" (recur sc)
       #"[)\]]" `end
-      #"\(" (with-meta (expand-cons (tokenize-all sc)) {:line @line})
+      #"\(" (expand-cons (tokenize-all sc))
       #"\[" (as-vector (tokenize-all sc))
       #"," (list (if (find #"@" 1) `unquote-splicing `unquote) (tokenize sc))
       #"'" (list 'quote (tokenize sc))
@@ -70,12 +68,10 @@
                                        (list `el/syntax-quote form)))
       #":" (keyword (.next sc))
       #"\?" (parse-character (find re-char 0))
-      #"\"" (let [s (parse-string (str \" (find re-str 0)))]
-              (swap! line + (count (butlast (re-seq #"\n" s))))
-              s)
-      #";" (do (swap! line inc) (list `comment (.nextLine sc)))
+      #"\"" (parse-string (str \" (find re-str 0)))
+      #";" (list `comment (.nextLine sc))
       #"#" (condp find 1
-             #"'" (list 'quote (tokenize sc))
+             #"'" (list 'function (tokenize sc))
              #"\(" (let [[object start end properties] (tokenize-all sc)]
                      (list `textprop/set-text-properties start end properties object))
              #"x" (.nextInt sc (int 16))
@@ -88,11 +84,11 @@
       (cond
        (.hasNextLong sc) (.nextLong sc)
        (.hasNextDouble sc) (.nextDouble sc)
-       (.hasNext sc) (let [s (.next sc)]
+       (.hasNext sc) (let [s (find #"[^\s\[\]\(\)\"\;]+" 0)]
                        (case s
                          "t" true
                          "nil" nil
-                         (with-meta (symbol nil s) {:line @line})))
+                         (symbol nil s)))
        :else `end))))
 
 (def scanner-position (doto (.getDeclaredField Scanner "position")
@@ -101,10 +97,9 @@
 (defn parse-internal [r & [all?]]
   (let [scanner (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
                   (.useDelimiter #"(\s|\]|\)|\"|;)"))]
-    (binding [line (atom (int 1))]
-      (Cons.
-       ((if all? tokenize-all tokenize) scanner)
-       (.get scanner-position scanner)))))
+    (cons/pair
+     ((if all? tokenize-all tokenize) scanner)
+     (.get scanner-position scanner))))
 
 (defn parse [r]
-  (.car (parse-internal r :all)))
+  (cons/car (parse-internal r :all)))

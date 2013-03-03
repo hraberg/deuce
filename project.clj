@@ -16,6 +16,4 @@
   :jar-exclusions [#".*\.elc"]
   :java-source-paths ["src"]
   :jvm-opts ["-Xss4m"]
-  :aot [deuce.emacs-lisp.error
-        deuce.emacs-lisp.cons]
   :main deuce.main)

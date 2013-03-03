@@ -7,9 +7,9 @@
   (:use [taoensso.timbre :as timbre
          :only (trace debug info warn error fatal spy)])
   (:import [clojure.lang Var]
-           [java.lang.reflect Method]
-           [deuce.emacs_lisp.error]
-           [deuce.emacs_lisp.cons Cons])
+           [java.io Writer]
+           [deuce.emacs_lisp Cons]
+           [java.lang.reflect Method])
   (:refer-clojure :exclude [defmacro and or cond let while eval set compile]))
 
 (timbre/set-config! [:prefix-fn]
@@ -17,13 +17,22 @@
                       (str timestamp " " (-> level name s/upper-case) " [" ns "]")))
 (timbre/set-config! [:timestamp-pattern] "HH:mm:ss,SSS")
 
-(timbre/set-level! :debug)
+(timbre/set-level! :error)
 (var-set #'*warn-on-reflection* true)
 
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
 
 (declare clojure-special-forms throw defvar)
+
+(defn cons-reader [cons]
+  (cons/pair (first cons) (last cons)))
+
+(defn vector-reader [v]
+  (object-array v))
+
+(defn symbol-reader [s]
+  (symbol nil s))
 
 (defn sym [s]
   (symbol nil (name s)))
@@ -43,8 +52,10 @@
 (defn maybe-sym [x]
   (if (symbol? x) (sym x) x))
 
-(defn expand-symbol [x]
-  (sym (if (seq? x) (c/eval x) x)))
+(defmethod print-method deuce.emacs_lisp.Error [^deuce.emacs_lisp.Error e ^Writer w]
+  (.write w (str (cons (.tag e)
+                       (c/let [d (.value e)]
+                              (if (seq? d) d [d]))))))
 
 (def ^:dynamic *dynamic-vars* {})
 
@@ -54,27 +65,32 @@
 ;; See deuce.emacs.data/make-variable-frame-local and deuce.emacs.frame/modify-frame-parameters
 (defn el-var-buffer-local [name])
 
+(c/defmacro el-symbol-quote [s]  s)
+
 (c/defmacro el-var-get [name]
-  (if (c/and (symbol? name) (name &env))
-    `(if (var? ~name) @~name ~name)
-    `(if-let [v# ((some-fn *dynamic-vars* el-var-buffer-local global) '~name)]
-       @v#
-       (deuce.emacs-lisp/throw '~'void-variable (cons/list '~name)))))
+  (c/let [name (sym name)]
+         (if (c/and (symbol? name) (name &env))
+           `(if (var? ~name) @~name ~name)
+           `(if-let [v# ((some-fn *dynamic-vars* el-var-buffer-local global) '~name)]
+              @v#
+              (deuce.emacs-lisp/throw '~'void-variable (cons/list '~name))))))
 
 (c/defmacro el-var-set-default [name value]
-  `(c/let [value# ~value]
-          (if-let [v# (global '~name)]
-            (alter-var-root v# (constantly ~value))
-            @(global (defvar ~name ~value)))))
+  (c/let [name (sym name)]
+         `(c/let [value# ~value]
+                 (if-let [v# (global '~name)]
+                   (alter-var-root v# (constantly ~value))
+                   @(global (defvar ~name ~value))))))
 
 (c/defmacro el-var-set [name value]
-  `(c/let [value# ~value]
-    (if-let [v# (c/or ~(c/and (symbol? name) (name &env) name)
-                      ((some-fn *dynamic-vars* el-var-buffer-local) '~name))]
-      (if (c/and (.hasRoot v#) (not (.getThreadBinding v#)))
-        (alter-var-root v# (constantly value#))
-        (var-set v# value#))
-      (el-var-set-default ~name value#))))
+  (c/let [name (sym name)]
+         `(c/let [value# ~value]
+                 (if-let [v# (c/or ~(c/and (symbol? name) (name &env) name)
+                                   ((some-fn *dynamic-vars* el-var-buffer-local) '~name))]
+                   (if (c/and (.hasRoot v#) (not (.getThreadBinding v#)))
+                     (alter-var-root v# (constantly value#))
+                     (var-set v# value#))
+                   (el-var-set-default ~name value#)))))
 
 (defn dynamic-binding? []
   (not (el-var-get lexical-binding)))
@@ -102,23 +118,28 @@
                       (if-let [s (c/and (symbol? (first rst)) (not (next rst)) (first rst))]
                         (list 'quote (if (= "deuce.emacs" (namespace s)) (sym s) s))
                         (if (= '(()) rst) () x))
-                      (cons (symbol "deuce.emacs-lisp" (name fst)) rst))
+                      (c/cons (symbol "deuce.emacs-lisp" (name fst)) rst))
                     x)
-                  (if (`#{el-var-get el-var-set el-var-set-default syntax-quote} fst)
+                  (if (`#{el-var-get el-var-set el-var-set-default
+                          el-symbol-quote syntax-quote} fst)
                     x
-                    (cons (c/cond
-                           (c/and (symbol? fst)
-                                  (not (namespace fst))
-                                  (not (fun fst)))
-                           (do (warn (format "Unable to resolve symbol: %s in this context" fst))
-                               (intern 'deuce.emacs fst)
-                               (list `fun (list 'quote fst)))
+                    (c/cond
+                     (= `symbol fst) (list `el-var-get x)
 
-                           (c/and (c/seq? fst) (= `symbol (first fst)))
-                           (list `fun fst)
+                     :else (c/cons (c/cond
+                                  (c/and (symbol? fst)
+                                         (not (namespace fst))
+                                         (not (fun fst)))
+                                  (do (warn (format "Unable to resolve symbol: %s in this context" fst))
+                                      (intern 'deuce.emacs fst)
+                                      (list `fun (list 'quote fst)))
 
-                           :else fst)
-                          (map el->clj rst)))))
+                                  (c/and (c/seq? fst) (= `symbol (first fst)))
+                                  (list `fun fst)
+
+
+                                  :else fst)
+                            (map el->clj rst))))))
     symbol? (if (namespace x) (if (-> (resolve x) meta :macro) (resolve x) x) (list `el-var-get x))
     x))
 
@@ -172,9 +193,9 @@
 
 (c/defmacro def-helper* [what line name arglist & body]
   (c/let [[docstring body] (split-with string? body)
-          name (expand-symbol name)
+          name (sym name)
           rest-arg (maybe-sym (second (drop-while (complement '#{&rest}) arglist)))
-          [arg & args :as arglist] (map expand-symbol (replace '{&rest &} arglist))
+          [arg & args :as arglist] (map sym (replace '{&rest &} arglist))
           [arglist &optional optional-args] (if (= '&optional arg)
                                               [() arg args]
                                               (partition-by '#{&optional} arglist))
@@ -219,7 +240,7 @@
   See also the function `interactive'."
   {:arglists '([NAME ARGLIST [DOCSTRING] BODY...])}
   [name arglist & body]
-  (c/let [name (expand-symbol name)]
+  (c/let [name (sym name)]
          `(do (def-helper* defn ~(-> name meta :line) ~name ~arglist ~@body)
               '~name)))
 
@@ -293,9 +314,9 @@
   (c/let [var (if (= () var) nil var)]
          `(try
             ~(el->clj bodyform)
-            (catch deuce.emacs_lisp.error e#
-              (c/let [~(if var var (gensym "_")) (:data (.state e#))]
-                     (case (:symbol (.state e#))
+            (catch deuce.emacs_lisp.Error e#
+              (c/let [~(if var var (gensym "_")) (.data e#)]
+                     (case (.tag e#)
                        ~@(apply concat (for [[c & h] handlers]
                                          `[~(sym c) (progn ~@h)]))
                        (throw e#)))))))
@@ -318,14 +339,15 @@
             (apply concat))))
 
 (c/defmacro setq-helper* [default? sym-vals]
-  `(c/let
-       ~(reduce into []
-                (for [[s v] (partition 2 sym-vals)
-                      :let [s (expand-symbol s)]]
-                  [(sym s) (if default?
-                             `(el-var-set-default ~s ~(el->clj v))
-                             `(el-var-set ~s ~(el->clj v)))]))
-     ~(last (butlast sym-vals))))
+  (c/let [emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)]
+         `(c/let
+           ~(reduce into []
+                    (for [[s v] (partition 2 sym-vals)
+                          :let [s (sym s)]]
+                      [(sym s) (if default?
+                                 `(el-var-set-default ~s ~(if emacs-lisp? (el->clj v) v))
+                                 `(el-var-set ~s ~(if emacs-lisp? (el->clj v) v)))]))
+           ~(last (butlast sym-vals)))))
 
 (c/defmacro setq
   "Set each SYM to the value of its VAL.
@@ -355,7 +377,7 @@
 
 (c/defmacro let-helper* [can-refer? varlist & body]
   (c/let [varlist (map #(if (symbol? %) [% nil] %) varlist)
-          all-vars (map (comp expand-symbol first) varlist)
+          all-vars (map (comp sym first) varlist)
           temps (zipmap all-vars (repeatedly #(gensym "local__")))]
          `(c/let ~(vec (concat
                         (interleave (map (if can-refer? identity temps) all-vars)
@@ -391,7 +413,7 @@
   The optional DOCSTRING specifies the variable's documentation string."
   {:arglists '([SYMBOL INITVALUE [DOCSTRING]])}
   [symbol initvalue & [docstring]]
-  (c/let [symbol (expand-symbol symbol)]
+  (c/let [symbol (sym symbol)]
     `(do
        (-> (intern (create-ns 'deuce.emacs-lisp.globals)
                    '~symbol
@@ -476,7 +498,7 @@
   	Set NAME's `doc-string-elt' property to ELT."
   {:arglists '([NAME ARGLIST [DOCSTRING] [DECL] BODY...])}
   [name arglist & body]
-  (c/let [name (expand-symbol name)]
+  (c/let [name (sym name)]
          `(do
             ~(when-not ((ns-interns 'deuce.emacs-lisp) name)
                `(def-helper* c/defmacro ~(-> name meta :line) ~name ~arglist ~@body))
@@ -517,7 +539,7 @@
   `(let-helper* true ~varlist ~@body))
 
 (defn defvar-helper* [ns symbol & [initvalue docstring]]
-  (c/let [symbol (expand-symbol symbol)
+  (c/let [symbol (sym symbol)
           ^Var default (global symbol)
           m (meta default)]
     (->
@@ -559,7 +581,7 @@
   {:arglists '([SYMBOL &optional INITVALUE DOCSTRING])}
   [symbol & [initvalue docstring]]
   (c/let [emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)]
-         `(defvar-helper* 'deuce.emacs-lisp.globals '~(expand-symbol symbol)
+         `(defvar-helper* 'deuce.emacs-lisp.globals '~(sym symbol)
             ~(if emacs-lisp? (el->clj initvalue) initvalue) ~docstring)))
 
 ;; defined as fn in eval.clj
@@ -568,7 +590,7 @@
   Both TAG and VALUE are evalled."
   {:arglists '([TAG VALUE])}
   [tag value]
-  `(throw (deuce.emacs_lisp.error. ~value ~tag)))
+  `(throw (deuce.emacs_lisp.Error. ~tag ~value)))
 
 (c/defmacro ^:clojure-special-form catch
   "Eval BODY allowing nonlocal exits using `throw'.
@@ -582,9 +604,9 @@
   [tag & body]
   `(try
      (progn ~@body)
-     (catch deuce.emacs_lisp.error e#
-       (if (= ~(el->clj tag) (:symbol (.state e#)))
-         (:data (.state e#))
+     (catch deuce.emacs_lisp.Error e#
+       (if (= ~(el->clj tag) (.tag e#))
+         (.value e#)
          (throw e#)))))
 
 (c/defmacro ^:clojure-special-form if
@@ -724,8 +746,8 @@
          `(try ~@try-exprs
                ~@(for [expr catch-clauses]
                    (c/let [[_ tag e & exprs] expr]
-                          `(catch deuce.emacs_lisp.error e#
-                             (if (= ~tag (:symbol (.state e#)))
+                          `(catch deuce.emacs_lisp.Error e#
+                             (if (= ~tag (.tag e#))
                                (c/let [~e e#]
                                       (do ~@exprs))
                                (throw e#)))))

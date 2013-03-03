@@ -170,11 +170,12 @@
   precision specifier says how many decimal places to show; if zero, the
   decimal point itself is omitted.  For %s and %S, the precision
   specifier truncates the string to the given width."
-  (apply c/format string (map #(cond
-                                 (and (instance? Long %)
-                                      (<= Integer/MIN_VALUE % Integer/MAX_VALUE)) (int %)
-                                 (instance? List %) (seq %)
-                                 :else %) objects)))
+  (apply c/format (s/replace string "%S" "%s")
+         (map #(cond
+                (and (instance? Long %)
+                     (<= Integer/MIN_VALUE % Integer/MAX_VALUE)) (int %)
+                     (instance? List %) (seq %)
+                     :else %) objects)))
 
 (defun user-uid ()
   "Return the effective uid of Emacs.
@@ -332,7 +333,7 @@
 (defun point-min ()
   "Return the minimum permissible value of point in the current buffer.
   This is 1, unless narrowing (a buffer restriction) is in effect."
-  )
+  0)
 
 (defun widen ()
   "Remove restrictions (narrowing) from current buffer.
@@ -358,7 +359,7 @@
 (defun point ()
   "Return value of point, as an integer.
   Beginning of buffer is position (point-min)."
-  )
+  0)
 
 (defun field-string (&optional pos)
   "Return the contents of the field surrounding POS as a string.
@@ -600,7 +601,7 @@
 (defun buffer-size (&optional buffer)
   "Return the number of characters in the current buffer.
   If BUFFER, return the number of characters in that buffer instead."
-  )
+  0)
 
 (defun region-end ()
   "Return the integer value of point or mark, whichever is larger."
@@ -738,7 +739,7 @@
   original bytes of a unibyte string when inserting it into a multibyte
   buffer; to accomplish this, apply `string-as-multibyte' to the string
   and insert the result."
-  )
+  (print (apply str args)))
 
 (defun buffer-substring (start end)
   "Return the contents of part of the current buffer as a string.
@@ -749,7 +750,7 @@
   This function copies the text properties of that part of the buffer
   into the result string; if you don't want the text properties,
   use `buffer-substring-no-properties' instead."
-  )
+  "")
 
 (defun byte-to-string (byte)
   "Convert arg BYTE to a unibyte string containing that byte."

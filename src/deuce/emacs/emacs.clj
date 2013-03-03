@@ -1,6 +1,7 @@
 (ns deuce.emacs.emacs
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
+            [deuce.emacs.alloc :as alloc]
             [deuce.emacs-lisp.globals :as globals])
   (:import [java.io File])
   (:refer-clojure :exclude []))
@@ -26,7 +27,7 @@
 (defvar previous-system-messages-locale nil
   "Most recently used system locale for messages.")
 
-(defvar system-type "jvm"
+(defvar system-type (symbol "jvm")
   "The value is a symbol indicating the type of operating system you are using.
   Special values:
     `gnu'          compiled for a GNU Hurd system.
@@ -45,7 +46,7 @@
 (defvar system-configuration-options nil
   "String containing the configuration options Emacs was built with.")
 
-(defvar command-line-args ["src/bootstrap-emacs"]
+(defvar command-line-args (alloc/list "src/bootstrap-emacs" "-no-init-file")
   "Args passed by shell to Emacs, as a list of strings.
   Many arguments are deleted from the list as they are processed.")
 

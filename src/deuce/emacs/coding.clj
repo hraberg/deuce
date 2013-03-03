@@ -274,7 +274,7 @@
   A vector value indicates that a format of end-of-line should be
   detected automatically.  Nth element of the vector is the subsidiary
   coding system whose eol-type is N."
-  )
+  0)
 
 (defun coding-system-aliases (coding-system)
   "Return the list of aliases of CODING-SYSTEM."
@@ -420,7 +420,10 @@
   This function sets `last-coding-system-used' to the precise coding system
   used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
   not fully specified.)"
-  )
+  (el/setq last-coding-system-used coding-system)
+  (if-not coding-system
+    string
+    (throw (IllegalArgumentException. (str "unknown Emacs coding system: " coding-system)))))
 
 (defun find-operation-coding-system (operation &rest arguments)
   "Choose a coding system for an operation based on the target name.
@@ -520,7 +523,9 @@
   This function sets `last-coding-system-used' to the precise coding system
   used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
   not fully specified.)"
-  )
+  (if-not coding-system
+    string
+    (throw (IllegalArgumentException. (str "unknown Emacs coding system: " coding-system)))))
 
 (defun set-terminal-coding-system-internal (coding-system &optional terminal)
   "Internal use only."

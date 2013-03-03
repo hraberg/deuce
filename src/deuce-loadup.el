@@ -43,7 +43,7 @@
 ;;; Code:
 
 ;; DEUCE: deuce.main loads this file and prepend src/bootstrap-emacs to the command line to emulate CANNOT_DUMP.
-;;        Unlike in Emacs, this file is loaded every time Deuce starts, but all referenced Emacs Lisp will normally be AOT compiled.
+;;        Unlike in Emacs, this file is loaded every time Deuce starts, but the referenced Emacs Lisp will normally be AOT compiled.
 
 ;; Add subdirectories to the load-path for files that might get
 ;; autoloaded when bootstrapping.
@@ -113,10 +113,13 @@
 ;; DEUCE: All basic editor key bindings are setup here - many refer to fns loaded later on.
 (load "bindings")
 ;; DEUCE: Defines C-x 2, C-x o etc.
+;;        Occasionally declare gets confused and throws an undefined function indent error.
 (load "window")  ; Needed here for `replace-buffer-in-windows'.
-;; ------ Current state of 2013-03-02.
 (setq load-source-file-function 'load-with-code-conversion)
 ;; DEUCE: Defines C-x C-f, C-x C-s etc.
+;;        Somteimes gets loaded several times for some reason.
+;;        Or failes to define set-auto-mode, related to the macro report-errors which uses cons in a weird way.
+;; ------ Current state as of 2013-03-02.
 (load "files")
 
 ;; DEUCE: custom extensions for faces
@@ -129,6 +132,7 @@
 ;; DEUCE: Actual startup of Emacs, parses command lines, opens the first frame and displays welcome and *scratch*
 ;;        Loads init.el, but we'll surpress that for now. We want to support emacs -nw -q
 ;;        Also loads subdirs.el which extends the load-path. Tries to load leim for international input, but should not be needed.
+;;        Needs frame to be loaded (see below)
 (load "startup")
 
 ;; DEUCE: At this point normal-top-level will be available.
@@ -139,22 +143,25 @@
 ;;        The GNU Emacs buffer will be shown: "Welcome to GNU Emacs, one component of the GNU/Linux operating system."
 
 ;; DEUCE: Large autoload loaddefs, not strictly necessary to just start Emacs.
+;;        .el files don't get .class files
 (condition-case nil
     ;; Don't get confused if someone compiled this by mistake.
     (load "loaddefs.el")
   ;; In case loaddefs hasn't been generated yet.
   (file-error (load "ldefs-boot.el")))
 
-;; DEUCE: minibuffer and simple (which defines fundamental mode) are argubly necessary to be "Emacs".
-(load "minibuffer")
+;; DEUCE: minibuffer implements completion, the actual minibuffer is (not yet) in minibuf.clj
+;;        autoloads (but fails) pcase, which is a pattern matcher utterly confused by Deuce concept of cons.
+;(load "minibuffer")
 ;; DEUCE: abbrev mode, referenced by simple below (to turn it off at times)
-(load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
+;;        uses its own objarrays and name less symbols, got it compiling, but hopefully we can ignore it for a bit.
+;(load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
 ;; DEUCE: Massive support file for Emacs, adds completion, paren matching, line movement and various things.
-(load "simple")
+;(load "simple")
 
 ;; DEUCE: The help system isn't critical, but a non-trivial interactive Emacs extension to get working.
 ;;        The tutorial is defined in tutorial.el, loaded by autoload, not loadup.
-(load "help")
+;(load "help")
 
 ;; DEUCE: We should now have Emacs running with only fundamental-mode available. Release 0.1.0.
 ;;        M-x butterfly is defined in misc.el, loaded via autoload, see loaddef above. It depends on play/animate.
@@ -162,12 +169,15 @@
 ;; DEUCE: About half-way through loadup.el here. Next up is languages (to skip), various search/replace and actual major modes.
 ;;        At the end of loadup some addditional actual initialization happens, see commented out lines below.
 ;;        The following section is more sparsely commented and analyzed than that above, will revisit after 0.1.0.
+;;        This strict approach won't work, as several of the files below are indirectly referenced.
+;;        And once loaddefs is in, all bets are off, as anything can be autoloaded.
 
 ;; DEUCE: All the following block can probably be skipped unless referenced.
 ;; (load "jka-cmpr-hook")
 ;; (load "epa-hook")
 ;; ;; Any Emacs Lisp source file (*.el) loaded here after can contain
 ;; ;; multilingual text.
+;; DEUCE: set-locate-environment is defined here
 ;; (load "international/mule-cmds")
 ;; (load "case-table")
 ;; ;; This file doesn't exist when building a development version of Emacs
@@ -206,8 +216,12 @@
 
 ;; DEUCE: Next part to tackle after Deuce 0.1.0:
 ;; (load "indent")
+;; DEUCE: frame-initial-frame is references from startup
 ;; (load "frame")
-;; (load "term/tty-colors")
+;; DEUCE: Referenced from startup.
+;;        The generated init class gets invalid method code length, but loading the .clj itself works:
+;;        rm target/classes/term/tty_colors__init.class
+(load "term/tty-colors")
 ;; (load "font-core")
 ;; ;; facemenu must be loaded before font-lock, because `facemenu-keymap'
 ;; ;; needs to be defined when font-lock is loaded.
@@ -228,7 +242,7 @@
 
 ;; DEUCE: Important parts, Lisp Interaction mode etc.
 ;; (load "menu-bar")
-;; (load "paths.el")  ;Don't get confused if someone compiled paths by mistake.
+(load "paths.el")  ;Don't get confused if someone compiled paths by mistake.
 ;; (load "emacs-lisp/lisp")
 ;; (load "textmodes/page")
 ;; (load "register")
