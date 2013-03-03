@@ -64,7 +64,7 @@ No terminal or proper frame, just using standard out as buffer:
     of Emacs and modify it; type \[describe-copying] to see the conditions.
     Type \[describe-distribution] for information on getting the latest version.
 
-It is nice to get a feel for what Emacs actually tries to do when it starts, as the sea of Emacs Lisp now becomes a bit more managable to navigate when you can seee the other shore.
+It is nice to get a feel for what Emacs actually tries to do when it starts, as the sea of Emacs Lisp now becomes a bit more managable to navigate when you can see the other shore.
 
 Several important files aren't loaded yet, I had to provide stubs for about 10 functions, primiarly related to initializing the frame, to make `normal-top-level` actually display the welcome screen. Also, buffer management doesn't really exist yet except as stubs, it just prints to the standard out.
 
