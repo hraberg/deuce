@@ -8,11 +8,6 @@
             [deuce.emacs.lread :as lread])
   (:gen-class))
 
-(defn loadup []
-  (el/setq before-init-time (editfns/current-time))
-  (lread/load "deuce-loadup.el")
-  (el/setq after-init-time (editfns/current-time)))
-
 ;; We want to support emacs -nw -q initially. -q is --no-init-file
 (defn -main [& args]
   (let [option #(hash-set (str "-" %) (str "--" %))
@@ -33,7 +28,7 @@
                  %) args)]
 
     (el/setq command-line-args (alloc/cons "src/bootstrap-emacs" (apply alloc/list (remove nil? args))))
-    (loadup)
+    (lread/load "deuce-loadup.el")
     nil
 
     ;; Pontentially call out and init the clojure-lanterna terminal (when-not inhibit-window-system)
