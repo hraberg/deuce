@@ -6,7 +6,8 @@
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs-lisp.cons :refer [ICons IList] :as cons])
   (:import [java.nio ByteOrder]
-           [java.io Writer])
+           [java.io Writer]
+           [clojure.lang Symbol])
   (:refer-clojure :exclude [+ * - / aset set < = > max >= <= mod atom min]))
 
 (declare consp car cdr)
@@ -23,7 +24,17 @@
   (print-method (vec (cons/ellipsis o)) w))
 
 (defmethod print-dup array-class [array ^Writer w]
-  (.write w (str "#=" `(object-array ~(vec array)))))
+  (.write w "#deuce/vector [")
+  (dotimes [idx (count array)]
+    (print-dup (aget array idx) w)
+    (when-not (c/= idx (dec (count array)))
+      (.write w " ")))
+  (.write w "]"))
+
+(defmethod print-dup Symbol [s ^Writer w]
+  (if (and (re-find  #"([\\,/]|^\d)" (name s)) (not= "/" (name s)))
+    (.write w (str "#deuce/symbol " (pr-str (name s))))
+    (.write w (str s))))
 
 (defrecord CharTable
     [;; /* This holds a default value,
@@ -50,8 +61,11 @@
                                                    (.purpose char-table)]
                                                   (.contents char-table)))))))
 
+(defn ^:private promote-char [x]
+  (if (char? x) (int x) x))
+
 (defn ^:private promote-chars [xs]
-  (map #(if (char? %) (int %) %) xs))
+  (map promote-char xs))
 
 (defun natnump (object)
   "Return t if OBJECT is a nonnegative integer."
@@ -156,7 +170,9 @@
 
 (defun symbol-value (symbol)
   "Return SYMBOL's value.  Error if that is void."
-  @(el/global symbol))
+  (if-let [sym (el/global symbol)]
+    @sym
+    (el/throw 'void-variable symbol)))
 
 (defun keywordp (object)
   "Return t if OBJECT is a keyword.
@@ -167,7 +183,7 @@
 (defun #deuce/symbol "1+" (number)
   "Return NUMBER plus one.  NUMBER may be a number or a marker.
   Markers are converted to integers."
-  (inc number))
+  (inc (promote-char number)))
 
 (defun subrp (object)
   "Return t if OBJECT is a built-in function."
@@ -365,7 +381,7 @@
 
 (defun < (num1 num2)
   "Return t if first arg is less than second arg.  Both must be numbers or markers."
-  (c/< num1 num2))
+  (c/< (promote-char num1) (promote-char num2)))
 
 (defun car-safe (object)
   "Return the car of OBJECT if it is a cons cell, or else nil."
@@ -403,7 +419,7 @@
 
 (defun = (num1 num2)
   "Return t if two args, both numbers or markers, are equal."
-  (== num1 num2))
+  (== (promote-char num1) (promote-char num2)))
 
 (defun make-variable-buffer-local (variable)
   "Make VARIABLE become buffer-local whenever it is set.
@@ -436,7 +452,7 @@
 
 (defun > (num1 num2)
   "Return t if first arg is greater than second arg.  Both must be numbers or markers."
-  (c/> num1 num2))
+  (c/> (promote-char num1) (promote-char num2)))
 
 (defun max (number-or-marker &rest numbers-or-markers)
   "Return largest of all the arguments (which must be numbers or markers).
@@ -467,7 +483,7 @@
 (defun >= (num1 num2)
   "Return t if first arg is greater than or equal to second arg.
   Both must be numbers or markers."
-  (c/>= num1 num2))
+  (c/>= (promote-char num1) (promote-char  num2)))
 
 (defun boundp (symbol)
   "Return t if SYMBOL's value is not void."
@@ -495,7 +511,7 @@
 (defun <= (num1 num2)
   "Return t if first arg is less than or equal to second arg.
   Both must be numbers or markers."
-  (c/<= num1 num2))
+  (c/<= (promote-char num1) (promote-char num2)))
 
 (defun local-variable-p (variable &optional buffer)
   "Non-nil if VARIABLE has a local binding in buffer BUFFER.
@@ -571,7 +587,7 @@
 (defun #deuce/symbol "1-" (number)
   "Return NUMBER minus one.  NUMBER may be a number or a marker.
   Markers are converted to integers."
-  (dec number))
+  (dec (promote-char number)))
 
 (defun atom (object)
   "Return t if OBJECT is not a cons cell.  This includes nil."

@@ -331,31 +331,18 @@
   (alter-var-root reader-macros dissoc 'var))
 
 (defmethod pp/simple-dispatch (type (object-array 0)) [arr]
-  (print (str "#deuce/vector " (vec arr))))
+  (print-dup arr *out*))
 
+;; this should also delegate to print-dup
 (defmethod pp/simple-dispatch Cons [cons]
-  (print (str "#deuce/cons (" ))
+  (print "#deuce/cons (")
   (pp/write-out (car cons))
   (print " . ")
   (pp/write-out (cdr cons))
   (print ")"))
 
 (defmethod pp/simple-dispatch Symbol [s]
-  (if (and (re-find  #"([\\,/]|^\d)" (name s)) (not= "/" (name s)))
-    (print "#deuce/symbol" (pr-str (name s)))
-    (pr s)))
-
-;; (defn quote-dispatch [x]
-;;   (binding [*inside-quote* (or *inside-quote* (and (seq? x) (`#{quote} (first x))))]
-;;     (pp/simple-dispatch x)))
-
-;; (declare pr-on)
-;; (defn quote-pr-on [x w]
-;;   (binding [*inside-quote* (or *inside-quote* (and (seq? x) (`#{quote} (first x))))]
-;;     (pr-on x w)))
-;; (defonce pr-on (let [pr-on @#'clojure.core/pr-on]
-;;                  (alter-var-root #'clojure.core/pr-on (constantly quote-pr-on))
-;;                  pr-on))
+  (print-dup s *out*))
 
 (defn ^:private write-clojure [el clj]
   (io/make-parents clj)

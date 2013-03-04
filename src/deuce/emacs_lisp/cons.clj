@@ -45,9 +45,9 @@
     (if (> idx max-print-length)
       (.write w "...)")
       (do
-        (.write w (str (.fst c)))
+        (.write w (pr-str (.fst c)))
         (cond
-         (not (satisfies? IList (.rst c))) (.write w (str " . " (.rst c) ")"))
+         (not (satisfies? IList (.rst c))) (.write w (pr-str " . " (.rst c) ")"))
          (.rst c) (do
                     (.write w " ")
                     (recur (.rst c) (inc idx)))

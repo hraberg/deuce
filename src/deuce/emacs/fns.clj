@@ -589,7 +589,7 @@
 (defun nconc (&rest lists)
   "Concatenate any number of lists by altering them.
   Only the last argument is not altered, and need not be a list."
-  (let [lists (remove empty? lists)]
+  (let [lists (map cons/maybe-seq (remove empty? lists))]
     (when (> (count lists) 1)
       (loop [ls (rest lists)
              last (cons/last-cons (first lists))]
@@ -790,7 +790,7 @@
   Returns the sorted list.  LIST is modified by side effects.
   PREDICATE is called with two elements of LIST, and should return non-nil
   if the first element should sort before the second."
-  (c/sort (fn [x y] (if (predicate x y) -1 1)) list))
+  (apply cons/list (c/sort (fn [x y] (if (predicate x y) -1 1)) (seq list))))
 
 (defun base64-decode-string (string)
   "Base64-decode STRING and return the result."

@@ -58,12 +58,12 @@
 (defun define-charset-alias (alias charset)
   "Define ALIAS as an alias for charset CHARSET."
   (fns/nconc globals/charset-list (alloc/list alias))
-  (swap! aliases assoc alias charset)
+  (swap! aliases update-in [charset] conj alias)
   nil)
 
 (defun charsetp (object)
   "Return non-nil if and only if OBJECT is a charset."
-  (or (contains? @charsets object) (contains? @aliases object)))
+  (or (contains? @charsets object) ((set (flatten (vals @aliases))) object)))
 
 (defun encode-char (ch charset &optional restriction)
   "Encode the character CH into a code-point of CHARSET.
@@ -200,6 +200,12 @@
    :iso-final-char \B
    :ascii-compatible-p true
    :emacs-mule-id 0
+   :code-offset 0])
+
+(define-charset-internal 'iso-8859-1
+  [:dimension 1
+   :code-space (alloc/vector 0 255)
+   :ascii-compatible-p true
    :code-offset 0])
 
 (define-charset-internal 'unicode

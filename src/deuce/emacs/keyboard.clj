@@ -1,7 +1,6 @@
 (ns deuce.emacs.keyboard
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c]
-            [deuce.emacs.lread :as lread])
+  (:require [clojure.core :as c])
   (:refer-clojure :exclude []))
 
 (defvar last-command-event nil
@@ -358,7 +357,7 @@
 (defvar real-last-command nil
   "Same as `last-command', but never altered by Lisp code.")
 
-(defvar help-char (lread/read "?\\C-H")
+(defvar help-char (int \backspace)
   "Character to recognize as meaning Help.
   When it is read, do `(eval help-form)', and display result if it's a string.
   If the value of `help-form' is nil, this char can be read normally.
@@ -435,7 +434,7 @@
 
   You can customize this variable.")
 
-(defvar meta-prefix-char nil
+(defvar meta-prefix-char (int \)
   "Meta-prefix character code.
   Meta-foo as command input turns into this character followed by foo.
 

@@ -27,15 +27,17 @@
            (.nextToken))))
 
 (defn ^:private parse-character [c]
-  (let [parts (if (= "-" c) [c] (s/split c #"-"))
-        [mods c] [(set (butlast parts)) (last parts)]
-        c (cond
-           (re-find #"\\\^(.)" c) (- (int (last c)) 64)
-           (re-find #"\\\d+" c) (Integer/parseInt (subs c 1) 8)
-           (re-find #"\\x\d+" c) (Integer/parseInt (subs c 2) 16)
-           (mods "\\C") (- (int (first (s/upper-case c))) 64)
-           :else (int (first (parse-string (str \" c \")))))]
-    (reduce bit-xor c (map character-modifier-bits (disj mods "\\C")))))
+  (if-let [emacs-escape-char ({"\\e" \} c)]
+    (int emacs-escape-char)
+    (let [parts (if (= "-" c) [c] (s/split c #"-"))
+          [mods c] [(set (butlast parts)) (last parts)]
+          c (cond
+             (re-find #"\\\^(.)" c) (- (int (last c)) 64)
+             (re-find #"\\\d+" c) (Integer/parseInt (subs c 1) 8)
+             (re-find #"\\x\d+" c) (Integer/parseInt (subs c 2) 16)
+             (mods "\\C") (- (int (first (s/upper-case c))) 64)
+             :else (int (first (parse-string (str \" c \")))))]
+      (reduce bit-xor c (map character-modifier-bits (disj mods "\\C"))))))
 
 (defn ^:private strip-comments [form]
   (remove (every-pred seq? (comp `#{comment} first)) form))

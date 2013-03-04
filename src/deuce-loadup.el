@@ -131,7 +131,6 @@
 ;;        Loads init.el, but we'll surpress that for now. We want to support emacs -nw -q
 ;;        Also loads subdirs.el which extends the load-path. Tries to load leim for international input, but should not be needed.
 ;;        Needs frame to be loaded (see below)
-;; ------ Current state as of 2013-03-04.
 (load "startup")
 
 ;; DEUCE: At this point normal-top-level will be available.
@@ -150,7 +149,9 @@
   (file-error (load "ldefs-boot.el")))
 
 ;; DEUCE: minibuffer implements completion, the actual minibuffer is (not yet) in minibuf.clj
-;;        autoloads (but fails) pcase, which is a pattern matcher utterly confused by Deuce concept of cons.
+;;        Autoloads (but fails) pcase, which is a pattern matcher utterly confused by Deuce's concept of cons.
+;;        Also, a minor mode macro which many files use is blowing up, next thing to investigate.
+;; ------ Current state as of 2013-03-04.
 ;(load "minibuffer")
 ;; DEUCE: abbrev mode, referenced by simple below (to turn it off at times)
 ;;        uses its own objarrays and name less symbols, got it compiling, but hopefully we can ignore it for a bit.
@@ -160,7 +161,7 @@
 
 ;; DEUCE: The help system isn't critical, but a non-trivial interactive Emacs extension to get working.
 ;;        The tutorial is defined in tutorial.el, loaded by autoload, not loadup.
-;(load "help")
+;; (load "help")
 
 ;; DEUCE: We should now have Emacs running with only fundamental-mode available. Release 0.1.0.
 ;;        M-x butterfly is defined in misc.el, loaded via autoload, see loaddef above. It depends on play/animate.
@@ -178,10 +179,10 @@
 ;; ;; multilingual text.
 ;; DEUCE: set-locate-environment is defined here
 ;; (load "international/mule-cmds")
-;; (load "case-table")
+(load "case-table")
 ;; ;; This file doesn't exist when building a development version of Emacs
 ;; ;; from the repository.  It is generated just after temacs is built.
-;; (load "international/charprop.el" t)
+(load "international/charprop.el" t)
 ;; (load "international/characters")
 ;; (load "composite")
 
@@ -191,6 +192,7 @@
 ;; (load "language/cyrillic")
 ;; (load "language/indian")
 ;; (load "language/sinhala")
+;; DEUCE: Seems like we need at least one language defined.
 ;; (load "language/english")
 ;; (load "language/ethiopic")
 ;; (load "language/european")
@@ -213,101 +215,102 @@
 ;; (load "language/burmese")
 ;; (load "language/cham")
 
-;; DEUCE: Next part to tackle after Deuce 0.1.0:
-;; (load "indent")
+(load "indent")
 ;; DEUCE: frame-initial-frame is references from startup
 ;; (load "frame")
 ;; DEUCE: Referenced from startup.
 ;;        The generated init class gets invalid method code length, but loading the .clj itself works:
 ;;        rm target/classes/term/tty_colors__init.class
-(load "term/tty-colors")
+;; (load "term/tty-colors")
+;; DEUCE: Hack to not compile tty-colors for now, see above.
+(load "term/tty-colors.el")
 ;; (load "font-core")
-;; ;; facemenu must be loaded before font-lock, because `facemenu-keymap'
-;; ;; needs to be defined when font-lock is loaded.
+;; facemenu must be loaded before font-lock, because `facemenu-keymap'
+;; needs to be defined when font-lock is loaded.
 ;; (load "facemenu")
 ;; (load "emacs-lisp/syntax")
 ;; (load "font-lock")
-;; (load "jit-lock")
+(load "jit-lock")
 
-;; (if (fboundp 'track-mouse)
-;;     (progn
-;;       (load "mouse")
-;;       (and (boundp 'x-toolkit-scroll-bars)
-;; 	   (load "scroll-bar"))
-;;       (load "select")))
+(if (fboundp 'track-mouse)
+    (progn
+      (load "mouse")
+      (and (boundp 'x-toolkit-scroll-bars)
+	   (load "scroll-bar"))
+      (load "select")))
 ;; (load "emacs-lisp/timer")
-;; (load "isearch")
+(load "isearch")
 ;; (load "rfn-eshadow")
 
 ;; DEUCE: Important parts, Lisp Interaction mode etc.
 ;; (load "menu-bar")
 (load "paths.el")  ;Don't get confused if someone compiled paths by mistake.
-;; (load "emacs-lisp/lisp")
-;; (load "textmodes/page")
+(load "emacs-lisp/lisp")
+(load "textmodes/page")
 ;; (load "register")
 ;; (load "textmodes/paragraphs")
+;; DEUCE: These depend on abbrev mode to be there
 ;; (load "emacs-lisp/lisp-mode")
 ;; (load "textmodes/text-mode")
-;; (load "textmodes/fill")
+(load "textmodes/fill")
 
 ;; (load "replace")
 ;; (load "buff-menu")
 
 ;; DEUCE: The below deals with various window system setup, skipped.
-;; (if (fboundp 'x-create-frame)
-;;     (progn
-;;       (load "fringe")
-;;       (load "image")
-;;       (load "international/fontset")
-;;       (load "dnd")
-;;       (load "tool-bar")))
+(if (fboundp 'x-create-frame)
+    (progn
+      (load "fringe")
+      (load "image")
+      (load "international/fontset")
+      (load "dnd")
+      (load "tool-bar")))
 
-;; (if (featurep 'dynamic-setting)
-;;     (load "dynamic-setting"))
+(if (featurep 'dynamic-setting)
+    (load "dynamic-setting"))
 
-;; (if (featurep 'x)
-;;     (progn
-;;       (load "x-dnd")
-;;       (load "term/common-win")
-;;       (load "term/x-win")))
+(if (featurep 'x)
+    (progn
+      (load "x-dnd")
+      (load "term/common-win")
+      (load "term/x-win")))
 
-;; (if (eq system-type 'windows-nt)
-;;     (progn
-;;       (load "w32-vars")
-;;       (load "term/common-win")
-;;       (load "term/w32-win")
-;;       (load "ls-lisp")
-;;       (load "disp-table")
-;;       (load "dos-w32")
-;;       (load "w32-fns")))
-;; (if (eq system-type 'ms-dos)
-;;     (progn
-;;       (load "dos-w32")
-;;       (load "dos-fns")
-;;       (load "dos-vars")
-;;       ;; Don't load term/common-win: it isn't appropriate for the `pc'
-;;       ;; ``window system'', which generally behaves like a terminal.
-;;       (load "term/pc-win")
-;;       (load "ls-lisp")
-;;       (load "disp-table"))) ; needed to setup ibm-pc char set, see internal.el
-;; (if (featurep 'ns)
-;;     (progn
-;;       (load "term/common-win")
-;;       (load "term/ns-win")))
-;; (if (fboundp 'x-create-frame)
-;;     ;; Do it after loading term/foo-win.el since the value of the
-;;     ;; mouse-wheel-*-event vars depends on those files being loaded or not.
-;;     (load "mwheel"))
+(if (eq system-type 'windows-nt)
+    (progn
+      (load "w32-vars")
+      (load "term/common-win")
+      (load "term/w32-win")
+      (load "ls-lisp")
+      (load "disp-table")
+      (load "dos-w32")
+      (load "w32-fns")))
+(if (eq system-type 'ms-dos)
+    (progn
+      (load "dos-w32")
+      (load "dos-fns")
+      (load "dos-vars")
+      ;; Don't load term/common-win: it isn't appropriate for the `pc'
+      ;; ``window system'', which generally behaves like a terminal.
+      (load "term/pc-win")
+      (load "ls-lisp")
+      (load "disp-table"))) ; needed to setup ibm-pc char set, see internal.el
+(if (featurep 'ns)
+    (progn
+      (load "term/common-win")
+      (load "term/ns-win")))
+(if (fboundp 'x-create-frame)
+    ;; Do it after loading term/foo-win.el since the value of the
+    ;; mouse-wheel-*-event vars depends on those files being loaded or not.
+    (load "mwheel"))
 
-;; DEUCE: Final files to load.
-;; ;; Preload some constants and floating point functions.
-;; (load "emacs-lisp/float-sup")
+;; Preload some constants and floating point functions.
+(load "emacs-lisp/float-sup")
 
 ;; (load "vc/vc-hooks")
 ;; (load "vc/ediff-hook")
 ;; (if (fboundp 'x-show-tip) (load "tooltip"))
 
-;; DEUCE: Relevant parts of loadup done. A vanilla emacs -nw -q. Release 0.2.0.
+;; DEUCE: Relevant parts of loadup done. A vanilla emacs -nw -q.
 
 ;; DEUCE: site-load, not supported, will revisit.
 ;; ;If you want additional libraries to be preloaded and their
@@ -319,8 +322,8 @@
 ;; (load "site-load" t)
 
 ;; DEUCE: build version number code, not used by Deuce.
-;; ;; Determine which last version number to use
-;; ;; based on the executables that now exist.
+;; Determine which last version number to use
+;; based on the executables that now exist.
 ;; (if (and (or (equal (nth 3 command-line-args) "dump")
 ;; 	     (equal (nth 4 command-line-args) "dump"))
 ;; 	 (not (eq system-type 'ms-dos)))

@@ -33,5 +33,4 @@
 
     ;; Pontentially call out and init the clojure-lanterna terminal (when-not inhibit-window-system)
     ;; startup.el may take care of this indirectly and make the callback for us.
-    ;; Store the remaining argument stack in command-line-args and call (loadup) which will call (eval top-level)
     ))

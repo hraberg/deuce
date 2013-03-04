@@ -1,6 +1,8 @@
 (ns deuce.emacs.minibuf
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [deuce.emacs-lisp.cons :refer [ICons car] :as cons]
+            [deuce.emacs.fns :as fns])
   (:refer-clojure :exclude [read-string]))
 
 (defvar minibuffer-history-variable nil
@@ -268,7 +270,9 @@
 
   Unlike `assoc', KEY can also match an entry in LIST consisting of a
   single string, rather than a cons cell whose car is a string."
-  )
+  (some #(and (if (satisfies? ICons %)
+                (fns/equal key (str (car %)))
+                (fns/equal key %)) %) (seq list)))
 
 (defun read-no-blanks-input (prompt &optional initial inherit-input-method)
   "Read a string from the terminal, not allowing blanks.

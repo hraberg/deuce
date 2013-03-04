@@ -2,6 +2,7 @@
   (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
             [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.charset :as charset]
             [deuce.emacs.fns :as fns]
             [deuce.emacs-lisp.globals :as globals])
   (:refer-clojure :exclude []))
@@ -254,10 +255,12 @@
 (def ^:private ^:dynamic aliases (atom {}))
 (def ^:private ^:dynamic safe-terminal-coding-system (atom {}))
 
+(declare coding-system-aliases check-coding-system)
+
 (defun coding-system-base (coding-system)
   "Return the base of CODING-SYSTEM.
   Any alias or subsidiary coding system is not a base coding system."
-  )
+  (first (coding-system-aliases coding-system)))
 
 (defun encode-big5-char (ch)
   "Encode the Big5 character CH to BIG5 coding system.
@@ -278,7 +281,7 @@
 
 (defun coding-system-aliases (coding-system)
   "Return the list of aliases of CODING-SYSTEM."
-  )
+  (apply alloc/list (reduce into [] (filter #(some #{coding-system} %) (map flatten @aliases)))))
 
 (defun set-safe-terminal-coding-system-internal (coding-system)
   "Internal use only."
@@ -288,7 +291,7 @@
 (defun define-coding-system-alias (alias coding-system)
   "Define ALIAS as an alias for CODING-SYSTEM."
   (fns/nconc globals/coding-system-list [alias])
-  (swap! aliases assoc alias coding-system)
+  (swap! aliases update-in [coding-system] conj alias)
   nil)
 
 (defun decode-big5-char (code)
@@ -302,7 +305,7 @@
 
 (defun coding-system-plist (coding-system)
   "Return the property list of CODING-SYSTEM."
-  (apply alloc/list (reduce into [] (@plists coding-system))))
+  (apply alloc/list (reduce into [] (@plists (coding-system-base coding-system)))))
 
 (defun find-coding-systems-region-internal (start end &optional exclude)
   "Internal use only."
@@ -420,10 +423,9 @@
   This function sets `last-coding-system-used' to the precise coding system
   used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
   not fully specified.)"
+  (check-coding-system coding-system)
   (el/setq last-coding-system-used coding-system)
-  (if-not coding-system
-    string
-    (throw (IllegalArgumentException. (str "unknown Emacs coding system: " coding-system)))))
+  string)
 
 (defun find-operation-coding-system (operation &rest arguments)
   "Choose a coding system for an operation based on the target name.
@@ -481,7 +483,7 @@
 
 (defun keyboard-coding-system (&optional terminal)
   "Return coding system specified for decoding keyboard input."
-  )
+  'iso-latin-1-unix)
 
 (defun detect-coding-region (start end &optional highest)
   "Detect coding system of the text in the region between START and END.
@@ -501,9 +503,15 @@
 (defun define-coding-system-internal (&rest args)
   "For internal use only."
   (let [name (first args)
-        plist (nth args 11)]
+        plist (nth args 11)
+        plist-map (into {} (map vec (partition 2 plist)))
+        plist-map (assoc plist-map :ascii-compatible-p
+                         (fns/plist-get (charset/charset-plist (let [charset-list (plist-map :charset-list)]
+                                                                 (if (sequential? charset-list)
+                                                                   (first charset-list)
+                                                                   charset-list))) :ascii-compatible-p))]
     (fns/nconc globals/coding-system-list [name])
-    (swap! plists update-in [name] merge (into {} (map vec (partition 2 plist))))
+    (swap! plists update-in [name] merge plist-map)
     (swap! coding-systems assoc name args)))
 
 (defun coding-system-put (coding-system prop val)
@@ -523,9 +531,9 @@
   This function sets `last-coding-system-used' to the precise coding system
   used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
   not fully specified.)"
-  (if-not coding-system
-    string
-    (throw (IllegalArgumentException. (str "unknown Emacs coding system: " coding-system)))))
+  (check-coding-system coding-system)
+  (el/setq last-coding-system-used coding-system)
+  string)
 
 (defun set-terminal-coding-system-internal (coding-system &optional terminal)
   "Internal use only."
@@ -552,10 +560,12 @@
   If valid, return CODING-SYSTEM, else signal a `coding-system-error' error.
   It is valid if it is nil or a symbol defined as a coding system by the
   function `define-coding-system'."
-  )
+  (if (or (coding-system-base coding-system) (nil? coding-system))
+    coding-system
+    (el/throw 'coding-system-error coding-system)))
 
 (defun coding-system-p (object)
   "Return t if OBJECT is nil or a coding-system.
   See the documentation of `define-coding-system' for information
   about coding-system objects."
-  (or (contains? @coding-systems object) (contains? @aliases object)))
+  (boolean (or (coding-system-base object) (nil? object))))

@@ -72,6 +72,8 @@
 ;; Hack to ensure these gets treated as a macros even before loaded
 (defmacro declare (&rest _specs) nil)
 (defmacro dolist (spec &rest body) nil)
+;; Hack for window
+(defun indent (_))
 
 ;; Hacks to get a sneak peek of the welcome screen:
 ;; avoid loading frame.el yet
@@ -86,7 +88,6 @@
 ;; Stubs for modes defined in simple
 (defun special-mode ())
 (defun transient-mark-mode (arg))
-
 ;; Hack to avoid loading mule-cmds.el
 (defun set-locale-environment (&optional locale-name frame))
 
