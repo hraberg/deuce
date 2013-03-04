@@ -345,8 +345,9 @@
             (catch deuce.emacs_lisp.Error e#
               (c/let [~(if var var (gensym "_")) (.value e#)]
                      (case (.tag e#)
-                       ~@(apply concat (for [[c & h] handlers]
-                                         `[~(sym c) (progn ~@h)]))
+                       ~@(apply concat (for [[c & h] handlers
+                                             :let [c (if (seq? c) c [c])]]
+                                         (apply concat (for [c c] `[~(sym c) (progn ~@h)]))))
                        (throw e#)))))))
 
 (c/defmacro cond

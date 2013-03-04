@@ -2,7 +2,8 @@
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
             [clojure.string :as s])
-  (:refer-clojure :exclude []))
+  (:refer-clojure :exclude [])
+  (:import [java.util.regex Pattern]))
 
 (defvar inhibit-changing-match-data nil
   "Internal use only.
@@ -200,6 +201,8 @@
   matched by the parenthesis constructions in REGEXP."
   (let [m (re-matcher (re-pattern (-> regexp
                                       (s/replace #"^\\\`" "^")
+                                      (s/replace #"\[(.*?)]"
+                                                 (fn [x] (str "[" (s/replace (x 1) "[" "\\[") "]")))
                                       (s/replace "\\(" "(")
                                       (s/replace "\\)" ")")))
                       (subs string (or start 0)))]
@@ -335,4 +338,4 @@
 
 (defun regexp-quote (string)
   "Return a regexp string which matches exactly STRING and nothing else."
-  )
+  string)

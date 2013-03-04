@@ -343,7 +343,9 @@
   This operation exists because a directory is also a file, but its name as
   a directory is different from its name as a file.
   In Unix-syntax, this function just removes the final slash."
-  )
+  (if (re-find #"/$" directory)
+    (subs directory 0 (dec (count directory)))
+    directory))
 
 (defun make-directory-internal (directory)
   "Create a new directory named DIRECTORY."

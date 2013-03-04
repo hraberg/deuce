@@ -71,7 +71,7 @@
 
   Optional argument RESTRICTION specifies a way to map CH to a
   code-point in CCS.  Currently not supported and just ignored."
-  )
+  ch)
 
 (defun charset-id-internal (&optional charset)
   "Internal use only.

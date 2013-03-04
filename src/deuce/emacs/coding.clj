@@ -309,7 +309,7 @@
 
 (defun find-coding-systems-region-internal (start end &optional exclude)
   "Internal use only."
-  )
+  true)
 
 (defun decode-coding-region (start end coding-system &optional destination)
   "Decode the current region from the specified coding system.

@@ -330,8 +330,8 @@
   "Return the element of ARRAY at index IDX.
   ARRAY may be a vector, a string, a char-table, a bool-vector,
   or a byte-code object.  IDX starts at 0."
-  (let [^objects array (if (instance? CharTable array)
-                         (let [^CharTable ct array] (.contents array)) array)]
+  (if (instance? CharTable array)
+    (aref (.contents ^CharTable array) idx)
     (get array idx)))
 
 (defun wholenump (object)
@@ -342,8 +342,8 @@
   "Store into the element of ARRAY at index IDX the value NEWELT.
   Return NEWELT.  ARRAY may be a vector, a string, a char-table or a
   bool-vector.  IDX starts at 0."
-  (let [^objects array (if (instance? CharTable array)
-                         (let [^CharTable ct array] (.contents array)) array)]
+  (if (instance? CharTable array)
+    (aset (.contents ^CharTable array) idx newelt)
     (c/aset array idx newelt)))
 
 (declare vectorp)

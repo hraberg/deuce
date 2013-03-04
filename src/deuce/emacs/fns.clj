@@ -113,12 +113,14 @@
   The result is a list whose elements are the elements of all the arguments.
   Each argument may be a list, vector or string.
   The last argument is not copied, just used as the tail of the new list."
-  (let [sequences (remove empty? sequences)]
-    (if (> (count sequences) 1)
-      (let [l (apply alloc/list (apply c/concat (seq (butlast sequences))))]
-        (setcdr (cons/last-cons l) (last sequences))
-        l)
-      (first sequences))))
+  (if (= 1 (count sequences))
+    (first sequences)
+    (let [sequences (remove empty? sequences)]
+      (if (> (count sequences) 1)
+        (let [l (apply alloc/list (apply c/concat (butlast sequences)))]
+          (setcdr (cons/last-cons l) (last sequences))
+          l)
+        (apply alloc/list (first sequences))))))
 
 (defun mapconcat (function sequence separator)
   "Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.
@@ -247,7 +249,8 @@
   (condp instance? seq
     Cons (del equal elt seq)
     PersistentVector (filterv (partial equal elt) seq)
-    String (clojure.string/replace seq elt "")))
+    String (clojure.string/replace seq elt "")
+    seq))
 
 (defun locale-info (item)
   "Access locale data ITEM for the current C locale, if available.
@@ -790,7 +793,7 @@
   Returns the sorted list.  LIST is modified by side effects.
   PREDICATE is called with two elements of LIST, and should return non-nil
   if the first element should sort before the second."
-  (apply cons/list (c/sort (fn [x y] (if (predicate x y) -1 1)) (seq list))))
+  (apply cons/list (c/sort (fn [x y] (if ((el/fun predicate) x y) -1 1)) (seq list))))
 
 (defun base64-decode-string (string)
   "Base64-decode STRING and return the result."

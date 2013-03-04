@@ -107,6 +107,11 @@
 (load "international/mule-conf")
 ;; DEUCE: unix environment helpers, causes cl.el to be loaded.
 (load "env")
+;; DEUCE: cl.el defines copy-list, we can use this to create proper cons lists from seqs.
+(defun copy-list (list)
+  "Return a copy of LIST, which may be a dotted list.\nThe elements of LIST are not copied, just the list structure itself."
+  (apply 'list list))
+
 ;; DEUCE: Support for loading files with different encodings, won't be used. Mapping to Java encodings might be needed.
 (load "format")
 
@@ -152,16 +157,18 @@
 ;;        Autoloads (but fails) pcase, which is a pattern matcher utterly confused by Deuce's concept of cons.
 ;;        Also, a minor mode macro which many files use is blowing up, next thing to investigate.
 ;; ------ Current state as of 2013-03-04.
-(load "minibuffer")
+;; DEUCE: minibuffer autoloads pcase, but the order of definitions blows up as its expanding a macro depending on later fns.
+;; (load "pcase")
+;; (load "minibuffer")
 ;; DEUCE: abbrev mode, referenced by simple below (to turn it off at times)
 ;;        uses its own objarrays and name less symbols, got it compiling, but hopefully we can ignore it for a bit.
-;(load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
+(load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
 ;; DEUCE: Massive support file for Emacs, adds completion, paren matching, line movement and various things.
-;(load "simple")
+;; (load "simple")
 
 ;; DEUCE: The help system isn't critical, but a non-trivial interactive Emacs extension to get working.
 ;;        The tutorial is defined in tutorial.el, loaded by autoload, not loadup.
-;; (load "help")
+(load "help")
 
 ;; DEUCE: We should now have Emacs running with only fundamental-mode available. Release 0.1.0.
 ;;        M-x butterfly is defined in misc.el, loaded via autoload, see loaddef above. It depends on play/animate.
@@ -174,11 +181,11 @@
 
 ;; DEUCE: All the following block can probably be skipped unless referenced.
 ;; (load "jka-cmpr-hook")
-;; (load "epa-hook")
+(load "epa-hook")
 ;; ;; Any Emacs Lisp source file (*.el) loaded here after can contain
 ;; ;; multilingual text.
 ;; DEUCE: set-locate-environment is defined here
-;; (load "international/mule-cmds")
+(load "international/mule-cmds")
 (load "case-table")
 ;; ;; This file doesn't exist when building a development version of Emacs
 ;; ;; from the repository.  It is generated just after temacs is built.
@@ -193,7 +200,7 @@
 ;; (load "language/indian")
 ;; (load "language/sinhala")
 ;; DEUCE: Seems like we need at least one language defined.
-;; (load "language/english")
+(load "language/english")
 ;; (load "language/ethiopic")
 ;; (load "language/european")
 ;; (load "language/czech")
@@ -227,7 +234,7 @@
 ;; (load "font-core")
 ;; facemenu must be loaded before font-lock, because `facemenu-keymap'
 ;; needs to be defined when font-lock is loaded.
-;; (load "facemenu")
+(load "facemenu")
 ;; (load "emacs-lisp/syntax")
 ;; (load "font-lock")
 (load "jit-lock")
@@ -240,7 +247,7 @@
       (load "select")))
 ;; (load "emacs-lisp/timer")
 (load "isearch")
-;; (load "rfn-eshadow")
+(load "rfn-eshadow")
 
 ;; DEUCE: Important parts, Lisp Interaction mode etc.
 ;; (load "menu-bar")
@@ -248,7 +255,7 @@
 (load "emacs-lisp/lisp")
 (load "textmodes/page")
 ;; (load "register")
-;; (load "textmodes/paragraphs")
+(load "textmodes/paragraphs")
 ;; DEUCE: These depend on abbrev mode to be there
 ;; (load "emacs-lisp/lisp-mode")
 ;; (load "textmodes/text-mode")
@@ -308,7 +315,7 @@
 
 ;; (load "vc/vc-hooks")
 ;; (load "vc/ediff-hook")
-;; (if (fboundp 'x-show-tip) (load "tooltip"))
+(if (fboundp 'x-show-tip) (load "tooltip"))
 
 ;; DEUCE: Relevant parts of loadup done. A vanilla emacs -nw -q.
 
