@@ -3,12 +3,13 @@
             [clojure.string :as s]
             [clojure.pprint :as pp]
             [deuce.emacs-lisp :as el]
-            [deuce.emacs-lisp.cons :as cons]
+            [deuce.emacs-lisp.cons :refer [car cdr] :as cons]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.textprop :as textprop])
   (:import [java.util Scanner]
            [java.io StringReader StreamTokenizer]
-           [java.util.regex Pattern]))
+           [java.util.regex Pattern]
+           [deuce.emacs_lisp Cons]))
 
 (declare tokenize)
 
@@ -39,11 +40,19 @@
 (defn ^:private strip-comments [form]
   (remove (every-pred seq? (comp `#{comment} first)) form))
 
-;; We want to use Clojure 1.5 reader tags for this.
-(defn ^:private expand-cons [form]
-  (if (and  (= 3 (count form)) (= '. (second form)))
-    (alloc/cons (first form) (last form))
-    form))
+(defn cons-expand [form]
+  (let [c (apply cons/list (drop-last 2 form))]
+    (cons/setcdr (cons/last-cons c) (last form))
+    c))
+
+;; A literal Cons cell cannot contain unquotes.
+;; Needs to be dealt with during eval, see deuce.emacs-lisp (and maybe macro expansion).
+(defn syntax-quote-cons-expand [form]
+  (list `cons/pair (car form)
+        (if (satisfies? cons/ICons (cdr form))
+          (syntax-quote-cons-expand (cdr form)) (cdr form))))
+
+(def ^:dynamic *cons-expand* cons-expand)
 
 (defn ^:private as-vector [form]
   (object-array (vec form)))
@@ -59,13 +68,18 @@
     (condp find 1
       #"\s" (recur sc)
       #"[)\]]" `end
-      #"\(" (expand-cons (tokenize-all sc))
+      #"\(" (let [form (tokenize-all sc)]
+              (if (= '. (last (butlast form)))
+                (*cons-expand* form)
+                form))
       #"\[" (as-vector (tokenize-all sc))
       #"," (list (if (find #"@" 1) `unquote-splicing `unquote) (tokenize sc))
       #"'" (list 'quote (tokenize sc))
-      #"`" (let [form (tokenize sc)] (if (symbol? form)
-                                       (list 'quote form)
-                                       (list `el/syntax-quote form)))
+      #"`" (let [form (binding [*cons-expand* #(syntax-quote-cons-expand (cons-expand %))]
+                        (tokenize sc))]
+             (if (symbol? form)
+               (list 'quote form)
+               (list `el/syntax-quote form)))
       #":" (keyword (.next sc))
       #"\?" (parse-character (find re-char 0))
       #"\"" (parse-string (str \" (find re-str 0)))

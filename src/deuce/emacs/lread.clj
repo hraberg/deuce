@@ -7,7 +7,7 @@
             [clojure.walk :as w]
             [taoensso.timbre :as timbre]
             [deuce.emacs-lisp :as el]
-            [deuce.emacs-lisp.cons :as cons]
+            [deuce.emacs-lisp.cons :refer [car cdr] :as cons]
             [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.data :as data]
@@ -323,22 +323,39 @@
   This uses the variables `load-suffixes' and `load-file-rep-suffixes'."
   )
 
-(alter-var-root ((ns-map 'clojure.pprint) 'reader-macros)
-                merge `{el/syntax-quote "`" unquote-splicing "~@"})
-(alter-var-root ((ns-map 'clojure.pprint) 'reader-macros)
-                dissoc 'var)
+(def ^:dynamic *inside-quote* false)
+
+(let [reader-macros ((ns-map 'clojure.pprint) 'reader-macros)]
+  (alter-var-root reader-macros
+                  merge `{el/syntax-quote "`" unquote-splicing "~@" clojure.core/quote "'"})
+  (alter-var-root reader-macros dissoc 'var))
 
 (defmethod pp/simple-dispatch (type (object-array 0)) [arr]
   (print (str "#deuce/vector " (vec arr))))
 
 (defmethod pp/simple-dispatch Cons [cons]
-  (binding [*print-dup* true]
-    (pr cons)))
+  (print (str "#deuce/cons (" ))
+  (pp/write-out (car cons))
+  (print " . ")
+  (pp/write-out (cdr cons))
+  (print ")"))
 
 (defmethod pp/simple-dispatch Symbol [s]
   (if (and (re-find  #"([\\,/]|^\d)" (name s)) (not= "/" (name s)))
     (print "#deuce/symbol" (pr-str (name s)))
     (pr s)))
+
+;; (defn quote-dispatch [x]
+;;   (binding [*inside-quote* (or *inside-quote* (and (seq? x) (`#{quote} (first x))))]
+;;     (pp/simple-dispatch x)))
+
+;; (declare pr-on)
+;; (defn quote-pr-on [x w]
+;;   (binding [*inside-quote* (or *inside-quote* (and (seq? x) (`#{quote} (first x))))]
+;;     (pr-on x w)))
+;; (defonce pr-on (let [pr-on @#'clojure.core/pr-on]
+;;                  (alter-var-root #'clojure.core/pr-on (constantly quote-pr-on))
+;;                  pr-on))
 
 (defn ^:private write-clojure [el clj]
   (io/make-parents clj)
@@ -420,6 +437,7 @@
                       clj-file (io/file *compile-path* clj-file)]
                   (write-clojure (map #(let [clj (el/el->clj %)]
                                          (try
+                                           ;; Would like to get rid of this extra eval state, but el->clj depends on the current state.
                                            (eval/eval clj)
                                            clj
                                            (catch Exception e

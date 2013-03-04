@@ -1,6 +1,8 @@
 (ns deuce.emacs.doc
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [clojure.string :as s]
+            [deuce.emacs-lisp :as el])
   (:refer-clojure :exclude []))
 
 (defvar build-files nil
@@ -54,4 +56,10 @@
   "Return the documentation string of FUNCTION.
   Unless a non-nil second argument RAW is given, the
   string is passed through `substitute-command-keys'."
-  )
+  (let [m (meta (el/fun function))]
+    (str ((if raw identity substitute-command-keys) (:doc m))
+         "\n\n"
+         (cons 'fn (or (map #(% '#{&optional &rest}
+                                (symbol (s/upper-case %)))
+                            (:el-arglist m))
+                       (first (:arglists m)))))))

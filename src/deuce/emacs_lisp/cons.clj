@@ -48,10 +48,10 @@
         (.write w (str (.fst c)))
         (cond
          (not (satisfies? IList (.rst c))) (.write w (str " . " (.rst c) ")"))
-          (.rst c) (do
-                     (.write w " ")
-                     (recur (.rst c) (inc idx)))
-          :else (.write w ")"))))))
+         (.rst c) (do
+                    (.write w " ")
+                    (recur (.rst c) (inc idx)))
+         :else (.write w ")"))))))
 
 (defmethod print-dup Cons [c ^Writer out]
   (.write out (str "#deuce/cons (" (pr-str (.fst c)) " . " (pr-str (.rst c)) ")")))
@@ -63,6 +63,9 @@
   (when (seq objects)
     (pair (first objects)
           (apply list (rest objects)))))
+
+(defn last-cons [l]
+  (if (not (satisfies? ICons (cdr l))) l (recur (cdr l))))
 
 (defn maybe-seq [x]
   (if (seq? x) (apply list x) x))

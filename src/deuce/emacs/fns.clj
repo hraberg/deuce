@@ -43,9 +43,6 @@
 
 (def ^:dynamic ^:private *symbol-plists* (atom {}))
 
-(defn ^:private last-cons [l]
-  (if (not (data/consp (cdr l))) l (recur (cdr l))))
-
 (defun provide (feature &optional subfeatures)
   "Announce that FEATURE is a feature of the current Emacs.
   The optional argument SUBFEATURES should be a list of symbols listing
@@ -119,7 +116,7 @@
   (let [sequences (remove empty? sequences)]
     (if (> (count sequences) 1)
       (let [l (apply alloc/list (apply c/concat (seq (butlast sequences))))]
-        (setcdr (last-cons l) (last sequences))
+        (setcdr (cons/last-cons l) (last sequences))
         l)
       (first sequences))))
 
@@ -595,11 +592,11 @@
   (let [lists (remove empty? lists)]
     (when (> (count lists) 1)
       (loop [ls (rest lists)
-             last (last-cons (first lists))]
+             last (cons/last-cons (first lists))]
         (setcdr last (first ls))
         (when (seq (rest ls))
           (recur (rest ls)
-                 (last-cons (first ls))))))
+                 (cons/last-cons (first ls))))))
     (first lists)))
 
 (defun length (sequence)

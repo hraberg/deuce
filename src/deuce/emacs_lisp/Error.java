@@ -12,6 +12,10 @@ public class Error extends RuntimeException {
         this.value = value;
     }
 
+    public String getMessage() {
+        return toString();
+    }
+
     public String toString() {
         return RT.printString(this);
     }

@@ -114,12 +114,10 @@
 (load "bindings")
 ;; DEUCE: Defines C-x 2, C-x o etc.
 ;;        Occasionally declare gets confused and throws an undefined function indent error.
+;;        Happens during first compilation, deleting window.clj and window__init.class and deuce_loadup.clj and trying again works.
 (load "window")  ; Needed here for `replace-buffer-in-windows'.
 (setq load-source-file-function 'load-with-code-conversion)
 ;; DEUCE: Defines C-x C-f, C-x C-s etc.
-;;        Somteimes gets loaded several times for some reason.
-;;        Or failes to define set-auto-mode, related to the macro report-errors which uses cons in a weird way.
-;; ------ Current state as of 2013-03-02.
 (load "files")
 
 ;; DEUCE: custom extensions for faces
@@ -133,6 +131,7 @@
 ;;        Loads init.el, but we'll surpress that for now. We want to support emacs -nw -q
 ;;        Also loads subdirs.el which extends the load-path. Tries to load leim for international input, but should not be needed.
 ;;        Needs frame to be loaded (see below)
+;; ------ Current state as of 2013-03-04.
 (load "startup")
 
 ;; DEUCE: At this point normal-top-level will be available.

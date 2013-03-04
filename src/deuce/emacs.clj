@@ -87,12 +87,12 @@
 (defun special-mode ())
 (defun transient-mark-mode (arg))
 
+;; Hack to avoid loading mule-cmds.el
+(defun set-locale-environment (&optional locale-name frame))
+
 ;; Same for abbrev.el
 (setq abbrev-file-name "~/.emacs.d/.abbrev_defs")
 ;; End welcome screen hacks, these files has to be loaded for real.
-
-;; Hack to avoid loading mule-cmds.el
-(defun set-locale-environment (&optional locale-name frame))
 
 ;; Keymap setup
 (setq global-map (make-keymap))

@@ -23,13 +23,13 @@
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
 
-(declare clojure-special-forms throw defvar)
+(declare clojure-special-forms throw defvar el->clj)
 
 (defn cons-reader [cons]
   (cons/pair (first cons) (last cons)))
 
 (defn vector-reader [v]
-  (object-array v))
+  (object-array (vec v)))
 
 (defn symbol-reader [s]
   (symbol nil s))
@@ -65,15 +65,13 @@
 ;; See deuce.emacs.data/make-variable-frame-local and deuce.emacs.frame/modify-frame-parameters
 (defn el-var-buffer-local [name])
 
-(c/defmacro el-symbol-quote [s]  s)
-
 (c/defmacro el-var-get [name]
   (c/let [name (sym name)]
          (if (c/and (symbol? name) (name &env))
            `(if (var? ~name) @~name ~name)
            `(if-let [v# ((some-fn *dynamic-vars* el-var-buffer-local global) '~name)]
               @v#
-              (deuce.emacs-lisp/throw '~'void-variable (cons/list '~name))))))
+              (deuce.emacs-lisp/throw '~'void-variable '~name)))))
 
 (c/defmacro el-var-set-default [name value]
   (c/let [name (sym name)]
@@ -120,8 +118,7 @@
                         (if (= '(()) rst) () x))
                       (c/cons (symbol "deuce.emacs-lisp" (name fst)) rst))
                     x)
-                  (if (`#{el-var-get el-var-set el-var-set-default
-                          el-symbol-quote syntax-quote} fst)
+                  (if (`#{el-var-get el-var-set el-var-set-default syntax-quote} fst)
                     x
                     (c/cond
                      (= `symbol fst) (list `el-var-get x)
@@ -138,7 +135,7 @@
                                   (list `fun fst)
 
 
-                                  :else fst)
+                                  :else (if (seq? fst) (el->clj fst) fst))
                             (map el->clj rst))))))
     symbol? (if (namespace x) (if (-> (resolve x) meta :macro) (resolve x) x) (list `el-var-get x))
     x))
@@ -176,24 +173,54 @@
           (error (-> e cause .getMessage) (with-out-str (pp/pprint emacs-lisp)))
           (throw e))))))
 
+;; This is used by Emacs Lisp defmacro to ensure Cons lists constructed actually gets compiled.
+;; Clojure defmacro does only work on IType/ISeq. Used with prewalk.
+(defn cons-lists-to-seqs [form]
+  (if (c/and (seq? form) (`#{quote} (first form)))
+    form
+    (if (instance? Cons form)
+      (apply list form)
+      form)))
+
+;; There's a subtle difference between eval and macro-expansion.
+;; Should be possible to unify, but requires some work.
+(defn cons-lists-to-seqs-for-eval [form]
+  (c/cond
+   (c/and (seq? form) (`#{quote} (first form)))
+   form
+
+   (seq? form) (map cons-lists-to-seqs-for-eval form)
+
+   (instance? Cons form) (apply list form)
+
+   :else
+   form))
+
+;; Emacs Lisp syntax quote leaves calls to cons/pair which needs to be expanded.
+;; Embedding a literal Cons cell won't let it unquote its contents.
+(defn expand-cons-ctors [form]
+  (c/cond
+   (c/and (seq? form) (= `cons/pair (first form)))
+   (cons/pair (second form) (last form))
+
+   (seq? form) (apply cons/list (map expand-cons-ctors form))
+
+   :else
+   form))
+
 ;; defined in eval.clj
 (defn eval [body & [lexical]]
   (binding [*ns* (the-ns 'deuce.emacs)]
     (with-bindings (if lexical {(global 'lexical-binding) true} {})
-      (maybe-sym (compile (el->clj body))))))
+      ;; Not sure we should seqify stuff here.
+      (maybe-sym (expand-cons-ctors (compile (el->clj (cons-lists-to-seqs-for-eval body))))))))
 
-(declare let-helper*)
-
-(defn cons-lists-to-seqs [form]
-  (if (instance? Cons form)
-    (apply list form)
-    form))
-
-(declare progn)
+(declare let-helper* progn)
 
 (c/defmacro def-helper* [what line name arglist & body]
   (c/let [[docstring body] (split-with string? body)
           name (sym name)
+          el-arglist arglist
           rest-arg (maybe-sym (second (drop-while (complement '#{&rest}) arglist)))
           [arg & args :as arglist] (map sym (replace '{&rest &} arglist))
           [arglist &optional optional-args] (if (= '&optional arg)
@@ -224,7 +251,8 @@
                                `(do ~@body)))]
                  (if (var? f#)
                    (do
-                     (alter-meta! f# merge (merge {:doc ~doc}
+                     (alter-meta! f# merge (merge {:doc ~doc
+                                                   :el-arglist '~(seq el-arglist)}
                                                   (when ~emacs-lisp?
                                                     {:el-file (when-let [file# (global 'load-file-name)]
                                                                 @file#)})))
