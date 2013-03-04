@@ -343,7 +343,7 @@
          `(try
             ~(el->clj bodyform)
             (catch deuce.emacs_lisp.Error e#
-              (c/let [~(if var var (gensym "_")) (.data e#)]
+              (c/let [~(if var var (gensym "_")) (.value e#)]
                      (case (.tag e#)
                        ~@(apply concat (for [[c & h] handlers]
                                          `[~(sym c) (progn ~@h)]))
