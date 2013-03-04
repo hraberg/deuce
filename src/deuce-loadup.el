@@ -152,7 +152,7 @@
 ;;        Autoloads (but fails) pcase, which is a pattern matcher utterly confused by Deuce's concept of cons.
 ;;        Also, a minor mode macro which many files use is blowing up, next thing to investigate.
 ;; ------ Current state as of 2013-03-04.
-;(load "minibuffer")
+(load "minibuffer")
 ;; DEUCE: abbrev mode, referenced by simple below (to turn it off at times)
 ;;        uses its own objarrays and name less symbols, got it compiling, but hopefully we can ignore it for a bit.
 ;(load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.

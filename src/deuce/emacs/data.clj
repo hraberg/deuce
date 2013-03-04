@@ -126,10 +126,11 @@
 
 (defun symbol-name (symbol)
   "Return SYMBOL's name, a string."
+  (el/check-type 'symbolp symbol)
   (condp some [symbol]
     keyword? (str symbol)
     symbol? (name symbol)
-    nil? (str nil)))
+    nil? (pr-str nil)))
 
 (defun makunbound (symbol)
   "Make SYMBOL's value be void.
