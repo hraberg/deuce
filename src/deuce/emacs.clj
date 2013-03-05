@@ -87,6 +87,9 @@
 (defun special-mode ())
 (defun transient-mark-mode (arg))
 
+;; If abbrev isn't loaded
+(setq abbrev-file-name "~/.emacs.d/abbrev_defs")
+
 ;; Keymap setup
 (setq global-map (make-keymap))
 (setq esc-map (make-keymap))

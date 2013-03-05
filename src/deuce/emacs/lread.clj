@@ -408,18 +408,18 @@
                   (.toURL (io/file file)))]
       (binding [globals/load-file-name (.getFile url)
                 globals/load-in-progress true]
-        (with-open [in (io/input-stream url)]
-          (when-not nomessage
-            (editfns/message "Loading %s..." file))
-          (let [el-extension? (re-find #".el$" file)
-                file (s/replace file  #".el$" "")
-                clj-file (str (s/replace file "-" "_") ".clj") ;; should use actual classpath relative location, not loadpath
-                last-modified #(if % (.getLastModified (.openConnection %)) -1)]
-            (try
-              (when (> (last-modified url) (last-modified (io/resource clj-file)))
-                (throw (FileNotFoundException. "out of date")))
-              (c/require (symbol (s/replace file "/" ".")))
-              (catch FileNotFoundException _
+        (when-not nomessage
+          (editfns/message "Loading %s..." file))
+        (let [el-extension? (re-find #".el$" file)
+              file (s/replace file  #".el$" "")
+              clj-file (str (s/replace file "-" "_") ".clj") ;; should use actual classpath relative location, not loadpath
+              last-modified #(if % (.getLastModified (.openConnection %)) -1)]
+          (try
+            (when (> (last-modified url) (last-modified (io/resource clj-file)))
+              (throw (FileNotFoundException. "out of date")))
+            (c/require (symbol (s/replace file "/" ".")))
+            (catch FileNotFoundException _
+              (with-open [in (io/input-stream url)]
                 (let [el (parser/parse in)
                       clj-file (io/file *compile-path* clj-file)]
                   (write-clojure (map #(let [clj (el/el->clj %)]
@@ -434,8 +434,8 @@
                                       el)
                                  clj-file)
                   (when-not el-extension?
-                    (binding [*compile-files* true] (require (symbol (s/replace file "/" ".")))))))))
-          true)))
+                    (binding [*compile-files* true] (require (symbol (s/replace file "/" "."))))))))))
+        true))
     (catch Exception e
       (when-not noerror
         (throw e)))))
