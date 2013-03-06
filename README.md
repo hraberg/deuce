@@ -261,12 +261,14 @@ Clojure will be a first class citizen along Emacs Lisp in this new world. There 
 Run [`./collect-tags`](https://github.com/hraberg/deuce/blob/master/collect-tags) and add something like this to your `init.el`:
 
 ```el
-;; To navigate between C and Emacs Lisp
+;; To navigate between C (or Clojure) and Emacs Lisp
 (require 'etags-select)
 (require 'etags-table)
 
 (global-set-key "\M-." 'etags-select-find-tag)
+(global-set-key "\M-," 'pop-tag-mark)
 (setq etags-table-search-up-depth 10)
+(setq etags-select-go-if-unambiguous t)
 ```
 
 There are probably better and cleaner ways of doing this, as TAGS includes TAGS-LISP (there's a hint at [here](http://www.emacswiki.org/emacs/EtagsSelect)).

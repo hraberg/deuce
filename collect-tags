@@ -1,18 +1,18 @@
 #!/bin/sh
 
-# TAGS-LISP,include just refuses to work
-
 ./make-emacs tags
 
+# TAGS-LISP,include just refuses to work
 cat emacs/src/TAGS* > TAGS
 
-# Build a small tags file for the part we're interested in
-cd emacs/src
-../lib-src/etags -o TAGS-TEMACS --regex='/[     ]*DEFVAR_[A-Z_  (]+"\([^"]+\)"/' $(echo *.o | sed s/\\.o/.c/g)
+# Append the tags for the C parts of Clojure
+find src/deuce/emacs/ -name "*.clj" -print | etags --language=lisp -a TAGS -
 
-# ;; To navigate between C and Emacs Lisp
+# ;; To navigate between C (or Clojure) and Emacs Lisp
 # (require 'etags-select)
 # (require 'etags-table)
 
 # (global-set-key "\M-." 'etags-select-find-tag)
+# (global-set-key "\M-," 'pop-tag-mark)
 # (setq etags-table-search-up-depth 10)
+# (setq etags-select-go-if-unambiguous t)
