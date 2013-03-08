@@ -25,9 +25,6 @@
 
 (declare clojure-special-forms throw defvar el->clj)
 
-(defn cons-reader [cons]
-  (cons/pair (first cons) (last cons)))
-
 (defn vector-reader [v]
   (object-array (vec v)))
 

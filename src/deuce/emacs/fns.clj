@@ -118,7 +118,7 @@
     (let [sequences (remove empty? sequences)]
       (if (> (count sequences) 1)
         (let [l (apply alloc/list (apply c/concat (butlast sequences)))]
-          (setcdr (cons/last-cons l) (last sequences))
+          (setcdr (cons/last-cons l) (apply alloc/list (seq (last sequences))))
           l)
         (apply alloc/list (first sequences))))))
 
