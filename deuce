@@ -1,0 +1,3 @@
+#!/bin/sh -e
+
+java -client -noverify -Xbootclasspath/a:`find . -iname deuce-*-standalone.jar | tail -n1` deuce.main -q "$@"
