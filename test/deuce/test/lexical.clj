@@ -3,9 +3,6 @@
 
 ;; "11.9.3 Lexical Binding"[1]
 
-;; Uses normal Clojure let, if the var isn't already globally bound.
-;; As vars introduced by let in Emacs can be reassigned with setq, they're represened as atoms locally.
-
 ;; [1] http://www.gnu.org/software/emacs/manual/html_node/elisp/Lexical-Binding.html
 
 (with-fresh-emacs)

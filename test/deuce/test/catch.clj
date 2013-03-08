@@ -3,9 +3,6 @@
 
 ;; "10.5.2 Examples of catch and throw"[1]
 
-;; Uses an exception defined in Java, deuce.EmacsLispError.
-;; The way the tag gets evaluated internally is likely wrong.
-
 ;; [1] http://www.gnu.org/software/emacs/manual/html_node/elisp/Examples-of-Catch.html
 
 (with-fresh-emacs)

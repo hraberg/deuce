@@ -3,9 +3,6 @@
 
 ;; "11.3 Local Variables"[1]
 
-;; In Emacs, let* allows you to refer back to bindings in the same let*, like in Clojure.
-;; Normal let does not.
-
 ;; [1] http://www.gnu.org/software/emacs/manual/html_node/elisp/Local-Variables.html
 
 (with-fresh-emacs)

@@ -3,8 +3,6 @@
 
 ;; "13.4 Defining Macros"[1]
 
-;; Also tests that the read/eval combo handles Emacs Lisp quoting with ','.
-
 ;; [1] http://www.gnu.org/software/emacs/manual/html_node/elisp/Defining-Macros.html
 
 (with-fresh-emacs)

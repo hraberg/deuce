@@ -3,8 +3,6 @@
 
 ;; "11.9.1 Dynamic Binding"[1]
 
-;; Uses binding + var-set/alter-var-root, but not sure about this approach - at least it works for this example.
-
 ;; [1] http://www.gnu.org/software/emacs/manual/html_node/elisp/Dynamic-Binding.html
 
 (with-fresh-emacs)
