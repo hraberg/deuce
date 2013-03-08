@@ -473,7 +473,6 @@
   "Return t if SYMBOL has a non-void default value.
   This is the value that is seen in buffers that do not have their own values
   for this variable."
-  (println symbol)
   (or (nil? symbol)
       (when-let [v (el/global symbol)]
         (.hasRoot v))))
