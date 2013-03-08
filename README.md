@@ -11,6 +11,20 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs)
 
+**2013-03-08 Mutable Persistent Lists**
+
+Exactly the what it soundss like - `setcar` and `setcdr` working directly on [`clojure.lang.PersistentList`](https://github.com/clojure/clojure/blob/master/src/jvm/clojure/lang/PersistentList.java). This is an experimental branch which I will keep investigating this for a day or two. Most of the relevant stuff lives in [`deuce.emacs-lisp.cons`](https://github.com/hraberg/deuce/blob/MutablePersistentLists/src/deuce/emacs_lisp/cons.clj)
+
+There are a few reasons why I investigate this:
+
+* Data created via reader macros, like #deuce/cons, cannot (easily) participate in syntax quoting.
+* Deuce has many checks and conversions of what kind of list is getting passed around (won't be fully solved by this).
+* Dotted pairs have the literal representation as a three element list with a marker dot: `'(1 . 2)` , and is handled internally via protocols. This also allows them to participate properly in syntax quoting. A non-list `cdr` is hence a two element list: `(. 2).
+  * It has a serious drawback that a pair can "escape" to a Clojure function not understanding the dot.
+
+There are several other things on this branch that will be merged back regardless, using `ex-info` for Emacs Lisp errors and new tests for core functions - and hence more correct implementations.
+
+
 **2013-03-03 Welcome to GNU Emacs**
 
 No terminal or proper frame, just using standard out as buffer:
