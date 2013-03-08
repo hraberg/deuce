@@ -7,6 +7,7 @@ import clojure.lang.Sequential;
 import clojure.lang.Seqable;
 import clojure.lang.ISeq;
 import clojure.lang.RT;
+import clojure.lang.Symbol;
 
 public class Cons implements Sequential, Seqable, Serializable {
     public Object fst, rst;
@@ -19,7 +20,9 @@ public class Cons implements Sequential, Seqable, Serializable {
     public ISeq seq() {
         if (rst == null) return RT.list(fst);
         if (rst instanceof Seqable) return RT.cons(fst, RT.seq(rst));
-        return RT.list(fst, rst);
+
+        // Shold throw error?
+        return RT.list(fst, Symbol.intern("."), rst);
     }
 
     public String toString() {

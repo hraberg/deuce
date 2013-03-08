@@ -1,5 +1,6 @@
 (ns deuce.emacs
   (:require [clojure.core :as c]
+            [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals])
   (:refer-clojure :only [])
   (:use [deuce.emacs-lisp :only [and catch cond condition-case defconst defmacro defun defvar

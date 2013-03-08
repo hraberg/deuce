@@ -6,7 +6,7 @@
             [deuce.emacs-lisp.cons :as cons])
   (:use [taoensso.timbre :as timbre
          :only (trace debug info warn error fatal spy)])
-  (:import [clojure.lang Var]
+  (:import [clojure.lang Var ExceptionInfo]
            [java.io Writer]
            [deuce.emacs_lisp Cons]
            [java.lang.reflect Method])
@@ -18,7 +18,7 @@
 (timbre/set-config! [:timestamp-pattern] "HH:mm:ss,SSS")
 
 (timbre/set-level! :error)
-(var-set #'*warn-on-reflection* true)
+(var-set  #'*warn-on-reflection* true)
 
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
@@ -52,10 +52,16 @@
 (defn maybe-sym [x]
   (if (symbol? x) (sym x) x))
 
-(defmethod print-method deuce.emacs_lisp.Error [^deuce.emacs_lisp.Error e ^Writer w]
-  (.write w (str (cons (.tag e)
-                       (c/let [d (.value e)]
-                              (if (seq? d) d [d]))))))
+(defn emacs-lisp-error [tag value]
+  (proxy [ExceptionInfo] [(str tag) {:tag tag :value value}]
+    (getMessage [] (str this))
+    (toString []
+      (str (cons (:tag (.data ^ExceptionInfo this))
+                 (c/let [d (:value (.-data ^ExceptionInfo this))]
+                        (if (seq? d) d [d])))))))
+
+(defn throw* [tag value]
+  (throw (emacs-lisp-error tag value)))
 
 (def ^:dynamic *dynamic-vars* {})
 
@@ -65,14 +71,22 @@
 ;; See deuce.emacs.data/make-variable-frame-local and deuce.emacs.frame/modify-frame-parameters
 (defn el-var-buffer-local [name])
 
+(defn el-var [name]
+  ((some-fn *dynamic-vars* el-var-buffer-local global) name))
+
+(defn el-var-get* [name]
+  (c/let [name (sym name)]
+         (if-let [v (el-var name)]
+           @v
+           (throw* 'void-variable name))))
+
 (c/defmacro el-var-get [name]
   (c/let [name (sym name)]
          (if (c/and (symbol? name) (name &env))
            `(if (var? ~name) @~name ~name)
-           `(if-let [v# ((some-fn *dynamic-vars* el-var-buffer-local global) '~name)]
-              @v#
-              (deuce.emacs-lisp/throw '~'void-variable '~name)))))
+           `(el-var-get* '~name))))
 
+;; split these out into el-var-set-** and get rid of eval in deuce.emacs.data/set(-default)
 (c/defmacro el-var-set-default [name value]
   (c/let [name (sym name)]
          `(c/let [value# ~value]
@@ -83,8 +97,8 @@
 (c/defmacro el-var-set [name value]
   (c/let [name (sym name)]
          `(c/let [value# ~value]
-                 (if-let [v# (c/or ~(c/and (symbol? name) (name &env) name)
-                                   ((some-fn *dynamic-vars* el-var-buffer-local) '~name))]
+                 (if-let [^Var v# (c/or ~(c/and (symbol? name) (name &env) name)
+                                        ((some-fn *dynamic-vars* el-var-buffer-local) '~name))]
                    (if (c/and (.hasRoot v#) (not (.getThreadBinding v#)))
                      (alter-var-root v# (constantly value#))
                      (var-set v# value#))
@@ -160,6 +174,7 @@
     (when emacs-lisp (c/eval (if (meta emacs-lisp) (with-meta emacs-lisp nil) emacs-lisp)))
     (catch RuntimeException e
       (when-not (.getMessage e)
+        (error (-> e cause .getMessage) (with-out-str (pp/pprint emacs-lisp)))
         (throw e))
       (if-let [[_ undeclared] (c/and (global 'load-in-progress)
                                      @(global 'load-in-progress)
@@ -203,17 +218,24 @@
    (c/and (seq? form) (= `cons/pair (first form)))
    (cons/pair (second form) (last form))
 
+   (c/and (seq? form) (= '. (last (butlast form)))) (expand-cons-ctors (cons/cons-expand form))
+
    (seq? form) (apply cons/list (map expand-cons-ctors form))
 
    :else
    form))
+
+(defn cons-to-list [x]
+  (if (instance? clojure.lang.Cons x)
+    (apply cons/list x)
+    x))
 
 ;; defined in eval.clj
 (defn eval [body & [lexical]]
   (binding [*ns* (the-ns 'deuce.emacs)]
     (with-bindings (if lexical {(global 'lexical-binding) true} {})
       ;; Not sure we should seqify stuff here.
-      (maybe-sym (expand-cons-ctors (compile (el->clj (cons-lists-to-seqs-for-eval body))))))))
+      (maybe-sym (compile (el->clj body))))))
 
 (declare let-helper* progn)
 
@@ -241,12 +263,12 @@
                                   (warn ~(c/name name) "NOT IMPLEMENTED")))
                             ~(if emacs-lisp?
                                `(c/let ~(if rest-arg
-                                          `[~rest-arg (if-let [r# (seq ~rest-arg)] (apply cons/list r#) nil)]
+                                          `[~rest-arg (if-let [r# ~rest-arg] (apply cons/list r#) nil)]
                                           [])
                                        (c/let [result# (with-local-el-vars ~(vec (mapcat #(c/list % %) the-args))
                                                          (progn ~@body))]
                                               (if ~macro?
-                                                (el->clj (w/prewalk cons-lists-to-seqs result#))
+                                                (el->clj result#)
                                                 result#)))
                                `(do ~@body)))]
                  (if (var? f#)
@@ -254,7 +276,7 @@
                      (alter-meta! f# merge (merge {:doc ~doc
                                                    :el-arglist '~(seq el-arglist)}
                                                   (when ~emacs-lisp?
-                                                    {:el-file (when-let [file# (global 'load-file-name)]
+                                                    {:el-file (when-let [file# (el-var 'load-file-name)]
                                                                 @file#)})))
                      (alter-var-root f# (constantly (with-meta @f# (meta f#))))
                      (when ~needs-intern?
@@ -290,16 +312,21 @@
   BODY should be a list of Lisp expressions."
   {:arglists '([ARGS [DOCSTRING] [INTERACTIVE] BODY])}
   [& cdr]
-  (c/let [vars (vec (keys &env))]
+  (c/let [[args & body] cdr
+          [docstring body] (split-with string? body)
+          doc (apply str docstring)
+          vars (vec (keys &env))]
          ;; This is wrong as it won't share updates between original definition and the lambda var.
          ;; Yet to see if this ends up being a real issue.
          `(c/let [closure# (zipmap '~vars
                                    (map #(doto (Var/create (if (var? %) (deref %) %)) .setDynamic)
                                         ~vars))]
-                 (def-helper* fn nil lambda ~(first cdr)
-                   (binding [*dynamic-vars* (if (dynamic-binding?) (merge *dynamic-vars* closure#) {})]
-                     (c/let [{:syms ~(vec (keys &env))} closure#]
-                            (progn ~@(rest cdr))))))))
+                 (with-meta
+                   (def-helper* fn nil lambda ~args
+                     (binding [*dynamic-vars* (if (dynamic-binding?) (merge *dynamic-vars* closure#) {})]
+                       (c/let [{:syms ~(vec (keys &env))} closure#]
+                              (progn ~@body))))
+                   {:doc ~doc}))))
 
 (c/defmacro unwind-protect
   "Do BODYFORM, protecting with UNWINDFORMS.
@@ -342,9 +369,9 @@
   (c/let [var (if (= () var) nil var)]
          `(try
             ~(el->clj bodyform)
-            (catch deuce.emacs_lisp.Error e#
-              (c/let [~(if var var (gensym "_")) (.value e#)]
-                     (case (.tag e#)
+            (catch ExceptionInfo e#
+              (c/let [~(if var var (gensym "_")) (:value (ex-data e#))]
+                     (case (:tag (ex-data e#))
                        ~@(apply concat (for [[c & h] handlers
                                              :let [c (if (seq? c) c [c])]]
                                          (apply concat (for [c c] `[~(sym c) (progn ~@h)]))))
@@ -619,7 +646,7 @@
   Both TAG and VALUE are evalled."
   {:arglists '([TAG VALUE])}
   [tag value]
-  `(throw (deuce.emacs_lisp.Error. ~tag ~value)))
+  `(throw* ~tag ~value))
 
 (c/defmacro ^:clojure-special-form catch
   "Eval BODY allowing nonlocal exits using `throw'.
@@ -633,9 +660,9 @@
   [tag & body]
   `(try
      (progn ~@body)
-     (catch deuce.emacs_lisp.Error e#
-       (if (= ~(el->clj tag) (.tag e#))
-         (.value e#)
+     (catch ExceptionInfo e#
+       (if (= ~(el->clj tag) (:tag (ex-data e#)))
+         (:value (ex-data e#))
          (throw e#)))))
 
 (c/defmacro ^:clojure-special-form if
@@ -775,8 +802,8 @@
          `(try ~@try-exprs
                ~@(for [expr catch-clauses]
                    (c/let [[_ tag e & exprs] expr]
-                          `(catch deuce.emacs_lisp.Error e#
-                             (if (= ~tag (.tag e#))
+                          `(catch ExceptionInfo e#
+                             (if (= ~tag (:tag (ex-data e#)))
                                (c/let [~e e#]
                                       (do ~@exprs))
                                (throw e#)))))

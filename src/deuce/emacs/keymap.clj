@@ -227,7 +227,8 @@
   If KEYMAP has a parent, the parent's bindings are included as well.
   This works recursively: if the parent has itself a parent, then the
   grandparent's bindings are also included and so on."
-  (dorun (map (fn [[char defn]] ((el/fun function) char defn))
+  (apply alloc/list
+         (map (fn [x] ((el/fun function) (data/car x) (data/cdr x)))
               (filter data/consp (data/cdr keymap)))))
 
 (defun keymap-prompt (map)
@@ -262,7 +263,8 @@
 
   The optional arg STRING supplies a menu name for the keymap
   in case you use it as a menu with `x-popup-menu'."
-  (fns/nconc (alloc/list 'keymap (chartab/make-char-table 'keymap)) (if string [string nil] [nil])))
+  (fns/nconc (alloc/list 'keymap (chartab/make-char-table 'keymap))
+             (if string (alloc/list string nil) (alloc/list nil))))
 
 (defun describe-buffer-bindings (buffer &optional prefix menus)
   "Insert the list of all defined keys and their definitions.

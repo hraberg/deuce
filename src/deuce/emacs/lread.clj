@@ -335,11 +335,13 @@
 
 ;; this should also delegate to print-dup
 (defmethod pp/simple-dispatch Cons [cons]
-  (print "#deuce/cons (")
-  (pp/write-out (car cons))
-  (print " . ")
-  (pp/write-out (cdr cons))
-  (print ")"))
+  (print-dup cons *out*)
+  ;; (print "#deuce/cons (")
+  ;; (pp/write-out (car cons))
+  ;; (print " . ")
+  ;; (pp/write-out (cdr cons))
+  ;; (print ")")
+  )
 
 (defmethod pp/simple-dispatch Symbol [s]
   (print-dup s *out*))

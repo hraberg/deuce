@@ -5,7 +5,7 @@
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.data :refer [car cdr setcar setcdr] :as data]
             [deuce.emacs.lread :as lread]
-            [deuce.emacs-lisp.cons :refer [ICons] :as cons]
+            [deuce.emacs-lisp.cons :refer [ICons IList] :as cons]
             [deuce.emacs-lisp.globals :as globals])
   (import [clojure.lang IPersistentCollection PersistentVector]
           [deuce.emacs.data CharTable]
@@ -127,7 +127,7 @@
   In between each pair of results, stick in SEPARATOR.  Thus, \" \" as
   SEPARATOR results in spaces between the values returned by FUNCTION.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  (s/join separator (map (el/fun function) (seq sequence))))
+  (s/join separator (map (el/fun function) (apply cons/list sequence))))
 
 (defun compare-strings (str1 start1 end1 str2 start2 end2 &optional ignore-case)
   "Compare the contents of two strings, converting to multibyte if needed.
@@ -306,7 +306,7 @@
 
 (defun elt (sequence n)
   "Return element of SEQUENCE at index N."
-  (c/nth n sequence))
+  (c/nth (apply cons/list sequence) n))
 
 (defun base64-encode-string (string &optional no-line-break)
   "Base64-encode STRING and return the result.
@@ -353,7 +353,7 @@
 (defun assoc (key list)
   "Return non-nil if KEY is `equal' to the car of an element of LIST.
   The value is actually the first element of LIST whose car equals KEY."
-  (some #(c/and (satisfies? ICons %) (equal key (car %)) %) (seq list)))
+  (some #(c/and (satisfies? ICons %) (equal key (car %)) %) (apply cons/list list)))
 
 (defun remhash (key table)
   "Remove KEY from TABLE."
@@ -411,7 +411,7 @@
   "Return non-nil if KEY is `eq' to the car of an element of LIST.
   The value is actually the first element of LIST whose car is KEY.
   Elements of LIST that are not conses are ignored."
-  (first (filter #(data/eq key (data/car-safe %)) (seq list))))
+  (first (filter #(data/eq key (data/car-safe %)) (apply cons/list list))))
 
 (defun string-make-multibyte (string)
   "Return the multibyte equivalent of STRING.
@@ -435,7 +435,7 @@
   "Apply FUNCTION to each element of SEQUENCE, and make a list of the results.
   The result is a list just as long as SEQUENCE.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  (apply alloc/list (map (el/fun function) (seq sequence))))
+  (apply alloc/list (map (el/fun function) (apply alloc/list sequence))))
 
 (defun fillarray (array item)
   "Store each element of ARRAY with ITEM.
@@ -519,7 +519,7 @@
 (defun rassoc (key list)
   "Return non-nil if KEY is `equal' to the cdr of an element of LIST.
   The value is actually the first element of LIST whose cdr equals KEY."
-  (some #(c/and (satisfies? ICons %) (equal key (cdr %)) %) (seq list)))
+  (some #(c/and (satisfies? ICons %) (equal key (cdr %)) %) (apply cons/list list)))
 
 (defun equal (o1 o2)
   "Return t if two Lisp objects have similar structure and contents.
@@ -549,8 +549,8 @@
 (defun reverse (list)
   "Reverse LIST, copying.  Return the reversed list.
   See also the function `nreverse', which is used more often."
-  (when (seq list)
-    (apply alloc/list (c/reverse (seq list)))))
+  (when-not (data/null list)
+    (apply alloc/list (c/reverse (apply alloc/list list)))))
 
 (defun nthcdr (n list)
   "Take cdr N times on LIST, return the result."
@@ -578,7 +578,7 @@
 (defun nth (n list)
   "Return the Nth element of LIST.
   N counts from zero.  If LIST is not that long, nil is returned."
-  (c/nth (seq list) n nil))
+  (c/nth (apply cons/list list) n nil))
 
 (defun string-to-unibyte (string)
   "Return a unibyte string with the same individual chars as STRING.
@@ -609,16 +609,20 @@
   the number of bytes in the string; it is the number of characters.
   To get the number of bytes, use `string-bytes'."
   (el/check-type 'sequencep sequence)
-  (condp instance? sequence
-    Cons (loop [cons sequence
-                length 0]
-           (if (data/consp cons)
-             (recur (cdr cons) (inc length))
-             (do
-               (el/check-type 'listp cons)
-               length)))
-    CharTable (count (.contents sequence))
-    (count sequence)))
+  (cond
+   (satisfies? IList sequence)
+   (loop [cons sequence
+          length 0]
+     (if (and (not (data/null cons)) (data/listp cons))
+       (recur (cdr cons) (inc length))
+       (do
+         (el/check-type 'listp cons)
+         length)))
+
+   (instance? CharTable sequence)
+   (length (.contents sequence))
+
+   :else (count sequence)))
 
 (defun memq (elt list)
   "Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
@@ -793,7 +797,7 @@
   Returns the sorted list.  LIST is modified by side effects.
   PREDICATE is called with two elements of LIST, and should return non-nil
   if the first element should sort before the second."
-  (apply cons/list (c/sort (fn [x y] (if ((el/fun predicate) x y) -1 1)) (seq list))))
+  (apply cons/list (c/sort (fn [x y] (if ((el/fun predicate) x y) -1 1)) (apply cons/list list))))
 
 (defun base64-decode-string (string)
   "Base64-decode STRING and return the result."

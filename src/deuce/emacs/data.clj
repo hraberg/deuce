@@ -171,9 +171,7 @@
 
 (defun symbol-value (symbol)
   "Return SYMBOL's value.  Error if that is void."
-  (if-let [sym (el/global symbol)]
-    @sym
-    (el/throw 'void-variable symbol)))
+  (el/el-var-get* symbol))
 
 (defun keywordp (object)
   "Return t if OBJECT is a keyword.
@@ -188,7 +186,9 @@
 
 (defun subrp (object)
   "Return t if OBJECT is a built-in function."
-  (not= (the-ns 'deuce.emacs) (-> object meta :ns)))
+  (and (fn? object)
+       (-> object meta :ns)
+       (not= (the-ns 'deuce.emacs) (-> object meta :ns))))
 
 (defun symbol-plist (symbol)
   "Return SYMBOL's property list."
@@ -529,12 +529,20 @@
   The optional third argument DOCSTRING specifies the documentation string
   for SYMBOL; if it is omitted or nil, SYMBOL uses the documentation string
   determined by DEFINITION."
-  (when-let [definition (if (symbol? definition)
-                          (fn [& args] (apply (ns-resolve 'deuce.emacs (el/sym definition)) args))
-                          definition)]
-    (ns-unmap 'deuce.emacs symbol)
-    (el/defvar-helper* 'deuce.emacs symbol definition docstring))
-  definition)
+  (let [lambda? (fn? definition)
+        f (and (or lambda? (symbol? definition))  ;; guard against value
+               (el/fun definition))]
+    (when-let [alias (if-not lambda?
+                       (fn [&form &env & args] ;; Note implicit macro args
+                         `(~(el/fun definition) ~@args))
+                       definition)]
+      (ns-unmap 'deuce.emacs symbol)
+      (el/defvar-helper* 'deuce.emacs symbol alias (str symbol " is an alias for `" definition "'.\n\n"
+                                                        (or docstring
+                                                            (-> f meta :doc)
+                                                            (-> definition meta :doc))))
+      (when-not lambda? (.setMacro (el/fun symbol))))
+    definition))
 
 (defun setplist (symbol newplist)
   "Set SYMBOL's property list to NEWPLIST, and return NEWPLIST."

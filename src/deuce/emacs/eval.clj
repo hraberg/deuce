@@ -141,17 +141,14 @@
   They default to nil.
   If FUNCTION is already defined other than as an autoload,
   this does nothing and returns nil."
-  (let [macro? (= 'macro type)
-        loader (fn autoload [& args]
-                 (ns-unmap 'deuce.emacs (el/sym function))
-                 ((ns-resolve 'deuce.emacs 'load) file nil true)
-                 (if macro?
-                   (eval `(el/progn ~@args))
-                   (eval `(~(el/sym function) ~@args))))]
+  (let [definition (fn autoload [&form &env & args] ;; Note implicit macro args, see defalias
+                     (ns-unmap 'deuce.emacs (el/sym function))
+                     ((ns-resolve 'deuce.emacs 'load) file nil true)
+                     `(~(el/sym function) ~@args))]
     (ns-unmap 'deuce.emacs function)
-    (let [v (el/defvar-helper* 'deuce.emacs (el/sym function) loader docstring)]
-      (when macro? (.setMacro (el/fun function)))
-      v)))
+    (el/defvar-helper* 'deuce.emacs function definition docstring)
+    (.setMacro (el/fun function)))
+  function)
 
 (defun fetch-bytecode (object)
   "If byte-compiled OBJECT is lazy-loaded, fetch it now."

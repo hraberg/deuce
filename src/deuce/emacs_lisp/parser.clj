@@ -42,20 +42,6 @@
 (defn ^:private strip-comments [form]
   (remove (every-pred seq? (comp `#{comment} first)) form))
 
-(defn cons-expand [form]
-  (let [c (apply cons/list (drop-last 2 form))]
-    (cons/setcdr (cons/last-cons c) (last form))
-    c))
-
-;; A literal Cons cell cannot contain unquotes.
-;; Needs to be dealt with during eval, see deuce.emacs-lisp (and maybe macro expansion).
-(defn syntax-quote-cons-expand [form]
-  (list `cons/pair (car form)
-        (if (satisfies? cons/ICons (cdr form))
-          (syntax-quote-cons-expand (cdr form)) (cdr form))))
-
-(def ^:dynamic *cons-expand* cons-expand)
-
 (defn ^:private as-vector [form]
   (object-array (vec form)))
 
@@ -70,15 +56,11 @@
     (condp find 1
       #"\s" (recur sc)
       #"[)\]]" `end
-      #"\(" (let [form (tokenize-all sc)]
-              (if (= '. (last (butlast form)))
-                (*cons-expand* form)
-                form))
+      #"\(" (tokenize-all sc)
       #"\[" (as-vector (tokenize-all sc))
       #"," (list (if (find #"@" 1) `unquote-splicing `unquote) (tokenize sc))
       #"'" (list 'quote (tokenize sc))
-      #"`" (let [form (binding [*cons-expand* #(syntax-quote-cons-expand (cons-expand %))]
-                        (tokenize sc))]
+      #"`" (let [form  (tokenize sc)]
              (if (symbol? form)
                (list 'quote form)
                (list `el/syntax-quote form)))
