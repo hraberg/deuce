@@ -1,6 +1,7 @@
 (ns deuce.test.common
   (:use [clojure.test])
   (:require [deuce.emacs-lisp :as el]
+            [deuce.emacs.fns :as fns]
             [deuce.emacs]))
 
 (defmacro emacs [& body]
@@ -46,4 +47,4 @@
                                                     `(is (instance? ~e (emacs ~@a)))
                                                     `(is (~(resolve e) (emacs ~@a))))
                     (instance? java.util.regex.Pattern e) `(is (re-find (re-pattern ~e) (emacs ~@a)))
-                    :else `(is (= ~e (emacs ~@a))))))))))
+                    :else `(is (fns/equal ~e (emacs ~@a))))))))))

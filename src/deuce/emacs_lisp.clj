@@ -8,7 +8,6 @@
          :only (trace debug info warn error fatal spy)])
   (:import [clojure.lang Var ExceptionInfo]
            [java.io Writer]
-           [deuce.emacs_lisp Cons]
            [java.lang.reflect Method])
   (:refer-clojure :exclude [defmacro and or cond let while eval set compile]))
 
@@ -187,26 +186,26 @@
 
 ;; This is used by Emacs Lisp defmacro to ensure Cons lists constructed actually gets compiled.
 ;; Clojure defmacro does only work on IType/ISeq. Used with prewalk.
-(defn cons-lists-to-seqs [form]
-  (if (c/and (seq? form) (`#{quote} (first form)))
-    form
-    (if (instance? Cons form)
-      (apply list form)
-      form)))
+;; (defn cons-lists-to-seqs [form]
+;;   (if (c/and (seq? form) (`#{quote} (first form)))
+;;     form
+;;     (if (instance? Cons form)
+;;       (apply list form)
+;;       form)))
 
-;; There's a subtle difference between eval and macro-expansion.
-;; Should be possible to unify, but requires some work.
-(defn cons-lists-to-seqs-for-eval [form]
-  (c/cond
-   (c/and (seq? form) (`#{quote} (first form)))
-   form
+;; ;; There's a subtle difference between eval and macro-expansion.
+;; ;; Should be possible to unify, but requires some work.
+;; (defn cons-lists-to-seqs-for-eval [form]
+;;   (c/cond
+;;    (c/and (seq? form) (`#{quote} (first form)))
+;;    form
 
-   (seq? form) (map cons-lists-to-seqs-for-eval form)
+;;    (seq? form) (map cons-lists-to-seqs-for-eval form)
 
-   (instance? Cons form) (apply list form)
+;;    (instance? Cons form) (apply list form)
 
-   :else
-   form))
+;;    :else
+;;    form))
 
 ;; Emacs Lisp syntax quote leaves calls to cons/pair which needs to be expanded.
 ;; Embedding a literal Cons cell won't let it unquote its contents.

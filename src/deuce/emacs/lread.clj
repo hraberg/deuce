@@ -16,8 +16,7 @@
             [deuce.emacs-lisp.parser :as parser])
   (:refer-clojure :exclude [read intern load])
   (:import [java.io FileNotFoundException]
-           [clojure.lang Symbol]
-           [deuce.emacs_lisp Cons]))
+           [clojure.lang Symbol]))
 
 (defvar old-style-backquotes nil
   "Set to non-nil when `read' encounters an old-style backquote.")
@@ -334,14 +333,14 @@
   (print-dup arr *out*))
 
 ;; this should also delegate to print-dup
-(defmethod pp/simple-dispatch Cons [cons]
-  (print-dup cons *out*)
-  ;; (print "#deuce/cons (")
-  ;; (pp/write-out (car cons))
-  ;; (print " . ")
-  ;; (pp/write-out (cdr cons))
-  ;; (print ")")
-  )
+;; (defmethod pp/simple-dispatch Cons [cons]
+;;   (print-dup cons *out*)
+;;   ;; (print "#deuce/cons (")
+;;   ;; (pp/write-out (car cons))
+;;   ;; (print " . ")
+;;   ;; (pp/write-out (cdr cons))
+;;   ;; (print ")")
+;;   )
 
 (defmethod pp/simple-dispatch Symbol [s]
   (print-dup s *out*))

@@ -9,7 +9,6 @@
             [deuce.emacs-lisp.globals :as globals])
   (import [clojure.lang IPersistentCollection PersistentVector]
           [deuce.emacs.data CharTable]
-          [deuce.emacs_lisp Cons]
           [java.util List Map HashMap Collections Objects]
           [java.nio CharBuffer]
           [java.nio.charset Charset]
@@ -115,12 +114,15 @@
   The last argument is not copied, just used as the tail of the new list."
   (if (= 1 (count sequences))
     (first sequences)
-    (let [sequences (remove empty? sequences)]
+    (let [sequences (remove data/null sequences)]
       (if (> (count sequences) 1)
         (let [l (apply alloc/list (apply c/concat (butlast sequences)))]
-          (setcdr (cons/last-cons l) (apply alloc/list (seq (last sequences))))
+          (setcdr (cons/last-cons l) (cons/maybe-seq (let [last (last sequences)]
+                                                       (if (data/stringp last)
+                                                         (seq last)
+                                                         last))))
           l)
-        (apply alloc/list (first sequences))))))
+        (cons/maybe-seq (first sequences))))))
 
 (defun mapconcat (function sequence separator)
   "Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.
@@ -246,11 +248,11 @@
   is not a side effect; it is simply using a different sequence.
   Therefore, write `(setq foo (delete element foo))'
   to be sure of changing the value of `foo'."
-  (condp instance? seq
-    Cons (del equal elt seq)
-    PersistentVector (filterv (partial equal elt) seq)
-    String (clojure.string/replace seq elt "")
-    seq))
+  (cond
+   (satisfies? ICons seq) (del equal elt seq)
+   (data/vectorp seq) (apply alloc/vector (del equal elt (apply alloc/list seq)))
+   (and (data/stringp seq) (integer? elt)) (s/replace seq (c/str (c/char elt)) "")
+   :else seq))
 
 (defun locale-info (item)
   "Access locale data ITEM for the current C locale, if available.
@@ -318,7 +320,7 @@
   "Return t if two Lisp objects have similar structure and contents.
   This is like `equal' except that it compares the text properties
   of strings.  (`equal' ignores text properties.)"
-  (c/= o1 o2))
+  (equal o1 o2))
 
 (defun substring-no-properties (string &optional from to)
   "Return a substring of STRING, without text properties.
@@ -529,7 +531,12 @@
   Numbers are compared by value, but integers cannot equal floats.
    (Use `=' if you want integers and floats to be able to be equal.)
   Symbols must match exactly."
-  (Objects/deepEquals o1 o2))
+  (if (and (seq? o1) (seq o2))
+    (every? true? (map equal o1 o2))
+    (if (and (data/numberp o1) (data/numberp o2))
+      (and (= (data/floatp o1) (data/floatp o2))
+           (data/= o1 o2))
+      (Objects/deepEquals o1 o2))))
 
 (declare reverse)
 
@@ -578,7 +585,9 @@
 (defun nth (n list)
   "Return the Nth element of LIST.
   N counts from zero.  If LIST is not that long, nil is returned."
-  (c/nth (apply cons/list list) n nil))
+  (if (pos? n)
+    (c/nth (apply cons/list list) n nil)
+    (car list)))
 
 (defun string-to-unibyte (string)
   "Return a unibyte string with the same individual chars as STRING.

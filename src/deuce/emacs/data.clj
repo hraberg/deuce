@@ -310,7 +310,7 @@
 
 (defun numberp (object)
   "Return t if OBJECT is a number (floating point or integer)."
-  (number? object))
+  ((some-fn number? char?) object))
 
 (defun logand (&rest ints-or-markers)
   "Return bitwise-and of all the arguments.
@@ -604,7 +604,8 @@
 
 (defun null (object)
   "Return t if OBJECT is nil."
-  (when (or (nil? object) (c/= () object) (false? object))))
+  (when (or (nil? object) (c/= () object) (false? object))
+    true))
 
 (defun char-table-p (object)
   "Return t if OBJECT is a char-table."

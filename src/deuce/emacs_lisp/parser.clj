@@ -8,8 +8,7 @@
             [deuce.emacs.textprop :as textprop])
   (:import [java.util Scanner]
            [java.io StringReader StreamTokenizer]
-           [java.util.regex Pattern]
-           [deuce.emacs_lisp Cons]))
+           [java.util.regex Pattern]))
 
 (declare tokenize)
 
