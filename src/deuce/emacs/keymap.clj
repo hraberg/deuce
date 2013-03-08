@@ -97,7 +97,8 @@
                     (or (fns/assoc submap-name alist)
                         (data/car (data/setcdr keymap (alloc/cons (alloc/cons submap-name (make-sparse-keymap)) alist)))))]
         (define-key submap (data/aref key 1) def))) ;; DEF is apparently an XEmacs-style keyboard macro.)
-    (let [alist (data/cdr keymap)
+    (let [keymap (if (symbol? keymap) (el/el-var-get* keymap) keymap)
+          alist (data/cdr keymap)
           keydef (if (string? key)
                    (if (= \\ (first key))
                      (alloc/cons (int (data/car (parser/parse (str "?" key))))
