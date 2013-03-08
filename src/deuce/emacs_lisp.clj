@@ -291,6 +291,8 @@
                        (ns-unmap 'deuce.emacs '~needs-intern?)))
                    (with-meta f# (assoc (meta f#) :doc ~doc))))))
 
+(def override? '#{apply-partially})
+
 (c/defmacro defun
   "Define NAME as a function.
   The definition is (lambda ARGLIST [DOCSTRING] BODY...).
@@ -298,7 +300,7 @@
   {:arglists '([NAME ARGLIST [DOCSTRING] BODY...])}
   [name arglist & body]
   (c/let [name (sym name)]
-         `(do ~(when-not ((ns-interns 'deuce.emacs-lisp) name)
+         `(do ~(when-not (override? name)
                  `(def-helper* defn ~(-> name meta :line) ~name ~arglist ~@body))
               '~name)))
 
