@@ -483,7 +483,7 @@
   "Concatenate all the arguments and make the result a vector.
   The result is a vector whose elements are the elements of all the arguments.
   Each argument may be a list, vector or string."
-  (alloc/vector (apply c/concat sequences)))
+  (apply alloc/vector (apply c/concat sequences)))
 
 (defun make-hash-table (&rest keyword-args)
   "Create and return a new hash table.
