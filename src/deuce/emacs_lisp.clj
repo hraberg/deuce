@@ -164,8 +164,11 @@
                           (into-array [Object]))
     (.setAccessible true)))
 
-(c/defmacro syntax-quote [form]
+(defn syntax-quote* [form]
   (el->clj (.invoke clojure-syntax-quote nil (into-array [form]))))
+
+(c/defmacro syntax-quote [form]
+  (syntax-quote* form))
 
 (defn compile [emacs-lisp]
   (try
@@ -295,7 +298,8 @@
   {:arglists '([NAME ARGLIST [DOCSTRING] BODY...])}
   [name arglist & body]
   (c/let [name (sym name)]
-         `(do (def-helper* defn ~(-> name meta :line) ~name ~arglist ~@body)
+         `(do ~(when-not ((ns-interns 'deuce.emacs-lisp) name)
+                 `(def-helper* defn ~(-> name meta :line) ~name ~arglist ~@body))
               '~name)))
 
 ;; defined in subr.el
@@ -331,6 +335,17 @@
                        (c/let [{:syms ~(vec (keys &env))} closure#]
                               (progn ~@body))))
                    {:doc ~doc}))))
+
+;; defined in subr.el
+(defn apply-partially
+  "Return a function that is a partial application of FUN to ARGS.
+  ARGS is a list of the first N arguments to pass to FUN.
+  The result is a new function which does the same as FUN, except that
+  the first N arguments are fixed at the values with which this function
+  was called."
+  [fun & args]
+  (fn partial [& new-args]
+    (apply (deuce.emacs-lisp/fun fun) (concat args new-args))))
 
 (c/defmacro unwind-protect
   "Do BODYFORM, protecting with UNWINDFORMS.
