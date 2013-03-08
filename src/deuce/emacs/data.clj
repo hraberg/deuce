@@ -439,7 +439,7 @@
 
 (defun char-or-string-p (object)
   "Return t if OBJECT is a character or a string."
-  ((some-fn char? string?) object))
+  ((some-fn char? integer? string?) object))
 
 (declare char-table-p)
 
@@ -473,6 +473,7 @@
   "Return t if SYMBOL has a non-void default value.
   This is the value that is seen in buffers that do not have their own values
   for this variable."
+  (println symbol)
   (or (nil? symbol)
       (when-let [v (el/global symbol)]
         (.hasRoot v))))
@@ -534,7 +535,7 @@
                (el/fun definition))]
     (when-let [alias (if-not lambda?
                        (fn [&form &env & args] ;; Note implicit macro args
-                         `(~(el/fun definition) ~@args))
+                         `(el/progn (~(el/fun definition) ~@args)))
                        definition)]
       (ns-unmap 'deuce.emacs symbol)
       (el/defvar-helper* 'deuce.emacs symbol alias (str symbol " is an alias for `" definition "'.\n\n"

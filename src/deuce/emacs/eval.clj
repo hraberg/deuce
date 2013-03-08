@@ -144,7 +144,7 @@
   (let [definition (fn autoload [&form &env & args] ;; Note implicit macro args, see defalias
                      (ns-unmap 'deuce.emacs (el/sym function))
                      ((ns-resolve 'deuce.emacs 'load) file nil true)
-                     `(~(el/sym function) ~@args))]
+                     `(el/progn (~(el/sym function) ~@args)))]
     (ns-unmap 'deuce.emacs function)
     (el/defvar-helper* 'deuce.emacs function definition docstring)
     (.setMacro (el/fun function)))
