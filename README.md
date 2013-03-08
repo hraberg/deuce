@@ -13,7 +13,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 **2013-03-08 Mutable Persistent Lists**
 
-Exactly the what it soundss like - `setcar` and `setcdr` working directly on [`clojure.lang.PersistentList`](https://github.com/clojure/clojure/blob/master/src/jvm/clojure/lang/PersistentList.java). This is an experimental branch which I will keep investigating this for a day or two. Most of the relevant stuff lives in [`deuce.emacs-lisp.cons`](https://github.com/hraberg/deuce/blob/MutablePersistentLists/src/deuce/emacs_lisp/cons.clj)
+Exactly the what it sounds like - `setcar` and `setcdr` working directly on [`clojure.lang.PersistentList`](https://github.com/clojure/clojure/blob/master/src/jvm/clojure/lang/PersistentList.java). This is an experimental branch which I will keep investigating this for a day or two. Most of the relevant stuff lives in [`deuce.emacs-lisp.cons`](https://github.com/hraberg/deuce/blob/MutablePersistentLists/src/deuce/emacs_lisp/cons.clj)
 
 There are a few reasons why I investigate this:
 
@@ -22,7 +22,9 @@ There are a few reasons why I investigate this:
 * Dotted pairs have the literal representation as a three element list with a marker dot: `'(1 . 2)` , and is handled internally via protocols. This also allows them to participate properly in syntax quoting. A non-list `cdr` is hence a two element list: `(. 2).
   * It has a serious drawback that a pair can "escape" to a Clojure function not understanding the dot.
 
-There are several other things on this branch that will be merged back regardless, using `ex-info` for Emacs Lisp errors and new tests for core functions - and hence more correct implementations.
+There are several other things on this branch that will be merged back regardless, using [`ex-info`](http://clojure.github.com/clojure/clojure.core-api.html#clojure.core/ex-info) for Emacs Lisp errors and new tests for core functions - and hence more correct implementations. Also: `defalias` and `autoload` that actually works for macros.
+
+Before embarking on this, I was close to have most of the relevant Emacs Lisp required to actually start up Emacs (see blow) loaded, but the final mile requires `cl.el` to really shine and let its macros expand like intended. Its currently stuck on [`pcase.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/pcase.el), which is needed for [`minibuffer.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/minibuffer.el) and others. The state of this branch is currently stuck much earlier, but I'm working on it, to see if I can get `pcase` (and the full boot) to actually work via this approach.
 
 
 **2013-03-03 Welcome to GNU Emacs**
