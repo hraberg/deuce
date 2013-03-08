@@ -16,7 +16,7 @@
                       (str timestamp " " (-> level name s/upper-case) " [" ns "]")))
 (timbre/set-config! [:timestamp-pattern] "HH:mm:ss,SSS")
 
-(timbre/set-level! :error)
+(timbre/set-level! :warn)
 (var-set  #'*warn-on-reflection* true)
 
 (create-ns 'deuce.emacs)
@@ -131,6 +131,7 @@
                   (if (`#{el-var-get el-var-set el-var-set-default syntax-quote} fst)
                     x
                     (c/cond
+                      ;; don't think this case is relevant anymore
                      (= `symbol fst) (list `el-var-get x)
 
                      :else (c/cons (c/cond
@@ -138,6 +139,7 @@
                                          (not (namespace fst))
                                          (not (fun fst)))
                                   (do (warn (format "Unable to resolve symbol: %s in this context" fst))
+                                      ;; Needs better fix, doesn't take macros into account, see defalias
                                       (intern 'deuce.emacs fst)
                                       (list `fun (list 'quote fst)))
 
@@ -235,8 +237,13 @@
 
 (declare let-helper* progn)
 
+(defn parse-doc-string [[doc & rst :as body]]
+  (if (string? doc)
+    [doc rst]
+    [nil body]))
+
 (c/defmacro def-helper* [what line name arglist & body]
-  (c/let [[docstring body] (split-with string? body)
+  (c/let [[docstring body] (parse-doc-string body)
           name (sym name)
           el-arglist arglist
           rest-arg (maybe-sym (second (drop-while (complement '#{&rest}) arglist)))
@@ -309,7 +316,7 @@
   {:arglists '([ARGS [DOCSTRING] [INTERACTIVE] BODY])}
   [& cdr]
   (c/let [[args & body] cdr
-          [docstring body] (split-with string? body)
+          [docstring body] (parse-doc-string body)
           doc (apply str docstring)
           vars (vec (keys &env))]
          ;; This is wrong as it won't share updates between original definition and the lambda var.

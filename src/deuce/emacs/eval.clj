@@ -141,14 +141,28 @@
   They default to nil.
   If FUNCTION is already defined other than as an autoload,
   this does nothing and returns nil."
-  (let [definition (fn autoload [&form &env & args] ;; Note implicit macro args, see defalias
-                     (ns-unmap 'deuce.emacs (el/sym function))
-                     ((ns-resolve 'deuce.emacs 'load) file nil true)
-                     `(el/progn (~(el/sym function) ~@args)))]
-    (ns-unmap 'deuce.emacs function)
-    (el/defvar-helper* 'deuce.emacs function definition docstring)
-    (.setMacro (el/fun function)))
-  function)
+  (when (or (not (el/fun function)) (-> (el/fun function) meta :autoload))
+    (let [macro? (= 'macro type)
+          autoload-symbol (fn autoload-symbol [function]
+                            (let [f (el/fun function)]
+                              (when (-> f meta :autoload)
+                                (ns-unmap 'deuce.emacs (el/sym function))
+                                ((ns-resolve 'deuce.emacs 'load) (-> f meta :file) nil true))))
+          definition  (if macro?
+                        (fn autoload [&form &env & args] ;; Note implicit macro args, see defalias
+                          (list `eval
+                                (list 'quote
+                                      (list 'do
+                                            `(~autoload-symbol '~function)
+                                            `(el/progn (~(el/sym function) ~@args))))))
+                        (fn autoload [& args] ;; Why is this guy seemingly inlined at call site?
+                          (autoload-symbol function)
+                          (c/apply (el/fun function) args)))]
+      (ns-unmap 'deuce.emacs function)
+      (el/defvar-helper* 'deuce.emacs function definition docstring)
+      (alter-meta! (el/fun function) merge {:autoload true :file file})
+      (when macro? (.setMacro (el/fun function))))
+    function))
 
 (defun fetch-bytecode (object)
   "If byte-compiled OBJECT is lazy-loaded, fetch it now."

@@ -104,7 +104,7 @@
 (defvar load-file-name nil
   "Full name of file being loaded by `load'.")
 
-(defvar load-suffixes nil
+(defvar load-suffixes (alloc/list ".class" ".el")
   "List of suffixes for (compiled or source) Emacs Lisp files.
   This list should not include the empty string.
   `load' and related functions try to append these suffixes, in order,
@@ -115,7 +115,7 @@
   This is normally bound by `load' and `eval-buffer' to control `read',
   and is not meant for users to change.")
 
-(defvar load-file-rep-suffixes nil
+(defvar load-file-rep-suffixes (alloc/list "")
   "List of suffixes that indicate representations of the same file.
   This list should normally start with the empty string.
 
@@ -320,7 +320,7 @@
 (defun get-load-suffixes ()
   "Return the suffixes that `load' should try if a suffix is required.
   This uses the variables `load-suffixes' and `load-file-rep-suffixes'."
-  )
+  (apply alloc/list (remove empty? (concat globals/load-file-rep-suffixes globals/load-suffixes))))
 
 (def ^:dynamic *inside-quote* false)
 
@@ -357,6 +357,8 @@
           (.write w "\n")
           (.flush w)))
       (finally (timbre/set-level! level)))))
+
+(def ^:private ^:dynamic loads-in-progress #{})
 
 (defun load (file &optional noerror nomessage nosuffix must-suffix)
   "Execute a file of Lisp code named FILE.
@@ -399,47 +401,52 @@
   is bound to the file's name.
 
   Return t if the file exists and loads successfully."
-  (try
-    (let [url (or (->> (for [l globals/load-path
-                             :let [file (s/replace (str l "/" file) #"^/" "")]]
-                         (or (when-not nosuffix
-                               (io/resource (str file ".el")))
-                             (io/resource file)))
-                       (some identity))
-                  (.toURL (io/file file)))]
-      (binding [globals/load-file-name (.getFile url)
-                globals/load-in-progress true]
-        (when-not nomessage
-          (editfns/message "Loading %s..." file))
-        (let [el-extension? (re-find #".el$" file)
-              file (s/replace file  #".el$" "")
-              clj-file (str (s/replace file "-" "_") ".clj") ;; should use actual classpath relative location, not loadpath
-              last-modified #(if % (.getLastModified (.openConnection %)) -1)]
-          (try
-            (when (> (last-modified url) (last-modified (io/resource clj-file)))
-              (throw (FileNotFoundException. "out of date")))
-            (c/require (symbol (s/replace file "/" ".")))
-            (catch FileNotFoundException _
-              (with-open [in (io/input-stream url)]
-                (let [el (parser/parse in)
-                      clj-file (io/file *compile-path* clj-file)]
-                  (write-clojure (map #(let [clj (el/el->clj %)]
-                                         (try
-                                           ;; Would like to get rid of this extra eval state, but el->clj depends on the current state.
-                                           (eval/eval clj)
-                                           clj
-                                           (catch Exception e
-                                             (with-open [w (io/writer clj-file :append true)]
-                                               (pp/pprint clj w))
-                                             (throw e))))
-                                      el)
-                                 clj-file)
-                  (when-not el-extension?
-                    (binding [*compile-files* true] (require (symbol (s/replace file "/" "."))))))))))
-        true))
-    (catch Exception e
-      (when-not noerror
-        (throw e)))))
+  (if (loads-in-progress file)
+    true ;; not really correct
+    )
+  (binding [loads-in-progress (conj loads-in-progress file)]
+    (try
+      ;; see locate-file-internal below, maybe should be delegating to it
+      (let [url (or (->> (for [l globals/load-path
+                               :let [file (s/replace (str l "/" file) #"^/" "")]]
+                           (or (when-not nosuffix
+                                 (io/resource (str file ".el")))
+                               (io/resource file)))
+                         (some identity))
+                    (.toURL (io/file file)))]
+        (binding [globals/load-file-name (.getFile url)
+                  globals/load-in-progress true]
+          (when-not nomessage
+            (editfns/message "Loading %s..." file))
+          (let [el-extension? (re-find #".el$" file)
+                file (s/replace file  #".el$" "")
+                clj-file (str (s/replace file "-" "_") ".clj") ;; should use actual classpath relative location, not loadpath
+                last-modified #(if % (.getLastModified (.openConnection %)) -1)]
+            (try
+              (when (> (last-modified url) (last-modified (io/resource clj-file)))
+                (throw (FileNotFoundException. "out of date")))
+              (c/require (symbol (s/replace file "/" ".")))
+              (catch FileNotFoundException _
+                (with-open [in (io/input-stream url)]
+                  (let [el (parser/parse in)
+                        clj-file (io/file *compile-path* clj-file)]
+                    (write-clojure (map #(let [clj (el/el->clj %)]
+                                           (try
+                                             ;; Would like to get rid of this extra eval state, but el->clj depends on the current state.
+                                             (eval/eval clj)
+                                             clj
+                                             (catch Exception e
+                                               (with-open [w (io/writer clj-file :append true)]
+                                                 (pp/pprint clj w))
+                                               (throw e))))
+                                        el)
+                                   clj-file)
+                    (when-not el-extension?
+                      (binding [*compile-files* true] (require (symbol (s/replace file "/" "."))))))))))
+          true))
+      (catch Exception e
+        (when-not noerror
+          (throw e))))))
 
 (defun mapatoms (function &optional obarray)
   "Call FUNCTION on every symbol in OBARRAY.
@@ -476,4 +483,4 @@
   symbol is searched for.
   A second optional argument specifies the obarray to use;
   it defaults to the value of `obarray'."
-  )
+  (intern name))
