@@ -270,8 +270,9 @@
                                           [])
                                        (c/let [result# (with-local-el-vars ~(vec (mapcat #(c/list % %) the-args))
                                                          (progn ~@body))]
+                                              ;; There's something wrong with the returned forms, hence the prewalk
                                               (if ~macro?
-                                                (el->clj result#)
+                                                (w/prewalk identity (el->clj result#))
                                                 result#)))
                                `(do ~@body)))]
                  (if (var? f#)

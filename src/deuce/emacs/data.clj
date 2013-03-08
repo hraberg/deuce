@@ -541,6 +541,7 @@
                                                         (or docstring
                                                             (-> f meta :doc)
                                                             (-> definition meta :doc))))
+      (alter-meta! (el/fun symbol) assoc :alias true)
       (when-not lambda? (.setMacro (el/fun symbol))))
     definition))
 

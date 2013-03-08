@@ -50,7 +50,7 @@
     (if (or (instance? IPersistentList val) (nil? val) (= () val))
       (do
         (.set l_rest this val)
-        (.set l_count this (int (inc (count val)))))
+        (.set l_count this (int (inc (count val))))) ;; this gets out of sync when changing part of the tail.
       (if (dotted-pair? this)
         (setcar (rest (rest this)) val)
         (do
