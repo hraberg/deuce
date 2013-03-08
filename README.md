@@ -24,7 +24,7 @@ There are a few reasons why I investigate this:
 
 There are several other things on this branch that will be merged back regardless, using [`ex-info`](http://clojure.github.com/clojure/clojure.core-api.html#clojure.core/ex-info) for Emacs Lisp errors and new tests for core functions - and hence more correct implementations. Also: `defalias` and `autoload` that actually works for macros.
 
-Before embarking on this, I was close to have most of the relevant Emacs Lisp required to actually start up Emacs (see blow) loaded, but the final mile requires `cl.el` to really shine and let its macros expand like intended. Its currently stuck on [`pcase.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/pcase.el) ("ML-style pattern-matching macro for Elisp"), which is needed for [`minibuffer.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/minibuffer.el) and others. The state of this branch is currently stuck much earlier, but I'm working on it to see if I can get `pcase` (and the full boot) to actually work via this approach.
+Before embarking on this, I was close to have most of the relevant Emacs Lisp required to actually start up Emacs (see below) loaded, but the final mile requires `cl.el` to really shine and let its macros expand like intended. Its currently stuck on [`pcase.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/pcase.el) ("ML-style pattern-matching macro for Elisp"), which is needed for [`minibuffer.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/minibuffer.el) and others. The state of this branch is currently stuck much earlier, but I'm working on it to see if I can get `pcase` (and the full boot) to actually work via this approach.
 
 
 **2013-03-03 Welcome to GNU Emacs**
