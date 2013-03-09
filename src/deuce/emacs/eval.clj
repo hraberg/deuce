@@ -150,6 +150,8 @@
                                 ((ns-resolve 'deuce.emacs 'load) (-> f meta :file) nil true))))
           definition  (if macro?
                         (fn autoload [&form &env & args] ;; Note implicit macro args, see defalias
+                          ;; could/should use delayed-eval?
+                          ;; Or should macros maybe be loaded during compilation like they used to?
                           (list `eval
                                 (list 'quote
                                       (list 'do
@@ -157,7 +159,7 @@
                                             `(el/progn (~(el/sym function) ~@args))))))
                         (fn autoload [& args] ;; Why is this guy seemingly inlined at call site?
                           (autoload-symbol function)
-                          (c/apply (el/fun function) args)))]
+                          (c/apply (el/fun function) args)))] ;; el->clj?
       (ns-unmap 'deuce.emacs function)
       (el/defvar-helper* 'deuce.emacs function definition docstring)
       (alter-meta! (el/fun function) merge {:autoload true :file file})

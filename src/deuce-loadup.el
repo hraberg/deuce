@@ -154,16 +154,15 @@
 ;; DEUCE: minibuffer implements completion, the actual minibuffer is (not yet) in minibuf.clj
 ;;        Autoloads (but fails) pcase, which is a pattern matcher utterly confused by Deuce's concept of cons.
 ;;        Also, a minor mode macro which many files use is blowing up, next thing to investigate.
-;; ------ Current state as of 2013-03-04.
 ;;        cl-macs and autoloads seem to be the main things from actually compiling and loading the rest of the needed files.
 ;;        PersistentList instead of Cons and syntax-quoted deuce.emacs-lisp.cons/pair are known issues.
 ;;        (Running properly is another matter altogether.)
-;; DEUCE: minibuffer autoloads pcase, but the order of definitions blows up as its expanding a macro depending on later fns.
-;; (load "pcase")
+;;        The pcase issue is not really solved, but autoloads are now delayed until actually called.
 (load "minibuffer")
 ;; DEUCE: abbrev mode, referenced by simple below (to turn it off at times)
-;; (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
+(load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
 ;; DEUCE: Massive support file for Emacs, adds completion, paren matching, line movement and various things.
+;;        Breaks with (void-variable) on defining auto-save-mode, there's a dotted pair there.
 ;; (load "simple")
 
 (load "help")
@@ -177,18 +176,20 @@
 ;;        This strict approach won't work, as several of the files below are indirectly referenced.
 ;;        And once loaddefs is in, all bets are off, as anything can be autoloaded.
 
-;; (load "jka-cmpr-hook")
+(load "jka-cmpr-hook")
 (load "epa-hook")
 ;; ;; Any Emacs Lisp source file (*.el) loaded here after can contain
 ;; ;; multilingual text.
+;; DEUCE: argument to nested lambda (pos) "not found".
+;; ------ Current state as of 2013-03-09.
 (load "international/mule-cmds")
 (load "case-table")
 ;; ;; This file doesn't exist when building a development version of Emacs
 ;; ;; from the repository.  It is generated just after temacs is built.
 (load "international/charprop.el" t)
+;; DEUCE: NPE in case-table/set-case-syntax-pair
 ;; (load "international/characters")
-;; DEUCE: We may try to skip this one.
-;; (load "composite")
+(load "composite")
 
 ;; DEUCE: Lanugage support to be revisited, one language must be defined.
 ;; ;; Load language-specific files.
@@ -219,18 +220,20 @@
 ;; (load "language/cham")
 
 (load "indent")
-;; (load "frame")
+(load "frame")
 ;; DEUCE: Referenced from startup.
 ;;        The generated init class gets invalid method code length, but loading the .clj itself works:
 ;;        rm target/classes/term/tty_colors__init.class
 ;; (load "term/tty-colors")
 ;; DEUCE: Hack to not compile tty-colors for now, see above.
 (load "term/tty-colors.el")
-;; (load "font-core")
+(load "font-core")
 ;; facemenu must be loaded before font-lock, because `facemenu-keymap'
 ;; needs to be defined when font-lock is loaded.
 (load "facemenu")
+;; DEUCE: requires cl-macs/lexical-let to work.
 ;; (load "emacs-lisp/syntax")
+;; DEUCE: requires cl-macs/lexical-let to work.
 ;; (load "font-lock")
 (load "jit-lock")
 
@@ -240,21 +243,25 @@
       (and (boundp 'x-toolkit-scroll-bars)
 	   (load "scroll-bar"))
       (load "select")))
+;; DEUCE: defalias fn arity issue, target is cl-macs/defstruct.
 ;; (load "emacs-lisp/timer")
 (load "isearch")
 (load "rfn-eshadow")
 
-;; (load "menu-bar")
+(load "menu-bar")
 (load "paths.el")  ;Don't get confused if someone compiled paths by mistake.
 (load "emacs-lisp/lisp")
 (load "textmodes/page")
+;; DEUCE: defalias fn arity issue, target is cl-macs/defstruct.
 ;; (load "register")
 (load "textmodes/paragraphs")
+;; DEUCE: (void-variable sorted-strings) - this is a var bound by let*, might not be the root cause.
 ;; (load "emacs-lisp/lisp-mode")
-;; (load "textmodes/text-mode")
+(load "textmodes/text-mode")
 (load "textmodes/fill")
 
-;; (load "replace")
+(load "replace")
+;; DEUCE: depends on edmacro/edmacro-parse-keys which blows up with boolean to number class cast.
 ;; (load "buff-menu")
 
 (if (fboundp 'x-create-frame)
@@ -305,6 +312,7 @@
 ;; Preload some constants and floating point functions.
 (load "emacs-lisp/float-sup")
 
+;; DEUCE: Dies with ClassCastException compiling vc.vc-hooks/vc-call-backend
 ;; (load "vc/vc-hooks")
 ;; (load "vc/ediff-hook")
 (if (fboundp 'x-show-tip) (load "tooltip"))

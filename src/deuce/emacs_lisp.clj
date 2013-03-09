@@ -116,6 +116,7 @@
 
 (def ^:dynamic *disallow-undefined* #{})
 
+;; build cached invoker to use once target is resolved?
 (c/defmacro delayed-eval [expr]
   `(binding [*disallow-undefined* (conj *disallow-undefined* '~(first expr))]
      (eval '~expr)))

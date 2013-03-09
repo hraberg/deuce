@@ -354,8 +354,7 @@
         (doseq [form  (concat '[(ns deuce.emacs (:refer-clojure :only []))]
                               el)]
           (pp/pprint form w)
-          (.write w "\n")
-          (.flush w)))
+          (.write w "\n")))
       (finally (timbre/set-level! level)))))
 
 (def ^:private ^:dynamic loads-in-progress #{})
