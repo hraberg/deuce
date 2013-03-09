@@ -67,22 +67,21 @@
 
 ;; Hack for a predicate in cl.el, this is defined in emacs-lisp/bytecomp.el, which we're not using
 (defun byte-compile-file-form (form))
-;; AOT cl.el gets confused by this alias
-(defalias 'cl-block-wrapper 'identity)
+;; ;; AOT cl.el gets confused by this alias
+;; (defalias 'cl-block-wrapper 'identity)
 
-;; Hack to ensure these gets treated as a macros even before loaded
-(defmacro declare (&rest _specs) nil)
-(defmacro dolist (spec &rest body) nil)
+;; Hack to ensure this gets treated as a macro even before loaded
+;; (defmacro declare (&rest _specs) nil)
 
 ;; Hacks to get a sneak peek of the welcome screen:
 ;; avoid loading frame.el yet
-(setq frame-initial-frame nil)
-(defun frame-initialize ())
-(defun normal-erase-is-backspace-setup-frame ())
-(defun newline (&optional arg) (c/println))
-(defun make-frame (&optional parameters))
-(defun display-graphic-p (&optional display))
-(defun display-mouse-p (&optional display))
+;; (setq frame-initial-frame nil)
+;; (defun frame-initialize ())
+;; (defun normal-erase-is-backspace-setup-frame ())
+;; (defun newline (&optional arg) (c/println))
+;; (defun make-frame (&optional parameters))
+;; (defun display-graphic-p (&optional display))
+;; (defun display-mouse-p (&optional display))
 
 ;; Stubs for modes defined in simple
 (defun special-mode ())

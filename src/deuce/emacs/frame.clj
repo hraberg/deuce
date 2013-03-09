@@ -1,9 +1,11 @@
 (ns deuce.emacs.frame
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.buffer :as buffer])
   (:refer-clojure :exclude []))
 
-(defvar menu-bar-mode nil
+(defvar menu-bar-mode true
   "Non-nil if Menu-Bar mode is enabled.
   See the command `menu-bar-mode' for a description of this minor mode.
   Setting this variable directly does not take effect;
@@ -224,9 +226,11 @@
   If omitted, FRAME defaults to the currently selected frame."
   )
 
+(declare selected-frame)
+
 (defun frame-list ()
   "Return a list of all live frames."
-  )
+  (alloc/list (selected-frame)))
 
 (defun set-frame-size (frame cols rows)
   "Sets size of FRAME to COLS by ROWS, measured in characters."
@@ -424,7 +428,7 @@
 
 (defun selected-frame ()
   "Return the frame that is now selected."
-  )
+  (str "#<frame " (buffer/current-buffer) ">"))
 
 (defun redirect-frame-focus (frame &optional focus-frame)
   "Arrange for keystrokes typed at FRAME to be sent to FOCUS-FRAME.
@@ -461,7 +465,7 @@
 
 (defun visible-frame-list ()
   "Return a list of all frames now \"visible\" (being updated)."
-  )
+  (frame-list))
 
 (defun frame-char-height (&optional frame)
   "Height in pixels of a line in the font in frame FRAME.

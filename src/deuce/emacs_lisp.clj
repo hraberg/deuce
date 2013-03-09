@@ -116,10 +116,14 @@
 
 (def ^:dynamic *disallow-undefined* #{})
 
+(declare eval)
 ;; build cached invoker to use once target is resolved?
+(defn delayed-eval* [expr]
+  (binding [*disallow-undefined* (conj *disallow-undefined* (first expr))]
+    (eval expr)))
+
 (c/defmacro delayed-eval [expr]
-  `(binding [*disallow-undefined* (conj *disallow-undefined* '~(first expr))]
-     (eval '~expr)))
+  `(delayed-eval* '~expr))
 
 (defn el->clj [x]
   (condp some [x]

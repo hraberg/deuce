@@ -93,7 +93,7 @@
   If optional argument FRAME is specified, make a frame-local face
   for that frame.  Otherwise operate on the global face definition.
   Value is a vector of face attributes."
-  )
+  nil)
 
 (defun display-supports-face-attributes-p (attributes &optional display)
   "Return non-nil if all the face attributes in ATTRIBUTES are supported.
@@ -112,7 +112,7 @@
   as it can display a yellowish color, but `:slant italic' will _not_ be
   satisfied by the tty display code's automatic substitution of a `dim'
   face for italic."
-  )
+  nil)
 
 (defun face-attribute-relative-p (attribute value)
   "Check whether a face attribute value is relative.
@@ -155,7 +155,7 @@
   FRAME t means change the default for new frames.
   FRAME 0 means change the face on all frames, and change the default
     for new frames."
-  )
+  nil)
 
 (defun clear-face-cache (&optional thoroughly)
   "Clear face caches on all frames.
@@ -167,7 +167,7 @@
   ALIST is an alist of (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...) entries.
   Each ALTERNATIVE is tried in order if no fonts of font registry REGISTRY can
   be found.  Value is ALIST."
-  )
+  nil)
 
 (defun merge-face-attribute (attribute value1 value2)
   "Return face ATTRIBUTE VALUE1 merged with VALUE2.
@@ -235,7 +235,7 @@
   If optional second argument FRAME is non-nil, check for the
   existence of a frame-local face with name FACE on that frame.
   Otherwise check for the existence of a global face."
-  )
+  nil)
 
 (defun internal-copy-lisp-face (from to frame new-frame)
   "Copy face FROM to TO.
