@@ -160,7 +160,7 @@
 ;;        (Running properly is another matter altogether.)
 ;; DEUCE: minibuffer autoloads pcase, but the order of definitions blows up as its expanding a macro depending on later fns.
 ;; (load "pcase")
-;; (load "minibuffer")
+(load "minibuffer")
 ;; DEUCE: abbrev mode, referenced by simple below (to turn it off at times)
 ;; (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
 ;; DEUCE: Massive support file for Emacs, adds completion, paren matching, line movement and various things.

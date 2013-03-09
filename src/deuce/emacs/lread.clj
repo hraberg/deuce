@@ -421,29 +421,21 @@
           (let [el-extension? (re-find #".el$" file)
                 file (s/replace file  #".el$" "")
                 clj-file (str (s/replace file "-" "_") ".clj") ;; should use actual classpath relative location, not loadpath
+                clj-name (symbol (s/replace file "/" "."))
                 last-modified #(if % (.getLastModified (.openConnection %)) -1)]
             (try
               (when (> (last-modified url) (last-modified (io/resource clj-file)))
                 (throw (FileNotFoundException. "out of date")))
-              (c/require (symbol (s/replace file "/" ".")))
+              (c/require clj-name)
               (catch FileNotFoundException _
                 (with-open [in (io/input-stream url)]
                   (let [el (parser/parse in)
                         clj-file (io/file *compile-path* clj-file)]
-                    (write-clojure (map #(let [clj (el/el->clj %)]
-                                           (try
-                                             ;; Would like to get rid of this extra eval state, but el->clj depends on the current state.
-                                             (eval/eval clj)
-                                             clj
-                                             (catch Exception e
-                                               (with-open [w (io/writer clj-file :append true)]
-                                                 (pp/pprint clj w))
-                                               (throw e))))
-                                        el)
+                    (write-clojure (map el/el->clj el)
                                    clj-file)
-                    (when-not el-extension?
-                      (binding [*compile-files* true] (require (symbol (s/replace file "/" "."))))))))))
-          true))
+                    (binding [*compile-files* (not el-extension?)]
+                      (require clj-name))))))
+            true)))
       (catch Exception e
         (when-not noerror
           (throw e))))))

@@ -114,6 +114,12 @@
                      (c/let [{:syms ~vars} vars#]
                             ~@body))))))
 
+(def ^:dynamic *disallow-undefined* #{})
+
+(c/defmacro delayed-eval [expr]
+  `(binding [*disallow-undefined* (conj *disallow-undefined* '~(first expr))]
+     (eval '~expr)))
+
 (defn el->clj [x]
   (condp some [x]
     #{()} nil
@@ -130,26 +136,19 @@
                     x)
                   (if (`#{el-var-get el-var-set el-var-set-default syntax-quote} fst)
                     x
-                    (c/cond
-                      ;; don't think this case is relevant anymore
-                     (= `symbol fst) (list `el-var-get x)
+                    (if (c/and (symbol? fst)
+                               (not (namespace fst))
+                               (not (fun fst)))
+                      (if (*disallow-undefined* fst)
+                        `(throw* '~'void-function '~fst)
+                        (list `delayed-eval x))
 
-                     :else (c/cons (c/cond
-                                  (c/and (symbol? fst)
-                                         (not (namespace fst))
-                                         (not (fun fst)))
-                                  (do (warn (format "Unable to resolve symbol: %s in this context" fst))
-                                      ;; Needs better fix, doesn't take macros into account, see defalias
-                                      (intern 'deuce.emacs fst)
-                                      (list `fun (list 'quote fst)))
-
-                                  (c/and (c/seq? fst) (= `symbol (first fst)))
-                                  (list `fun fst)
-
-
-                                  :else (if (seq? fst) (el->clj fst) fst))
-                            (map el->clj rst))))))
-    symbol? (if (namespace x) (if (-> (resolve x) meta :macro) (resolve x) x) (list `el-var-get x))
+                      (c/cons
+                       (if (seq? fst) (el->clj fst) fst)
+                       (map el->clj rst))))))
+    symbol? (if (namespace x)
+              (if (-> (resolve x) meta :macro) (resolve x) x)
+              (list `el-var-get x))
     x))
 
 (defn ^Throwable cause [^Throwable e]
@@ -174,68 +173,14 @@
   (try
     (when emacs-lisp (c/eval (if (meta emacs-lisp) (with-meta emacs-lisp nil) emacs-lisp)))
     (catch RuntimeException e
-      (when-not (.getMessage e)
+      (do
         (error (-> e cause .getMessage) (with-out-str (pp/pprint emacs-lisp)))
-        (throw e))
-      (if-let [[_ undeclared] (c/and (global 'load-in-progress)
-                                     @(global 'load-in-progress)
-                                     (c/re-find #"Unable to resolve symbol: (.+) in this context"
-                                                (.getMessage e)))]
-        (do
-          (warn (-> e cause .getMessage))
-          (intern 'deuce.emacs (symbol undeclared))
-          (compile emacs-lisp))
-        (do
-          (error (-> e cause .getMessage) (with-out-str (pp/pprint emacs-lisp)))
-          (throw e))))))
-
-;; This is used by Emacs Lisp defmacro to ensure Cons lists constructed actually gets compiled.
-;; Clojure defmacro does only work on IType/ISeq. Used with prewalk.
-;; (defn cons-lists-to-seqs [form]
-;;   (if (c/and (seq? form) (`#{quote} (first form)))
-;;     form
-;;     (if (instance? Cons form)
-;;       (apply list form)
-;;       form)))
-
-;; ;; There's a subtle difference between eval and macro-expansion.
-;; ;; Should be possible to unify, but requires some work.
-;; (defn cons-lists-to-seqs-for-eval [form]
-;;   (c/cond
-;;    (c/and (seq? form) (`#{quote} (first form)))
-;;    form
-
-;;    (seq? form) (map cons-lists-to-seqs-for-eval form)
-
-;;    (instance? Cons form) (apply list form)
-
-;;    :else
-;;    form))
-
-;; Emacs Lisp syntax quote leaves calls to cons/pair which needs to be expanded.
-;; Embedding a literal Cons cell won't let it unquote its contents.
-(defn expand-cons-ctors [form]
-  (c/cond
-   (c/and (seq? form) (= `cons/pair (first form)))
-   (cons/pair (second form) (last form))
-
-   (c/and (seq? form) (= '. (last (butlast form)))) (expand-cons-ctors (cons/cons-expand form))
-
-   (seq? form) (apply cons/list (map expand-cons-ctors form))
-
-   :else
-   form))
-
-(defn cons-to-list [x]
-  (if (instance? clojure.lang.Cons x)
-    (apply cons/list x)
-    x))
+        (throw e)))))
 
 ;; defined in eval.clj
 (defn eval [body & [lexical]]
   (binding [*ns* (the-ns 'deuce.emacs)]
     (with-bindings (if lexical {(global 'lexical-binding) true} {})
-      ;; Not sure we should seqify stuff here.
       (maybe-sym (compile (el->clj body))))))
 
 (declare let-helper* progn)
@@ -337,6 +282,46 @@
                        (c/let [{:syms ~(vec (keys &env))} closure#]
                               (progn ~@body))))
                    {:doc ~doc}))))
+
+;; defined in subr.el
+(c/defmacro declare-function
+ "Tell the byte-compiler that function FN is defined, in FILE.
+  Optional ARGLIST is the argument list used by the function.  The
+  FILE argument is not used by the byte-compiler, but by the
+  `check-declare' package, which checks that FILE contains a
+  definition for FN.  ARGLIST is used by both the byte-compiler and
+  `check-declare' to check for consistency.
+
+  FILE can be either a Lisp file (in which case the \".el\"
+  extension is optional), or a C file.  C files are expanded
+  relative to the Emacs \"src/\" directory.  Lisp files are
+  searched for using `locate-library', and if that fails they are
+  expanded relative to the location of the file containing the
+  declaration.  A FILE with an \"ext:\" prefix is an external file.
+  `check-declare' will check such files if they are found, and skip
+  them without error if they are not.
+
+  FILEONLY non-nil means that `check-declare' will only check that
+  FILE exists, not that it defines FN.  This is intended for
+  function-definitions that `check-declare' does not recognize, e.g.
+  `defstruct'.
+
+  To specify a value for FILEONLY without passing an argument list,
+  set ARGLIST to t.  This is necessary because nil means an
+  empty argument list, rather than an unspecified one.
+
+  Note that for the purposes of `check-declare', this statement
+  must be the first non-whitespace on a line.
+
+  For more information, see Info node `(elisp)Declaring Functions'."
+ [fn file & [arglist fileonly]]
+ {:arglists '([FN FILE &optional ARGLIST FILEONLY])}
+ (c/let [name (sym fn)]
+        `(do
+           ~(when-not (fun name)
+              `(do (def-helper* defn nil ~name ~arglist nil)
+                   (alter-meta! (el/fun '~name) merge {:file '~file :declared true})))
+           '~name)))
 
 ;; defined in subr.el
 (defn apply-partially
