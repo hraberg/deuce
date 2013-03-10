@@ -165,6 +165,9 @@
 ;;        Same in Clojure:
 ;;        (pcase '(current-time . 1) ((#el/sym "\\`" ((#el/sym "\\," (and (pred functionp) x)) . (#el/sym "\\," _))) (funcall x)))
 ;;        Pcase currently fails with Don't know how to create ISeq from: clojure.lang.Symbol in an odd way.
+;;        The problem is this: `(match ,sym ,@upat) both sym and upat are x.
+;;        An atom is allowed at a the tail as unquote-splicing in an Emacs Lisp, which basically uses setcdr:
+;;        '(match x . x)
 (load "minibuffer")
 ;; DEUCE: abbrev mode, referenced by simple below (to turn it off at times)
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.

@@ -437,7 +437,8 @@
   "Apply FUNCTION to each element of SEQUENCE, and make a list of the results.
   The result is a list just as long as SEQUENCE.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  (apply alloc/list (map (el/fun function) (apply alloc/list sequence))))
+  (el/check-type 'sequencep sequence)
+  (apply alloc/list (map (el/fun function) sequence)))
 
 (defun fillarray (array item)
   "Store each element of ARRAY with ITEM.
