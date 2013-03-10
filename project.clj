@@ -4,7 +4,7 @@
             :url "http://www.gnu.org/licenses/"
             :distribution :repo}
   :url "http://www.gnu.org/software/emacs/"
-  :dependencies [[org.clojure/clojure "1.5.0"]
+  :dependencies [[org.clojure/clojure "1.5.1"]
                  [clojure-lanterna "0.9.2"]
                  [com.taoensso/timbre "1.4.0"]]
   :plugins [[lein-swank "1.4.5"]
