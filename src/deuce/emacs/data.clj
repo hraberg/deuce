@@ -229,9 +229,10 @@
 (defun eq (obj1 obj2)
   "Return t if the two args are the same Lisp object."
   (cond
-    (null obj1) (null obj2)
-    (symbol? obj1) (c/= obj1 obj2)
-    :else (identical? obj1 obj2)))
+   (null obj1) (null obj2)
+    ;; Macros can get confused by the exact namespace
+   (and (symbol? obj1) (symbol? obj2)) (c/= (name obj1) (name obj2))
+   :else (identical? obj1 obj2)))
 
 (defun * (&rest numbers-or-markers)
   "Return product of any number of arguments, which are numbers or markers."
@@ -542,7 +543,11 @@
                                                             (-> f meta :doc)
                                                             (-> definition meta :doc))))
       (alter-meta! (el/fun symbol) assoc :alias true)
-      (when-not lambda? (.setMacro (el/fun symbol))))
+      (when-not lambda? (.setMacro (el/fun symbol)))
+      ;; We want this, but it currently wrecks havoc due to backquote
+      ;; (when (and lambda? (-> definition meta :macro)))
+      ;;   (.setMacro (el/fun symbol))))
+      )
     definition))
 
 (defun setplist (symbol newplist)

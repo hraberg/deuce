@@ -1,4 +1,5 @@
 (ns deuce.emacs-lisp.cons
+  (:require [clojure.core :as c])
   (:refer-clojure :exclude [list cons])
   (:import [clojure.lang Seqable Sequential
             IPersistentCollection ISeq Cons
@@ -23,8 +24,12 @@
   (and (seq? x) (= '. (last (butlast x)))
        (satisfies? IList (last x))))
 
+(defn dotted-list-ending-in-pair? [x]
+  (and (seq? x) (= '. (last (butlast x)))
+       (not (satisfies? IList (last x)))))
+
 (defn dotted-pair? [x]
-  (and (seq? x) (= '. (last (butlast x))) (= 3 (count x))))
+  (and (seq? x) (= 3 (count x)) (= '. (last (butlast x)))))
 
 (extend-type IPersistentCollection
   IList
@@ -58,7 +63,7 @@
       (if (dotted-pair? this)
         (setcar (rest (rest this)) val)
         (do
-          (.set l_rest this (clojure.core/list '. val))
+          (.set l_rest this (c/list '. val))
           (.set l_count this (int 3)))))
     val))
 
@@ -84,18 +89,17 @@
                          (recur (cdr c) (inc idx)))
          :else (.write w ")"))))))
 
-(defmethod print-method PersistentList [c ^Writer w]
-  (print-list c w))
+;; (defmethod print-method PersistentList [c ^Writer w]
+;;   (print-list c w))
 
-(defmethod print-method Cons [c ^Writer w]
-  (print-list c w))
+;; (defmethod print-method Cons [c ^Writer w]
+;;   (print-list c w))
 
 (defn pair [car cdr]
   (if (satisfies? IList cdr)
-    (let [l (clojure.core/list car)]
-      (setcdr l cdr)
-      l)
-    (clojure.core/list car '. cdr)))
+    (doto (c/list car)
+      (setcdr cdr))
+    (c/list car '. cdr)))
 
 ;; Fix uses of (apply cons/list ...) to something saner
 (defn list [& objects]
@@ -106,21 +110,12 @@
 (defn last-cons [l]
   (if (not (satisfies? ICons (cdr l))) l (recur (cdr l))))
 
-(defn cons-expand [form]
-  (let [c (apply list (drop-last 2 form))]
-    (setcdr (last-cons c) (last form))
-    c))
-
 ;; Figure out where this is actually needed.
 (defn maybe-seq [x]
   (if (and (seq? x)
+           (not (dotted-pair? x))
            (not (instance? PersistentList x)))
-    (if (dotted-pair? x)
-      x
-      (apply list x)
-      ;; Be smarter here? Many types of seqs.
-      ;; (if (or (dotted-list? x) (instance? LazySeq))
-      ;;   (apply list x)
-      ;;   x)
-      )
+    (if (dotted-list-ending-in-pair? x)
+      (apply c/list x)
+      (apply list x))
     x))

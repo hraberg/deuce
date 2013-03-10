@@ -175,15 +175,18 @@
     (.setAccessible true)))
 
 (defn syntax-quote* [form]
-  (el->clj (.invoke clojure-syntax-quote nil (into-array [form]))))
+  (.invoke clojure-syntax-quote nil (into-array [form])))
 
+;; There's a version of this already defined as macro in backquote.el, use it / override it?
+;; What's their relationship?
 (defn emacs-lisp-backquote [form]
-  (w/postwalk #(c/cond
-                (c/and (seq? %) (= '#el/sym "\\`" (first %)))
-                (w/postwalk cons/maybe-seq (syntax-quote* (second %)))
-                (= '#el/sym "\\," %) `unquote
-                (= '#el/sym "\\,@" %) `unquote-splicing
-                :else %) form))
+  (w/postwalk
+   #(c/cond
+     (c/and (seq? %) (= '#el/sym "\\`" (first %)))
+     (w/postwalk cons/maybe-seq (el->clj (syntax-quote* (second %))))
+     (= '#el/sym "\\," %) `unquote
+     (= '#el/sym "\\,@" %) `unquote-splicing
+     :else %) form))
 
 ;; Explore to either get rid of or just using the macro, not both el->clj and it
 ;; (c/defmacro #el/sym "\\`" [form]
@@ -288,7 +291,8 @@
   (c/let [[args & body] cdr
           [docstring body] (parse-doc-string body)
           doc (apply str docstring)
-          vars (vec (keys &env))]
+          vars (remove #(re-find #"__\d+" (name %)) (keys &env))
+          vars (vec (remove (c/set args) vars))]
          ;; This is wrong as it won't share updates between original definition and the lambda var.
          ;; Yet to see if this ends up being a real issue.
          `(c/let [closure# (zipmap '~vars
@@ -297,7 +301,7 @@
                  (with-meta
                    (def-helper* fn nil lambda ~args
                      (binding [*dynamic-vars* (if (dynamic-binding?) (merge *dynamic-vars* closure#) {})]
-                       (c/let [{:syms ~(vec (keys &env))} closure#]
+                       (c/let [{:syms ~vars} closure#]
                               (progn ~@body))))
                    {:doc ~doc}))))
 

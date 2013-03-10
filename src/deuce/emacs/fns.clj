@@ -531,12 +531,14 @@
   Numbers are compared by value, but integers cannot equal floats.
    (Use `=' if you want integers and floats to be able to be equal.)
   Symbols must match exactly."
-  (if (and (seq? o1) (seq? o2))
-    (every? true? (map equal o1 o2))
-    (if (and (data/numberp o1) (data/numberp o2))
-      (and (= (data/floatp o1) (data/floatp o2))
-           (data/= o1 o2))
-      (Objects/deepEquals o1 o2))))
+  (or (data/eq o1 o2)
+      (if (and (seq? o1) (seq? o2))
+        (c/and (equal (car o1) (car o2))
+               (equal (cdr o1) (cdr o2)))
+        (if (and (data/numberp o1) (data/numberp o2))
+          (and (= (data/floatp o1) (data/floatp o2))
+               (data/= o1 o2))
+          (Objects/deepEquals o1 o2)))))
 
 (declare reverse)
 

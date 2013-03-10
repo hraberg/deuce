@@ -159,7 +159,12 @@
 ;;        (Running properly is another matter altogether.)
 ;;        The pcase issue is not really solved, but autoloads are now delayed until actually called.
 ;;        Pcase is pretty new in Emacs terms, seems to be more of it in 24.3.
-; (load "pcasehack")
+;;        This enters a never ending loop in pcase.clj, works in pcase.el, something with and:
+;;        Emacs Lisp:
+;;        (pcase '(current-time . 1) (`(,(and (pred functionp) x) . ,_) (funcall x)))
+;;        Same in Clojure:
+;;        (pcase '(current-time . 1) ((#el/sym "\\`" ((#el/sym "\\," (and (pred functionp) x)) . (#el/sym "\\," _))) (funcall x)))
+;;        Pcase currently fails with Don't know how to create ISeq from: clojure.lang.Symbol in an odd way.
 (load "minibuffer")
 ;; DEUCE: abbrev mode, referenced by simple below (to turn it off at times)
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
