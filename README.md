@@ -459,6 +459,10 @@ Which nicely leads into richer, HTML based versions - the general approach in "`
 
 I'll revisit the name if the Clojure port actually becomes usable and the name clash with Dylan Deuce leads to confusion.
 
+### Contributors
+
+Navgeet Agrawal, Kevin Downey, Bjarte Johansen, Ryan Kelker and Håkan Råberg.
+
 
 ## References
 
