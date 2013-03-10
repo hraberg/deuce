@@ -304,7 +304,6 @@
   BODY should be a list of Lisp expressions."
   {:arglists '([ARGS [DOCSTRING] [INTERACTIVE] BODY])}
   [& cdr]
-  (println cdr)
   (c/let [[args & body] cdr
           [docstring body] (parse-doc-string body)
           doc (apply str docstring)
