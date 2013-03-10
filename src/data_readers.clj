@@ -1,2 +1,2 @@
-{deuce/vector deuce.emacs-lisp/vector-reader
- deuce/symbol deuce.emacs-lisp/symbol-reader}
+{el/vec deuce.emacs-lisp/vector-reader
+ el/sym deuce.emacs-lisp/symbol-reader}

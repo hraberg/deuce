@@ -2,7 +2,7 @@
   (:refer-clojure :exclude [list cons])
   (:import [clojure.lang Seqable Sequential
             IPersistentCollection ISeq Cons
-            IPersistentList PersistentList]
+            IPersistentList PersistentList LazySeq]
            [java.io Writer]
            [java.lang.reflect Field]))
 
@@ -19,8 +19,12 @@
   (car [this] nil)
   (cdr [this] nil))
 
+(defn dotted-list? [x]
+  (and (seq? x) (= '. (last (butlast x)))
+       (satisfies? IList (last x))))
+
 (defn dotted-pair? [x]
-  (and (seq? x) (= '. (last (butlast x)))))
+  (and (seq? x) (= '. (last (butlast x))) (= 3 (count x))))
 
 (extend-type IPersistentCollection
   IList
@@ -75,9 +79,9 @@
         (.write w (pr-str (car c)))
         (cond
          (not (satisfies? IList (cdr c))) (.write w (str " . " (pr-str (cdr c)) ")"))
-         (cdr c) (do
-                   (.write w " ")
-                   (recur (cdr c) (inc idx)))
+         (seq (cdr c)) (do
+                         (.write w " ")
+                         (recur (cdr c) (inc idx)))
          :else (.write w ")"))))))
 
 (defmethod print-method PersistentList [c ^Writer w]
@@ -113,6 +117,10 @@
            (not (instance? PersistentList x)))
     (if (dotted-pair? x)
       x
-;      (cons-expand x)
-      (apply list x))
+      (apply list x)
+      ;; Be smarter here? Many types of seqs.
+      ;; (if (or (dotted-list? x) (instance? LazySeq))
+      ;;   (apply list x)
+      ;;   x)
+      )
     x))

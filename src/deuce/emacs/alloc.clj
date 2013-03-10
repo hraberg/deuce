@@ -152,7 +152,7 @@
   "Create a new cons, give it CAR and CDR as components, and return it."
   (cons/pair (cons/maybe-seq car) (cons/maybe-seq cdr)))
 
-(defun #deuce/symbol "/=" (num1 num2)
+(defun #el/sym "/=" (num1 num2)
   "Return t if first arg is not equal to second arg.  Both must be numbers or markers."
   (not (== num1 num2)))
 

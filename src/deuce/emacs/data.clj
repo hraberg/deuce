@@ -24,7 +24,7 @@
   (print-method (vec (cons/ellipsis o)) w))
 
 (defmethod print-dup array-class [array ^Writer w]
-  (.write w "#deuce/vector [")
+  (.write w "#el/vec [")
   (dotimes [idx (count array)]
     (print-dup (aget array idx) w)
     (when-not (c/= idx (dec (count array)))
@@ -33,7 +33,7 @@
 
 (defmethod print-dup Symbol [s ^Writer w]
   (if (and (re-find  #"([\\,/]|^\d)" (name s)) (not= "/" (name s)))
-    (.write w (str "#deuce/symbol " (pr-str (name s))))
+    (.write w (str "#el/sym " (pr-str (name s))))
     (.write w (str s))))
 
 (defrecord CharTable
@@ -179,7 +179,7 @@
   interned in the initial obarray."
   (keyword? object))
 
-(defun #deuce/symbol "1+" (number)
+(defun #el/sym "1+" (number)
   "Return NUMBER plus one.  NUMBER may be a number or a marker.
   Markers are converted to integers."
   (inc (promote-char number)))
@@ -594,7 +594,7 @@
   Both X and Y must be numbers or markers."
   (c/mod x y))
 
-(defun #deuce/symbol "1-" (number)
+(defun #el/sym "1-" (number)
   "Return NUMBER minus one.  NUMBER may be a number or a marker.
   Markers are converted to integers."
   (dec (promote-char number)))

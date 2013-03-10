@@ -57,12 +57,12 @@
       #"[)\]]" `end
       #"\(" (tokenize-all sc)
       #"\[" (as-vector (tokenize-all sc))
-      #"," (list (if (find #"@" 1) `unquote-splicing `unquote) (tokenize sc))
+      #"," (list (if (find #"@" 1) '#el/sym "\\,@" '#el/sym "\\,") (tokenize sc))
       #"'" (list 'quote (tokenize sc))
       #"`" (let [form  (tokenize sc)]
              (if (symbol? form)
                (list 'quote form)
-               (list `el/syntax-quote form)))
+               (list '#el/sym "\\`" form)))
       #":" (keyword (.next sc))
       #"\?" (parse-character (find re-char 0))
       #"\"" (parse-string (str \" (find re-str 0)))

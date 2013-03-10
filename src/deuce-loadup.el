@@ -158,6 +158,8 @@
 ;;        PersistentList instead of Cons and syntax-quoted deuce.emacs-lisp.cons/pair are known issues.
 ;;        (Running properly is another matter altogether.)
 ;;        The pcase issue is not really solved, but autoloads are now delayed until actually called.
+;;        Pcase is pretty new in Emacs terms, seems to be more of it in 24.3.
+; (load "pcasehack")
 (load "minibuffer")
 ;; DEUCE: abbrev mode, referenced by simple below (to turn it off at times)
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.

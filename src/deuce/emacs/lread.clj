@@ -322,25 +322,18 @@
   This uses the variables `load-suffixes' and `load-file-rep-suffixes'."
   (apply alloc/list (remove empty? (concat globals/load-file-rep-suffixes globals/load-suffixes))))
 
-(def ^:dynamic *inside-quote* false)
+(def ^:private default-reader-macros ((ns-map 'clojure.pprint) 'reader-macros))
 
-(let [reader-macros ((ns-map 'clojure.pprint) 'reader-macros)]
+;; Move this to a try/finally style to not mess up the real Clojure map.
+;; Also: Explore blacklist of files (ie. minibuffer.clj) that actually needs the full Emacs Lisp syntax quote forms available.
+;;       Print normal Clojure for the rest.
+(let [reader-macros default-reader-macros]
   (alter-var-root reader-macros
                   merge `{el/syntax-quote "`" unquote-splicing "~@" clojure.core/quote "'"})
   (alter-var-root reader-macros dissoc 'var))
 
 (defmethod pp/simple-dispatch (type (object-array 0)) [arr]
   (print-dup arr *out*))
-
-;; this should also delegate to print-dup
-;; (defmethod pp/simple-dispatch Cons [cons]
-;;   (print-dup cons *out*)
-;;   ;; (print "#deuce/cons (")
-;;   ;; (pp/write-out (car cons))
-;;   ;; (print " . ")
-;;   ;; (pp/write-out (cdr cons))
-;;   ;; (print ")")
-;;   )
 
 (defmethod pp/simple-dispatch Symbol [s]
   (print-dup s *out*))

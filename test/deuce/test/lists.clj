@@ -78,7 +78,7 @@
 
       (eq wood trees)                 ⇒ true
 
-      (append #deuce/vector [a b] "cd" nil)
+      (append #el/vec [a b] "cd" nil)
                                       ⇒ '(a b 99 100)
 
       (apply 'append '((a b c) nil (x y z) nil))
@@ -88,8 +88,8 @@
 
       (append '(x y) 'z)              ⇒ '(x y . z)
 
-      (append '(x y) #deuce/vector [z])
-                                     ⇒ '(x y . #deuce/vector [z])
+      (append '(x y) #el/vec [z])
+                                     ⇒ '(x y . #el/vec [z])
 
       (setq x '(1 2 3 4))             ⇒ '(1 2 3 4)
 

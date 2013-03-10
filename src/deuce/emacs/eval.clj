@@ -1,6 +1,7 @@
 (ns deuce.emacs.eval
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
+            [deuce.emacs.alloc :as alloc]
             [deuce.emacs.data :as data]
             [deuce.emacs-lisp :as el])
   (:refer-clojure :exclude [apply eval macroexpand]))
@@ -124,7 +125,10 @@
 
 (defun functionp (object)
   "Non-nil if OBJECT is a function."
-  (fn? object))
+  (when (or (fn? object)
+            (and (symbol? object) (el/fun object))
+            (and (seq? object) (= 'lambda (first object))))
+    true))
 
 (declare eval)
 
@@ -150,12 +154,15 @@
                                 ((ns-resolve 'deuce.emacs 'load) (-> f meta :file) nil true))))
           definition  (if macro?
                         (fn autoload [&form &env & args] ;; Note implicit macro args, see defalias
-                          ;; To delay autoload of macros until first call.
+                          ;; To delay autoload of macros until first call:
                           ;; (list `eval
                           ;;       (list 'quote
                           ;;             (list 'do
                           ;;                   `(~autoload-symbol '~function)
                           ;;                   `(el/progn (~(el/sym function) ~@args)))))
+                          ;; 24.3 has something around eager macros, not sure if this includes autoloads:
+                          ;; "Eager macro-expansion skipped due to cycle"
+                          ;; The following eagerly loads and expands macros:
                           (do
                             (autoload-symbol function)
                             `(el/progn (~(el/sym function) ~@args)))
@@ -323,7 +330,7 @@
   Then return the value FUNCTION returns.
   Thus, (apply '+ 1 2 '(3 4)) returns 10."
   (c/apply (if (symbol? function) (data/symbol-function function) function)
-           (concat (butlast arguments) (last arguments))))
+           (c/apply alloc/list (concat (butlast arguments) (last arguments)))))
 
 (defun run-hooks (&rest hooks)
   "Run each hook in HOOKS.

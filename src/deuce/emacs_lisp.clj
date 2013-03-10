@@ -116,7 +116,7 @@
 
 (def ^:dynamic *disallow-undefined* #{})
 
-(declare eval)
+(declare eval emacs-lisp-backquote)
 ;; build cached invoker to use once target is resolved?
 (defn delayed-eval* [expr]
   (binding [*disallow-undefined* (conj *disallow-undefined* (first expr))]
@@ -124,6 +124,11 @@
 
 (c/defmacro delayed-eval [expr]
   `(delayed-eval* '~expr))
+
+(defn expand-dotted-lists [x]
+  (if (c/or (cons/dotted-list? x) (cons/dotted-pair? x))
+     (apply cons/list x)
+     x))
 
 (defn el->clj [x]
   (condp some [x]
@@ -139,18 +144,20 @@
                         (if (= '(()) rst) () x))
                       (c/cons (symbol "deuce.emacs-lisp" (name fst)) rst))
                     x)
-                  (if (`#{el-var-get el-var-set el-var-set-default syntax-quote} fst)
+                  (if (`#{el-var-get el-var-set el-var-set-default} fst)
                     x
-                    (if (c/and (symbol? fst)
-                               (not (namespace fst))
-                               (not (fun fst)))
-                      (if (*disallow-undefined* fst)
-                        `(throw* '~'void-function '~fst)
-                        (list `delayed-eval x))
+                    (if (=  '#el/sym "\\`" fst)
+                      (emacs-lisp-backquote x) ;; See below, we dont want to duplicate this if not necessary.
+                      (if (c/and (symbol? fst)
+                                 (not (namespace fst))
+                                 (not (fun fst)))
+                        (if (*disallow-undefined* fst)
+                          `(throw* '~'void-function '~fst)
+                          (list `delayed-eval x))
 
-                      (c/cons
-                       (if (seq? fst) (el->clj fst) fst)
-                       (map el->clj rst))))))
+                        (expand-dotted-lists (c/cons
+                                              (if (seq? fst) (el->clj fst) fst)
+                                              (map el->clj rst))))))))
     symbol? (if (namespace x)
               (if (-> (resolve x) meta :macro) (resolve x) x)
               (list `el-var-get x))
@@ -171,8 +178,17 @@
 (defn syntax-quote* [form]
   (el->clj (.invoke clojure-syntax-quote nil (into-array [form]))))
 
-(c/defmacro syntax-quote [form]
-  (syntax-quote* form))
+(defn emacs-lisp-backquote [form]
+  (w/postwalk #(c/cond
+                (c/and (seq? %) (= '#el/sym "\\`" (first %)))
+                (w/postwalk cons/maybe-seq (syntax-quote* (second %)))
+                (= '#el/sym "\\," %) `unquote
+                (= '#el/sym "\\,@" %) `unquote-splicing
+                :else %) form))
+
+;; Explore to either get rid of or just using the macro, not both el->clj and it
+(c/defmacro #el/sym "\\`" [form]
+  (emacs-lisp-backquote (list '#el/sym "\\`" form)))
 
 (defn compile [emacs-lisp]
   (try
@@ -187,8 +203,6 @@
   (binding [*ns* (the-ns 'deuce.emacs)]
     (with-bindings (if lexical {(global 'lexical-binding) true} {})
       (maybe-sym (compile (el->clj body))))))
-
-(declare let-helper* progn)
 
 (defn parse-doc-string [[doc & rst :as body]]
   (if (string? doc)

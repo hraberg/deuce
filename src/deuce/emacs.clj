@@ -59,6 +59,10 @@
 
 (setq t true)
 
+;; Is this needed?
+(def #el/sym "\\`" (c/ns-resolve 'deuce.emacs-lisp '#el/sym "\\`"))
+(.setMacro #'#el/sym "\\`")
+
 (setq motif-version-string "")
 (setq gtk-version-string "")
 (setq ns-version-string "")
@@ -68,10 +72,10 @@
 ;; Hack for a predicate in cl.el, this is defined in emacs-lisp/bytecomp.el, which we're not using
 (defun byte-compile-file-form (form))
 ;; ;; AOT cl.el gets confused by this alias
-;; (defalias 'cl-block-wrapper 'identity)
+(defalias 'cl-block-wrapper 'identity)
 
 ;; Hack to ensure this gets treated as a macro even before loaded
-;; (defmacro declare (&rest _specs) nil)
+(defmacro declare (&rest _specs) nil)
 
 ;; Hacks to get a sneak peek of the welcome screen:
 ;; avoid loading frame.el yet
@@ -88,7 +92,7 @@
 (defun transient-mark-mode (arg))
 
 ;; If abbrev isn't loaded
-(setq abbrev-file-name "~/.emacs.d/abbrev_defs")
+;; (setq abbrev-file-name "~/.emacs.d/abbrev_defs")
 
 ;; Keymap setup
 (setq global-map (make-keymap))
