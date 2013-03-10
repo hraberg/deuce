@@ -461,7 +461,7 @@ I'll revisit the name if the Clojure port actually becomes usable and the name c
 
 ### Contributors
 
-Navgeet Agrawal, Kevin Downey, Bjarte Johansen, Ryan Kelker and Håkan Råberg.
+[Navgeet Agrawal](https://github.com/Navgeet), [Kevin Downey](https://github.com/hiredman), [Bjarte Johansen](https://github.com/ljos), [Ryan Kelker](https://github.com/runexec) and [Håkan Råberg](https://github.com/hraberg).
 
 
 ## References
