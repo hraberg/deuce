@@ -153,18 +153,7 @@
 
 ;; DEUCE: minibuffer implements completion, the actual minibuffer is (not yet) in minibuf.clj
 ;;        Autoloads (but fails) pcase, which is a pattern matcher utterly confused by Deuce's concept of cons.
-;;        Also, a minor mode macro which many files use is blowing up, next thing to investigate.
-;;        cl-macs and autoloads seem to be the main things from actually compiling and loading the rest of the needed files.
-;;        PersistentList instead of Cons and syntax-quoted deuce.emacs-lisp.cons/pair are known issues.
-;;        (Running properly is another matter altogether.)
-;;        The pcase issue is not really solved, but autoloads are now delayed until actually called.
 ;;        Pcase is pretty new in Emacs terms, seems to be more of it in 24.3.
-;;        This enters a never ending loop in pcase.clj, works in pcase.el, something with and:
-;;        Emacs Lisp:
-;;        (pcase '(current-time . 1) (`(,(and (pred functionp) x) . ,_) (funcall x)))
-;;        Same in Clojure:
-;;        (pcase '(current-time . 1) ((#el/sym "\\`" ((#el/sym "\\," (and (pred functionp) x)) . (#el/sym "\\," _))) (funcall x)))
-;;        Pcase currently fails with Don't know how to create ISeq from: clojure.lang.Symbol in an odd way.
 ;;        The problem is this: `(match ,sym ,@upat) both sym and upat are x.
 ;;        An atom is allowed at a the tail as unquote-splicing in an Emacs Lisp, which basically uses setcdr:
 ;;        '(match x . x)

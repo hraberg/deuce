@@ -151,7 +151,7 @@
 (defun frame-parameter (frame parameter)
   "Return FRAME's value for parameter PARAMETER.
   If FRAME is nil, describe the currently selected frame."
-  )
+  nil)
 
 (defun framep (object)
   "Return non-nil if OBJECT is a frame.

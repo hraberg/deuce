@@ -79,7 +79,10 @@
 (c/defmacro el-var-get [name]
   (c/let [name (sym name)]
          (if (c/and (symbol? name) (name &env))
-           `(if (var? ~name) @~name ~name)
+           `(if (var? ~name)
+              (if (bound? ~name)@~name
+                  (throw* '~'void-variable '~name))
+              ~name)
            `(el-var-get* '~name))))
 
 ;; split these out into el-var-set-** and get rid of eval in deuce.emacs.data/set(-default)
@@ -95,7 +98,7 @@
          `(c/let [value# ~value]
                  (if-let [^Var v# (c/or ~(c/and (symbol? name) (name &env) name)
                                         ((some-fn *dynamic-vars* el-var-buffer-local) '~name))]
-                   (if (c/and (.hasRoot v#) (not (.getThreadBinding v#)))
+                   (if (c/or (c/and (.hasRoot v#) (not (.getThreadBinding v#))) (not (bound? v#)))
                      (alter-var-root v# (constantly value#))
                      (var-set v# value#))
                    (el-var-set-default ~name value#)))))
@@ -159,7 +162,9 @@
                                               (map el->clj rst))))))))
     symbol? (if (namespace x)
               (if (-> (resolve x) meta :macro) (resolve x) x)
-              (list `el-var-get x))
+              (if (= '. x)
+                x
+                (list `el-var-get x)))
     x))
 
 (defn ^Throwable cause [^Throwable e]
@@ -177,18 +182,29 @@
 (defn syntax-quote* [form]
   (.invoke clojure-syntax-quote nil (into-array [form])))
 
+;; Emacs Lisp allows an atom to be spliced if it is in the last position, like this:
+;; (let ((upat 'x) (sym 'x))
+;;   `(match ,sym ,@upat))
+;; => (match x . x)
+(defn maybe-splice-dotted-list [x]
+  (if ((some-fn seq? nil?) x) x `(. ~x)))
+
 ;; There's a version of this already defined as macro in backquote.el, use it / override it?
 ;; What's their relationship?
 (defn emacs-lisp-backquote [form]
   (w/postwalk
    #(c/cond
+     (c/and (seq? %) (seq? (last %)) (= `unquote-splicing (first (last %))))
+     (concat (butlast %) `((unquote-splicing (maybe-splice-dotted-list ~(second (last %))))))
+
      (c/and (seq? %) (= '#el/sym "\\`" (first %)))
      (w/postwalk cons/maybe-seq (el->clj (syntax-quote* (second %))))
+
      (= '#el/sym "\\," %) `unquote
      (= '#el/sym "\\,@" %) `unquote-splicing
      :else %) form))
 
-;; Explore to either get rid of or just using the macro, not both el->clj and it
+;; Explore to either get rid of or just using the macro, not both el->clj and it.
 ;; (c/defmacro #el/sym "\\`" [form]
 ;;   (emacs-lisp-backquote (list '#el/sym "\\`" form)))
 
@@ -288,15 +304,20 @@
   BODY should be a list of Lisp expressions."
   {:arglists '([ARGS [DOCSTRING] [INTERACTIVE] BODY])}
   [& cdr]
+  (println cdr)
   (c/let [[args & body] cdr
           [docstring body] (parse-doc-string body)
           doc (apply str docstring)
           vars (remove #(re-find #"__\d+" (name %)) (keys &env))
           vars (vec (remove (c/set args) vars))]
          ;; This is wrong as it won't share updates between original definition and the lambda var.
-         ;; Yet to see if this ends up being a real issue.
+         ;; Yet to see if this ends up being a real issue. A few days later: Indeed it is!
          `(c/let [closure# (zipmap '~vars
-                                   (map #(doto (Var/create (if (var? %) (deref %) %)) .setDynamic)
+                                   (map #(doto
+                                             (if (dynamic-binding?) ;; Temporary hack.
+                                               (if (var? %) % (Var/create %))
+                                               (Var/create (if (var? %) (deref %) %)))
+                                           .setDynamic)
                                         ~vars))]
                  (with-meta
                    (def-helper* fn nil lambda ~args
@@ -459,6 +480,10 @@
   [arg]
   `(quote ~arg))
 
+;; Bindings refering to other bindings and modifying them don't work properly.
+;; The vars must be created here instead of in with-local-el-vars (which might be removed).
+;; Everytime you make a 'sane' assumption you're bound to find some Emacs Lisp breaking it.
+;; (let* ((x 2) (y (setq x 4))) (+ x y)) => 8
 (c/defmacro let-helper* [can-refer? varlist & body]
   (c/let [varlist (map #(if (symbol? %) [% nil] %) varlist)
           all-vars (map (comp sym first) varlist)
