@@ -22,7 +22,7 @@
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
 
-(declare clojure-special-forms throw defvar el->clj)
+(declare clojure-special-forms throw defvar el->clj eval emacs-lisp-backquote)
 
 (defn vector-reader [v]
   (object-array (vec v)))
@@ -116,7 +116,6 @@
 
 (def ^:dynamic *disallow-undefined* #{})
 
-(declare eval emacs-lisp-backquote)
 ;; build cached invoker to use once target is resolved?
 (defn delayed-eval* [expr]
   (binding [*disallow-undefined* (conj *disallow-undefined* (first expr))]
@@ -187,8 +186,8 @@
                 :else %) form))
 
 ;; Explore to either get rid of or just using the macro, not both el->clj and it
-(c/defmacro #el/sym "\\`" [form]
-  (emacs-lisp-backquote (list '#el/sym "\\`" form)))
+;; (c/defmacro #el/sym "\\`" [form]
+;;   (emacs-lisp-backquote (list '#el/sym "\\`" form)))
 
 (defn compile [emacs-lisp]
   (try
