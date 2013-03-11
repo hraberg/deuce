@@ -177,20 +177,20 @@
 
 (load "jka-cmpr-hook")
 (load "epa-hook")
-;; ;; Any Emacs Lisp source file (*.el) loaded here after can contain
-;; ;; multilingual text.
+;; Any Emacs Lisp source file (*.el) loaded here after can contain
+;; multilingual text.
 ;; DEUCE: argument to nested lambda (pos) "not found".
 (load "international/mule-cmds")
 (load "case-table")
-;; ;; This file doesn't exist when building a development version of Emacs
-;; ;; from the repository.  It is generated just after temacs is built.
+;; This file doesn't exist when building a development version of Emacs
+;; from the repository.  It is generated just after temacs is built.
 (load "international/charprop.el" t)
 ;; DEUCE: NPE in case-table/set-case-syntax-pair
 (load "international/characters")
 (load "composite")
 
 ;; DEUCE: Lanugage support to be revisited, one language must be defined.
-;; ;; Load language-specific files.
+;; Load language-specific files.
 ;; (load "language/chinese")
 ;; (load "language/cyrillic")
 ;; (load "language/indian")
@@ -230,9 +230,9 @@
 ;; needs to be defined when font-lock is loaded.
 (load "facemenu")
 ;; DEUCE: requires cl-macs/lexical-let to work.
-;; (load "emacs-lisp/syntax")
+(load "emacs-lisp/syntax")
 ;; DEUCE: requires cl-macs/lexical-let to work.
-;; (load "font-lock")
+(load "font-lock")
 (load "jit-lock")
 
 (if (fboundp 'track-mouse)
@@ -446,10 +446,10 @@
 ;;        deuce-loadup.el is loaded in deuce.main. Further C init goes into deuce.emacs.
 (eval top-level)
 
-;; 
-;; ;; Local Variables:
-;; ;; no-byte-compile: t
-;; ;; no-update-autoloads: t
-;; ;; End:
+
+;; Local Variables:
+;; no-byte-compile: t
+;; no-update-autoloads: t
+;; End:
 
-;; ;;; loadup.el ends here
+;;; loadup.el ends here
