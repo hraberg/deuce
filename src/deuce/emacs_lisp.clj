@@ -443,7 +443,7 @@
   `(c/cond
      ~@(->> clauses
             (map #(do [`(not-null? ~(el->clj (first %)))
-                       (if (second %) `(progn ~@(rest %)) (el->clj (first %)))]))
+                       (if (= 1 (count %)) (el->clj (first %)) `(progn ~@(rest %)))]))
             (apply concat))))
 
 (c/defmacro setq-helper* [default? sym-vals]

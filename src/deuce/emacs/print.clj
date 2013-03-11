@@ -146,7 +146,8 @@
 (defun terpri (&optional printcharfun)
   "Output a newline to stream PRINTCHARFUN.
   If PRINTCHARFUN is omitted or nil, the value of `standard-output' is used."
-  )
+  (println)
+  true)
 
 (defun prin1-to-string (object &optional noescape)
   "Return a string containing the printed representation of OBJECT.
