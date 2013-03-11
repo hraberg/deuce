@@ -405,13 +405,13 @@
                                  (io/resource (str file ".el")))
                                (io/resource file)))
                          (some identity))
-                    (.toURL (io/file file)))]
+                    (.toURL (io/file file)))
+            el-extension? (re-find #".el$" file)]
+        (when-not nomessage
+          (editfns/message "Loading %s%s..." file (if el-extension? " (source)" "")))
         (binding [globals/load-file-name (.getFile url)
                   globals/load-in-progress true]
-          (when-not nomessage
-            (editfns/message "Loading %s..." file))
-          (let [el-extension? (re-find #".el$" file)
-                file (s/replace file  #".el$" "")
+          (let [file (s/replace file  #".el$" "")
                 clj-file (str (s/replace file "-" "_") ".clj") ;; should use actual classpath relative location, not loadpath
                 clj-name (symbol (s/replace file "/" "."))
                 last-modified #(if % (.getLastModified (.openConnection %)) -1)]
