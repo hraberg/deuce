@@ -209,10 +209,6 @@
      (= '#el/sym "\\,@" %) `unquote-splicing
      :else %) form))
 
-;; Explore to either get rid of or just using the macro, not both el->clj and it.
-;; (c/defmacro #el/sym "\\`" [form]
-;;   (emacs-lisp-backquote (list '#el/sym "\\`" form)))
-
 (defn compile [emacs-lisp]
   (try
     (when emacs-lisp (c/eval (if (meta emacs-lisp) (with-meta emacs-lisp nil) emacs-lisp)))

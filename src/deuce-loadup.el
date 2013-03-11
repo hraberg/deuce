@@ -156,7 +156,7 @@
 ;;        require etc. use load-lib which uses RT/load which deals with .class files etc.
 ;;        Some difference causes a InstantiationException in completion-at-point (which autoloads pcase).
 ;;        Deuce extension to catch Java exceptions, should be condition-case, but this is easier.
-(when (catch 'InstantiationException
+(when (catch 'NoSuchMethodException
         (load "minibuffer" nil t))
   (load "pcase.el" nil t))
 (load "minibuffer")

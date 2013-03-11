@@ -59,10 +59,6 @@
 
 (setq t true)
 
-;; Is this needed?
-;; (def #el/sym "\\`" (c/ns-resolve 'deuce.emacs-lisp '#el/sym "\\`"))
-;; (.setMacro #'#el/sym "\\`")
-
 (setq motif-version-string "")
 (setq gtk-version-string "")
 (setq ns-version-string "")
@@ -74,23 +70,6 @@
 ;; ;; AOT cl.el gets confused by this alias
 (defalias 'cl-block-wrapper 'identity)
 (defmacro declare (&rest _specs) nil)
-
-;; Hacks to get a sneak peek of the welcome screen:
-;; avoid loading frame.el yet
-;; (setq frame-initial-frame nil)
-;; (defun frame-initialize ())
-;; (defun normal-erase-is-backspace-setup-frame ())
-;; (defun newline (&optional arg) (c/println))
-;; (defun make-frame (&optional parameters))
-;; (defun display-graphic-p (&optional display))
-;; (defun display-mouse-p (&optional display))
-
-;; Stubs for modes defined in simple
-(defun special-mode ())
-(defun transient-mark-mode (arg))
-
-;; If abbrev isn't loaded
-;; (setq abbrev-file-name "~/.emacs.d/abbrev_defs")
 
 ;; Keymap setup
 (setq global-map (make-keymap))
