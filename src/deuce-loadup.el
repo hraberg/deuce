@@ -180,14 +180,13 @@
 ;; ;; Any Emacs Lisp source file (*.el) loaded here after can contain
 ;; ;; multilingual text.
 ;; DEUCE: argument to nested lambda (pos) "not found".
-;; ------ Current state as of 2013-03-09.
 (load "international/mule-cmds")
 (load "case-table")
 ;; ;; This file doesn't exist when building a development version of Emacs
 ;; ;; from the repository.  It is generated just after temacs is built.
 (load "international/charprop.el" t)
 ;; DEUCE: NPE in case-table/set-case-syntax-pair
-;; (load "international/characters")
+(load "international/characters")
 (load "composite")
 
 ;; DEUCE: Lanugage support to be revisited, one language must be defined.
@@ -243,7 +242,7 @@
 	   (load "scroll-bar"))
       (load "select")))
 ;; DEUCE: defalias fn arity issue, target is cl-macs/defstruct.
-;; (load "emacs-lisp/timer")
+(load "emacs-lisp/timer")
 (load "isearch")
 (load "rfn-eshadow")
 
@@ -252,16 +251,16 @@
 (load "emacs-lisp/lisp")
 (load "textmodes/page")
 ;; DEUCE: defalias fn arity issue, target is cl-macs/defstruct.
-;; (load "register")
+(load "register")
 (load "textmodes/paragraphs")
 ;; DEUCE: (void-variable sorted-strings) - this is a var bound by let*, might not be the root cause.
-;; (load "emacs-lisp/lisp-mode")
+(load "emacs-lisp/lisp-mode")
 (load "textmodes/text-mode")
 (load "textmodes/fill")
 
 (load "replace")
 ;; DEUCE: depends on edmacro/edmacro-parse-keys which blows up with boolean to number class cast.
-;; (load "buff-menu")
+(load "buff-menu")
 
 (if (fboundp 'x-create-frame)
     (progn
@@ -312,8 +311,8 @@
 (load "emacs-lisp/float-sup")
 
 ;; DEUCE: Dies with ClassCastException compiling vc.vc-hooks/vc-call-backend
-;; (load "vc/vc-hooks")
-;; (load "vc/ediff-hook")
+(load "vc/vc-hooks")
+(load "vc/ediff-hook")
 (if (fboundp 'x-show-tip) (load "tooltip"))
 
 ;; DEUCE: Relevant parts of loadup done. A vanilla emacs -nw -q.
