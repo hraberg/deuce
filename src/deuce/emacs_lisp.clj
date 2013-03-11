@@ -22,7 +22,7 @@
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
 
-(declare clojure-special-forms throw defvar el->clj eval emacs-lisp-backquote)
+(declare clojure-special-forms throw throw* defvar el->clj eval emacs-lisp-backquote)
 
 (defn vector-reader [v]
   (object-array (vec v)))
@@ -42,8 +42,9 @@
   (ns-resolve 'deuce.emacs-lisp.globals (sym s)))
 
 (defn fun [s]
-  (if (fn? s) s
-      (ns-resolve 'deuce.emacs (sym s))))
+  (c/cond (fn? s) s
+          (symbol? s) (ns-resolve 'deuce.emacs (sym s))
+          :else (throw* 'invalid-function (list s))))
 
 (defn maybe-sym [x]
   (if (symbol? x) (sym x) x))
@@ -623,7 +624,7 @@
   {:arglists '([ARG])}
   [arg]
   (if (c/and (seq? arg) (symbol? (first arg)) (= 'lambda (sym (first arg))))
-    arg
+    (el->clj arg)
     `(quote ~arg)))
 
 (c/defmacro and
