@@ -5,7 +5,8 @@
             [deuce.emacs.data :as data]
             [deuce.emacs.eval :as eval]
             [deuce.emacs.editfns :as editfns]
-            [deuce.emacs.lread :as lread])
+            [deuce.emacs.lread :as lread]
+            [taoensso.timbre :as timbre])
   (:gen-class))
 
 ;; We want to support emacs -nw -q initially. -q is --no-init-file
@@ -28,7 +29,15 @@
                  %) args)]
 
     (el/setq command-line-args (alloc/cons "src/bootstrap-emacs" (apply alloc/list (remove nil? args))))
-    (lread/load "deuce-loadup.el")
+    (try
+      (lread/load "deuce-loadup.el")
+      (catch Exception e
+        (when (not (instance? InstantiationException (.getCause e)))
+          (throw e))
+        (timbre/error (str e))
+        (timbre/error "issue is in minibuffer/completion-at-point, the missing var is 'res'")
+        (timbre/error "reloading...")
+        (lread/load "deuce-loadup.el")))
     nil
 
     ;; Pontentially call out and init the clojure-lanterna terminal (when-not inhibit-window-system)

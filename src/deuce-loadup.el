@@ -134,9 +134,11 @@
 ;; DEUCE: Actual startup of Emacs, parses command lines, opens the first frame and displays welcome and *scratch*
 ;;        Loads init.el, but we'll surpress that for now. We want to support emacs -nw -q
 ;;        Also loads subdirs.el which extends the load-path. Tries to load leim for international input, but should not be needed.
-;;        Needs frame to be loaded (see below).
 (load "startup")
 
+;; DEUCE: Trigger load of this, minibuffer blows up, second time (in the REPL) it compiles. Cannot AOT, still to be solved.
+;;        Issue is in completion-at-point, a variable, res gets injected to a fn, but newInstance doesn't take this into account.
+(load "pcase.el")
 ;; DEUCE: At this point normal-top-level will be available.
 ;;        Calling it (see end of this file) should start Emacs and clojure-lanterna can be intialized.
 ;;        I want to drive out the boot backwards based on what's needed at this point - not mimic the C.
@@ -185,7 +187,8 @@
 ;; from the repository.  It is generated just after temacs is built.
 (load "international/charprop.el" t)
 ;; DEUCE: NPE in case-table/set-case-syntax-pair
-(load "international/characters")
+;;        Requires better emulation of entire chartab subsystem, will revist.
+;; (load "international/characters")
 (load "composite")
 
 ;; DEUCE: Lanugage support to be revisited, one language must be defined.

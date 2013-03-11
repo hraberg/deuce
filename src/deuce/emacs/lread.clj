@@ -16,7 +16,7 @@
             [deuce.emacs-lisp.parser :as parser])
   (:refer-clojure :exclude [read intern load])
   (:import [java.io FileNotFoundException]
-           [clojure.lang Symbol]))
+           [clojure.lang Symbol Compiler]))
 
 (defvar old-style-backquotes nil
   "Set to non-nil when `read' encounters an old-style backquote.")
@@ -414,19 +414,23 @@
           (let [file (s/replace file  #".el$" "")
                 clj-file (str (s/replace file "-" "_") ".clj") ;; should use actual classpath relative location, not loadpath
                 clj-name (symbol (s/replace file "/" "."))
-                last-modified #(if % (.getLastModified (.openConnection %)) -1)]
+                last-modified #(if % (.getLastModified (.openConnection %)) -1)
+                load-raw-clj #(Compiler/load (io/reader (io/resource clj-file)) clj-file (.getName (io/file clj-file)))]
             (try
               (when (> (last-modified url) (last-modified (io/resource clj-file)))
                 (throw (FileNotFoundException. "out of date")))
-              (c/require clj-name)
+              (if el-extension?
+                (load-raw-clj)
+                (c/require clj-name))
               (catch FileNotFoundException _
                 (with-open [in (io/input-stream url)]
                   (let [el (parser/parse in)
                         clj-file (io/file *compile-path* clj-file)]
-                    (write-clojure (map el/el->clj el)
-                                   clj-file)
-                    (binding [*compile-files* (not el-extension?)]
-                      (require clj-name))))))
+                    (write-clojure (map el/el->clj el) clj-file)
+                    (if el-extension?
+                      (load-raw-clj)
+                      (binding [*compile-files* true]
+                        (require clj-name)))))))
             true)))
       (catch Exception e
         (when-not noerror
