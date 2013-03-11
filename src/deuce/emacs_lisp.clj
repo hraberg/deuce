@@ -59,6 +59,9 @@
 (defn throw* [tag value]
   (throw (emacs-lisp-error tag value)))
 
+(defn scope [&env]
+  (c/set (remove #(re-find #"__\d+" (name %)) (keys &env))))
+
 (def ^:dynamic *dynamic-vars* {})
 
 ;; There're also buffer local variables, which will be using deuce.emacs.buffer/current-buffer
@@ -146,7 +149,8 @@
                         (if (= '(()) rst) () x))
                       (apply cons/list (c/cons (symbol "deuce.emacs-lisp" (name fst)) rst)))
                     (apply cons/list x))
-                  (if (#{`el-var-get `el-var-set `el-var-set-default '#el/sym "\\," '#el/sym "\\,@"} fst)
+                  (if (#{`el-var-get `el-var-set `el-var-set-default `delayed-eval
+                         '#el/sym "\\," '#el/sym "\\,@"} fst)
                     x
                     (if (=  '#el/sym "\\`" fst)
                       (emacs-lisp-backquote x) ;; See below, we dont want to duplicate this if not necessary.
@@ -307,7 +311,7 @@
   (c/let [[args & body] cdr
           [docstring body] (parse-doc-string body)
           doc (apply str docstring)
-          vars (remove #(re-find #"__\d+" (name %)) (keys &env))
+          vars (scope &env)
           vars (vec (remove (c/set args) vars))]
          ;; This is wrong as it won't share updates between original definition and the lambda var.
          ;; Yet to see if this ends up being a real issue. A few days later: Indeed it is!

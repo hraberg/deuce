@@ -1102,3 +1102,6 @@
   This function ignores details such as the values of point and mark
   and scrolling positions."
   )
+
+(defun internal-temp-output-buffer-show (buf)
+  "Internal function for `with-output-to-temp-buffer'.")
