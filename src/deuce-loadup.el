@@ -136,9 +136,6 @@
 ;;        Also loads subdirs.el which extends the load-path. Tries to load leim for international input, but should not be needed.
 (load "startup")
 
-;; DEUCE: Trigger load of this, minibuffer blows up, second time (in the REPL) it compiles. Cannot AOT, still to be solved.
-;;        Issue is in completion-at-point, a variable, res gets injected to a fn, but newInstance doesn't take this into account.
-(load "pcase.el")
 ;; DEUCE: At this point normal-top-level will be available.
 ;;        Calling it (see end of this file) should start Emacs and clojure-lanterna can be intialized.
 ;;        I want to drive out the boot backwards based on what's needed at this point - not mimic the C.
@@ -158,6 +155,10 @@
 ;;        Swank uses clojure.core/load-file which is Compiler/loadFile to do this.
 ;;        require etc. use load-lib which uses RT/load which deals with .class files etc.
 ;;        Some difference causes a InstantiationException in completion-at-point (which autoloads pcase).
+;;        Deuce extension to catch Java exceptions, should be condition-case, but this is easier.
+(when (catch 'InstantiationException
+        (load "minibuffer" nil t))
+  (load "pcase.el" nil t))
 (load "minibuffer")
 ;; DEUCE: abbrev mode, referenced by simple below (to turn it off at times)
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.

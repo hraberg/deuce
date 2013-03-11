@@ -29,17 +29,8 @@
                  %) args)]
 
     (el/setq command-line-args (alloc/cons "src/bootstrap-emacs" (apply alloc/list (remove nil? args))))
-    (try
-      (lread/load "deuce-loadup.el")
-      (catch Exception e
-        (when (not (instance? InstantiationException (.getCause e)))
-          (throw e))
-        (timbre/error (str e))
-        (timbre/error "issue is in minibuffer/completion-at-point, the missing var is 'res'")
-        (timbre/error "reloading...")
-        (lread/load "deuce-loadup.el")))
+    (lread/load "deuce-loadup.el")
     nil
-
     ;; Pontentially call out and init the clojure-lanterna terminal (when-not inhibit-window-system)
     ;; startup.el may take care of this indirectly and make the callback for us.
     ))

@@ -78,14 +78,14 @@
   (c/let [name (sym name)]
          (if-let [v (el-var name)]
            @v
-           (throw* 'void-variable name))))
+           (throw* 'void-variable (list name)))))
 
 (c/defmacro el-var-get [name]
   (c/let [name (sym name)]
          (if (c/and (symbol? name) (name &env))
            `(if (var? ~name)
               (if (bound? ~name)@~name
-                  (throw* '~'void-variable '~name))
+                  (throw* '~'void-variable (list '~name)))
               ~name)
            `(el-var-get* '~name))))
 
@@ -423,7 +423,8 @@
          `(try
             ~(el->clj bodyform)
             (catch ExceptionInfo e#
-              (c/let [~(if var var (gensym "_")) (:value (ex-data e#))]
+              (c/let [~(if var var (gensym "_")) (cons/pair (:tag (ex-data e#))
+                                                            (:value (ex-data e#)))]
                      (case (:tag (ex-data e#))
                        ~@(apply concat (for [[c & h] handlers
                                              :let [c (if (seq? c) c [c])]]
@@ -720,7 +721,12 @@
      (catch ExceptionInfo e#
        (if (= ~(el->clj tag) (:tag (ex-data e#)))
          (:value (ex-data e#))
-         (throw e#)))))
+         (throw e#)))
+     (catch Exception e#
+       (c/let [tag# (resolve ~tag)]
+              (if (instance? tag# (cause e#))
+                e#
+                (throw e#))))))
 
 (c/defmacro ^:clojure-special-form if
   "If COND yields non-nil, do THEN, else do ELSE...
