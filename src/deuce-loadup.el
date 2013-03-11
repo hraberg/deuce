@@ -152,11 +152,10 @@
   (file-error (load "ldefs-boot.el")))
 
 ;; DEUCE: minibuffer implements completion, the actual minibuffer is (not yet) in minibuf.clj
-;;        Autoloads (but fails) pcase, which is a pattern matcher utterly confused by Deuce's concept of cons.
-;;        Pcase is pretty new in Emacs terms, seems to be more of it in 24.3.
-;;        The problem is this: `(match ,sym ,@upat) both sym and upat are x.
-;;        An atom is allowed at a the tail as unquote-splicing in an Emacs Lisp, which basically uses setcdr:
-;;        '(match x . x)
+;;        Blows up when autoloading/compiling pcase.el - can be worked around by C-c C-k in slime:
+;;        Swank uses clojure.core/load-file which is Compiler/loadFile to do this.
+;;        require etc. use load-lib which uses RT/load which deals with .class files etc.
+;;        Some difference causes a InstantiationException in completion-at-point (which autoloads pcase).
 (load "minibuffer")
 ;; DEUCE: abbrev mode, referenced by simple below (to turn it off at times)
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
