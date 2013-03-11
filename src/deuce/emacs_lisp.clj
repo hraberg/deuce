@@ -144,9 +144,9 @@
                       (if-let [s (c/and (symbol? (first rst)) (not (next rst)) (first rst))]
                         (list 'quote (if (= "deuce.emacs" (namespace s)) (sym s) s))
                         (if (= '(()) rst) () x))
-                      (c/cons (symbol "deuce.emacs-lisp" (name fst)) rst))
-                    x)
-                  (if (`#{el-var-get el-var-set el-var-set-default} fst)
+                      (apply cons/list (c/cons (symbol "deuce.emacs-lisp" (name fst)) rst)))
+                    (apply cons/list x))
+                  (if (#{`el-var-get `el-var-set `el-var-set-default '#el/sym "\\," '#el/sym "\\,@"} fst)
                     x
                     (if (=  '#el/sym "\\`" fst)
                       (emacs-lisp-backquote x) ;; See below, we dont want to duplicate this if not necessary.
@@ -162,7 +162,7 @@
                                               (map el->clj rst))))))))
     symbol? (if (namespace x)
               (if (-> (resolve x) meta :macro) (resolve x) x)
-              (if (= '. x)
+              (if (#{'#el/sym "\\," '#el/sym "\\,@" '.} x)
                 x
                 (list `el-var-get x)))
     x))

@@ -161,8 +161,8 @@
 ;; DEUCE: abbrev mode, referenced by simple below (to turn it off at times)
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
 ;; DEUCE: Massive support file for Emacs, adds completion, paren matching, line movement and various things.
-;;        Breaks with (void-variable) on defining auto-save-mode, there's a dotted pair there.
-;; (load "simple")
+;;        Breaks with can't take value of macro #'lambda on defining auto-save-mode, there's a dotted pair there.
+(load "simple")
 
 (load "help")
 
