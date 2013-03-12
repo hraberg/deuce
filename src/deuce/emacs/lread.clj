@@ -393,48 +393,48 @@
   is bound to the file's name.
 
   Return t if the file exists and loads successfully."
+  ;; Need to deal with -*- lexical-binding: t -*-
   (if (loads-in-progress file)
     true ;; not really correct
-    )
-  (binding [loads-in-progress (conj loads-in-progress file)]
-    (try
-      ;; see locate-file-internal below, maybe should be delegating to it
-      (let [url (or (->> (for [l globals/load-path
-                               :let [file (s/replace (str l "/" file) #"^/" "")]]
-                           (or (when-not nosuffix
-                                 (io/resource (str file ".el")))
-                               (io/resource file)))
-                         (some identity))
-                    (.toURL (io/file file)))
-            el-extension? (re-find #".el$" file)]
-        (when-not nomessage
-          (editfns/message "Loading %s%s..." file (if el-extension? " (source)" "")))
-        (binding [globals/load-file-name (.getFile url)
-                  globals/load-in-progress true]
-          (let [file (s/replace file  #".el$" "")
-                clj-file (str (s/replace file "-" "_") ".clj") ;; should use actual classpath relative location, not loadpath
-                clj-name (symbol (s/replace file "/" "."))
-                last-modified #(if % (.getLastModified (.openConnection %)) -1)
-                load-raw-clj #(Compiler/load (io/reader (io/resource clj-file)) clj-file (.getName (io/file clj-file)))]
-            (try
-              (when (> (last-modified url) (last-modified (io/resource clj-file)))
-                (throw (FileNotFoundException. "out of date")))
-              (if el-extension?
-                (load-raw-clj)
-                (c/require clj-name))
-              (catch FileNotFoundException _
-                (with-open [in (io/input-stream url)]
-                  (let [el (parser/parse in)
-                        clj-file (io/file *compile-path* clj-file)]
-                    (write-clojure (map el/el->clj el) clj-file)
-                    (if el-extension?
-                      (load-raw-clj)
-                      (binding [*compile-files* true]
-                        (require clj-name)))))))
-            true)))
-      (catch Exception e
-        (when-not noerror
-          (throw e))))))
+    (binding [loads-in-progress (conj loads-in-progress file)]
+      (try
+        ;; see locate-file-internal below, maybe should be delegating to it
+        (let [url (or (->> (for [l globals/load-path
+                                 :let [file (s/replace (str l "/" file) #"^/" "")]]
+                             (or (when-not nosuffix
+                                   (io/resource (str file ".el")))
+                                 (io/resource file)))
+                           (some identity))
+                      (.toURL (io/file file)))
+              el-extension? (re-find #".el$" file)]
+          (when-not nomessage
+            (editfns/message "Loading %s%s..." file (if el-extension? " (source)" "")))
+          (binding [globals/load-file-name (.getFile url)
+                    globals/load-in-progress true]
+            (let [file (s/replace file  #".el$" "")
+                  clj-file (str (s/replace file "-" "_") ".clj") ;; should use actual classpath relative location, not loadpath
+                  clj-name (symbol (s/replace file "/" "."))
+                  last-modified #(if % (.getLastModified (.openConnection %)) -1)
+                  load-raw-clj #(Compiler/load (io/reader (io/resource clj-file)) clj-file (.getName (io/file clj-file)))]
+              (try
+                (when (> (last-modified url) (last-modified (io/resource clj-file)))
+                  (throw (FileNotFoundException. "out of date")))
+                (if el-extension?
+                  (load-raw-clj)
+                  (c/require clj-name))
+                (catch FileNotFoundException _
+                  (with-open [in (io/input-stream url)]
+                    (let [el (parser/parse in)
+                          clj-file (io/file *compile-path* clj-file)]
+                      (write-clojure (map el/el->clj el) clj-file)
+                      (if el-extension?
+                        (load-raw-clj)
+                        (binding [*compile-files* true]
+                          (require clj-name)))))))
+              true)))
+        (catch Exception e
+          (when-not noerror
+            (throw e)))))))
 
 (defun mapatoms (function &optional obarray)
   "Call FUNCTION on every symbol in OBARRAY.

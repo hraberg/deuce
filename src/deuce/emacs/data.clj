@@ -171,6 +171,7 @@
 
 (defun symbol-value (symbol)
   "Return SYMBOL's value.  Error if that is void."
+  (el/check-type 'symbolp symbol)
   (el/el-var-get* symbol))
 
 (defun keywordp (object)
@@ -377,6 +378,7 @@
 
 (defun set (symbol newval)
   "Set SYMBOL's value to NEWVAL, and return NEWVAL."
+  (el/check-type 'symbolp symbol)
   (if (c/= symbol (c/symbol ""))
     nil ;; Hack for anonymous symbol used by abbrev.el, needs proper fix.
     ((eval `(fn set [v#] (setq ~symbol v#))) newval)))
@@ -558,6 +560,7 @@
   "Set SYMBOL's default value to VALUE.  SYMBOL and VALUE are evaluated.
   The default value is seen in buffers that do not have their own values
   for this variable."
+  (el/check-type 'symbolp symbol)
   ((eval `(fn set-default [v#] (setq-default ~symbol v#))) value))
 
 (defun symbol-function (symbol)

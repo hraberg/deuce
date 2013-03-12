@@ -110,19 +110,16 @@
 (defun append (&rest sequences)
   "Concatenate all the arguments and make the result a list.
   The result is a list whose elements are the elements of all the arguments.
-  Each argument may be a list, vector or string.
+  Each argument xmay be a list, vector or string.
   The last argument is not copied, just used as the tail of the new list."
-  (if (= 1 (count sequences))
+  (if (every? data/null (rest sequences))
     (first sequences)
-    (let [sequences (remove data/null sequences)]
-      (if (> (count sequences) 1)
-        (let [l (apply alloc/list (apply c/concat (butlast sequences)))]
-          (setcdr (cons/last-cons l) (cons/maybe-seq (let [last (last sequences)]
-                                                       (if (data/stringp last)
-                                                         (seq last)
-                                                         last))))
+    (let [last (cons/maybe-seq (last sequences))]
+      (if-let [l (apply alloc/list (apply c/concat (butlast sequences)))]
+        (do
+          (setcdr (cons/last-cons l) last)
           l)
-        (cons/maybe-seq (first sequences))))))
+        last))))
 
 (defun mapconcat (function sequence separator)
   "Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.
@@ -546,6 +543,7 @@
 (defun nreverse (list)
   "Reverse LIST by modifying cdr pointers.
   Return the reversed list."
+  (el/check-type 'listp list)
   (if (empty? list)
     list
     (loop [l list
@@ -559,6 +557,7 @@
 (defun reverse (list)
   "Reverse LIST, copying.  Return the reversed list.
   See also the function `nreverse', which is used more often."
+  (el/check-type 'listp list)
   (when-not (data/null list)
     (apply alloc/list (c/reverse (apply alloc/list list)))))
 

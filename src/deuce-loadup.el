@@ -97,7 +97,7 @@
 (load "version.el")
 
 ;; DEUCE: Support for defining widgets as used by customize. Not used for hyperlinks etc, see button below.
-;;        No real intention of supporting it, but custom assumes its there.
+;;        No real intention of supporting it (yet), but custom assumes its there.
 (load "widget")
 ;; DEUCE: custom subsystem, not strictly necessary, but other things depend on it being there.
 (load "custom")
@@ -117,8 +117,6 @@
 ;; DEUCE: All basic editor key bindings are setup here - many refer to fns loaded later on.
 (load "bindings")
 ;; DEUCE: Defines C-x 2, C-x o etc.
-;;        declare gets confused and throws an void-function indent error in the macro save-selected-window
-;;        Happens during first compilation, deleting window.clj and window__init.class and deuce_loadup.clj and trying again works.
 (load "window")  ; Needed here for `replace-buffer-in-windows'.
 (setq load-source-file-function 'load-with-code-conversion)
 ;; DEUCE: Defines C-x C-f, C-x C-s etc.
@@ -156,14 +154,14 @@
 ;;        require etc. use load-lib which uses RT/load which deals with .class files etc.
 ;;        Some difference causes a InstantiationException in completion-at-point (which autoloads pcase).
 ;;        Deuce extension to catch Java exceptions, should be condition-case, but this is easier.
-(when (catch 'NoSuchMethodException
+;;        Both these files use: -*- lexical-binding: t -*- which we don't adhere to yet.
+(when (catch 'java.lang.ReflectiveOperationException
         (load "minibuffer" nil t))
   (load "pcase.el" nil t))
 (load "minibuffer")
 ;; DEUCE: abbrev mode, referenced by simple below (to turn it off at times)
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
 ;; DEUCE: Massive support file for Emacs, adds completion, paren matching, line movement and various things.
-;;        Breaks with can't take value of macro #'lambda on defining auto-save-mode, there's a dotted pair there.
 (load "simple")
 
 (load "help")
@@ -181,7 +179,6 @@
 (load "epa-hook")
 ;; Any Emacs Lisp source file (*.el) loaded here after can contain
 ;; multilingual text.
-;; DEUCE: argument to nested lambda (pos) "not found".
 (load "international/mule-cmds")
 (load "case-table")
 ;; This file doesn't exist when building a development version of Emacs
@@ -232,9 +229,9 @@
 ;; facemenu must be loaded before font-lock, because `facemenu-keymap'
 ;; needs to be defined when font-lock is loaded.
 (load "facemenu")
-;; DEUCE: requires cl-macs/lexical-let to work.
+;; DEUCE: Requires cl-macs/lexical-let to work, which requires macroexpand to work.
 (load "emacs-lisp/syntax")
-;; DEUCE: requires cl-macs/lexical-let to work.
+;; DEUCE: Requires cl-macs/lexical-let to work.
 (load "font-lock")
 (load "jit-lock")
 

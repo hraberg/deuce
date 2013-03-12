@@ -153,21 +153,11 @@
                                 (ns-unmap 'deuce.emacs (el/sym function))
                                 ((ns-resolve 'deuce.emacs 'load) (-> f meta :file) nil true))))
           definition  (if macro?
-                        (fn autoload [&form &env & args] ;; Note implicit macro args, see defalias
-                          ;; To delay autoload of macros until first call:
-                          ;; (list `eval
-                          ;;       (list 'quote
-                          ;;             (list 'do
-                          ;;                   `(~autoload-symbol '~function)
-                          ;;                   `(el/progn (~(el/sym function) ~@args)))))
-                          ;; 24.3 has something around eager macros, not sure if this includes autoloads:
-                          ;; "Eager macro-expansion skipped due to cycle"
-                          ;; The following eagerly loads and expands macros:
+                        (fn autoload-macro [&form &env & args] ;; Note implicit macro args, see defalias
                           (do
                             (autoload-symbol function)
-                            `(el/progn (~(el/sym function) ~@args)))
-                          )
-                        (fn autoload [& args] ;; Why is this guy seemingly inlined at call site?
+                            `(el/progn (~(el/sym function) ~@args))))
+                        (fn autoload [& args]
                           (autoload-symbol function)
                           (c/apply (el/fun function) args)))] ;; el->clj?
       (ns-unmap 'deuce.emacs function)
@@ -329,8 +319,10 @@
   "Call FUNCTION with our remaining args, using our last arg as list of args.
   Then return the value FUNCTION returns.
   Thus, (apply '+ 1 2 '(3 4)) returns 10."
-  (c/apply (if (symbol? function) (data/symbol-function function) function)
-           (c/apply alloc/list (concat (butlast arguments) (last arguments)))))
+  (let [rest (last arguments)]
+    (el/check-type 'listp rest)
+    (c/apply (if (symbol? function) (data/symbol-function function) function)
+             (c/apply alloc/list (concat (butlast arguments) rest)))))
 
 (defun run-hooks (&rest hooks)
   "Run each hook in HOOKS.
@@ -396,4 +388,26 @@
 
   The second optional arg ENVIRONMENT specifies an environment of macro
   definitions to shadow the loaded ones for use in file byte-compilation."
-  (c/macroexpand form))
+  ;; Not sure how this is supposed to work even after reading eval.c, attempts to mimic observed behavior.
+  ;; It is used in conjunction with cl-macroexpand-all, and should not expand into "raw" Clojure.
+  (let [shadow (into {} (map #(vector (data/car %) (data/cdr %)) environment))
+        shadow #(shadow % (shadow (str %)))
+        unshadowed-form ((fn shadow-walker [form]
+                           (if-let [expander (shadow form)]
+                             (if (= '(true) (data/cdr-safe expander))
+                               (cons (first (data/car expander))
+                                     (map #(list 'quote %) (rest (data/car expander))))
+                               (expander form))
+                             (if (and (seq? form)
+                                      (not= 'quote (first form)))
+                               (apply list (map shadow-walker form))
+                               form))) form)
+        expansion (if-let [m  (and (seq? form) (-> (el/fun (first form)) meta))]
+                    (if (and (:macro m) (= (the-ns 'deuce.emacs-lisp) (:ns m)))
+                      unshadowed-form
+                      (macroexpand-1 unshadowed-form))
+                    unshadowed-form)]
+    ;; Protect against eq check in cl-macroexpand-all
+    (if (= form expansion)
+      form
+      expansion)))

@@ -66,7 +66,8 @@
       #":" (keyword (.next sc))
       #"\?" (parse-character (find re-char 0))
       #"\"" (parse-string (str \" (find re-str 0)))
-      #";" (list `comment (.nextLine sc)) ;; first line might contain file locals: ;; -*- lexical-binding: t -*-
+      ;; Deal with: ;;; -*- lexical-binding: t -*- or autoload      ;;;###autoload      ;;; Code
+      #";" (list `comment (.nextLine sc))
       #"#" (condp find 1
              #"'" (list 'function (tokenize sc))
              #"\(" (let [[object start end properties] (tokenize-all sc)]

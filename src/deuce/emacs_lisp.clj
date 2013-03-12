@@ -143,7 +143,8 @@
                 (if (c/and (symbol? fst)
                            (not= 'progn fst)
                            (-> (fun fst) meta :macro))
-                  (if (c/or (clojure-special-forms fst) (= 'lambda fst))
+                  (if (c/or (clojure-special-forms fst)
+                            ('#{let lambda defun defvar} fst)) ;; Why not all macros?
                     (if (= 'quote fst)
                       (if-let [s (c/and (symbol? (first rst)) (not (next rst)) (first rst))]
                         (list 'quote (if (= "deuce.emacs" (namespace s)) (sym s) s))
