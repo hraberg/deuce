@@ -230,8 +230,9 @@
 ;; needs to be defined when font-lock is loaded.
 (load "facemenu")
 ;; DEUCE: Requires cl-macs/lexical-let to work, which requires macroexpand to work.
+;;        (void-variable method) first time loading it, in cl-macs/cl-setf-do-modify
 (load "emacs-lisp/syntax")
-;; DEUCE: Requires cl-macs/lexical-let to work.
+;; DEUCE: Requires try-completions to return something, enters infinite loop in regexp-opt/regexp-opt-group
 (load "font-lock")
 (load "jit-lock")
 
@@ -254,6 +255,7 @@
 (load "register")
 (load "textmodes/paragraphs")
 ;; DEUCE: (void-variable sorted-strings) - this is a var bound by let*, might not be the root cause.
+;;        Also related to regexp-opt/regexp-opt-group, seems to enter an infinite loop in string-to-list
 (load "emacs-lisp/lisp-mode")
 (load "textmodes/text-mode")
 (load "textmodes/fill")

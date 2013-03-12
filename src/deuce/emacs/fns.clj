@@ -113,7 +113,9 @@
   Each argument xmay be a list, vector or string.
   The last argument is not copied, just used as the tail of the new list."
   (if (every? data/null (rest sequences))
-    (first sequences)
+    (if (and (next sequences) (data/stringp (first sequences)))
+      (apply alloc/list (first sequences))
+      (first sequences))
     (let [last (cons/maybe-seq (last sequences))]
       (if-let [l (apply alloc/list (apply c/concat (butlast sequences)))]
         (do
