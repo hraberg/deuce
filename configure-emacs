@@ -14,4 +14,4 @@ test -e ./configure || ./autogen.sh
     --without-dbus --without-gsettings --without-gconf --without-gnutls
 
 # 24.3
-# ./configure --without-all --with-x-toolkit=no
+# ./configure --without-all --with-x=no
