@@ -1,3 +1,8 @@
 #!/bin/bash -e
 
-lein do javac, run -m deuce.scaffold
+# Generate the stubs for Emacs.
+# Preferably somewhere else to avoid blasting away the current implementation:
+#   ./build-stubs src-24.3-stubs/deuce/emacs
+# Its possible if somewhat tedious to diff and merge signature and doc changes by hand.
+
+lein run -m deuce.scaffold "$@"

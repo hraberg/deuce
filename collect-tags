@@ -8,6 +8,11 @@ cat emacs/src/TAGS* > TAGS
 # Append the tags for the C parts of Clojure
 find src/deuce/emacs/ -name "*.clj" -print | etags --language=lisp -a TAGS -
 
+# This is used by deuce.scaffold to better figure out which file a function belongs to.
+cd emacs/src
+../lib-src/etags -o TAGS-TEMACS --regex='/[     ]*DEFVAR_[A-Z_  (]+"\([^"]+\)"/' $(echo *.o | sed s/\\.o/.c/g)
+
+
 # ;; To navigate between C (or Clojure) and Emacs Lisp
 # (require 'etags-select)
 # (require 'etags-table)

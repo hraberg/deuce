@@ -108,7 +108,7 @@
 
   (doseq [[f {:keys [args doc]}] fns]
     (println)
-    (println (str "(defun " (if (illegal-symbols f) (str "(clojure.core/symbol \"" (str (illegal-symbols f)) "\")") f)
+    (println (str "(defun " (if (illegal-symbols f) (str "#el/sym \"" (str (illegal-symbols f)) "\"") f)
                   " " (pr-str (->> (replace illegal-symbols args)
                                    flatten
                                    (map (comp symbol string/lower-case))))))
@@ -124,18 +124,19 @@
 (defn print-special-forms []
   (print-fn-stubs 'deuce.emacs-lisp (select-keys (subrs) (special-forms))))
 
-(defn write-fn-stubs []
-  (.mkdir (io/file "src/deuce/emacs"))
+(defn write-fn-stubs [dir]
+  (.mkdirs (io/file dir))
   (let [vars (generate-fn-stubs (vars))]
     (doseq [[original fns] (generate-fn-stubs (reduce dissoc (subrs) (concat subr-aliases (special-forms))))
             :let [namespace (symbol (str "deuce.emacs." original))
-                  vars (vars original)]]
+                  vars (vars original)
+                  file (io/file dir (str original ".clj"))]]
       (println namespace (str "(" (count fns) " subrs)"))
-      (with-open [w (io/writer (io/file "src/deuce/emacs" (str original ".clj")))]
+      (with-open [w (io/writer file)]
         (binding [*out* w]
           (print-fn-stubs namespace fns vars)))
-      (require namespace))))
+      (load-reader (io/reader file)))))
 
-(defn -main []
-  (write-fn-stubs)
+(defn -main [& [dir & _]]
+  (write-fn-stubs (or dir "src/deuce/emacs"))
   (System/exit 0))
