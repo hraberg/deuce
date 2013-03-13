@@ -232,7 +232,7 @@
 ;; DEUCE: (void-variable method) cl-macs/cl-setf-do-modify refers to cl-setf-simple-store-p before its defined inside a let
 ;;        Hack to work around this is in deuce.emacs by predefining cl-setf-simple-store-p.
 (load "emacs-lisp/syntax")
-;; DEUCE: Requires minibuffer.try-completions and all-completions to work, StackOverflowError in regexp-opt/regexp-opt-group
+;; DEUCE: Requires minibuffer/try-completions and all-completions to work, StackOverflowError in regexp-opt/regexp-opt-group
 ;;        Has hack in deuce.emacs for regexp-opt/regexp-opt-group to be predefined, as its used inside let, see above.
 (load "font-lock")
 (load "jit-lock")
@@ -264,6 +264,8 @@
 
 (load "replace")
 ;; DEUCE: depends on edmacro/edmacro-parse-keys which blows up with boolean to number class cast.
+;;        Tries to add (+ 0 nil)
+;;        Could be a regexp issue, last regexp it runs is #"^[ACHMsS]-." against "M-s", which matches.
 (load "buff-menu")
 
 (if (fboundp 'x-create-frame)
@@ -314,7 +316,8 @@
 ;; Preload some constants and floating point functions.
 (load "emacs-lisp/float-sup")
 
-;; DEUCE: Dies with ClassCastException compiling vc.vc-hooks/vc-call-backend
+;; DEUCE: Used to die with ClassCastException compiling vc.vc-hooks/vc-call-backend
+;;        Works loaded by hand, might be something earlier that causes it (or might be gone).
 (load "vc/vc-hooks")
 (load "vc/ediff-hook")
 (if (fboundp 'x-show-tip) (load "tooltip"))
