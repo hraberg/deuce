@@ -482,10 +482,12 @@
   [arg]
   `(quote ~arg))
 
+;; Revisit using Atoms, will make closure capture easier. We use the *dynamic-binding* var for dynamic scope anyway.
 ;; Bindings refering to other bindings and modifying them don't work properly.
 ;; The vars must be created here instead of in with-local-el-vars (which might be removed).
-;; Everytime you make a 'sane' assumption you're bound to find some Emacs Lisp breaking it.
+;; Everytime you make a 'sane' assumption you're bound to find some Emacs Lisp breaking it:
 ;; (let* ((x 2) (y (setq x 4))) (+ x y)) => 8
+;; Also: Needs to support delayed-eval referring to earlier bindings on rhs. (currently requires the binding to be in &env).
 (c/defmacro let-helper* [can-refer? varlist & body]
   (c/let [varlist (map #(if (symbol? %) [% nil] %) varlist)
           all-vars (map (comp sym first) varlist)

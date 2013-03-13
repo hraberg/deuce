@@ -229,10 +229,11 @@
 ;; facemenu must be loaded before font-lock, because `facemenu-keymap'
 ;; needs to be defined when font-lock is loaded.
 (load "facemenu")
-;; DEUCE: Requires cl-macs/lexical-let to work, which requires macroexpand to work.
-;;        (void-variable method) first time loading it, in cl-macs/cl-setf-do-modify
+;; DEUCE: (void-variable method) cl-macs/cl-setf-do-modify refers to cl-setf-simple-store-p before its defined inside a let
+;;        Hack to work around this is in deuce.emacs by predefining cl-setf-simple-store-p.
 (load "emacs-lisp/syntax")
-;; DEUCE: Requires try-completions to return something, enters infinite loop in regexp-opt/regexp-opt-group
+;; DEUCE: Requires minibuffer.try-completions and all-completions to work, StackOverflowError in regexp-opt/regexp-opt-group
+;;        Has hack in deuce.emacs for regexp-opt/regexp-opt-group to be predefined, as its used inside let, see above.
 (load "font-lock")
 (load "jit-lock")
 
@@ -256,6 +257,7 @@
 (load "textmodes/paragraphs")
 ;; DEUCE: (void-variable sorted-strings) - this is a var bound by let*, might not be the root cause.
 ;;        Also related to regexp-opt/regexp-opt-group, seems to enter an infinite loop in string-to-list
+;;        This is (likely) the same issue as with font-lock above.
 (load "emacs-lisp/lisp-mode")
 (load "textmodes/text-mode")
 (load "textmodes/fill")

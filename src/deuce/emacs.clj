@@ -70,6 +70,12 @@
 ;; ;; AOT cl.el gets confused by this alias
 (defalias 'cl-block-wrapper 'identity)
 (defmacro declare (&rest _specs) nil)
+;; Hack as delayed-eval doesn't (like some other things) work properly inside let-bindings.
+;; Needs to be fixed properly, but let's see if we can get through the boot with this hack.
+;; cl-setf-simple-store-p is used in  cl-macs/cl-setf-do-modify, delayed-eval call refers to earlier binding 'method'.
+(defun cl-setf-simple-store-p (sym form))
+;; Same issue in regexp-opt/regexp-opt. Calls this fn with earlier binding 'sorted-strings'
+(defun regexp-opt-group (strings &optional paren lax))
 
 ;; Keymap setup
 (setq global-map (make-keymap))
