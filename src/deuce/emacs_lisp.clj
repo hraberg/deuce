@@ -192,6 +192,8 @@
 ;; (let ((upat 'x) (sym 'x))
 ;;   `(match ,sym ,@upat))
 ;; => (match x . x)
+;; Doesn't handle this wonderful case:
+;; `,@2 => 2
 (defn maybe-splice-dotted-list [x]
   (if ((some-fn seq? nil?) x) x `(. ~x)))
 
@@ -201,7 +203,9 @@
   (w/postwalk
    #(c/cond
      (c/and (seq? %) (seq? (last %)) (= `unquote-splicing (first (last %))))
-     (concat (butlast %) `((unquote-splicing (maybe-splice-dotted-list ~(second (last %))))))
+     (if (butlast %)
+       (concat (butlast %) `((unquote-splicing (maybe-splice-dotted-list ~(second (last %))))))
+       (second (last %)))
 
      (c/and (seq? %) (= '#el/sym "\\`" (first %)))
      (w/postwalk cons/maybe-seq (el->clj (syntax-quote* (second %))))
@@ -482,7 +486,7 @@
   [arg]
   `(quote ~arg))
 
-;; Revisit using Atoms, will make closure capture easier. We use the *dynamic-binding* var for dynamic scope anyway.
+;; Revisit using Atoms, will make closure capture easier. We use the *dynamic-vars* var for dynamic scope anyway.
 ;; Bindings refering to other bindings and modifying them don't work properly.
 ;; The vars must be created here instead of in with-local-el-vars (which might be removed).
 ;; Everytime you make a 'sane' assumption you're bound to find some Emacs Lisp breaking it:
