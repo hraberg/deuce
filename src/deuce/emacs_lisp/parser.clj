@@ -45,7 +45,7 @@
   (object-array (vec form)))
 
 (def ^:private ^Pattern re-str #"(?s)([^\"\\]*(?:\\.[^\"\\]*)*)\"")
-(def ^:private ^Pattern re-char #"((\\[CSM]-)*(\\x?\p{XDigit}+|(\\\^?)?.))")
+(def ^:private ^Pattern re-char #"((\\[CSMAHs]-)*(\\x?\p{XDigit}+|(\\\^?)?.))")
 
 (defn ^:private tokenize-all [^Scanner sc]
   (strip-comments (take-while (complement #{`end}) (repeatedly (partial tokenize sc)))))

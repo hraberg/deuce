@@ -60,7 +60,7 @@
   only the base leading-code is considered; the validity of
   the following bytes is not checked.  Tabs in STRING are always
   taken to occupy `tab-width' columns."
-  )
+  (count (.getBytes string)))
 
 (defun char-width (char)
   "Return width of CHAR when displayed in the current buffer.
@@ -68,13 +68,15 @@
   Tab is taken to occupy `tab-width' columns."
   )
 
+(declare max-char)
+
 (defun characterp (object)
   "Return non-nil if OBJECT is a character."
-  )
+  (and ((some-fn integer? char?) object) (pos? (int object)) (<= (int object) (max-char))))
 
 (defun unibyte-string (&rest bytes)
   "Concatenate all the argument bytes and make the result a unibyte string."
-  )
+  (String. (byte-array (map byte bytes)) "US-ASCII"))
 
 (defun get-byte (&optional position string)
   "Return a byte value of a character at point.
@@ -90,4 +92,5 @@
 
 (defun max-char ()
   "Return the character of the maximum code."
+  ;;0x3FFFFF in Emacs
   (Character/MAX_VALUE))

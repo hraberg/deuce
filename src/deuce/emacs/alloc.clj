@@ -4,7 +4,8 @@
          :only (trace debug info warn error fatal spy)])
   (:require [clojure.core :as c]
             [deuce.emacs-lisp.cons :as cons])
-  (:refer-clojure :exclude [vector cons list]))
+  (:refer-clojure :exclude [vector cons list])
+  (:import [java.util Arrays]))
 
 (defvar purify-flag nil
   "Non-nil means loading Lisp code in order to dump an executable.
@@ -125,6 +126,7 @@
 
 (defun string (&rest characters)
   "Concatenate all the argument characters and make the result a string."
+  ;; Guard against interning as we allow modifications of String.value for now.
   (apply str characters))
 
 (defun make-marker ()
@@ -146,7 +148,7 @@
   returns nil, because real GC can't be done.
   See Info node `(elisp)Garbage Collection'."
   (System/gc)
-  (list (list)))
+  '(()))
 
 (defun cons (car cdr)
   "Create a new cons, give it CAR and CDR as components, and return it."
@@ -176,9 +178,8 @@
 (defun make-vector (length init)
   "Return a newly created vector of length LENGTH, with each element being INIT.
   See also the function `vector'."
-  (let [vector (object-array length)]
-    (dotimes [n length]
-      (aset vector n init))
+  (let [^objects vector (object-array length)]
+    (Arrays/fill vector init)
     vector))
 
 (defun make-string (length init)

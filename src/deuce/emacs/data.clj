@@ -4,7 +4,8 @@
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs.alloc :as alloc]
-            [deuce.emacs-lisp.cons :refer [ICons IList] :as cons])
+            [deuce.emacs-lisp.cons :refer [ICons IList] :as cons]
+            [taoensso.timbre :as timbre])
   (:import [java.nio ByteOrder]
            [java.io Writer]
            [clojure.lang Symbol])
@@ -233,6 +234,7 @@
    (null obj1) (null obj2)
     ;; Macros can get confused by the exact namespace
    (and (symbol? obj1) (symbol? obj2)) (c/= (name obj1) (name obj2))
+   (or (char? obj1) (char? obj2)) (c/= (promote-char obj1) (promote-char obj2))
    :else (identical? obj1 obj2)))
 
 (defun * (&rest numbers-or-markers)
@@ -340,13 +342,20 @@
   "Return t if OBJECT is a nonnegative integer."
   ((every-pred pos? integer?) object))
 
+;; We probably don't want to do this due to interned strings.
+(def ^:private string-chars (doto (.getDeclaredField String "value")
+                                     (.setAccessible true)))
+
 (defun aset (array idx newelt)
   "Store into the element of ARRAY at index IDX the value NEWELT.
   Return NEWELT.  ARRAY may be a vector, a string, a char-table or a
   bool-vector.  IDX starts at 0."
   (if (instance? CharTable array)
     (aset (.contents ^CharTable array) idx newelt)
-    (c/aset array idx newelt)))
+    (if (string? array)
+      (do (timbre/warn "modifying String" (str "\"" array "\""))
+        (c/aset (.get string-chars array) idx (char newelt)))
+      (c/aset array idx newelt))))
 
 (declare vectorp)
 

@@ -2,6 +2,7 @@
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
             [deuce.emacs.alloc :as alloc]
+            [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals])
   (:refer-clojure :exclude []))
 
@@ -214,7 +215,7 @@
   "Default value of `left-margin' for buffers that do not override it.
   This is the same as (default-value 'left-margin).")
 
-(defvar mode-line-format nil
+(defvar mode-line-format "%-"
   "Template for displaying mode line for current buffer.
   Each buffer has its own value of this variable.
   Value may be nil, a string, a symbol or a list or cons cell.
@@ -311,7 +312,7 @@
 (defvar point-before-scroll nil
   "Value of point before the last series of scroll operations, or nil.")
 
-(defvar right-margin-width nil
+(defvar right-margin-width 0
   "*Width of right marginal area for display of a buffer.
   A value of nil means no marginal area.")
 
@@ -410,13 +411,13 @@
 
   You can customize this variable.")
 
-(defvar fill-column nil
+(defvar fill-column 70
   "*Column beyond which automatic line-wrapping should happen.
   Interactively, you can set the buffer local value using C-x f.
 
   You can customize this variable.")
 
-(defvar tab-width nil
+(defvar tab-width 8
   "*Distance between tab stops (for display of tab characters), in columns.
   This should be an integer greater than zero.
 
@@ -461,7 +462,7 @@
 
   This variable is never applied to a way of decoding a file while reading it.")
 
-(defvar left-margin nil
+(defvar left-margin 0
   "*Column for the default `indent-line-function' to indent to.
   Linefeed indents to this column in Fundamental mode.
 
@@ -558,7 +559,7 @@
 
   You can customize this variable.")
 
-(defvar ctl-arrow nil
+(defvar ctl-arrow true
   "*Non-nil means display control chars with uparrow.
   A value of nil means use backslash and octal digits.
   This variable does not apply to characters whose display is specified
@@ -584,7 +585,7 @@
 
   You can customize this variable.")
 
-(defvar enable-multibyte-characters nil
+(defvar enable-multibyte-characters true
   "Non-nil means the buffer contents are regarded as multi-byte characters.
   Otherwise they are regarded as unibyte.  This affects the display,
   file I/O and the behavior of various editing commands.
@@ -593,7 +594,7 @@
   use the function `set-buffer-multibyte' to change a buffer's representation.
   See also Info node `(elisp)Text Representations'.")
 
-(defvar left-margin-width nil
+(defvar left-margin-width 0
   "*Width of left marginal area for display of a buffer.
   A value of nil means no marginal area.")
 
@@ -623,7 +624,7 @@
 
   You can customize this variable.")
 
-(defvar default-fill-column nil
+(defvar default-fill-column (el/el-var-get* 'fill-column)
   "Default value of `fill-column' for buffers that do not override it.
   This is the same as (default-value 'fill-column).")
 
@@ -650,7 +651,7 @@
   This value applies in buffers that don't have their own local values.
   This is the same as (default-value 'scroll-down-aggressively).")
 
-(defvar default-tab-width nil
+(defvar default-tab-width (el/el-var-get* 'tab-width)
   "Default value of `tab-width' for buffers that do not override it.
   This is the same as (default-value 'tab-width).")
 
@@ -688,7 +689,7 @@
 
   You can customize this variable.")
 
-(defvar cursor-type nil
+(defvar cursor-type true
   "Cursor to use when this buffer is in the selected window.
   Values are interpreted as follows:
 
@@ -733,7 +734,7 @@
 (defvar bidi-display-reordering nil
   "Non-nil means reorder bidirectional text for display in the visual order.")
 
-(defvar default-right-margin-width nil
+(defvar default-right-margin-width (el/el-var-get* 'right-margin-width)
   "Default value of `right-margin-width' for buffers that don't override it.
   This is the same as (default-value 'right-margin-width).")
 

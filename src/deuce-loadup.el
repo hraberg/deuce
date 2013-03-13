@@ -243,6 +243,7 @@
 	   (load "scroll-bar"))
       (load "select")))
 ;; DEUCE: defalias fn arity issue, target is cl-macs/defstruct.
+;;        Can be reproduced by defining an empty struct: (defstruct person)
 (load "emacs-lisp/timer")
 (load "isearch")
 (load "rfn-eshadow")
@@ -254,17 +255,15 @@
 ;; DEUCE: defalias fn arity issue, target is cl-macs/defstruct.
 (load "register")
 (load "textmodes/paragraphs")
-;; DEUCE: (void-variable sorted-strings) - this is a var bound by let*, might not be the root cause.
-;;        Also related to regexp-opt/regexp-opt-group, seems to enter an infinite loop in string-to-list
-;;        This is (likely) the same issue as with font-lock above.
+;; DEUCE: (void-variable sorted-strings) - this is the same delayed-eval issue as font-lock above.
 (load "emacs-lisp/lisp-mode")
 (load "textmodes/text-mode")
 (load "textmodes/fill")
 
 (load "replace")
-;; DEUCE: depends on edmacro/edmacro-parse-keys which blows up with boolean to number class cast.
-;;        Tries to add (+ 0 nil)
+;; DEUCE: depends on edmacro/edmacro-parse-keys which blows up with NPE or StackOverflow
 ;;        Could be a regexp issue, last regexp it runs is #"^[ACHMsS]-." against "M-s", which matches.
+;;        Can be reproduced by: (edmacro-parse-keys "M-s a C-s")
 (load "buff-menu")
 
 (if (fboundp 'x-create-frame)
@@ -315,8 +314,6 @@
 ;; Preload some constants and floating point functions.
 (load "emacs-lisp/float-sup")
 
-;; DEUCE: Used to die with ClassCastException compiling vc.vc-hooks/vc-call-backend
-;;        Works loaded by hand, might be something earlier that causes it (or might be gone).
 (load "vc/vc-hooks")
 (load "vc/ediff-hook")
 (if (fboundp 'x-show-tip) (load "tooltip"))

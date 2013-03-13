@@ -9,7 +9,7 @@
             [deuce.emacs-lisp.globals :as globals])
   (import [clojure.lang IPersistentCollection PersistentVector]
           [deuce.emacs.data CharTable]
-          [java.util List Map HashMap Collections Objects]
+          [java.util List Map HashMap Collections Objects Arrays]
           [java.nio CharBuffer]
           [java.nio.charset Charset]
           [javax.xml.bind DatatypeConverter]
@@ -442,8 +442,9 @@
 (defun fillarray (array item)
   "Store each element of ARRAY with ITEM.
   ARRAY is a vector, string, char-table, or bool-vector."
-  (dotimes [n (count array)]
-    (aset array n item))
+  (if (instance? CharTable array)
+    (fillarray (.contents ^CharTable array) item)
+    (Arrays/fill ^objects array item))
   array)
 
 (defun load-average (&optional use-floats)
