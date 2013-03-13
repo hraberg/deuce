@@ -82,6 +82,9 @@
 (setq buffer-undo-list t)
 
 ;; DEUCE: Handles inlining, won't be used, but other parts references its macros.
+;;        24.3 Note: Defines defmacro using defalias + lambda and then defun using it here.
+;;                   Handles doc strings etc, so we only need to support 'lambda'.
+;;                   Probably nice in theory, but will be messier to bootstrap as Deuce core will require byte-run.el to work.
 (load "emacs-lisp/byte-run")
 ;; DEUCE: backquote is used by lread.c, and not used in Deuce to avoid having the reader depending on Emacs Lisp.
 ;;        Instead I use the internal SyntaxQuoteReader from Clojure - may revisit.
