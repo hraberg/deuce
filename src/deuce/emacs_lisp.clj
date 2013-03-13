@@ -332,46 +332,6 @@
                    {:doc ~doc}))))
 
 ;; defined in subr.el
-(c/defmacro declare-function
- "Tell the byte-compiler that function FN is defined, in FILE.
-  Optional ARGLIST is the argument list used by the function.  The
-  FILE argument is not used by the byte-compiler, but by the
-  `check-declare' package, which checks that FILE contains a
-  definition for FN.  ARGLIST is used by both the byte-compiler and
-  `check-declare' to check for consistency.
-
-  FILE can be either a Lisp file (in which case the \".el\"
-  extension is optional), or a C file.  C files are expanded
-  relative to the Emacs \"src/\" directory.  Lisp files are
-  searched for using `locate-library', and if that fails they are
-  expanded relative to the location of the file containing the
-  declaration.  A FILE with an \"ext:\" prefix is an external file.
-  `check-declare' will check such files if they are found, and skip
-  them without error if they are not.
-
-  FILEONLY non-nil means that `check-declare' will only check that
-  FILE exists, not that it defines FN.  This is intended for
-  function-definitions that `check-declare' does not recognize, e.g.
-  `defstruct'.
-
-  To specify a value for FILEONLY without passing an argument list,
-  set ARGLIST to t.  This is necessary because nil means an
-  empty argument list, rather than an unspecified one.
-
-  Note that for the purposes of `check-declare', this statement
-  must be the first non-whitespace on a line.
-
-  For more information, see Info node `(elisp)Declaring Functions'."
- [fn file & [arglist fileonly]]
- {:arglists '([FN FILE &optional ARGLIST FILEONLY])}
- (c/let [name (sym fn)]
-        `(do
-           ~(when-not (fun name)
-              `(do (def-helper* defn nil ~name ~arglist nil)
-                   (alter-meta! (el/fun '~name) merge {:file '~file :declared true})))
-           '~name)))
-
-;; defined in subr.el
 (defn apply-partially
   "Return a function that is a partial application of FUN to ARGS.
   ARGS is a list of the first N arguments to pass to FUN.
