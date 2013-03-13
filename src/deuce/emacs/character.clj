@@ -92,5 +92,5 @@
 
 (defun max-char ()
   "Return the character of the maximum code."
-  ;;0x3FFFFF in Emacs
-  (Character/MAX_VALUE))
+  ;;0x3FFFFF in Emacs.
+  (int Character/MAX_VALUE))
