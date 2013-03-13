@@ -1,7 +1,9 @@
 (ns deuce.emacs.minibuf
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
+            [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.cons :refer [ICons car] :as cons]
+            [deuce.emacs.alloc :as alloc]
             [deuce.emacs.fns :as fns])
   (:refer-clojure :exclude [read-string]))
 
@@ -141,12 +143,15 @@
   "Return current depth of activations of minibuffer, a nonnegative integer."
   )
 
+(declare filter-completions)
+
 (defun test-completion (string collection &optional predicate)
   "Return non-nil if STRING is a valid completion.
   Takes the same arguments as `all-completions' and `try-completion'.
   If COLLECTION is a function, it is called with three arguments:
   the values STRING, PREDICATE and `lambda'."
-  )
+  (when (some #{string} (filter-completions collection predicate))
+    true))
 
 (defun completing-read (prompt collection &optional predicate require-match initial-input hist def inherit-input-method)
   "Read a string in the minibuffer, with completion.
@@ -297,6 +302,17 @@
   if it is a list."
   )
 
+(defn ^:private filter-completions [collection predicate]
+  (map #(if (satisfies? ICons %) (car %) %)
+       (filter (if predicate (el/fun predicate) identity) collection)))
+
+(defn ^:private try-completion-internal [string collection]
+  (when-let [completions (seq (filter #(.startsWith (str %) string) collection))]
+    (reduce #(loop [n (count %1)]
+               (let [prefix (subs %1 0 n)]
+                 (if (.startsWith %2 prefix) prefix (recur (dec n)))))
+            (sort completions))))
+
 (defun try-completion (string collection &optional predicate)
   "Return common substring of all completions of STRING in COLLECTION.
   Test each possible completion specified by COLLECTION
@@ -328,7 +344,11 @@
   predicate is called with two arguments: the key and the value.
   Additionally to this predicate, `completion-regexp-list'
   is used to further constrain the set of candidates."
-  )
+  (let [collection (filter-completions collection predicate)]
+    (when-let [completion (try-completion-internal string collection)]
+      (if (= 1 (count (filter #{string} collection)))
+        true
+        completion))))
 
 (defun eval-minibuffer (prompt &optional initial-contents)
   "Return value of Lisp expression read using the minibuffer.
@@ -413,7 +433,9 @@
   An obsolete optional fourth argument HIDE-SPACES is still accepted for
   backward compatibility.  If non-nil, strings in COLLECTION that start
   with a space are ignored unless STRING itself starts with a space."
-  )
+  (let [collection (filter-completions collection predicate)
+        prefix (try-completion-internal string collection)]
+    (apply alloc/list (filter #(.startsWith (str %) prefix) collection))))
 
 (defun read-buffer (prompt &optional def require-match)
   "Read the name of a buffer and return as a string.

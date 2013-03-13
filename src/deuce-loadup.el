@@ -232,8 +232,7 @@
 ;; DEUCE: (void-variable method) cl-macs/cl-setf-do-modify refers to cl-setf-simple-store-p before its defined inside a let
 ;;        Hack to work around this is in deuce.emacs by predefining cl-setf-simple-store-p.
 (load "emacs-lisp/syntax")
-;; DEUCE: Requires minibuffer/try-completions and all-completions to work, StackOverflowError in regexp-opt/regexp-opt-group
-;;        Has hack in deuce.emacs for regexp-opt/regexp-opt-group to be predefined, as its used inside let, see above.
+;; DEUCE: Has hack in deuce.emacs for regexp-opt/regexp-opt-group to be predefined, as its used inside let, see above.
 (load "font-lock")
 (load "jit-lock")
 
