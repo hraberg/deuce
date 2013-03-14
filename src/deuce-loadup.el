@@ -85,6 +85,7 @@
 ;;        24.3 Note: Defines defmacro using defalias + lambda and then defun using it here.
 ;;                   Handles doc strings etc, so we only need to support 'lambda'.
 ;;                   Probably nice in theory, but will be messier to bootstrap as Deuce core will require byte-run.el to work.
+;;                   If doing this, we should consider using real backquote.el as well.
 (load "emacs-lisp/byte-run")
 ;; DEUCE: backquote is used by lread.c, and not used in Deuce to avoid having the reader depending on Emacs Lisp.
 ;;        Instead I use the internal SyntaxQuoteReader from Clojure - may revisit.
@@ -174,9 +175,7 @@
 
 ;; DEUCE: About half-way through loadup.el here. Next up is languages (to skip), various search/replace and actual major modes.
 ;;        At the end of loadup some addditional actual initialization happens, see commented out lines below.
-;;        The following section is more sparsely commented and analyzed than that above, will revisit after 0.1.0.
-;;        This strict approach won't work, as several of the files below are indirectly referenced.
-;;        And once loaddefs is in, all bets are off, as anything can be autoloaded.
+;;        Once loaddefs is in, all bets are off, as anything can be autoloaded.
 
 (load "jka-cmpr-hook")
 (load "epa-hook")
@@ -245,8 +244,9 @@
       (and (boundp 'x-toolkit-scroll-bars)
 	   (load "scroll-bar"))
       (load "select")))
-;; DEUCE: defalias fn arity issue when expanding cl-macs/defstruct.
-;;        Can be reproduced by defining an empty struct: (defstruct person)
+;; DEUCE: NPE exception in timer/timer--activate, thrown from clojure.core/instance? related to lines:
+;;        (setf (timer--triggered timer) triggered-p)
+;;        (setf (timer--idle-delay timer) idle)
 (load "emacs-lisp/timer")
 (load "isearch")
 (load "rfn-eshadow")
@@ -255,10 +255,10 @@
 (load "paths.el")  ;Don't get confused if someone compiled paths by mistake.
 (load "emacs-lisp/lisp")
 (load "textmodes/page")
-;; DEUCE: defalias fn arity issue when expanding cl-macs/defstruct.
+;; DEUCE: Sanity check against http://www.gnu.org/software/emacs/manual/html_node/cl/Structures.html (see emacs-lisp/timer above).
 (load "register")
 (load "textmodes/paragraphs")
-;; DEUCE: (void-variable sorted-strings) - this is the same delayed-eval issue as font-lock above.
+;; DEUCE: Hack in deuce.emacs to deal with (void-variable sorted-strings) -  same delayed-eval issue as font-lock above.
 (load "emacs-lisp/lisp-mode")
 (load "textmodes/text-mode")
 (load "textmodes/fill")

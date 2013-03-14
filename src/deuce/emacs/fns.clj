@@ -382,16 +382,13 @@
   This makes STRING unibyte and may change its length."
   )
 
+;; Not tail recursive
 (defn ^:private del [f elt list]
-  (loop [prev list
-         curr (cdr list)]
-    (when (car curr)
-      (when (f elt (car curr))
-        (setcar prev (cdr curr)))
-      (recur (cdr prev)
-             (cdr curr))))
-  (if (data/eq elt (car list))
-    (cdr list) list))
+  (when list
+    (if (f elt (car list))
+      (del f elt (cdr list))
+      (doto list
+        (setcdr (del f elt (cdr list)))))))
 
 (defn ^:private mem [f elt list]
   (loop [list list]

@@ -31,7 +31,9 @@
   (symbol nil s))
 
 (defn sym [s]
-  (symbol nil (name s)))
+  (if (true? s)
+      '#el/sym "true"
+      (symbol nil (name s))))
 
 ; "reused" from data.clj
 (defn not-null? [object]
@@ -43,7 +45,16 @@
 
 (defn fun [s]
   (c/cond (fn? s) s
-          (symbol? s) (ns-resolve 'deuce.emacs (sym s))
+          (symbol? s) (c/let [f (ns-resolve 'deuce.emacs (sym s))]
+                             ;; Not sure we want alias handling leaking down to here.
+                             ;; On the other hand, 24.3 uses defalias + lambda as primary macros.
+                             ;; Hack to protect against backquote alias, needs proper fix.
+                             (if-let [alias (c/and  (not= '#el/sym "\\`" s)
+                                                    (-> f meta :alias))]
+                               (if (symbol? alias) ;; See binding/mode-specific-command-prefix
+                                 (fun alias)
+                                 alias)
+                               f))
           :else (throw* 'invalid-function (list s))))
 
 (defn maybe-sym [x]

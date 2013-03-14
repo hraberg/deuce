@@ -92,6 +92,7 @@
 
 (declare symbol-function symbolp eq)
 
+;; Navgeet's additions, not sure they've been tested against real world scenarios.
 (defn ^:private indirect_function [object]
   (loop [hare object
          tortoise object]
@@ -131,6 +132,7 @@
   (condp some [symbol]
     keyword? (str symbol)
     symbol? (name symbol)
+    true? "true"
     nil? (pr-str nil)))
 
 (defun makunbound (symbol)
@@ -401,16 +403,12 @@
   (when (consp object)
     (car object)))
 
-(defn check_symbol [symbol]
-  "Throw exception if SYMBOL is not a symbol"
-  (when-not (symbolp symbol)
-    (el/throw 'wrong-type-argument '(symbol))))
-
 (defun fset (symbol definition)
   "Set SYMBOL's function definition to DEFINITION, and return DEFINITION."
-  (check_symbol symbol)
+  (el/check-type 'symbolp symbol)
   (let [symbol (el/sym symbol)
         sym (el/fun symbol)]
+    ;; Navgeet's additions, not sure they've been tested against real world scenarios.
     (when sym
       (when (and (consp @sym) (c/= (car @sym) 'autoload))
         ;; Creates a cyclic load dependency chain.
@@ -518,7 +516,7 @@
 
 (defun symbolp (object)
   "Return t if OBJECT is a symbol."
-  (or ((some-fn symbol? keyword? nil?) object)
+  (or ((some-fn symbol? keyword? nil? true?) object)
       (and (seq? object) (c/= `deref (first object)) (symbolp (second object)))))
 
 (defun <= (num1 num2)
@@ -545,7 +543,7 @@
         f (and (or lambda? (symbol? definition))  ;; guard against value
                (el/fun definition))]
     (when-let [alias (if-not lambda?
-                       (fn [&form &env & args] ;; Note implicit macro args
+                       (fn alias [&form &env & args] ;; Note implicit macro args
                          `(el/progn (~(el/fun definition) ~@args)))
                        definition)]
       (ns-unmap 'deuce.emacs symbol)
@@ -553,8 +551,8 @@
                                                         (or docstring
                                                             (-> f meta :doc)
                                                             (-> definition meta :doc))))
-      (alter-meta! (el/fun symbol) assoc :alias true)
-      (when-not lambda? (.setMacro (el/fun symbol)))
+      (alter-meta! (el/fun symbol) assoc :alias definition)
+      (when-not lambda? (.setMacro (ns-resolve 'deuce.emacs symbol)))
       ;; We want this, but it currently wrecks havoc due to backquote
       ;; (when (and lambda? (-> definition meta :macro)))
       ;;   (.setMacro (el/fun symbol))))
@@ -574,9 +572,9 @@
 
 (defun symbol-function (symbol)
   "Return SYMBOL's function definition.  Error if that is void."
-  (check_symbol symbol)
+  (el/check-type 'symbolp symbol)
   (if-let [sym (el/fun symbol)]
-    @sym
+    (if (var? sym) @sym sym) ;; See binding/mode-specific-command-prefix
     (el/throw 'void-function symbol)))
 
 (defun kill-local-variable (variable)

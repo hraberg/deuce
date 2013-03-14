@@ -67,6 +67,9 @@
           (.set l_count this (int 3)))))
     val))
 
+;; This should really be eval-expression-print-length, maybe move this to deuce.emacs.print
+;; There's also eval-expression-print-level which controls nesting.
+;; There's also print-level and print-lenght, seem to be nil in Emacs.
 (def ^:private max-print-length 12)
 
 (defn ellipsis [coll]
