@@ -21,5 +21,5 @@
   (defn symbol-reader [s]
     (symbol nil s))
 
-  (binding [*data-readers* {'deuce/symbol #'symbol-reader}]
+  (binding [*data-readers* {'el/sym #'symbol-reader}]
     (apply marginalia.main/-main args)))
