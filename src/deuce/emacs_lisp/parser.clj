@@ -29,9 +29,16 @@
 ;; Should be rewritten with some thought behind it. Maybe a test.
 ;; http://www.gnu.org/software/emacs/manual/html_node/elisp/Character-Type.html doesn't really cover it in all it's glory.
 ;; Looks like edmacro/edmacro-parse-keys actually contains a lot of the logic.
+;; Like Emacs, certain characters can be read both with single and double backslash. Not necessarily the same ones.
+
+(def emacs-escape-characters {"\\e" \ ;; <ESC>
+                              "\r" \return "\\" \\ "\\s" \space
+                              "\\C-?" 127 "\\d" 127 ;; <DEL>
+                              })
+
 (defn ^:private parse-character [c]
-  (if-let [emacs-escape-char ({"\\e" \} c)]
-    (int emacs-escape-char)
+  (if-let [escape-char (emacs-escape-characters c)]
+    (int escape-char)
     (let [parts (if (= "-" c) [c] (s/split c #"-"))
           [mods c] [(set (butlast parts)) (last parts)]
           ctrl-char? #(<= (int \A) (+ % 64) (int \Z)) ;; This is where it really starts to go downhill.
@@ -53,7 +60,7 @@
   (object-array (vec form)))
 
 (def ^:private ^Pattern re-str #"(?s)([^\"\\]*(?:\\.[^\"\\]*)*)\"")
-(def ^:private ^Pattern re-char #"((\\[CSMAHs]-)*(\\x?\p{XDigit}+|(\\\^?)?.))")
+(def ^:private ^Pattern re-char #"(?s)((\\[CSMAHs]-)*(\\x?\p{XDigit}+|(\\\^?)?.))")
 
 (defn ^:private tokenize-all [^Scanner sc]
   (strip-comments (take-while (complement #{`end}) (repeatedly (partial tokenize sc)))))

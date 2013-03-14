@@ -16,7 +16,7 @@
                       (str timestamp " " (-> level name s/upper-case) " [" ns "]")))
 (timbre/set-config! [:timestamp-pattern] "HH:mm:ss,SSS")
 
-(timbre/set-level! :warn)
+(timbre/set-level! :error)
 (var-set  #'*warn-on-reflection* true)
 
 (create-ns 'deuce.emacs)

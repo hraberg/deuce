@@ -439,8 +439,6 @@
 
 ;; DEUCE: Starts Emacs. This entire file will be AOT compiled together with referenced Emacs Lisp.
 ;;        deuce-loadup.el is loaded in deuce.main. Further C init goes into deuce.emacs.
-;;        normal-erase-is-backspace-mode throws (void-variable --eq-val--) doesn't look like a delayed var issue.
-;;        It's introduced by (define-setf-method eq (place val)) in cl-macs
 (eval top-level)
 
 

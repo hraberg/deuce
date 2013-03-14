@@ -587,9 +587,10 @@
 (defun nth (n list)
   "Return the Nth element of LIST.
   N counts from zero.  If LIST is not that long, nil is returned."
-  (if (pos? n)
-    (c/nth (apply cons/list list) n nil)
-    (car list)))
+  (cons/maybe-seq
+   (if (pos? n)
+     (c/nth (apply cons/list list) n nil)
+     (car list))))
 
 (defun string-to-unibyte (string)
   "Return a unibyte string with the same individual chars as STRING.
