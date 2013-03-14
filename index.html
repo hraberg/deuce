@@ -3029,16 +3029,16 @@ net.brehaut.ClojureTools = (function (SH) {
   };
 })(SyntaxHighlighter);
 </script><title>deuce -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">deuce</h1><h2 class="project-version">0.1.0-SNAPSHOT</h2><br /><p>DEUCE - Deuce is (not yet) Emacs under Clojure</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.0</td></tr><tr><td class="dep-name">clojure-lanterna</td><td class="dotted"><hr /></td><td class="dep-version">0.9.2</td></tr><tr><td class="dep-name">com.taoensso/timbre</td><td class="dotted"><hr /></td><td class="dep-version">1.4.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#"></a></li><li><a href="#deuce.emacs">deuce.emacs</a></li><li><a href="#deuce.emacs.alloc">deuce.emacs.alloc</a></li><li><a href="#deuce.emacs.buffer">deuce.emacs.buffer</a></li><li><a href="#deuce.emacs.bytecode">deuce.emacs.bytecode</a></li><li><a href="#deuce.emacs.callint">deuce.emacs.callint</a></li><li><a href="#deuce.emacs.callproc">deuce.emacs.callproc</a></li><li><a href="#deuce.emacs.casefiddle">deuce.emacs.casefiddle</a></li><li><a href="#deuce.emacs.casetab">deuce.emacs.casetab</a></li><li><a href="#deuce.emacs.category">deuce.emacs.category</a></li><li><a href="#deuce.emacs.ccl">deuce.emacs.ccl</a></li><li><a href="#deuce.emacs.character">deuce.emacs.character</a></li><li><a href="#deuce.emacs.charset">deuce.emacs.charset</a></li><li><a href="#deuce.emacs.chartab">deuce.emacs.chartab</a></li><li><a href="#deuce.emacs.cmds">deuce.emacs.cmds</a></li><li><a href="#deuce.emacs.coding">deuce.emacs.coding</a></li><li><a href="#deuce.emacs.composite">deuce.emacs.composite</a></li><li><a href="#deuce.emacs.data">deuce.emacs.data</a></li><li><a href="#deuce.emacs.dired">deuce.emacs.dired</a></li><li><a href="#deuce.emacs.dispnew">deuce.emacs.dispnew</a></li><li><a href="#deuce.emacs.doc">deuce.emacs.doc</a></li><li><a href="#deuce.emacs.editfns">deuce.emacs.editfns</a></li><li><a href="#deuce.emacs.emacs">deuce.emacs.emacs</a></li><li><a href="#deuce.emacs.eval">deuce.emacs.eval</a></li><li><a href="#deuce.emacs.fileio">deuce.emacs.fileio</a></li><li><a href="#deuce.emacs.filelock">deuce.emacs.filelock</a></li><li><a href="#deuce.emacs.floatfns">deuce.emacs.floatfns</a></li><li><a href="#deuce.emacs.fns">deuce.emacs.fns</a></li><li><a href="#deuce.emacs.font">deuce.emacs.font</a></li><li><a href="#deuce.emacs.frame">deuce.emacs.frame</a></li><li><a href="#deuce.emacs.indent">deuce.emacs.indent</a></li><li><a href="#deuce.emacs.insdel">deuce.emacs.insdel</a></li><li><a href="#deuce.emacs.keyboard">deuce.emacs.keyboard</a></li><li><a href="#deuce.emacs.keymap">deuce.emacs.keymap</a></li><li><a href="#deuce.emacs.lread">deuce.emacs.lread</a></li><li><a href="#deuce.emacs.macros">deuce.emacs.macros</a></li><li><a href="#deuce.emacs.marker">deuce.emacs.marker</a></li><li><a href="#deuce.emacs.menu">deuce.emacs.menu</a></li><li><a href="#deuce.emacs.minibuf">deuce.emacs.minibuf</a></li><li><a href="#deuce.emacs.print">deuce.emacs.print</a></li><li><a href="#deuce.emacs.process">deuce.emacs.process</a></li><li><a href="#deuce.emacs.search">deuce.emacs.search</a></li><li><a href="#deuce.emacs.syntax">deuce.emacs.syntax</a></li><li><a href="#deuce.emacs.term">deuce.emacs.term</a></li><li><a href="#deuce.emacs.terminal">deuce.emacs.terminal</a></li><li><a href="#deuce.emacs.textprop">deuce.emacs.textprop</a></li><li><a href="#deuce.emacs.undo">deuce.emacs.undo</a></li><li><a href="#deuce.emacs.window">deuce.emacs.window</a></li><li><a href="#deuce.emacs.xdisp">deuce.emacs.xdisp</a></li><li><a href="#deuce.emacs.xfaces">deuce.emacs.xfaces</a></li><li><a href="#deuce.emacs.xml">deuce.emacs.xml</a></li><li><a href="#deuce.emacs-lisp">deuce.emacs-lisp</a></li><li><a href="#deuce.emacs-lisp.cons">deuce.emacs-lisp.cons</a></li><li><a href="#deuce.emacs-lisp.globals">deuce.emacs-lisp.globals</a></li><li><a href="#deuce.emacs-lisp.parser">deuce.emacs-lisp.parser</a></li><li><a href="#deuce.main">deuce.main</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#" name=""><h1 class="project-name"></h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">{deuce/cons deuce.emacs-lisp/cons-reader
- deuce/vector deuce.emacs-lisp/vector-reader
- deuce/symbol deuce.emacs-lisp/symbol-reader}</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs" name="deuce.emacs"><h1 class="project-name">deuce.emacs</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">clojure-lanterna</td><td class="dotted"><hr /></td><td class="dep-version">0.9.2</td></tr><tr><td class="dep-name">com.taoensso/timbre</td><td class="dotted"><hr /></td><td class="dep-version">1.4.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#"></a></li><li><a href="#deuce.emacs">deuce.emacs</a></li><li><a href="#deuce.emacs.alloc">deuce.emacs.alloc</a></li><li><a href="#deuce.emacs.buffer">deuce.emacs.buffer</a></li><li><a href="#deuce.emacs.bytecode">deuce.emacs.bytecode</a></li><li><a href="#deuce.emacs.callint">deuce.emacs.callint</a></li><li><a href="#deuce.emacs.callproc">deuce.emacs.callproc</a></li><li><a href="#deuce.emacs.casefiddle">deuce.emacs.casefiddle</a></li><li><a href="#deuce.emacs.casetab">deuce.emacs.casetab</a></li><li><a href="#deuce.emacs.category">deuce.emacs.category</a></li><li><a href="#deuce.emacs.ccl">deuce.emacs.ccl</a></li><li><a href="#deuce.emacs.character">deuce.emacs.character</a></li><li><a href="#deuce.emacs.charset">deuce.emacs.charset</a></li><li><a href="#deuce.emacs.chartab">deuce.emacs.chartab</a></li><li><a href="#deuce.emacs.cmds">deuce.emacs.cmds</a></li><li><a href="#deuce.emacs.coding">deuce.emacs.coding</a></li><li><a href="#deuce.emacs.composite">deuce.emacs.composite</a></li><li><a href="#deuce.emacs.data">deuce.emacs.data</a></li><li><a href="#deuce.emacs.dired">deuce.emacs.dired</a></li><li><a href="#deuce.emacs.dispnew">deuce.emacs.dispnew</a></li><li><a href="#deuce.emacs.doc">deuce.emacs.doc</a></li><li><a href="#deuce.emacs.editfns">deuce.emacs.editfns</a></li><li><a href="#deuce.emacs.emacs">deuce.emacs.emacs</a></li><li><a href="#deuce.emacs.eval">deuce.emacs.eval</a></li><li><a href="#deuce.emacs.fileio">deuce.emacs.fileio</a></li><li><a href="#deuce.emacs.filelock">deuce.emacs.filelock</a></li><li><a href="#deuce.emacs.floatfns">deuce.emacs.floatfns</a></li><li><a href="#deuce.emacs.fns">deuce.emacs.fns</a></li><li><a href="#deuce.emacs.font">deuce.emacs.font</a></li><li><a href="#deuce.emacs.frame">deuce.emacs.frame</a></li><li><a href="#deuce.emacs.indent">deuce.emacs.indent</a></li><li><a href="#deuce.emacs.insdel">deuce.emacs.insdel</a></li><li><a href="#deuce.emacs.keyboard">deuce.emacs.keyboard</a></li><li><a href="#deuce.emacs.keymap">deuce.emacs.keymap</a></li><li><a href="#deuce.emacs.lread">deuce.emacs.lread</a></li><li><a href="#deuce.emacs.macros">deuce.emacs.macros</a></li><li><a href="#deuce.emacs.marker">deuce.emacs.marker</a></li><li><a href="#deuce.emacs.menu">deuce.emacs.menu</a></li><li><a href="#deuce.emacs.minibuf">deuce.emacs.minibuf</a></li><li><a href="#deuce.emacs.print">deuce.emacs.print</a></li><li><a href="#deuce.emacs.process">deuce.emacs.process</a></li><li><a href="#deuce.emacs.search">deuce.emacs.search</a></li><li><a href="#deuce.emacs.syntax">deuce.emacs.syntax</a></li><li><a href="#deuce.emacs.term">deuce.emacs.term</a></li><li><a href="#deuce.emacs.terminal">deuce.emacs.terminal</a></li><li><a href="#deuce.emacs.textprop">deuce.emacs.textprop</a></li><li><a href="#deuce.emacs.undo">deuce.emacs.undo</a></li><li><a href="#deuce.emacs.window">deuce.emacs.window</a></li><li><a href="#deuce.emacs.xdisp">deuce.emacs.xdisp</a></li><li><a href="#deuce.emacs.xfaces">deuce.emacs.xfaces</a></li><li><a href="#deuce.emacs.xml">deuce.emacs.xml</a></li><li><a href="#deuce.emacs-lisp">deuce.emacs-lisp</a></li><li><a href="#deuce.emacs-lisp.cons">deuce.emacs-lisp.cons</a></li><li><a href="#deuce.emacs-lisp.globals">deuce.emacs-lisp.globals</a></li><li><a href="#deuce.emacs-lisp.parser">deuce.emacs-lisp.parser</a></li><li><a href="#deuce.main">deuce.main</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#" name=""><h1 class="project-name"></h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">{el/vec deuce.emacs-lisp/vector-reader
+ el/sym deuce.emacs-lisp/symbol-reader}</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs" name="deuce.emacs"><h1 class="project-name">deuce.emacs</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.emacs
   (:require [clojure.core :as c]
+            [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals])
   (:refer-clojure :only [])
-  (:use [deuce.emacs-lisp :only [and catch cond condition-case defconst defmacro defun defvar
-                                 function if interactive lambda let let* or prog1 prog2 progn quote
+  (:use [deuce.emacs-lisp :only [and apply-partially catch cond condition-case defconst defmacro
+                                 defun defvar function if interactive lambda let let* or prog1 prog2 progn quote
                                  save-current-buffer save-excursion save-restriction setq setq-default
                                  unwind-protect while throw]]
         [deuce.emacs.alloc]
@@ -3096,23 +3096,14 @@ net.brehaut.ClojureTools = (function (SH) {
 (setq ns-version-string &quot;&quot;)
 (setq x-toolkit-scroll-bars nil)
 (setq msdos-long-file-names nil)</pre></td></tr><tr><td class="docs"><p>Hack for a predicate in cl.el, this is defined in emacs-lisp/bytecomp.el, which we're not using</p>
-</td><td class="codes"><pre class="brush: clojure">(defun byte-compile-file-form (form))</pre></td></tr><tr><td class="docs"><p>AOT cl.el gets confused by this alias</p>
-</td><td class="codes"><pre class="brush: clojure">(defalias 'cl-block-wrapper 'identity)</pre></td></tr><tr><td class="docs"><p>Hack to ensure these gets treated as a macros even before loaded</p>
-</td><td class="codes"><pre class="brush: clojure">(defmacro declare (&amp;rest _specs) nil)
-(defmacro dolist (spec &amp;rest body) nil)</pre></td></tr><tr><td class="docs"><p>Hacks to get a sneak peek of the welcome screen:
-avoid loading frame.el yet</p>
-
-<p>(c/println)</p>
-</td><td class="codes"><pre class="brush: clojure">(setq frame-initial-frame nil)
-(defun frame-initialize ())
-(defun normal-erase-is-backspace-setup-frame ())
-(defun newline (&amp;optional arg) (c/println))
-(defun make-frame (&amp;optional parameters))
-(defun display-graphic-p (&amp;optional display))
-(defun display-mouse-p (&amp;optional display))</pre></td></tr><tr><td class="docs"><p>Stubs for modes defined in simple</p>
-</td><td class="codes"><pre class="brush: clojure">(defun special-mode ())
-(defun transient-mark-mode (arg))</pre></td></tr><tr><td class="docs"><p>If abbrev isn't loaded</p>
-</td><td class="codes"><pre class="brush: clojure">(setq abbrev-file-name &quot;~/.emacs.d/abbrev_defs&quot;)</pre></td></tr><tr><td class="docs"><p>Keymap setup</p>
+</td><td class="codes"><pre class="brush: clojure">(defun byte-compile-file-form (form))</pre></td></tr><tr><td class="docs"><p> AOT cl.el gets confused by this alias</p>
+</td><td class="codes"><pre class="brush: clojure">(defalias 'cl-block-wrapper 'identity)
+(defmacro declare (&amp;rest _specs) nil)</pre></td></tr><tr><td class="docs"><p>with-no-warnings in byte-run.el needs this</p>
+</td><td class="codes"><pre class="brush: clojure">(defun last (list &amp;optional n))</pre></td></tr><tr><td class="docs"><p>Hack as delayed-eval doesn't (like some other things) work properly inside let-bindings.
+Needs to be fixed properly, but let's see if we can get through the boot with this hack.
+cl-setf-simple-store-p is used in  cl-macs/cl-setf-do-modify, delayed-eval call refers to earlier binding 'method'.</p>
+</td><td class="codes"><pre class="brush: clojure">(defun cl-setf-simple-store-p (sym form))</pre></td></tr><tr><td class="docs"><p>Same issue in regexp-opt/regexp-opt. Calls this fn with earlier binding 'sorted-strings'</p>
+</td><td class="codes"><pre class="brush: clojure">(defun regexp-opt-group (strings &amp;optional paren lax))</pre></td></tr><tr><td class="docs"><p>Keymap setup</p>
 </td><td class="codes"><pre class="brush: clojure">(setq global-map (make-keymap))
 (setq esc-map (make-keymap))
 (setq ctl-x-map (make-keymap))</pre></td></tr><tr><td class="docs"><p>var is definied in keyboard.clj</p>
@@ -3126,7 +3117,8 @@ avoid loading frame.el yet</p>
          :only (trace debug info warn error fatal spy)])
   (:require [clojure.core :as c]
             [deuce.emacs-lisp.cons :as cons])
-  (:refer-clojure :exclude [vector cons list]))</pre></td></tr><tr><td class="docs"><p>Non-nil means loading Lisp code in order to dump an executable.
+  (:refer-clojure :exclude [vector cons list])
+  (:import [java.util Arrays]))</pre></td></tr><tr><td class="docs"><p>Non-nil means loading Lisp code in order to dump an executable.
   This means that certain objects should be allocated in shared (pure) space.
   It can also be set to a hash-table, in which case this table is used to
   do hash-consing of the objects allocated to pure space.</p>
@@ -3198,6 +3190,7 @@ avoid loading frame.el yet</p>
 </td><td class="codes"><pre class="brush: clojure">(defun vector (&amp;rest objects)
   (object-array objects))</pre></td></tr><tr><td class="docs"><p>Concatenate all the argument characters and make the result a string.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun string (&amp;rest characters)
+  ;; Guard against interning as we allow modifications of String.value for now.
   (apply str characters))</pre></td></tr><tr><td class="docs"><p>Return a newly allocated marker which does not point at any place.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun make-marker ())</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare list)</pre></td></tr><tr><td class="docs"><p>Reclaim storage for Lisp objects no longer needed.
@@ -3213,10 +3206,10 @@ avoid loading frame.el yet</p>
   See Info node `(elisp)Garbage Collection'.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun garbage-collect ()
   (System/gc)
-  (list (list)))</pre></td></tr><tr><td class="docs"><p>Create a new cons, give it CAR and CDR as components, and return it.</p>
+  '(()))</pre></td></tr><tr><td class="docs"><p>Create a new cons, give it CAR and CDR as components, and return it.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun cons (car cdr)
   (cons/pair (cons/maybe-seq car) (cons/maybe-seq cdr)))</pre></td></tr><tr><td class="docs"><p>Return t if first arg is not equal to second arg.  Both must be numbers or markers.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun #deuce/symbol &quot;/=&quot; (num1 num2)
+</td><td class="codes"><pre class="brush: clojure">(defun #el/sym &quot;/=&quot; (num1 num2)
   (not (== num1 num2)))</pre></td></tr><tr><td class="docs"><p>Return a newly allocated uninterned symbol whose name is NAME.
   Its value and function definition are void, and its property list is nil.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun make-symbol (name)
@@ -3230,9 +3223,8 @@ avoid loading frame.el yet</p>
 </td><td class="codes"><pre class="brush: clojure">(defun memory-limit ())</pre></td></tr><tr><td class="docs"><p>Return a newly created vector of length LENGTH, with each element being INIT.
   See also the function `vector'.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun make-vector (length init)
-  (let [vector (object-array length)]
-    (dotimes [n length]
-      (aset vector n init))
+  (let [^objects vector (object-array length)]
+    (Arrays/fill vector init)
     vector))</pre></td></tr><tr><td class="docs"><p>Return a newly created string of length LENGTH, with INIT in each element.
   LENGTH must be an integer.
   INIT must be an integer that represents a character.</p>
@@ -3247,6 +3239,7 @@ avoid loading frame.el yet</p>
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
             [deuce.emacs.alloc :as alloc]
+            [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals])
   (:refer-clojure :exclude []))</pre></td></tr><tr><td class="docs"><p>List of functions to call before each text change.
   Two arguments are passed to each function: the positions of
@@ -3465,7 +3458,7 @@ deactivate the mark (e.g. buffer modification), the value of
   Decimal digits after the % specify field width to which to pad.</p>
 
 <p>  You can customize this variable.</p>
-</td><td class="codes"><pre class="brush: clojure">(defvar mode-line-format nil)</pre></td></tr><tr><td class="docs"><p>Normal hook run before changing the major mode of a buffer.
+</td><td class="codes"><pre class="brush: clojure">(defvar mode-line-format &quot;%-&quot;)</pre></td></tr><tr><td class="docs"><p>Normal hook run before changing the major mode of a buffer.
   The function `kill-all-local-variables' runs this before doing anything else.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar change-major-mode-hook nil)</pre></td></tr><tr><td class="docs"><p>How far to scroll windows downward.
   If you move point off the top, the window scrolls automatically.
@@ -3499,7 +3492,7 @@ deactivate the mark (e.g. buffer modification), the value of
 </td><td class="codes"><pre class="brush: clojure">(defvar auto-fill-function nil)</pre></td></tr><tr><td class="docs"><p>Value of point before the last series of scroll operations, or nil.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar point-before-scroll nil)</pre></td></tr><tr><td class="docs"><p>*Width of right marginal area for display of a buffer.
   A value of nil means no marginal area.</p>
-</td><td class="codes"><pre class="brush: clojure">(defvar right-margin-width nil)</pre></td></tr><tr><td class="docs"><p>Default value of `cursor-type' for buffers that don't override it.
+</td><td class="codes"><pre class="brush: clojure">(defvar right-margin-width 0)</pre></td></tr><tr><td class="docs"><p>Default value of `cursor-type' for buffers that don't override it.
   This is the same as (default-value 'cursor-type).</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar default-cursor-type nil)</pre></td></tr><tr><td class="docs"><p>*Width of this buffer's scroll bars in pixels.
   A value of nil means to use the scroll bar width from the window's frame.</p>
@@ -3583,11 +3576,11 @@ the character used to draw the border between side-by-side windows
   Interactively, you can set the buffer local value using C-x f.</p>
 
 <p>  You can customize this variable.</p>
-</td><td class="codes"><pre class="brush: clojure">(defvar fill-column nil)</pre></td></tr><tr><td class="docs"><p>*Distance between tab stops (for display of tab characters), in columns.
+</td><td class="codes"><pre class="brush: clojure">(defvar fill-column 70)</pre></td></tr><tr><td class="docs"><p>*Distance between tab stops (for display of tab characters), in columns.
   This should be an integer greater than zero.</p>
 
 <p>  You can customize this variable.</p>
-</td><td class="codes"><pre class="brush: clojure">(defvar tab-width nil)</pre></td></tr><tr><td class="docs"><p>Default value of `cursor-in-non-selected-windows'.
+</td><td class="codes"><pre class="brush: clojure">(defvar tab-width 8)</pre></td></tr><tr><td class="docs"><p>Default value of `cursor-in-non-selected-windows'.
   This is the same as (default-value 'cursor-in-non-selected-windows).</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar default-cursor-in-non-selected-windows nil)</pre></td></tr><tr><td class="docs"><p>Default value of `case-fold-search' for buffers that don't override it.
   This is the same as (default-value 'case-fold-search).</p>
@@ -3620,7 +3613,7 @@ the character used to draw the border between side-by-side windows
   Linefeed indents to this column in Fundamental mode.</p>
 
 <p>  You can customize this variable.</p>
-</td><td class="codes"><pre class="brush: clojure">(defvar left-margin nil)</pre></td></tr><tr><td class="docs"><p>Default value of `scroll-up-aggressively'.
+</td><td class="codes"><pre class="brush: clojure">(defvar left-margin 0)</pre></td></tr><tr><td class="docs"><p>Default value of `scroll-up-aggressively'.
   This value applies in buffers that don't have their own local values.
   This is the same as (default-value 'scroll-up-aggressively).</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar default-scroll-up-aggressively nil)</pre></td></tr><tr><td class="docs"><p>Default value of `abbrev-mode' for buffers that do not override it.
@@ -3687,7 +3680,7 @@ the character used to draw the border between side-by-side windows
   in the current display table (if there is one).</p>
 
 <p>  You can customize this variable.</p>
-</td><td class="codes"><pre class="brush: clojure">(defvar ctl-arrow nil)</pre></td></tr><tr><td class="docs"><p>*Non-nil if searches and matches should ignore case.</p>
+</td><td class="codes"><pre class="brush: clojure">(defvar ctl-arrow true)</pre></td></tr><tr><td class="docs"><p>*Non-nil if searches and matches should ignore case.</p>
 
 <p>  You can customize this variable.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar case-fold-search nil)</pre></td></tr><tr><td class="docs"><p>Default value of `indicate-buffer-boundaries' for buffers that don't override it.
@@ -3706,9 +3699,9 @@ the character used to draw the border between side-by-side windows
 <p>  This variable is buffer-local but you cannot set it directly;
   use the function `set-buffer-multibyte' to change a buffer's representation.
   See also Info node `(elisp)Text Representations'.</p>
-</td><td class="codes"><pre class="brush: clojure">(defvar enable-multibyte-characters nil)</pre></td></tr><tr><td class="docs"><p>*Width of left marginal area for display of a buffer.
+</td><td class="codes"><pre class="brush: clojure">(defvar enable-multibyte-characters true)</pre></td></tr><tr><td class="docs"><p>*Width of left marginal area for display of a buffer.
   A value of nil means no marginal area.</p>
-</td><td class="codes"><pre class="brush: clojure">(defvar left-margin-width nil)</pre></td></tr><tr><td class="docs"><p>A list of functions to call before changing a buffer which is unmodified.
+</td><td class="codes"><pre class="brush: clojure">(defvar left-margin-width 0)</pre></td></tr><tr><td class="docs"><p>A list of functions to call before changing a buffer which is unmodified.
   The functions are run using the `run-hooks' function.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar first-change-hook nil)</pre></td></tr><tr><td class="docs"><p>*Non-nil means to display fringes outside display margins.
   A value of nil means to display fringes between margins and buffer text.</p>
@@ -3728,7 +3721,7 @@ the character used to draw the border between side-by-side windows
 <p>  You can customize this variable.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar scroll-up-aggressively nil)</pre></td></tr><tr><td class="docs"><p>Default value of `fill-column' for buffers that do not override it.
   This is the same as (default-value 'fill-column).</p>
-</td><td class="codes"><pre class="brush: clojure">(defvar default-fill-column nil)</pre></td></tr><tr><td class="docs"><p>*Mapping from logical to physical fringe indicator bitmaps.
+</td><td class="codes"><pre class="brush: clojure">(defvar default-fill-column (el/el-var-get* 'fill-column))</pre></td></tr><tr><td class="docs"><p>*Mapping from logical to physical fringe indicator bitmaps.
   The value is an alist where each element (INDICATOR . BITMAPS)
   specifies the fringe bitmaps used to display a specific logical
   fringe indicator.</p>
@@ -3749,7 +3742,7 @@ the character used to draw the border between side-by-side windows
   This is the same as (default-value 'scroll-down-aggressively).</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar default-scroll-down-aggressively nil)</pre></td></tr><tr><td class="docs"><p>Default value of `tab-width' for buffers that do not override it.
   This is the same as (default-value 'tab-width).</p>
-</td><td class="codes"><pre class="brush: clojure">(defvar default-tab-width nil)</pre></td></tr><tr><td class="docs"><p>Default value of `left-fringe-width' for buffers that don't override it.
+</td><td class="codes"><pre class="brush: clojure">(defvar default-tab-width (el/el-var-get* 'tab-width))</pre></td></tr><tr><td class="docs"><p>Default value of `left-fringe-width' for buffers that don't override it.
   This is the same as (default-value 'left-fringe-width).</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar default-left-fringe-width nil)</pre></td></tr><tr><td class="docs"><p>Name of file visited in current buffer, or nil if not visiting a file.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar buffer-file-name nil)</pre></td></tr><tr><td class="docs"><p>Default value of `buffer-file-coding-system' for buffers not overriding it.
@@ -3788,7 +3781,7 @@ ANYTHING ELSE     display a hollow box cursor
 <p>  When the buffer is displayed in a non-selected window, the
   cursor's appearance is instead controlled by the variable
   `cursor-in-non-selected-windows'.</p>
-</td><td class="codes"><pre class="brush: clojure">(defvar cursor-type nil)</pre></td></tr><tr><td class="docs"><p>Non-nil means the mark and region are currently active in this buffer.</p>
+</td><td class="codes"><pre class="brush: clojure">(defvar cursor-type true)</pre></td></tr><tr><td class="docs"><p>Non-nil means the mark and region are currently active in this buffer.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar mark-active nil)</pre></td></tr><tr><td class="docs"><p>Default value of `fringe-cursor-alist' for buffers that don't override it.
   This is the same as (default-value 'fringe-cursor-alist').</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar default-fringe-cursor-alist nil)</pre></td></tr><tr><td class="docs"><p>*Non-nil means disregard read-only status of buffers or characters.
@@ -3807,7 +3800,7 @@ ANYTHING ELSE     display a hollow box cursor
 </td><td class="codes"><pre class="brush: clojure">(defvar buffer-invisibility-spec nil)</pre></td></tr><tr><td class="docs"><p>Non-nil means reorder bidirectional text for display in the visual order.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar bidi-display-reordering nil)</pre></td></tr><tr><td class="docs"><p>Default value of `right-margin-width' for buffers that don't override it.
   This is the same as (default-value 'right-margin-width).</p>
-</td><td class="codes"><pre class="brush: clojure">(defvar default-right-margin-width nil)</pre></td></tr><tr><td class="docs"><p>Local (mode-specific) abbrev table of current buffer.</p>
+</td><td class="codes"><pre class="brush: clojure">(defvar default-right-margin-width (el/el-var-get* 'right-margin-width))</pre></td></tr><tr><td class="docs"><p>Local (mode-specific) abbrev table of current buffer.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar local-abbrev-table nil)</pre></td></tr><tr><td class="docs"><p>Default value of `mode-line-format' for buffers that don't override it.
   This is the same as (default-value 'mode-line-format).</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar default-mode-line-format nil)</pre></td></tr><tr><td class="docs"><p>*If non-nil, forces directionality of text paragraphs in the buffer.</p>
@@ -4470,12 +4463,16 @@ ANYTHING ELSE     display a hollow box cursor
   only the base leading-code is considered; the validity of
   the following bytes is not checked.  Tabs in STRING are always
   taken to occupy `tab-width' columns.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun string-width (string))</pre></td></tr><tr><td class="docs"><p>Return width of CHAR when displayed in the current buffer.
+</td><td class="codes"><pre class="brush: clojure">(defun string-width (string)
+  (count (.getBytes string)))</pre></td></tr><tr><td class="docs"><p>Return width of CHAR when displayed in the current buffer.
   The width is measured by how many columns it occupies on the screen.
   Tab is taken to occupy `tab-width' columns.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun char-width (char))</pre></td></tr><tr><td class="docs"><p>Return non-nil if OBJECT is a character.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun characterp (object))</pre></td></tr><tr><td class="docs"><p>Concatenate all the argument bytes and make the result a unibyte string.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun unibyte-string (&amp;rest bytes))</pre></td></tr><tr><td class="docs"><p>Return a byte value of a character at point.
+</td><td class="codes"><pre class="brush: clojure">(defun char-width (char))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(declare max-char)</pre></td></tr><tr><td class="docs"><p>Return non-nil if OBJECT is a character.</p>
+</td><td class="codes"><pre class="brush: clojure">(defun characterp (object)
+  (and ((some-fn integer? char?) object) (pos? (int object)) (&lt;= (int object) (max-char))))</pre></td></tr><tr><td class="docs"><p>Concatenate all the argument bytes and make the result a unibyte string.</p>
+</td><td class="codes"><pre class="brush: clojure">(defun unibyte-string (&amp;rest bytes)
+  (String. (byte-array (map byte bytes)) &quot;US-ASCII&quot;))</pre></td></tr><tr><td class="docs"><p>Return a byte value of a character at point.
   Optional 1st arg POSITION, if non-nil, is a position of a character to get
   a byte value.
   Optional 2nd arg STRING, if non-nil, is a string of which first
@@ -4486,7 +4483,8 @@ ANYTHING ELSE     display a hollow box cursor
   character is not ASCII nor 8-bit character, an error is signaled.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun get-byte (&amp;optional position string))</pre></td></tr><tr><td class="docs"><p>Return the character of the maximum code.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun max-char ()
-  (Character/MAX_VALUE))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs.charset" name="deuce.emacs.charset"><h1 class="project-name">deuce.emacs.charset</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+  ;;0x3FFFFF in Emacs.
+  (int Character/MAX_VALUE))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs.charset" name="deuce.emacs.charset"><h1 class="project-name">deuce.emacs.charset</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.emacs.charset
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
@@ -5317,7 +5315,8 @@ ANYTHING ELSE     display a hollow box cursor
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs.alloc :as alloc]
-            [deuce.emacs-lisp.cons :refer [ICons IList] :as cons])
+            [deuce.emacs-lisp.cons :refer [ICons IList] :as cons]
+            [taoensso.timbre :as timbre])
   (:import [java.nio ByteOrder]
            [java.io Writer]
            [clojure.lang Symbol])
@@ -5329,7 +5328,7 @@ ANYTHING ELSE     display a hollow box cursor
 </td><td class="codes"><pre class="brush: clojure">(defmethod print-method array-class [o ^Writer w]
   (print-method (vec (cons/ellipsis o)) w))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod print-dup array-class [array ^Writer w]
-  (.write w &quot;#deuce/vector [&quot;)
+  (.write w &quot;#el/vec [&quot;)
   (dotimes [idx (count array)]
     (print-dup (aget array idx) w)
     (when-not (c/= idx (dec (count array)))
@@ -5337,7 +5336,7 @@ ANYTHING ELSE     display a hollow box cursor
   (.write w &quot;]&quot;))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod print-dup Symbol [s ^Writer w]
   (if (and (re-find  #&quot;([\\,/]|^\d)&quot; (name s)) (not= &quot;/&quot; (name s)))
-    (.write w (str &quot;#deuce/symbol &quot; (pr-str (name s))))
+    (.write w (str &quot;#el/sym &quot; (pr-str (name s))))
     (.write w (str s))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defrecord CharTable
     [;; /* This holds a default value,
@@ -5375,7 +5374,7 @@ ANYTHING ELSE     display a hollow box cursor
   for example, (type-of 1) returns `integer'.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun type-of (object)
   (type object))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(declare symbol-function symbolp eq)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(declare symbol-function symbolp eq)</pre></td></tr><tr><td class="docs"><p>Navgeet's additions, not sure they've been tested against real world scenarios.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn ^:private indirect_function [object]
   (loop [hare object
          tortoise object]
@@ -5411,6 +5410,7 @@ ANYTHING ELSE     display a hollow box cursor
   (condp some [symbol]
     keyword? (str symbol)
     symbol? (name symbol)
+    true? &quot;true&quot;
     nil? (pr-str nil)))</pre></td></tr><tr><td class="docs"><p>Make SYMBOL's value be void.
   Return SYMBOL.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun makunbound (symbol)
@@ -5421,7 +5421,7 @@ ANYTHING ELSE     display a hollow box cursor
 </td><td class="codes"><pre class="brush: clojure">(defun interactive-form (cmd))</pre></td></tr><tr><td class="docs"><p>Return bitwise-or of all the arguments.
   Arguments may be integers, or markers converted to integers.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun logior (&amp;rest ints-or-markers)
-  (apply bit-or ints-or-markers))</pre></td></tr><tr><td class="docs">
+  (apply bit-or (promote-chars ints-or-markers)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare arrayp listp)</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a sequence (list or array).</p>
 </td><td class="codes"><pre class="brush: clojure">(defun sequencep (object)
   ((some-fn sequential? arrayp listp) object))</pre></td></tr><tr><td class="docs"><p>Return t if NUMBER is zero.</p>
@@ -5435,18 +5435,19 @@ ANYTHING ELSE     display a hollow box cursor
 </td><td class="codes"><pre class="brush: clojure">(defun indirect-variable (object)
   (symbol-value object))</pre></td></tr><tr><td class="docs"><p>Return SYMBOL's value.  Error if that is void.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun symbol-value (symbol)
-  (if-let [sym (el/global symbol)]
-    @sym
-    (el/throw 'void-variable symbol)))</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a keyword.
+  (el/check-type 'symbolp symbol)
+  (el/el-var-get* symbol))</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a keyword.
   This means that it is a symbol with a print name beginning with `:'
   interned in the initial obarray.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun keywordp (object)
   (keyword? object))</pre></td></tr><tr><td class="docs"><p>Return NUMBER plus one.  NUMBER may be a number or a marker.
   Markers are converted to integers.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun #deuce/symbol &quot;1+&quot; (number)
+</td><td class="codes"><pre class="brush: clojure">(defun #el/sym &quot;1+&quot; (number)
   (inc (promote-char number)))</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a built-in function.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun subrp (object)
-  (not= (the-ns 'deuce.emacs) (-&gt; object meta :ns)))</pre></td></tr><tr><td class="docs"><p>Return SYMBOL's property list.</p>
+  (and (fn? object)
+       (-&gt; object meta :ns)
+       (not= (the-ns 'deuce.emacs) (-&gt; object meta :ns))))</pre></td></tr><tr><td class="docs"><p>Return SYMBOL's property list.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun symbol-plist (symbol))</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a string.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun stringp (object)
   (string? object))</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is an integer.</p>
@@ -5469,9 +5470,11 @@ ANYTHING ELSE     display a hollow box cursor
 </td><td class="codes"><pre class="brush: clojure">(declare null)</pre></td></tr><tr><td class="docs"><p>Return t if the two args are the same Lisp object.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun eq (obj1 obj2)
   (cond
-    (null obj1) (null obj2)
-    (symbol? obj1) (c/= obj1 obj2)
-    :else (identical? obj1 obj2)))</pre></td></tr><tr><td class="docs"><p>Return product of any number of arguments, which are numbers or markers.</p>
+   (null obj1) (null obj2)
+    ;; Macros can get confused by the exact namespace
+   (and (symbol? obj1) (symbol? obj2)) (c/= (name obj1) (name obj2))
+   (or (char? obj1) (char? obj2)) (c/= (promote-char obj1) (promote-char obj2))
+   :else (identical? obj1 obj2)))</pre></td></tr><tr><td class="docs"><p>Return product of any number of arguments, which are numbers or markers.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun * (&amp;rest numbers-or-markers)
   (apply c/* (promote-chars numbers-or-markers)))</pre></td></tr><tr><td class="docs"><p>Negate number or subtract numbers or markers and return the result.
   With one arg, negates it.  With more than one arg,
@@ -5482,7 +5485,7 @@ ANYTHING ELSE     display a hollow box cursor
   (string? object))</pre></td></tr><tr><td class="docs"><p>Return bitwise-exclusive-or of all the arguments.
   Arguments may be integers, or markers converted to integers.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun logxor (&amp;rest ints-or-markers)
-  (apply c/bit-xor ints-or-markers)  )</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a floating point number.</p>
+  (apply c/bit-xor (promote-chars ints-or-markers))  )</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a floating point number.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun floatp (object)
   (float? object))</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a number or a marker.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun number-or-marker-p (object)
@@ -5526,10 +5529,10 @@ ANYTHING ELSE     display a hollow box cursor
 </td><td class="codes"><pre class="brush: clojure">(defun make-local-variable (variable)
   variable)</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a number (floating point or integer).</p>
 </td><td class="codes"><pre class="brush: clojure">(defun numberp (object)
-  (number? object))</pre></td></tr><tr><td class="docs"><p>Return bitwise-and of all the arguments.
+  ((some-fn number? char?) object))</pre></td></tr><tr><td class="docs"><p>Return bitwise-and of all the arguments.
   Arguments may be integers, or markers converted to integers.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun logand (&amp;rest ints-or-markers)
-  (apply c/bit-and ints-or-markers))</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a cons cell.</p>
+  (apply c/bit-and (promote-chars ints-or-markers)))</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a cons cell.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun consp (object)
   (satisfies? ICons object))</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a list, that is, a cons cell or nil.
   Otherwise, return nil.</p>
@@ -5542,13 +5545,18 @@ ANYTHING ELSE     display a hollow box cursor
     (aref (.contents ^CharTable array) idx)
     (get array idx)))</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a nonnegative integer.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun wholenump (object)
-  ((every-pred pos? integer?) object))</pre></td></tr><tr><td class="docs"><p>Store into the element of ARRAY at index IDX the value NEWELT.
+  ((every-pred pos? integer?) object))</pre></td></tr><tr><td class="docs"><p>We probably don't want to do this due to interned strings.</p>
+</td><td class="codes"><pre class="brush: clojure">(def ^:private string-chars (doto (.getDeclaredField String &quot;value&quot;)
+                                     (.setAccessible true)))</pre></td></tr><tr><td class="docs"><p>Store into the element of ARRAY at index IDX the value NEWELT.
   Return NEWELT.  ARRAY may be a vector, a string, a char-table or a
   bool-vector.  IDX starts at 0.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun aset (array idx newelt)
   (if (instance? CharTable array)
     (aset (.contents ^CharTable array) idx newelt)
-    (c/aset array idx newelt)))</pre></td></tr><tr><td class="docs">
+    (if (string? array)
+      (do (timbre/warn &quot;modifying String&quot; (str &quot;\&quot;&quot; array &quot;\&quot;&quot;))
+        (c/aset (.get string-chars array) idx (char newelt)))
+      (c/aset array idx newelt))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare vectorp)</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is an array (string or vector).</p>
 </td><td class="codes"><pre class="brush: clojure">(defun arrayp (object)
   ((some-fn vectorp stringp) object))</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a vector.</p>
@@ -5560,12 +5568,13 @@ ANYTHING ELSE     display a hollow box cursor
     (ns-unmap (-&gt; (el/fun symbol) meta :ns) (el/sym symbol)))
   symbol)</pre></td></tr><tr><td class="docs"><p>Return the bitwise complement of NUMBER.  NUMBER must be an integer.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun lognot (number)
-  (bit-not number))</pre></td></tr><tr><td class="docs">
+  (bit-not (promote-char number)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare atom)</pre></td></tr><tr><td class="docs"><p>Set the cdr of CELL to be NEWCDR.  Returns NEWCDR.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun setcdr (cell newcdr)
   (el/check-type 'consp cell)
   (cons/setcdr cell (cons/maybe-seq newcdr)))</pre></td></tr><tr><td class="docs"><p>Set SYMBOL's value to NEWVAL, and return NEWVAL.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun set (symbol newval)
+  (el/check-type 'symbolp symbol)
   (if (c/= symbol (c/symbol &quot;&quot;))
     nil ;; Hack for anonymous symbol used by abbrev.el, needs proper fix.
     ((eval `(fn set [v#] (setq ~symbol v#))) newval)))</pre></td></tr><tr><td class="docs"><p>Return t if first arg is less than second arg.  Both must be numbers or markers.</p>
@@ -5573,15 +5582,12 @@ ANYTHING ELSE     display a hollow box cursor
   (c/&lt; (promote-char num1) (promote-char num2)))</pre></td></tr><tr><td class="docs"><p>Return the car of OBJECT if it is a cons cell, or else nil.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun car-safe (object)
   (when (consp object)
-    (car object)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn check_symbol [symbol]
-  &quot;Throw exception if SYMBOL is not a symbol&quot;
-  (when-not (symbolp symbol)
-    (el/throw 'wrong-type-argument '(symbol))))</pre></td></tr><tr><td class="docs"><p>Set SYMBOL's function definition to DEFINITION, and return DEFINITION.</p>
+    (car object)))</pre></td></tr><tr><td class="docs"><p>Set SYMBOL's function definition to DEFINITION, and return DEFINITION.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun fset (symbol definition)
-  (check_symbol symbol)
+  (el/check-type 'symbolp symbol)
   (let [symbol (el/sym symbol)
         sym (el/fun symbol)]
+    ;; Navgeet's additions, not sure they've been tested against real world scenarios.
     (when sym
       (when (and (consp @sym) (c/= (car @sym) 'autoload))
         ;; Creates a cyclic load dependency chain.
@@ -5613,7 +5619,7 @@ ANYTHING ELSE     display a hollow box cursor
 </td><td class="codes"><pre class="brush: clojure">(defun make-variable-buffer-local (variable)
   variable)</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a character or a string.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun char-or-string-p (object)
-  ((some-fn char? string?) object))</pre></td></tr><tr><td class="docs">
+  ((some-fn char? integer? string?) object))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare char-table-p)</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a char-table or vector.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun vector-or-char-table-p (object)
   ((some-fn vectorp char-table-p) object))</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is an editor buffer.</p>
@@ -5639,7 +5645,7 @@ ANYTHING ELSE     display a hollow box cursor
   ((complement listp) object))</pre></td></tr><tr><td class="docs"><p>Return t if first arg is greater than or equal to second arg.
   Both must be numbers or markers.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun &gt;= (num1 num2)
-  (c/&gt;= (promote-char num1) (promote-char  num2)))</pre></td></tr><tr><td class="docs"><p>Return t if SYMBOL's value is not void.</p>
+  (c/&gt;= (promote-char num1) (promote-char num2)))</pre></td></tr><tr><td class="docs"><p>Return t if SYMBOL's value is not void.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun boundp (symbol)
   (or (nil? symbol)
       (when-let [v (el/global symbol)]
@@ -5653,7 +5659,7 @@ ANYTHING ELSE     display a hollow box cursor
   (el/check-type 'consp cell)
   (cons/setcar cell (cons/maybe-seq newcar)))</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a symbol.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun symbolp (object)
-  (or ((some-fn symbol? keyword? nil?) object)
+  (or ((some-fn symbol? keyword? nil? true?) object)
       (and (seq? object) (c/= `deref (first object)) (symbolp (second object)))))</pre></td></tr><tr><td class="docs"><p>Return t if first arg is less than or equal to second arg.
   Both must be numbers or markers.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun &lt;= (num1 num2)
@@ -5668,22 +5674,35 @@ ANYTHING ELSE     display a hollow box cursor
   for SYMBOL; if it is omitted or nil, SYMBOL uses the documentation string
   determined by DEFINITION.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun defalias (symbol definition &amp;optional docstring)
-  (when-let [definition (if (symbol? definition)
-                          (fn [&amp; args] (apply (ns-resolve 'deuce.emacs (el/sym definition)) args))
-                          definition)]
-    (ns-unmap 'deuce.emacs symbol)
-    (el/defvar-helper* 'deuce.emacs symbol definition docstring))
-  definition)</pre></td></tr><tr><td class="docs"><p>Set SYMBOL's property list to NEWPLIST, and return NEWPLIST.</p>
+  (let [lambda? (fn? definition)
+        f (and (or lambda? (symbol? definition))  ;; guard against value
+               (el/fun definition))]
+    (when-let [alias (if-not lambda?
+                       (fn alias [&amp;form &amp;env &amp; args] ;; Note implicit macro args
+                         `(el/progn (~(el/fun definition) ~@args)))
+                       definition)]
+      (ns-unmap 'deuce.emacs symbol)
+      (el/defvar-helper* 'deuce.emacs symbol alias (str symbol &quot; is an alias for `&quot; definition &quot;'.\n\n&quot;
+                                                        (or docstring
+                                                            (-&gt; f meta :doc)
+                                                            (-&gt; definition meta :doc))))
+      (alter-meta! (el/fun symbol) assoc :alias definition)
+      (when-not lambda? (.setMacro (ns-resolve 'deuce.emacs symbol)))
+      ;; We want this, but it currently wrecks havoc due to backquote
+      ;; (when (and lambda? (-&gt; definition meta :macro)))
+      ;;   (.setMacro (el/fun symbol)))))
+    definition))</pre></td></tr><tr><td class="docs"><p>Set SYMBOL's property list to NEWPLIST, and return NEWPLIST.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun setplist (symbol newplist)
   (alter-meta! (el/global symbol) (constantly newplist)))</pre></td></tr><tr><td class="docs"><p>Set SYMBOL's default value to VALUE.  SYMBOL and VALUE are evaluated.
   The default value is seen in buffers that do not have their own values
   for this variable.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun set-default (symbol value)
+  (el/check-type 'symbolp symbol)
   ((eval `(fn set-default [v#] (setq-default ~symbol v#))) value))</pre></td></tr><tr><td class="docs"><p>Return SYMBOL's function definition.  Error if that is void.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun symbol-function (symbol)
-  (check_symbol symbol)
+  (el/check-type 'symbolp symbol)
   (if-let [sym (el/fun symbol)]
-    @sym
+    (if (var? sym) @sym sym) ;; See binding/mode-specific-command-prefix
     (el/throw 'void-function symbol)))</pre></td></tr><tr><td class="docs"><p>Make VARIABLE no longer have a separate value in the current buffer.
   From now on the default value will apply in this buffer.  Return VARIABLE.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun kill-local-variable (variable))</pre></td></tr><tr><td class="docs"><p>Return the car of LIST.  If arg is nil, return nil.
@@ -5706,12 +5725,13 @@ ANYTHING ELSE     display a hollow box cursor
 </td><td class="codes"><pre class="brush: clojure">(defun mod (x y)
   (c/mod x y))</pre></td></tr><tr><td class="docs"><p>Return NUMBER minus one.  NUMBER may be a number or a marker.
   Markers are converted to integers.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun #deuce/symbol &quot;1-&quot; (number)
+</td><td class="codes"><pre class="brush: clojure">(defun #el/sym &quot;1-&quot; (number)
   (dec (promote-char number)))</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is not a cons cell.  This includes nil.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun atom (object)
   (not (consp object)))</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is nil.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun null (object)
-  (or (nil? object) (c/= () object) (false? object)))</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a char-table.</p>
+  (when (or (nil? object) (c/= () object) (false? object))
+    true))</pre></td></tr><tr><td class="docs"><p>Return t if OBJECT is a char-table.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun char-table-p (object)
   (instance? CharTable object))</pre></td></tr><tr><td class="docs"><p>This function is obsolete since 22.2;
   explicitly check for a frame-parameter instead.</p>
@@ -6669,6 +6689,7 @@ ANYTHING ELSE     display a hollow box cursor
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.emacs.eval
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
+            [deuce.emacs.alloc :as alloc]
             [deuce.emacs.data :as data]
             [deuce.emacs-lisp :as el])
   (:refer-clojure :exclude [apply eval macroexpand]))</pre></td></tr><tr><td class="docs"><p>Function to call to invoke debugger.
@@ -6758,7 +6779,10 @@ ANYTHING ELSE     display a hollow box cursor
   context where binding is lexical by default.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun special-variable-p (symbol))</pre></td></tr><tr><td class="docs"><p>Non-nil if OBJECT is a function.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun functionp (object)
-  (fn? object))</pre></td></tr><tr><td class="docs">
+  (when (or (fn? object)
+            (and (symbol? object) (el/fun object))
+            (and (seq? object) (= 'lambda (first object))))
+    true))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare eval)</pre></td></tr><tr><td class="docs"><p>Define FUNCTION to autoload from FILE.
   FUNCTION is a symbol; FILE is a file name string to pass to `load'.
   Third arg DOCSTRING is documentation for the function.
@@ -6772,17 +6796,26 @@ ANYTHING ELSE     display a hollow box cursor
   If FUNCTION is already defined other than as an autoload,
   this does nothing and returns nil.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun autoload (function file &amp;optional docstring interactive type)
-  (let [macro? (= 'macro type)
-        loader (fn autoload [&amp; args]
-                 (ns-unmap 'deuce.emacs (el/sym function))
-                 ((ns-resolve 'deuce.emacs 'load) file nil true)
-                 (if macro?
-                   (eval `(el/progn ~@args))
-                   (eval `(~(el/sym function) ~@args))))]
-    (ns-unmap 'deuce.emacs function)
-    (let [v (el/defvar-helper* 'deuce.emacs (el/sym function) loader docstring)]
-      (when macro? (.setMacro (el/fun function)))
-      v)))</pre></td></tr><tr><td class="docs"><p>If byte-compiled OBJECT is lazy-loaded, fetch it now.</p>
+  (when (or (not (el/fun function)) (-&gt; (el/fun function) meta :autoload))
+    (let [macro? (= 'macro type)
+          autoload-symbol (fn autoload-symbol [function]
+                            (let [f (el/fun function)]
+                              (when (-&gt; f meta :autoload)
+                                (ns-unmap 'deuce.emacs (el/sym function))
+                                ((ns-resolve 'deuce.emacs 'load) (-&gt; f meta :file) nil true))))
+          definition  (if macro?
+                        (fn autoload-macro [&amp;form &amp;env &amp; args] ;; Note implicit macro args, see defalias
+                          (do
+                            (autoload-symbol function)
+                            `(el/progn (~(el/sym function) ~@args))))
+                        (fn autoload [&amp; args]
+                          (autoload-symbol function)
+                          (c/apply (el/fun function) args)))] ;; el-&gt;clj?
+      (ns-unmap 'deuce.emacs function)
+      (el/defvar-helper* 'deuce.emacs function definition docstring)
+      (alter-meta! (el/fun function) merge {:autoload true :file file})
+      (when macro? (.setMacro (el/fun function))))
+    function))</pre></td></tr><tr><td class="docs"><p>If byte-compiled OBJECT is lazy-loaded, fetch it now.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun fetch-bytecode (object))</pre></td></tr><tr><td class="docs"><p>Signal an error.  Args are ERROR-SYMBOL and associated DATA.
   This function does not return.</p>
 
@@ -6906,8 +6939,10 @@ ANYTHING ELSE     display a hollow box cursor
   Then return the value FUNCTION returns.
   Thus, (apply '+ 1 2 '(3 4)) returns 10.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun apply (function &amp;rest arguments)
-  (c/apply (if (symbol? function) (data/symbol-function function) function)
-           (concat (butlast arguments) (last arguments))))</pre></td></tr><tr><td class="docs"><p>Run each hook in HOOKS.
+  (let [rest (last arguments)]
+    (el/check-type 'listp rest)
+    (c/apply (if (symbol? function) (data/symbol-function function) function)
+             (c/apply alloc/list (concat (butlast arguments) rest)))))</pre></td></tr><tr><td class="docs"><p>Run each hook in HOOKS.
   Each argument should be a symbol, a hook variable.
   These symbols are processed in the order specified.
   If a hook symbol has a non-nil value, that value may be a function
@@ -6958,7 +6993,29 @@ ANYTHING ELSE     display a hollow box cursor
 <p>  The second optional arg ENVIRONMENT specifies an environment of macro
   definitions to shadow the loaded ones for use in file byte-compilation.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun macroexpand (form &amp;optional environment)
-  (c/macroexpand form))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs.fileio" name="deuce.emacs.fileio"><h1 class="project-name">deuce.emacs.fileio</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+  ;; Not sure how this is supposed to work even after reading eval.c, attempts to mimic observed behavior.
+  ;; It is used in conjunction with cl-macroexpand-all, and should not expand into &quot;raw&quot; Clojure.
+  (let [shadow (into {} (map #(vector (data/car %) (data/cdr %)) environment))
+        shadow #(shadow % (shadow (str %)))
+        unshadowed-form ((fn shadow-walker [form]
+                           (if-let [expander (shadow form)]
+                             (if (= '(true) (data/cdr-safe expander))
+                               (cons (first (data/car expander))
+                                     (map #(list 'quote %) (rest (data/car expander))))
+                               (expander form))
+                             (if (and (seq? form)
+                                      (not= 'quote (first form)))
+                               (apply list (map shadow-walker form))
+                               form))) form)
+        expansion (if-let [m  (and (seq? form) (-&gt; (el/fun (first form)) meta))]
+                    (if (and (:macro m) (= (the-ns 'deuce.emacs-lisp) (:ns m)))
+                      unshadowed-form
+                      (macroexpand-1 unshadowed-form))
+                    unshadowed-form)]
+    ;; Protect against eq check in cl-macroexpand-all
+    (if (= form expansion)
+      form
+      expansion)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs.fileio" name="deuce.emacs.fileio"><h1 class="project-name">deuce.emacs.fileio</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.emacs.fileio
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
@@ -7503,12 +7560,11 @@ ANYTHING ELSE     display a hollow box cursor
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.data :refer [car cdr setcar setcdr] :as data]
             [deuce.emacs.lread :as lread]
-            [deuce.emacs-lisp.cons :refer [ICons] :as cons]
+            [deuce.emacs-lisp.cons :refer [ICons IList] :as cons]
             [deuce.emacs-lisp.globals :as globals])
   (import [clojure.lang IPersistentCollection PersistentVector]
           [deuce.emacs.data CharTable]
-          [deuce.emacs_lisp Cons]
-          [java.util List Map HashMap Collections Objects]
+          [java.util List Map HashMap Collections Objects Arrays]
           [java.nio CharBuffer]
           [java.nio.charset Charset]
           [javax.xml.bind DatatypeConverter]
@@ -7580,22 +7636,24 @@ ANYTHING ELSE     display a hollow box cursor
 </td><td class="codes"><pre class="brush: clojure">(defun copy-hash-table (table)
   (HashMap. table))</pre></td></tr><tr><td class="docs"><p>Concatenate all the arguments and make the result a list.
   The result is a list whose elements are the elements of all the arguments.
-  Each argument may be a list, vector or string.
+  Each argument xmay be a list, vector or string.
   The last argument is not copied, just used as the tail of the new list.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun append (&amp;rest sequences)
-  (if (= 1 (count sequences))
-    (first sequences)
-    (let [sequences (remove empty? sequences)]
-      (if (&gt; (count sequences) 1)
-        (let [l (apply alloc/list (apply c/concat (butlast sequences)))]
-          (setcdr (cons/last-cons l) (last sequences))
+  (if (every? data/null (rest sequences))
+    (if (and (next sequences) (data/stringp (first sequences)))
+      (apply alloc/list (first sequences))
+      (first sequences))
+    (let [last (cons/maybe-seq (last sequences))]
+      (if-let [l (apply alloc/list (apply c/concat (butlast sequences)))]
+        (do
+          (setcdr (cons/last-cons l) last)
           l)
-        (apply alloc/list (first sequences))))))</pre></td></tr><tr><td class="docs"><p>Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.
+        last))))</pre></td></tr><tr><td class="docs"><p>Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.
   In between each pair of results, stick in SEPARATOR.  Thus, " " as
   SEPARATOR results in spaces between the values returned by FUNCTION.
   SEQUENCE may be a list, a vector, a bool-vector, or a string.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun mapconcat (function sequence separator)
-  (s/join separator (map (el/fun function) (seq sequence))))</pre></td></tr><tr><td class="docs"><p>Compare the contents of two strings, converting to multibyte if needed.
+  (s/join separator (map (el/fun function) (apply cons/list sequence))))</pre></td></tr><tr><td class="docs"><p>Compare the contents of two strings, converting to multibyte if needed.
   In string STR1, skip the first START1 characters and stop at END1.
   In string STR2, skip the first START2 characters and stop at END2.
   END1 and END2 default to the full lengths of the respective strings.</p>
@@ -7692,11 +7750,11 @@ ANYTHING ELSE     display a hollow box cursor
   Therefore, write `(setq foo (delete element foo))'
   to be sure of changing the value of `foo'.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun delete (elt seq)
-  (condp instance? seq
-    Cons (del equal elt seq)
-    PersistentVector (filterv (partial equal elt) seq)
-    String (clojure.string/replace seq elt &quot;&quot;)
-    seq))</pre></td></tr><tr><td class="docs"><p>Access locale data ITEM for the current C locale, if available.
+  (cond
+   (satisfies? ICons seq) (del equal elt seq)
+   (data/vectorp seq) (apply alloc/vector (del equal elt (apply alloc/list seq)))
+   (and (data/stringp seq) (integer? elt)) (s/replace seq (c/str (c/char elt)) &quot;&quot;)
+   :else seq))</pre></td></tr><tr><td class="docs"><p>Access locale data ITEM for the current C locale, if available.
   ITEM should be one of the following:</p>
 
 <p>  `codeset', returning the character set as a string (locale item CODESET);</p>
@@ -7740,7 +7798,7 @@ ANYTHING ELSE     display a hollow box cursor
 </td><td class="codes"><pre class="brush: clojure">(defun plist-get (plist prop)
   ((plist-map plist) prop))</pre></td></tr><tr><td class="docs"><p>Return element of SEQUENCE at index N.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun elt (sequence n)
-  (c/nth n sequence))</pre></td></tr><tr><td class="docs"><p>Base64-encode STRING and return the result.
+  (c/nth (apply cons/list sequence) n))</pre></td></tr><tr><td class="docs"><p>Base64-encode STRING and return the result.
   Optional second argument NO-LINE-BREAK means do not break long lines
   into shorter lines.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun base64-encode-string (string &amp;optional no-line-break)
@@ -7748,7 +7806,7 @@ ANYTHING ELSE     display a hollow box cursor
   This is like `equal' except that it compares the text properties
   of strings.  (`equal' ignores text properties.)</p>
 </td><td class="codes"><pre class="brush: clojure">(defun equal-including-properties (o1 o2)
-  (c/= o1 o2))</pre></td></tr><tr><td class="docs"><p>Return a substring of STRING, without text properties.
+  (equal o1 o2))</pre></td></tr><tr><td class="docs"><p>Return a substring of STRING, without text properties.
   It starts at index FROM and ends before TO.
   TO may be nil or omitted; then the substring runs to the end of STRING.
   If FROM is nil or omitted, the substring starts at the beginning of STRING.
@@ -7773,7 +7831,7 @@ ANYTHING ELSE     display a hollow box cursor
   (count (.getBytes string)))</pre></td></tr><tr><td class="docs"><p>Return non-nil if KEY is `equal' to the car of an element of LIST.
   The value is actually the first element of LIST whose car equals KEY.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun assoc (key list)
-  (some #(c/and (satisfies? ICons %) (equal key (car %)) %) (seq list)))</pre></td></tr><tr><td class="docs"><p>Remove KEY from TABLE.</p>
+  (some #(c/and (satisfies? ICons %) (equal key (car %)) %) (apply cons/list list)))</pre></td></tr><tr><td class="docs"><p>Remove KEY from TABLE.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun remhash (key table)
   (.remove table key)
   nil)</pre></td></tr><tr><td class="docs"><p>Ask user a yes-or-no question.  Return t if answer is yes.
@@ -7789,17 +7847,13 @@ ANYTHING ELSE     display a hollow box cursor
 </td><td class="codes"><pre class="brush: clojure">(defun hash-table-count (table)
   (count table))</pre></td></tr><tr><td class="docs"><p>Clear the contents of STRING.
   This makes STRING unibyte and may change its length.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun clear-string (string))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defun clear-string (string))</pre></td></tr><tr><td class="docs"><p>Not tail recursive</p>
 </td><td class="codes"><pre class="brush: clojure">(defn ^:private del [f elt list]
-  (loop [prev list
-         curr (cdr list)]
-    (when (car curr)
-      (when (f elt (car curr))
-        (setcar prev (cdr curr)))
-      (recur (cdr prev)
-             (cdr curr))))
-  (if (data/eq elt (car list))
-    (cdr list) list))</pre></td></tr><tr><td class="docs">
+  (when list
+    (if (f elt (car list))
+      (del f elt (cdr list))
+      (doto list
+        (setcdr (del f elt (cdr list)))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ^:private mem [f elt list]
   (loop [list list]
     (if (f elt (car list))
@@ -7815,7 +7869,7 @@ ANYTHING ELSE     display a hollow box cursor
   The value is actually the first element of LIST whose car is KEY.
   Elements of LIST that are not conses are ignored.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun assq (key list)
-  (first (filter #(data/eq key (data/car-safe %)) (seq list))))</pre></td></tr><tr><td class="docs"><p>Return the multibyte equivalent of STRING.
+  (first (filter #(data/eq key (data/car-safe %)) (apply cons/list list))))</pre></td></tr><tr><td class="docs"><p>Return the multibyte equivalent of STRING.
   If STRING is unibyte and contains non-ASCII characters, the function
   `unibyte-char-to-multibyte' is used to convert each unibyte character
   to a multibyte character.  In this case, the returned string is a
@@ -7833,11 +7887,13 @@ ANYTHING ELSE     display a hollow box cursor
   The result is a list just as long as SEQUENCE.
   SEQUENCE may be a list, a vector, a bool-vector, or a string.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun mapcar (function sequence)
-  (apply alloc/list (map (el/fun function) (seq sequence))))</pre></td></tr><tr><td class="docs"><p>Store each element of ARRAY with ITEM.
+  (el/check-type 'sequencep sequence)
+  (apply alloc/list (map (el/fun function) sequence)))</pre></td></tr><tr><td class="docs"><p>Store each element of ARRAY with ITEM.
   ARRAY is a vector, string, char-table, or bool-vector.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun fillarray (array item)
-  (dotimes [n (count array)]
-    (aset array n item))
+  (if (instance? CharTable array)
+    (fillarray (.contents ^CharTable array) item)
+    (Arrays/fill ^objects array item))
   array)</pre></td></tr><tr><td class="docs"><p>Return list of 1 minute, 5 minute and 15 minute load averages.</p>
 
 <p>  Each of the three load averages is multiplied by 100, then converted
@@ -7865,7 +7921,7 @@ ANYTHING ELSE     display a hollow box cursor
   The result is a vector whose elements are the elements of all the arguments.
   Each argument may be a list, vector or string.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun vconcat (&amp;rest sequences)
-  (alloc/vector (apply c/concat sequences)))</pre></td></tr><tr><td class="docs"><p>Create and return a new hash table.</p>
+  (apply alloc/vector (apply c/concat sequences)))</pre></td></tr><tr><td class="docs"><p>Create and return a new hash table.</p>
 
 <p>  Arguments are specified as keyword/argument pairs.  The following
   arguments are defined:</p>
@@ -7899,7 +7955,7 @@ ANYTHING ELSE     display a hollow box cursor
     (HashMap. size rehash-threshold)))</pre></td></tr><tr><td class="docs"><p>Return non-nil if KEY is `equal' to the cdr of an element of LIST.
   The value is actually the first element of LIST whose cdr equals KEY.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun rassoc (key list)
-  (some #(c/and (satisfies? ICons %) (equal key (cdr %)) %) (seq list)))</pre></td></tr><tr><td class="docs"><p>Return t if two Lisp objects have similar structure and contents.
+  (some #(c/and (satisfies? ICons %) (equal key (cdr %)) %) (apply cons/list list)))</pre></td></tr><tr><td class="docs"><p>Return t if two Lisp objects have similar structure and contents.
   They must have the same data type.
   Conses are compared by comparing the cars and the cdrs.
   Vectors and strings are compared element by element.
@@ -7907,10 +7963,18 @@ ANYTHING ELSE     display a hollow box cursor
    (Use `=' if you want integers and floats to be able to be equal.)
   Symbols must match exactly.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun equal (o1 o2)
-  (Objects/deepEquals o1 o2))</pre></td></tr><tr><td class="docs">
+  (or (data/eq o1 o2)
+      (if (and (seq? o1) (seq? o2))
+        (c/and (equal (car o1) (car o2))
+               (equal (cdr o1) (cdr o2)))
+        (if (and (data/numberp o1) (data/numberp o2))
+          (and (= (data/floatp o1) (data/floatp o2))
+               (data/= o1 o2))
+          (Objects/deepEquals o1 o2)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare reverse)</pre></td></tr><tr><td class="docs"><p>Reverse LIST by modifying cdr pointers.
   Return the reversed list.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun nreverse (list)
+  (el/check-type 'listp list)
   (if (empty? list)
     list
     (loop [l list
@@ -7922,8 +7986,9 @@ ANYTHING ELSE     display a hollow box cursor
         l))))</pre></td></tr><tr><td class="docs"><p>Reverse LIST, copying.  Return the reversed list.
   See also the function `nreverse', which is used more often.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun reverse (list)
-  (when (seq list)
-    (apply alloc/list (c/reverse (seq list)))))</pre></td></tr><tr><td class="docs"><p>Take cdr N times on LIST, return the result.</p>
+  (el/check-type 'listp list)
+  (when-not (data/null list)
+    (apply alloc/list (c/reverse (apply alloc/list list)))))</pre></td></tr><tr><td class="docs"><p>Take cdr N times on LIST, return the result.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun nthcdr (n list)
   (loop [n n list list]
     (if (pos? n)
@@ -7939,7 +8004,10 @@ ANYTHING ELSE     display a hollow box cursor
 </td><td class="codes"><pre class="brush: clojure">(defun base64-decode-region (beg end))</pre></td></tr><tr><td class="docs"><p>Return the Nth element of LIST.
   N counts from zero.  If LIST is not that long, nil is returned.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun nth (n list)
-  (c/nth (seq list) n nil))</pre></td></tr><tr><td class="docs"><p>Return a unibyte string with the same individual chars as STRING.
+  (cons/maybe-seq
+   (if (pos? n)
+     (c/nth (apply cons/list list) n nil)
+     (car list))))</pre></td></tr><tr><td class="docs"><p>Return a unibyte string with the same individual chars as STRING.
   If STRING is unibyte, the result is STRING itself.
   Otherwise it is a newly created string, with no text properties,
   where each `eight-bit' character is converted to the corresponding byte.
@@ -7964,16 +8032,18 @@ ANYTHING ELSE     display a hollow box cursor
   To get the number of bytes, use `string-bytes'.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun length (sequence)
   (el/check-type 'sequencep sequence)
-  (condp instance? sequence
-    Cons (loop [cons sequence
-                length 0]
-           (if (data/consp cons)
-             (recur (cdr cons) (inc length))
-             (do
-               (el/check-type 'listp cons)
-               length)))
-    CharTable (count (.contents sequence))
-    (count sequence)))</pre></td></tr><tr><td class="docs"><p>Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
+  (cond
+   (satisfies? IList sequence)
+   (loop [cons sequence
+          length 0]
+     (if (and (not (data/null cons)) (data/listp cons))
+       (recur (cdr cons) (inc length))
+       (do
+         (el/check-type 'listp cons)
+         length)))
+   (instance? CharTable sequence)
+   (length (.contents sequence))
+   :else (count sequence)))</pre></td></tr><tr><td class="docs"><p>Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
   The value is actually the tail of LIST whose car is ELT.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun memq (elt list)
   (mem data/eq elt list))</pre></td></tr><tr><td class="docs"><p>Return non-nil if ELT is an element of LIST.  Comparison done with `eql'.
@@ -8097,7 +8167,7 @@ ANYTHING ELSE     display a hollow box cursor
   PREDICATE is called with two elements of LIST, and should return non-nil
   if the first element should sort before the second.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun sort (list predicate)
-  (apply cons/list (c/sort (fn [x y] (if ((el/fun predicate) x y) -1 1)) (seq list))))</pre></td></tr><tr><td class="docs"><p>Base64-decode STRING and return the result.</p>
+  (apply cons/list (c/sort (fn [x y] (if ((el/fun predicate) x y) -1 1)) (apply cons/list list))))</pre></td></tr><tr><td class="docs"><p>Base64-decode STRING and return the result.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun base64-decode-string (string)
   (String. (DatatypeConverter/parseBase64Binary string) &quot;UTF-8&quot;))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs.font" name="deuce.emacs.font"><h1 class="project-name">deuce.emacs.font</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.emacs.font
@@ -8322,7 +8392,9 @@ GPOS: List of OpenType GPOS feature tag symbols, or nil if none required.
 </td><td class="codes"><pre class="brush: clojure">(defun close-font (font-object &amp;optional frame))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs.frame" name="deuce.emacs.frame"><h1 class="project-name">deuce.emacs.frame</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.emacs.frame
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.buffer :as buffer])
   (:refer-clojure :exclude []))</pre></td></tr><tr><td class="docs"><p>Non-nil if Menu-Bar mode is enabled.
   See the command `menu-bar-mode' for a description of this minor mode.
   Setting this variable directly does not take effect;
@@ -8330,7 +8402,7 @@ GPOS: List of OpenType GPOS feature tag symbols, or nil if none required.
   or call the function `menu-bar-mode'.</p>
 
 <p>  You can customize this variable.</p>
-</td><td class="codes"><pre class="brush: clojure">(defvar menu-bar-mode nil)</pre></td></tr><tr><td class="docs"><p>Functions to be run before deleting a frame.
+</td><td class="codes"><pre class="brush: clojure">(defvar menu-bar-mode true)</pre></td></tr><tr><td class="docs"><p>Functions to be run before deleting a frame.
   The functions are run with one arg, the frame to be deleted.
   See `delete-frame'.</p>
 
@@ -8432,7 +8504,8 @@ GPOS: List of OpenType GPOS feature tag symbols, or nil if none required.
   If FRAME is omitted, return information on the currently selected frame.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun frame-parameters (&amp;optional frame))</pre></td></tr><tr><td class="docs"><p>Return FRAME's value for parameter PARAMETER.
   If FRAME is nil, describe the currently selected frame.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun frame-parameter (frame parameter))</pre></td></tr><tr><td class="docs"><p>Return non-nil if OBJECT is a frame.
+</td><td class="codes"><pre class="brush: clojure">(defun frame-parameter (frame parameter)
+  nil)</pre></td></tr><tr><td class="docs"><p>Return non-nil if OBJECT is a frame.
   Value is:
     t for a termcap frame (a character-only terminal),
    'x' for an Emacs frame that is really an X window,
@@ -8488,8 +8561,10 @@ GPOS: List of OpenType GPOS feature tag symbols, or nil if none required.
   to that frame.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun handle-switch-frame (event))</pre></td></tr><tr><td class="docs"><p>Make the frame FRAME visible (assuming it is an X window).
   If omitted, FRAME defaults to the currently selected frame.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun make-frame-visible (&amp;optional frame))</pre></td></tr><tr><td class="docs"><p>Return a list of all live frames.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun frame-list ())</pre></td></tr><tr><td class="docs"><p>Sets size of FRAME to COLS by ROWS, measured in characters.</p>
+</td><td class="codes"><pre class="brush: clojure">(defun make-frame-visible (&amp;optional frame))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(declare selected-frame)</pre></td></tr><tr><td class="docs"><p>Return a list of all live frames.</p>
+</td><td class="codes"><pre class="brush: clojure">(defun frame-list ()
+  (alloc/list (selected-frame)))</pre></td></tr><tr><td class="docs"><p>Sets size of FRAME to COLS by ROWS, measured in characters.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun set-frame-size (frame cols rows))</pre></td></tr><tr><td class="docs"><p>The name of the window system that FRAME is displaying through.
   The value is a symbol:
    nil for a termcap frame (a character-only terminal),
@@ -8628,7 +8703,8 @@ GPOS: List of OpenType GPOS feature tag symbols, or nil if none required.
   before calling this function on it, like this.
     (while (not (frame-visible-p frame)) (sleep-for .5))</p>
 </td><td class="codes"><pre class="brush: clojure">(defun set-mouse-position (frame x y))</pre></td></tr><tr><td class="docs"><p>Return the frame that is now selected.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun selected-frame ())</pre></td></tr><tr><td class="docs"><p>Arrange for keystrokes typed at FRAME to be sent to FOCUS-FRAME.
+</td><td class="codes"><pre class="brush: clojure">(defun selected-frame ()
+  (str &quot;#&lt;frame &quot; (buffer/current-buffer) &quot;&gt;&quot;))</pre></td></tr><tr><td class="docs"><p>Arrange for keystrokes typed at FRAME to be sent to FOCUS-FRAME.
   In other words, switch-frame events caused by events in FRAME will
   request a switch to FOCUS-FRAME, and `last-event-frame' will be
   FOCUS-FRAME after reading an event typed at FRAME.</p>
@@ -8656,7 +8732,8 @@ GPOS: List of OpenType GPOS feature tag symbols, or nil if none required.
   or right side of FRAME.  If FRAME is omitted, the selected frame is
   used.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun tool-bar-pixel-width (&amp;optional frame))</pre></td></tr><tr><td class="docs"><p>Return a list of all frames now "visible" (being updated).</p>
-</td><td class="codes"><pre class="brush: clojure">(defun visible-frame-list ())</pre></td></tr><tr><td class="docs"><p>Height in pixels of a line in the font in frame FRAME.
+</td><td class="codes"><pre class="brush: clojure">(defun visible-frame-list ()
+  (frame-list))</pre></td></tr><tr><td class="docs"><p>Height in pixels of a line in the font in frame FRAME.
   If FRAME is omitted, the selected frame is used.
   For a terminal frame, the value is always 1.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun frame-char-height (&amp;optional frame))</pre></td></tr><tr><td class="docs"><p>Return a list (FRAME X . Y) giving the current mouse frame and position.
@@ -9475,7 +9552,8 @@ GPOS: List of OpenType GPOS feature tag symbols, or nil if none required.
                     (or (fns/assoc submap-name alist)
                         (data/car (data/setcdr keymap (alloc/cons (alloc/cons submap-name (make-sparse-keymap)) alist)))))]
         (define-key submap (data/aref key 1) def))) ;; DEF is apparently an XEmacs-style keyboard macro.)
-    (let [alist (data/cdr keymap)
+    (let [keymap (if (symbol? keymap) (el/el-var-get* keymap) keymap)
+          alist (data/cdr keymap)
           keydef (if (string? key)
                    (if (= \\ (first key))
                      (alloc/cons (int (data/car (parser/parse (str &quot;?&quot; key))))
@@ -9581,7 +9659,8 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
   This works recursively: if the parent has itself a parent, then the
   grandparent's bindings are also included and so on.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun map-keymap (function keymap)
-  (dorun (map (fn [[char defn]] ((el/fun function) char defn))
+  (apply alloc/list
+         (map (fn [x] ((el/fun function) (data/car x) (data/cdr x)))
               (filter data/consp (data/cdr keymap)))))</pre></td></tr><tr><td class="docs"><p>Return the prompt-string of a keymap MAP.
   If non-nil, the prompt is shown in the echo-area
   when reading a key-sequence to be looked-up in this keymap.</p>
@@ -9602,7 +9681,8 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
 <p>  The optional arg STRING supplies a menu name for the keymap
   in case you use it as a menu with `x-popup-menu'.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun make-keymap (&amp;optional string)
-  (fns/nconc (alloc/list 'keymap (chartab/make-char-table 'keymap)) (if string [string nil] [nil])))</pre></td></tr><tr><td class="docs"><p>Insert the list of all defined keys and their definitions.
+  (fns/nconc (alloc/list 'keymap (chartab/make-char-table 'keymap))
+             (if string (alloc/list string nil) (alloc/list nil))))</pre></td></tr><tr><td class="docs"><p>Insert the list of all defined keys and their definitions.
   The list is inserted in the current buffer, while the bindings are
   looked up in BUFFER.
   The optional argument PREFIX, if non-nil, should be a key sequence;
@@ -9716,8 +9796,7 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
             [deuce.emacs-lisp.parser :as parser])
   (:refer-clojure :exclude [read intern load])
   (:import [java.io FileNotFoundException]
-           [clojure.lang Symbol]
-           [deuce.emacs_lisp Cons]))</pre></td></tr><tr><td class="docs"><p>Set to non-nil when `read' encounters an old-style backquote.</p>
+           [clojure.lang Symbol Compiler]))</pre></td></tr><tr><td class="docs"><p>Set to non-nil when `read' encounters an old-style backquote.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar old-style-backquotes nil)</pre></td></tr><tr><td class="docs"><p>List of values of all expressions which were read, evaluated and printed.
   Order is reverse chronological.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar values nil)</pre></td></tr><tr><td class="docs"><p>Non-nil means force printing messages when loading Lisp files.
@@ -9785,7 +9864,7 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
   This list should not include the empty string.
   `load' and related functions try to append these suffixes, in order,
   to the specified file name if a Lisp suffix is allowed or required.</p>
-</td><td class="codes"><pre class="brush: clojure">(defvar load-suffixes nil)</pre></td></tr><tr><td class="docs"><p>Non-nil means `read' converts strings to unibyte whenever possible.
+</td><td class="codes"><pre class="brush: clojure">(defvar load-suffixes (alloc/list &quot;.class&quot; &quot;.el&quot;))</pre></td></tr><tr><td class="docs"><p>Non-nil means `read' converts strings to unibyte whenever possible.
   This is normally bound by <code>load' and</code>eval-buffer' to control `read',
   and is not meant for users to change.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar load-convert-to-unibyte nil)</pre></td></tr><tr><td class="docs"><p>List of suffixes that indicate representations of the same file.
@@ -9799,7 +9878,7 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
   in order to do so.  However, if you want to customize which suffixes
   the loading functions recognize as compression suffixes, you should
   customize `jka-compr-load-suffixes' rather than the present variable.</p>
-</td><td class="codes"><pre class="brush: clojure">(defvar load-file-rep-suffixes nil)</pre></td></tr><tr><td class="docs"><p>Function called in `load' for loading an Emacs Lisp source file.
+</td><td class="codes"><pre class="brush: clojure">(defvar load-file-rep-suffixes (alloc/list &quot;&quot;))</pre></td></tr><tr><td class="docs"><p>Function called in `load' for loading an Emacs Lisp source file.
   This function is for doing code conversion before reading the source file.
   If nil, loading is done without any code conversion.
   Arguments are FULLNAME, FILE, NOERROR, NOMESSAGE, where
@@ -9941,20 +10020,17 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
 </td><td class="codes"><pre class="brush: clojure">(defun intern (string &amp;optional obarray)
   (symbol string))</pre></td></tr><tr><td class="docs"><p>Return the suffixes that `load' should try if a suffix is required.
   This uses the variables <code>load-suffixes' and</code>load-file-rep-suffixes'.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun get-load-suffixes ())</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def ^:dynamic *inside-quote* false)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(let [reader-macros ((ns-map 'clojure.pprint) 'reader-macros)]
+</td><td class="codes"><pre class="brush: clojure">(defun get-load-suffixes ()
+  (apply alloc/list (remove empty? (concat globals/load-file-rep-suffixes globals/load-suffixes))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def ^:private default-reader-macros ((ns-map 'clojure.pprint) 'reader-macros))</pre></td></tr><tr><td class="docs"><p>Move this to a try/finally style to not mess up the real Clojure map.
+Also: Explore blacklist of files (ie. minibuffer.clj) that actually needs the full Emacs Lisp syntax quote forms available.
+      Print normal Clojure for the rest.</p>
+</td><td class="codes"><pre class="brush: clojure">(let [reader-macros default-reader-macros]
   (alter-var-root reader-macros
                   merge `{el/syntax-quote &quot;`&quot; unquote-splicing &quot;~@&quot; clojure.core/quote &quot;'&quot;})
   (alter-var-root reader-macros dissoc 'var))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod pp/simple-dispatch (type (object-array 0)) [arr]
-  (print-dup arr *out*))</pre></td></tr><tr><td class="docs"><p>this should also delegate to print-dup</p>
-</td><td class="codes"><pre class="brush: clojure">(defmethod pp/simple-dispatch Cons [cons]
-  (print &quot;#deuce/cons (&quot;)
-  (pp/write-out (car cons))
-  (print &quot; . &quot;)
-  (pp/write-out (cdr cons))
-  (print &quot;)&quot;))</pre></td></tr><tr><td class="docs">
+  (print-dup arr *out*))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod pp/simple-dispatch Symbol [s]
   (print-dup s *out*))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ^:private write-clojure [el clj]
@@ -9966,9 +10042,9 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
         (doseq [form  (concat '[(ns deuce.emacs (:refer-clojure :only []))]
                               el)]
           (pp/pprint form w)
-          (.write w &quot;\n&quot;)
-          (.flush w)))
-      (finally (timbre/set-level! level)))))</pre></td></tr><tr><td class="docs"><p>Execute a file of Lisp code named FILE.
+          (.write w &quot;\n&quot;)))
+      (finally (timbre/set-level! level)))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def ^:private ^:dynamic loads-in-progress #{})</pre></td></tr><tr><td class="docs"><p>Execute a file of Lisp code named FILE.
   First try FILE with <code>.elc' appended, then try with</code>.el',
   then try FILE unmodified (the exact suffixes in the exact order are
   determined by `load-suffixes').  Environment variable references in
@@ -10009,47 +10085,48 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
 
 <p>  Return t if the file exists and loads successfully.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun load (file &amp;optional noerror nomessage nosuffix must-suffix)
-  (try
-    (let [url (or (-&gt;&gt; (for [l globals/load-path
-                             :let [file (s/replace (str l &quot;/&quot; file) #&quot;^/&quot; &quot;&quot;)]]
-                         (or (when-not nosuffix
-                               (io/resource (str file &quot;.el&quot;)))
-                             (io/resource file)))
-                       (some identity))
-                  (.toURL (io/file file)))]
-      (binding [globals/load-file-name (.getFile url)
-                globals/load-in-progress true]
-        (when-not nomessage
-          (editfns/message &quot;Loading %s...&quot; file))
-        (let [el-extension? (re-find #&quot;.el$&quot; file)
-              file (s/replace file  #&quot;.el$&quot; &quot;&quot;)
-              clj-file (str (s/replace file &quot;-&quot; &quot;_&quot;) &quot;.clj&quot;) ;; should use actual classpath relative location, not loadpath
-              last-modified #(if % (.getLastModified (.openConnection %)) -1)]
-          (try
-            (when (&gt; (last-modified url) (last-modified (io/resource clj-file)))
-              (throw (FileNotFoundException. &quot;out of date&quot;)))
-            (c/require (symbol (s/replace file &quot;/&quot; &quot;.&quot;)))
-            (catch FileNotFoundException _
-              (with-open [in (io/input-stream url)]
-                (let [el (parser/parse in)
-                      clj-file (io/file *compile-path* clj-file)]
-                  (write-clojure (map #(let [clj (el/el-&gt;clj %)]
-                                         (try
-                                           ;; Would like to get rid of this extra eval state, but el-&gt;clj depends on the current state.
-                                           (eval/eval clj)
-                                           clj
-                                           (catch Exception e
-                                             (with-open [w (io/writer clj-file :append true)]
-                                               (pp/pprint clj w))
-                                             (throw e))))
-                                      el)
-                                 clj-file)
-                  (when-not el-extension?
-                    (binding [*compile-files* true] (require (symbol (s/replace file &quot;/&quot; &quot;.&quot;))))))))))
-        true))
-    (catch Exception e
-      (when-not noerror
-        (throw e)))))</pre></td></tr><tr><td class="docs"><p>Call FUNCTION on every symbol in OBARRAY.
+  ;; Need to deal with -*- lexical-binding: t -*-
+  (if (loads-in-progress file)
+    true ;; not really correct
+    (binding [loads-in-progress (conj loads-in-progress file)]
+      (try
+        ;; see locate-file-internal below, maybe should be delegating to it
+        (let [url (or (-&gt;&gt; (for [l globals/load-path
+                                 :let [file (s/replace (str l &quot;/&quot; file) #&quot;^/&quot; &quot;&quot;)]]
+                             (or (when-not nosuffix
+                                   (io/resource (str file &quot;.el&quot;)))
+                                 (io/resource file)))
+                           (some identity))
+                      (.toURL (io/file file)))
+              el-extension? (re-find #&quot;.el$&quot; file)]
+          (when-not nomessage
+            (editfns/message &quot;Loading %s%s...&quot; file (if el-extension? &quot; (source)&quot; &quot;&quot;)))
+          (binding [globals/load-file-name (.getFile url)
+                    globals/load-in-progress true]
+            (let [file (s/replace file  #&quot;.el$&quot; &quot;&quot;)
+                  clj-file (str (s/replace file &quot;-&quot; &quot;_&quot;) &quot;.clj&quot;) ;; should use actual classpath relative location, not loadpath
+                  clj-name (symbol (s/replace file &quot;/&quot; &quot;.&quot;))
+                  last-modified #(if % (.getLastModified (.openConnection %)) -1)
+                  load-raw-clj #(Compiler/load (io/reader (io/resource clj-file)) clj-file (.getName (io/file clj-file)))]
+              (try
+                (when (&gt; (last-modified url) (last-modified (io/resource clj-file)))
+                  (throw (FileNotFoundException. &quot;out of date&quot;)))
+                (if el-extension?
+                  (load-raw-clj)
+                  (c/require clj-name))
+                (catch FileNotFoundException _
+                  (with-open [in (io/input-stream url)]
+                    (let [el (parser/parse in)
+                          clj-file (io/file *compile-path* clj-file)]
+                      (write-clojure (map el/el-&gt;clj el) clj-file)
+                      (if el-extension?
+                        (load-raw-clj)
+                        (binding [*compile-files* true]
+                          (require clj-name)))))))
+              true)))
+        (catch Exception e
+          (when-not noerror
+            (throw e)))))))</pre></td></tr><tr><td class="docs"><p>Call FUNCTION on every symbol in OBARRAY.
   OBARRAY defaults to the value of `obarray'.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun mapatoms (function &amp;optional obarray))</pre></td></tr><tr><td class="docs"><p>Search for FILENAME through PATH.
   Returns the file's name in absolute form, or nil if not found.
@@ -10071,7 +10148,8 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
   symbol is searched for.
   A second optional argument specifies the obarray to use;
   it defaults to the value of `obarray'.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun intern-soft (name &amp;optional obarray))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs.macros" name="deuce.emacs.macros"><h1 class="project-name">deuce.emacs.macros</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defun intern-soft (name &amp;optional obarray)
+  (intern name))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs.macros" name="deuce.emacs.macros"><h1 class="project-name">deuce.emacs.macros</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.emacs.macros
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c])
@@ -10205,7 +10283,9 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.emacs.minibuf
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
+            [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.cons :refer [ICons car] :as cons]
+            [deuce.emacs.alloc :as alloc]
             [deuce.emacs.fns :as fns])
   (:refer-clojure :exclude [read-string]))</pre></td></tr><tr><td class="docs"><p>History list symbol to add minibuffer values to.
   Each string of minibuffer input, as it appears on exit from the minibuffer,
@@ -10296,11 +10376,14 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
    confirmation if the user submitted the input right after any of the
    completion commands listed in `minibuffer-confirm-exit-commands'.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar minibuffer-completion-confirm nil)</pre></td></tr><tr><td class="docs"><p>Return current depth of activations of minibuffer, a nonnegative integer.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun minibuffer-depth ())</pre></td></tr><tr><td class="docs"><p>Return non-nil if STRING is a valid completion.
+</td><td class="codes"><pre class="brush: clojure">(defun minibuffer-depth ())</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(declare filter-completions)</pre></td></tr><tr><td class="docs"><p>Return non-nil if STRING is a valid completion.
   Takes the same arguments as <code>all-completions' and</code>try-completion'.
   If COLLECTION is a function, it is called with three arguments:
   the values STRING, PREDICATE and `lambda'.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun test-completion (string collection &amp;optional predicate))</pre></td></tr><tr><td class="docs"><p>Read a string in the minibuffer, with completion.
+</td><td class="codes"><pre class="brush: clojure">(defun test-completion (string collection &amp;optional predicate)
+  (when (some #{string} (filter-completions collection predicate))
+    true))</pre></td></tr><tr><td class="docs"><p>Read a string in the minibuffer, with completion.
   PROMPT is a string to prompt with; normally it ends in a colon and a space.
   COLLECTION can be a list of strings, an alist, an obarray or a hash table.
   COLLECTION can also be a function to do the completion itself.
@@ -10433,7 +10516,16 @@ and the first string is the default to `read' if READ is non-nil.
 </td><td class="codes"><pre class="brush: clojure">(defun minibuffer-prompt ())</pre></td></tr><tr><td class="docs"><p>Read the name of a command and return as a symbol.
   Prompt with PROMPT.  By default, return DEFAULT-VALUE or its first element
   if it is a list.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun read-command (prompt &amp;optional default-value))</pre></td></tr><tr><td class="docs"><p>Return common substring of all completions of STRING in COLLECTION.
+</td><td class="codes"><pre class="brush: clojure">(defun read-command (prompt &amp;optional default-value))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn ^:private filter-completions [collection predicate]
+  (map #(if (satisfies? ICons %) (car %) %)
+       (filter (if predicate (el/fun predicate) identity) collection)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn ^:private try-completion-internal [string collection]
+  (when-let [completions (seq (filter #(.startsWith (str %) string) collection))]
+    (reduce #(loop [n (count %1)]
+               (let [prefix (subs %1 0 n)]
+                 (if (.startsWith %2 prefix) prefix (recur (dec n)))))
+            (sort completions))))</pre></td></tr><tr><td class="docs"><p>Return common substring of all completions of STRING in COLLECTION.
   Test each possible completion specified by COLLECTION
   to see if it begins with STRING.  The possible completions may be
   strings or symbols.  Symbols are converted to strings before testing,
@@ -10463,7 +10555,12 @@ and the first string is the default to `read' if READ is non-nil.
   predicate is called with two arguments: the key and the value.
   Additionally to this predicate, `completion-regexp-list'
   is used to further constrain the set of candidates.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun try-completion (string collection &amp;optional predicate))</pre></td></tr><tr><td class="docs"><p>Return value of Lisp expression read using the minibuffer.
+</td><td class="codes"><pre class="brush: clojure">(defun try-completion (string collection &amp;optional predicate)
+  (let [collection (filter-completions collection predicate)]
+    (when-let [completion (try-completion-internal string collection)]
+      (if (= 1 (count (filter #{string} collection)))
+        true
+        completion))))</pre></td></tr><tr><td class="docs"><p>Return value of Lisp expression read using the minibuffer.
   Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
   is a string to insert in the minibuffer before reading.
   (INITIAL-CONTENTS can also be a cons of a string and an integer.
@@ -10527,7 +10624,10 @@ and the first string is the default to `read' if READ is non-nil.
 <p>  An obsolete optional fourth argument HIDE-SPACES is still accepted for
   backward compatibility.  If non-nil, strings in COLLECTION that start
   with a space are ignored unless STRING itself starts with a space.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun all-completions (string collection &amp;optional predicate))</pre></td></tr><tr><td class="docs"><p>Read the name of a buffer and return as a string.
+</td><td class="codes"><pre class="brush: clojure">(defun all-completions (string collection &amp;optional predicate)
+  (let [collection (filter-completions collection predicate)
+        prefix (try-completion-internal string collection)]
+    (apply alloc/list (filter #(.startsWith (str %) prefix) collection))))</pre></td></tr><tr><td class="docs"><p>Read the name of a buffer and return as a string.
   Prompt with PROMPT.
   Optional second arg DEF is value to return if user enters an empty line.
    If DEF is a list of default values, return its first element.
@@ -10676,7 +10776,9 @@ and the first string is the default to `read' if READ is non-nil.
   append to existing target file.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun redirect-debugging-output (file &amp;optional append))</pre></td></tr><tr><td class="docs"><p>Output a newline to stream PRINTCHARFUN.
   If PRINTCHARFUN is omitted or nil, the value of `standard-output' is used.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun terpri (&amp;optional printcharfun))</pre></td></tr><tr><td class="docs"><p>Return a string containing the printed representation of OBJECT.
+</td><td class="codes"><pre class="brush: clojure">(defun terpri (&amp;optional printcharfun)
+  (println)
+  true)</pre></td></tr><tr><td class="docs"><p>Return a string containing the printed representation of OBJECT.
   OBJECT can be any Lisp object.  This function outputs quoting characters
   when necessary to make output that `read' can handle, whenever possible,
   unless the optional second argument NOESCAPE is non-nil.  For complex objects,
@@ -11560,17 +11662,18 @@ information, is available via the `process-contact' function.</p></li>
 <p>  You can use the function `match-string' to extract the substrings
   matched by the parenthesis constructions in REGEXP.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun string-match (regexp string &amp;optional start)
-  (let [m (re-matcher (re-pattern (-&gt; regexp
+  (let [offset (or start 0)
+        m (re-matcher (re-pattern (-&gt; regexp
                                       (s/replace #&quot;^\\\`&quot; &quot;^&quot;)
                                       (s/replace #&quot;\[(.*?)]&quot;
                                                  (fn [x] (str &quot;[&quot; (s/replace (x 1) &quot;[&quot; &quot;\\[&quot;) &quot;]&quot;)))
                                       (s/replace &quot;\\(&quot; &quot;(&quot;)
                                       (s/replace &quot;\\)&quot; &quot;)&quot;)))
-                      (subs string (or start 0)))]
+                      (subs string offset))]
     (if (re-find m)
       (do
-        (reset! *current-match-data* m)
-        (.start m))
+        (reset! *current-match-data* {:matcher m :offset offset})
+        (+ offset (.start m)))
       (reset! *current-match-data* nil))))</pre></td></tr><tr><td class="docs"><p>Return t if text after point matches regular expression REGEXP.
   Find the longest match, in accord with Posix regular expression rules.
   This function modifies the match data that `match-beginning',
@@ -11668,8 +11771,8 @@ information, is available via the `process-contact' function.</p></li>
     SUBEXP pairs.
   Zero means the entire text matched by the whole regexp or whole string.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun match-beginning (subexp)
-  (when @*current-match-data* subexp
-        (.start @*current-match-data* subexp)))</pre></td></tr><tr><td class="docs"><p>Search backward from point for STRING.
+  (when @*current-match-data*
+    (+ (:offset @*current-match-data*) (.start (:matcher @*current-match-data*) subexp))))</pre></td></tr><tr><td class="docs"><p>Search backward from point for STRING.
   Set point to the beginning of the occurrence found, and return point.
   An optional second argument bounds the search; it is a buffer position.
   The match found must not extend before that position.
@@ -11690,8 +11793,8 @@ information, is available via the `process-contact' function.</p></li>
     SUBEXP pairs.
   Zero means the entire text matched by the whole regexp or whole string.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun match-end (subexp)
-  (when @*current-match-data* subexp
-        (.end @*current-match-data* subexp)))</pre></td></tr><tr><td class="docs"><p>Search backward from point for match for regular expression REGEXP.
+  (when @*current-match-data*
+    (+ (:offset @*current-match-data*) (.end (:matcher @*current-match-data*) subexp))))</pre></td></tr><tr><td class="docs"><p>Search backward from point for match for regular expression REGEXP.
   Find the longest match in accord with Posix regular expression rules.
   Set point to the beginning of the match, and return point.
   The match found is the one starting last in the buffer
@@ -13090,7 +13193,8 @@ reverse order.</p></li>
 </td><td class="codes"><pre class="brush: clojure">(defun window-resize-apply (frame &amp;optional horizontal))</pre></td></tr><tr><td class="docs"><p>Compare two window configurations as regards the structure of windows.
   This function ignores details such as the values of point and mark
   and scrolling positions.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun compare-window-configurations (x y))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs.xdisp" name="deuce.emacs.xdisp"><h1 class="project-name">deuce.emacs.xdisp</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defun compare-window-configurations (x y))</pre></td></tr><tr><td class="docs"><p>Internal function for `with-output-to-temp-buffer'.</p>
+</td><td class="codes"><pre class="brush: clojure">(defun internal-temp-output-buffer-show (buf))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs.xdisp" name="deuce.emacs.xdisp"><h1 class="project-name">deuce.emacs.xdisp</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.emacs.xdisp
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c])
@@ -13512,7 +13616,8 @@ reverse order.</p></li>
   If optional argument FRAME is specified, make a frame-local face
   for that frame.  Otherwise operate on the global face definition.
   Value is a vector of face attributes.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun internal-make-lisp-face (face &amp;optional frame))</pre></td></tr><tr><td class="docs"><p>Return non-nil if all the face attributes in ATTRIBUTES are supported.
+</td><td class="codes"><pre class="brush: clojure">(defun internal-make-lisp-face (face &amp;optional frame)
+  nil)</pre></td></tr><tr><td class="docs"><p>Return non-nil if all the face attributes in ATTRIBUTES are supported.
   The optional argument DISPLAY can be a display name, a frame, or
   nil (meaning the selected frame's display).</p>
 
@@ -13528,7 +13633,8 @@ reverse order.</p></li>
   as it can display a yellowish color, but `:slant italic' will <em>not</em> be
   satisfied by the tty display code's automatic substitution of a `dim'
   face for italic.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun display-supports-face-attributes-p (attributes &amp;optional display))</pre></td></tr><tr><td class="docs"><p>Check whether a face attribute value is relative.
+</td><td class="codes"><pre class="brush: clojure">(defun display-supports-face-attributes-p (attributes &amp;optional display)
+  nil)</pre></td></tr><tr><td class="docs"><p>Check whether a face attribute value is relative.
   Specifically, this function returns t if the attribute ATTRIBUTE
   with the value VALUE is relative.</p>
 
@@ -13556,13 +13662,15 @@ reverse order.</p></li>
   FRAME t means change the default for new frames.
   FRAME 0 means change the face on all frames, and change the default
     for new frames.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun internal-set-lisp-face-attribute (face attr value &amp;optional frame))</pre></td></tr><tr><td class="docs"><p>Clear face caches on all frames.
+</td><td class="codes"><pre class="brush: clojure">(defun internal-set-lisp-face-attribute (face attr value &amp;optional frame)
+  nil)</pre></td></tr><tr><td class="docs"><p>Clear face caches on all frames.
   Optional THOROUGHLY non-nil means try to free unused fonts, too.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun clear-face-cache (&amp;optional thoroughly))</pre></td></tr><tr><td class="docs"><p>Define alternative font registries to try in face font selection.
   ALIST is an alist of (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...) entries.
   Each ALTERNATIVE is tried in order if no fonts of font registry REGISTRY can
   be found.  Value is ALIST.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun internal-set-alternative-font-registry-alist (alist))</pre></td></tr><tr><td class="docs"><p>Return face ATTRIBUTE VALUE1 merged with VALUE2.
+</td><td class="codes"><pre class="brush: clojure">(defun internal-set-alternative-font-registry-alist (alist)
+  nil)</pre></td></tr><tr><td class="docs"><p>Return face ATTRIBUTE VALUE1 merged with VALUE2.
   If VALUE1 or VALUE2 are absolute (see `face-attribute-relative-p'), then
   the result will be absolute, otherwise it will be relative.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun merge-face-attribute (attribute value1 value2))</pre></td></tr><tr><td class="docs"><p>Return non-nil if COLOR is a shade of gray (or white or black).
@@ -13603,7 +13711,8 @@ reverse order.</p></li>
   If optional second argument FRAME is non-nil, check for the
   existence of a frame-local face with name FACE on that frame.
   Otherwise check for the existence of a global face.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun internal-lisp-face-p (face &amp;optional frame))</pre></td></tr><tr><td class="docs"><p>Copy face FROM to TO.
+</td><td class="codes"><pre class="brush: clojure">(defun internal-lisp-face-p (face &amp;optional frame)
+  nil)</pre></td></tr><tr><td class="docs"><p>Copy face FROM to TO.
   If FRAME is t, copy the global face definition of FROM.
   Otherwise, copy the frame-local definition of FROM on FRAME.
   If NEW-FRAME is a frame, copy that data into the frame-local
@@ -13645,9 +13754,8 @@ reverse order.</p></li>
             [deuce.emacs-lisp.cons :as cons])
   (:use [taoensso.timbre :as timbre
          :only (trace debug info warn error fatal spy)])
-  (:import [clojure.lang Var]
+  (:import [clojure.lang Var ExceptionInfo]
            [java.io Writer]
-           [deuce.emacs_lisp Cons]
            [java.lang.reflect Method])
   (:refer-clojure :exclude [defmacro and or cond let while eval set compile]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(timbre/set-config! [:prefix-fn]
@@ -13655,44 +13763,69 @@ reverse order.</p></li>
                       (str timestamp &quot; &quot; (-&gt; level name s/upper-case) &quot; [&quot; ns &quot;]&quot;)))
 (timbre/set-config! [:timestamp-pattern] &quot;HH:mm:ss,SSS&quot;)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(timbre/set-level! :error)
-(var-set #'*warn-on-reflection* true)</pre></td></tr><tr><td class="docs">
+(var-set  #'*warn-on-reflection* true)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(declare clojure-special-forms throw defvar el-&gt;clj)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn cons-reader [cons]
-  (cons/pair (first cons) (last cons)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(declare clojure-special-forms throw throw* defvar el-&gt;clj eval emacs-lisp-backquote)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn vector-reader [v]
   (object-array (vec v)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn symbol-reader [s]
   (symbol nil s))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn sym [s]
-  (symbol nil (name s)))</pre></td></tr><tr><td class="docs">
+  (if (true? s)
+      '#el/sym &quot;true&quot;
+      (symbol nil (name s))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn not-null? [object]
   (when-not (c/or (nil? object) (c/= () object) (false? object))
     object))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn global [s]
   (ns-resolve 'deuce.emacs-lisp.globals (sym s)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn fun [s]
-  (if (fn? s) s
-      (ns-resolve 'deuce.emacs (sym s))))</pre></td></tr><tr><td class="docs">
+  (c/cond (fn? s) s
+          (symbol? s) (c/let [f (ns-resolve 'deuce.emacs (sym s))]
+                             ;; Not sure we want alias handling leaking down to here.
+                             ;; On the other hand, 24.3 uses defalias + lambda as primary macros.
+                             ;; Hack to protect against backquote alias, needs proper fix.
+                             (if-let [alias (c/and  (not= '#el/sym &quot;\\`&quot; s)
+                                                    (-&gt; f meta :alias))]
+                               (if (symbol? alias) ;; See binding/mode-specific-command-prefix
+                                 (fun alias)
+                                 alias)
+                               f))
+          :else (throw* 'invalid-function (list s))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn maybe-sym [x]
   (if (symbol? x) (sym x) x))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmethod print-method deuce.emacs_lisp.Error [^deuce.emacs_lisp.Error e ^Writer w]
-  (.write w (str (cons (.tag e)
-                       (c/let [d (.value e)]
-                              (if (seq? d) d [d]))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn emacs-lisp-error [tag value]
+  (proxy [ExceptionInfo] [(str tag) {:tag tag :value value}]
+    (getMessage [] (str this))
+    (toString []
+      (str (cons (:tag (.data ^ExceptionInfo this))
+                 (c/let [d (:value (.-data ^ExceptionInfo this))]
+                        (if (seq? d) d [d])))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn throw* [tag value]
+  (throw (emacs-lisp-error tag value)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn scope [&amp;env]
+  (c/set (remove #(re-find #&quot;__\d+&quot; (name %)) (keys &amp;env))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def ^:dynamic *dynamic-vars* {})</pre></td></tr><tr><td class="docs"><p>There're also buffer local variables, which will be using deuce.emacs.buffer/current-buffer
 These vars are introduced by deuce.emacs.data/make-local-variable or make-variable-buffer-local
 There's also an obsolete (as of Emacs 22.2) concept of frame locals.
 See deuce.emacs.data/make-variable-frame-local and deuce.emacs.frame/modify-frame-parameters</p>
 </td><td class="codes"><pre class="brush: clojure">(defn el-var-buffer-local [name])</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn el-var [name]
+  ((some-fn *dynamic-vars* el-var-buffer-local global) name))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn el-var-get* [name]
+  (c/let [name (sym name)]
+         (if-let [v (el-var name)]
+           @v
+           (throw* 'void-variable (list name)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(c/defmacro el-var-get [name]
   (c/let [name (sym name)]
          (if (c/and (symbol? name) (name &amp;env))
-           `(if (var? ~name) @~name ~name)
-           `(if-let [v# ((some-fn *dynamic-vars* el-var-buffer-local global) '~name)]
-              @v#
-              (deuce.emacs-lisp/throw '~'void-variable '~name)))))</pre></td></tr><tr><td class="docs">
+           `(if (var? ~name)
+              (if (bound? ~name)@~name
+                  (throw* '~'void-variable (list '~name)))
+              ~name)
+           `(el-var-get* '~name))))</pre></td></tr><tr><td class="docs"><p>split these out into el-var-set-** and get rid of eval in deuce.emacs.data/set(-default)</p>
 </td><td class="codes"><pre class="brush: clojure">(c/defmacro el-var-set-default [name value]
   (c/let [name (sym name)]
          `(c/let [value# ~value]
@@ -13702,9 +13835,9 @@ See deuce.emacs.data/make-variable-frame-local and deuce.emacs.frame/modify-fram
 </td><td class="codes"><pre class="brush: clojure">(c/defmacro el-var-set [name value]
   (c/let [name (sym name)]
          `(c/let [value# ~value]
-                 (if-let [v# (c/or ~(c/and (symbol? name) (name &amp;env) name)
-                                   ((some-fn *dynamic-vars* el-var-buffer-local) '~name))]
-                   (if (c/and (.hasRoot v#) (not (.getThreadBinding v#)))
+                 (if-let [^Var v# (c/or ~(c/and (symbol? name) (name &amp;env) name)
+                                        ((some-fn *dynamic-vars* el-var-buffer-local) '~name))]
+                   (if (c/or (c/and (.hasRoot v#) (not (.getThreadBinding v#))) (not (bound? v#)))
                      (alter-var-root v# (constantly value#))
                      (var-set v# value#))
                    (el-var-set-default ~name value#)))))</pre></td></tr><tr><td class="docs">
@@ -13720,6 +13853,16 @@ See deuce.emacs.data/make-variable-frame-local and deuce.emacs.frame/modify-fram
                    (binding [*dynamic-vars* (if (dynamic-binding?) (merge *dynamic-vars* vars#) {})]
                      (c/let [{:syms ~vars} vars#]
                             ~@body))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def ^:dynamic *disallow-undefined* #{})</pre></td></tr><tr><td class="docs"><p>build cached invoker to use once target is resolved?</p>
+</td><td class="codes"><pre class="brush: clojure">(defn delayed-eval* [expr]
+  (binding [*disallow-undefined* (conj *disallow-undefined* (first expr))]
+    (eval expr)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(c/defmacro delayed-eval [expr]
+  `(delayed-eval* '~expr))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn expand-dotted-lists [x]
+  (if (c/or (cons/dotted-list? x) (cons/dotted-pair? x))
+     (apply cons/list x)
+     x))</pre></td></tr><tr><td class="docs"><p>Break this up and explain what the different branches are doing and why.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn el-&gt;clj [x]
   (condp some [x]
     #{()} nil
@@ -13727,29 +13870,33 @@ See deuce.emacs.data/make-variable-frame-local and deuce.emacs.frame/modify-fram
                 (if (c/and (symbol? fst)
                            (not= 'progn fst)
                            (-&gt; (fun fst) meta :macro))
-                  (if (c/or (clojure-special-forms fst) (= 'lambda fst))
+                  (if (c/or (clojure-special-forms fst) ('#{let lambda} fst)) ;; defun defvar ?
                     (if (= 'quote fst)
                       (if-let [s (c/and (symbol? (first rst)) (not (next rst)) (first rst))]
                         (list 'quote (if (= &quot;deuce.emacs&quot; (namespace s)) (sym s) s))
                         (if (= '(()) rst) () x))
-                      (c/cons (symbol &quot;deuce.emacs-lisp&quot; (name fst)) rst))
-                    x)
-                  (if (`#{el-var-get el-var-set el-var-set-default syntax-quote} fst)
+                      (apply cons/list (c/cons (symbol &quot;deuce.emacs-lisp&quot; (name fst)) rst)))
+                    (apply cons/list x))
+                  (if (#{`el-var-get `el-var-set `el-var-set-default `delayed-eval
+                         '#el/sym &quot;\\,&quot; '#el/sym &quot;\\,@&quot;} fst)
                     x
-                    (c/cond
-                     (= `symbol fst) (list `el-var-get x)
-                     :else (c/cons (c/cond
-                                  (c/and (symbol? fst)
-                                         (not (namespace fst))
-                                         (not (fun fst)))
-                                  (do (warn (format &quot;Unable to resolve symbol: %s in this context&quot; fst))
-                                      (intern 'deuce.emacs fst)
-                                      (list `fun (list 'quote fst)))
-                                  (c/and (c/seq? fst) (= `symbol (first fst)))
-                                  (list `fun fst)
-                                  :else (if (seq? fst) (el-&gt;clj fst) fst))
-                            (map el-&gt;clj rst))))))
-    symbol? (if (namespace x) (if (-&gt; (resolve x) meta :macro) (resolve x) x) (list `el-var-get x))
+                    (if (=  '#el/sym &quot;\\`&quot; fst)
+                      (emacs-lisp-backquote x) ;; See below, we dont want to duplicate this if not necessary.
+                      (if (c/and (symbol? fst)
+                                 (not (namespace fst))
+                                 (not (fun fst)))
+                        (if (*disallow-undefined* fst)
+                          `(throw* '~'void-function '~fst)
+                          (do (debug fst &quot;NOT DEFINED&quot;)
+                              (list `delayed-eval x)))
+                        (expand-dotted-lists (c/cons
+                                              (if (seq? fst) (el-&gt;clj fst) fst)
+                                              (map el-&gt;clj rst))))))))
+    symbol? (if (namespace x)
+              (if (-&gt; (resolve x) meta :macro) (resolve x) x)
+              (if (#{'#el/sym &quot;\\,&quot; '#el/sym &quot;\\,@&quot; '.} x)
+                x
+                (list `el-var-get x)))
     x))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ^Throwable cause [^Throwable e]
   (if-let [e (.getCause e)]
@@ -13761,57 +13908,45 @@ See deuce.emacs.data/make-variable-frame-local and deuce.emacs.frame/modify-fram
                           &quot;syntaxQuote&quot;
                           (into-array [Object]))
     (.setAccessible true)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(c/defmacro syntax-quote [form]
-  (el-&gt;clj (.invoke clojure-syntax-quote nil (into-array [form]))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn syntax-quote* [form]
+  (.invoke clojure-syntax-quote nil (into-array [form])))</pre></td></tr><tr><td class="docs"><p>Emacs Lisp allows an atom to be spliced if it is in the last position, like this:
+(let ((upat 'x) (sym 'x))
+  `(match ,sym ,@upat))
+=> (match x . x)
+Doesn't handle this wonderful case:
+`,@2 => 2</p>
+</td><td class="codes"><pre class="brush: clojure">(defn maybe-splice-dotted-list [x]
+  (if ((some-fn seq? nil?) x) x `(. ~x)))</pre></td></tr><tr><td class="docs"><p>There's a version of this already defined as macro in backquote.el, use it / override it?
+What's their relationship?</p>
+</td><td class="codes"><pre class="brush: clojure">(defn emacs-lisp-backquote [form]
+  (w/postwalk
+   #(c/cond
+     (c/and (seq? %) (seq? (last %)) (= `unquote-splicing (first (last %))))
+     (if (butlast %)
+       (concat (butlast %) `((unquote-splicing (maybe-splice-dotted-list ~(second (last %))))))
+       (second (last %)))
+     (c/and (seq? %) (= '#el/sym &quot;\\`&quot; (first %)))
+     (w/postwalk cons/maybe-seq (el-&gt;clj (syntax-quote* (second %))))
+     (= '#el/sym &quot;\\,&quot; %) `unquote
+     (= '#el/sym &quot;\\,@&quot; %) `unquote-splicing
+     :else %) form))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn compile [emacs-lisp]
   (try
     (when emacs-lisp (c/eval (if (meta emacs-lisp) (with-meta emacs-lisp nil) emacs-lisp)))
     (catch RuntimeException e
-      (when-not (.getMessage e)
-        (throw e))
-      (if-let [[_ undeclared] (c/and (global 'load-in-progress)
-                                     @(global 'load-in-progress)
-                                     (c/re-find #&quot;Unable to resolve symbol: (.+) in this context&quot;
-                                                (.getMessage e)))]
-        (do
-          (warn (-&gt; e cause .getMessage))
-          (intern 'deuce.emacs (symbol undeclared))
-          (compile emacs-lisp))
-        (do
-          (error (-&gt; e cause .getMessage) (with-out-str (pp/pprint emacs-lisp)))
-          (throw e))))))</pre></td></tr><tr><td class="docs"><p>This is used by Emacs Lisp defmacro to ensure Cons lists constructed actually gets compiled.
-Clojure defmacro does only work on IType/ISeq. Used with prewalk.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn cons-lists-to-seqs [form]
-  (if (c/and (seq? form) (`#{quote} (first form)))
-    form
-    (if (instance? Cons form)
-      (apply list form)
-      form)))</pre></td></tr><tr><td class="docs"><p>There's a subtle difference between eval and macro-expansion.
-Should be possible to unify, but requires some work.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn cons-lists-to-seqs-for-eval [form]
-  (c/cond
-   (c/and (seq? form) (`#{quote} (first form)))
-   form
-   (seq? form) (map cons-lists-to-seqs-for-eval form)
-   (instance? Cons form) (apply list form)
-   :else
-   form))</pre></td></tr><tr><td class="docs"><p>Emacs Lisp syntax quote leaves calls to cons/pair which needs to be expanded.
-Embedding a literal Cons cell won't let it unquote its contents.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn expand-cons-ctors [form]
-  (c/cond
-   (c/and (seq? form) (= `cons/pair (first form)))
-   (cons/pair (second form) (last form))
-   (seq? form) (apply cons/list (map expand-cons-ctors form))
-   :else
-   form))</pre></td></tr><tr><td class="docs"><p>defined in eval.clj</p>
+      (do
+        (error (-&gt; e cause .getMessage) (with-out-str (pp/pprint emacs-lisp)))
+        (throw e)))))</pre></td></tr><tr><td class="docs"><p>defined in eval.clj</p>
 </td><td class="codes"><pre class="brush: clojure">(defn eval [body &amp; [lexical]]
   (binding [*ns* (the-ns 'deuce.emacs)]
     (with-bindings (if lexical {(global 'lexical-binding) true} {})
-      ;; Not sure we should seqify stuff here.
-      (maybe-sym (expand-cons-ctors (compile (el-&gt;clj (cons-lists-to-seqs-for-eval body))))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(declare let-helper* progn)</pre></td></tr><tr><td class="docs">
+      (maybe-sym (compile (el-&gt;clj body))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn parse-doc-string [[doc &amp; rst :as body]]
+  (if (string? doc)
+    [doc rst]
+    [nil body]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(c/defmacro def-helper* [what line name arglist &amp; body]
-  (c/let [[docstring body] (split-with string? body)
+  (c/let [[docstring body] (parse-doc-string body)
           name (sym name)
           el-arglist arglist
           rest-arg (maybe-sym (second (drop-while (complement '#{&amp;rest}) arglist)))
@@ -13834,12 +13969,13 @@ Embedding a literal Cons cell won't let it unquote its contents.</p>
                                   (warn ~(c/name name) &quot;NOT IMPLEMENTED&quot;)))
                             ~(if emacs-lisp?
                                `(c/let ~(if rest-arg
-                                          `[~rest-arg (if-let [r# (seq ~rest-arg)] (apply cons/list r#) nil)]
+                                          `[~rest-arg (if-let [r# ~rest-arg] (apply cons/list r#) nil)]
                                           [])
                                        (c/let [result# (with-local-el-vars ~(vec (mapcat #(c/list % %) the-args))
                                                          (progn ~@body))]
+                                              ;; There's something wrong with the returned forms, hence the prewalk
                                               (if ~macro?
-                                                (el-&gt;clj (w/prewalk cons-lists-to-seqs result#))
+                                                (w/prewalk identity (el-&gt;clj result#))
                                                 result#)))
                                `(do ~@body)))]
                  (if (var? f#)
@@ -13847,20 +13983,22 @@ Embedding a literal Cons cell won't let it unquote its contents.</p>
                      (alter-meta! f# merge (merge {:doc ~doc
                                                    :el-arglist '~(seq el-arglist)}
                                                   (when ~emacs-lisp?
-                                                    {:el-file (when-let [file# (global 'load-file-name)]
+                                                    {:el-file (when-let [file# (el-var 'load-file-name)]
                                                                 @file#)})))
                      (alter-var-root f# (constantly (with-meta @f# (meta f#))))
                      (when ~needs-intern?
                        (intern 'deuce.emacs (with-meta '~name (dissoc (meta f#) :name)) @f#)
                        (ns-unmap 'deuce.emacs '~needs-intern?)))
-                   (with-meta f# (assoc (meta f#) :doc ~doc))))))</pre></td></tr><tr><td class="docs"><p>Define NAME as a function.
+                   (with-meta f# (assoc (meta f#) :doc ~doc))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def override? '#{apply-partially})</pre></td></tr><tr><td class="docs"><p>Define NAME as a function.
   The definition is (lambda ARGLIST [DOCSTRING] BODY...).
   See also the function `interactive'.</p>
 </td><td class="codes"><pre class="brush: clojure">(c/defmacro defun
   {:arglists '([NAME ARGLIST [DOCSTRING] BODY...])}
   [name arglist &amp; body]
   (c/let [name (sym name)]
-         `(do (def-helper* defn ~(-&gt; name meta :line) ~name ~arglist ~@body)
+         `(do ~(when-not (override? name)
+                 `(def-helper* defn ~(-&gt; name meta :line) ~name ~arglist ~@body))
               '~name)))</pre></td></tr><tr><td class="docs"><p>Return a lambda expression.
   A call of the form (lambda ARGS DOCSTRING INTERACTIVE BODY) is
   self-quoting; the result of evaluating the lambda expression is the
@@ -13880,16 +14018,36 @@ Embedding a literal Cons cell won't let it unquote its contents.</p>
 </td><td class="codes"><pre class="brush: clojure">(c/defmacro lambda
   {:arglists '([ARGS [DOCSTRING] [INTERACTIVE] BODY])}
   [&amp; cdr]
-  (c/let [vars (vec (keys &amp;env))]
+  (c/let [[args &amp; body] cdr
+          [docstring body] (parse-doc-string body)
+          doc (apply str docstring)
+          vars (scope &amp;env)
+          vars (vec (remove (c/set args) vars))]
          ;; This is wrong as it won't share updates between original definition and the lambda var.
-         ;; Yet to see if this ends up being a real issue.
+         ;; Yet to see if this ends up being a real issue. A few days later: Indeed it is!
          `(c/let [closure# (zipmap '~vars
-                                   (map #(doto (Var/create (if (var? %) (deref %) %)) .setDynamic)
+                                   (map #(doto
+                                             (if (dynamic-binding?) ;; Temporary hack.
+                                               (if (var? %) % (Var/create %))
+                                               (Var/create (if (var? %) (deref %) %)))
+                                           .setDynamic)
                                         ~vars))]
-                 (def-helper* fn nil lambda ~(first cdr)
-                   (binding [*dynamic-vars* (if (dynamic-binding?) (merge *dynamic-vars* closure#) {})]
-                     (c/let [{:syms ~(vec (keys &amp;env))} closure#]
-                            (progn ~@(rest cdr))))))))</pre></td></tr><tr><td class="docs"><p>Do BODYFORM, protecting with UNWINDFORMS.
+                 (with-meta
+                   (def-helper* fn nil lambda ~args
+                     (binding [*dynamic-vars* (if (dynamic-binding?) (merge *dynamic-vars* closure#) {})]
+                       (c/let [{:syms ~vars} closure#]
+                              (progn ~@body))))
+                   {:doc ~doc}))))</pre></td></tr><tr><td class="docs"><p>Return a function that is a partial application of FUN to ARGS.
+  ARGS is a list of the first N arguments to pass to FUN.
+  The result is a new function which does the same as FUN, except that
+  the first N arguments are fixed at the values with which this function
+  was called.</p>
+
+<p>defined in subr.el</p>
+</td><td class="codes"><pre class="brush: clojure">(defn apply-partially
+  [fun &amp; args]
+  (fn partial [&amp; new-args]
+    (apply (deuce.emacs-lisp/fun fun) (concat args new-args))))</pre></td></tr><tr><td class="docs"><p>Do BODYFORM, protecting with UNWINDFORMS.
   If BODYFORM completes normally, its value is returned
   after executing the UNWINDFORMS.
   If BODYFORM exits nonlocally, the UNWINDFORMS are executed anyway.</p>
@@ -13928,9 +14086,10 @@ Embedding a literal Cons cell won't let it unquote its contents.</p>
   (c/let [var (if (= () var) nil var)]
          `(try
             ~(el-&gt;clj bodyform)
-            (catch deuce.emacs_lisp.Error e#
-              (c/let [~(if var var (gensym &quot;_&quot;)) (.value e#)]
-                     (case (.tag e#)
+            (catch ExceptionInfo e#
+              (c/let [~(if var var (gensym &quot;_&quot;)) (cons/pair (:tag (ex-data e#))
+                                                            (:value (ex-data e#)))]
+                     (case (:tag (ex-data e#))
                        ~@(apply concat (for [[c &amp; h] handlers
                                              :let [c (if (seq? c) c [c])]]
                                          (apply concat (for [c c] `[~(sym c) (progn ~@h)]))))
@@ -13948,7 +14107,7 @@ Embedding a literal Cons cell won't let it unquote its contents.</p>
   `(c/cond
      ~@(-&gt;&gt; clauses
             (map #(do [`(not-null? ~(el-&gt;clj (first %)))
-                       (if (second %) `(progn ~@(rest %)) (el-&gt;clj (first %)))]))
+                       (if (= 1 (count %)) (el-&gt;clj (first %)) `(progn ~@(rest %)))]))
             (apply concat))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(c/defmacro setq-helper* [default? sym-vals]
   (c/let [emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)]
@@ -13981,7 +14140,12 @@ Embedding a literal Cons cell won't let it unquote its contents.</p>
 </td><td class="codes"><pre class="brush: clojure">(c/defmacro ^:clojure-special-form quote
   {:arglists '([ARG])}
   [arg]
-  `(quote ~arg))</pre></td></tr><tr><td class="docs">
+  `(quote ~arg))</pre></td></tr><tr><td class="docs"><p>Revisit using Atoms, will make closure capture easier. We use the <em>dynamic-vars</em> var for dynamic scope anyway.
+Bindings refering to other bindings and modifying them don't work properly.
+The vars must be created here instead of in with-local-el-vars (which might be removed).
+Everytime you make a 'sane' assumption you're bound to find some Emacs Lisp breaking it:
+(let* ((x 2) (y (setq x 4))) (+ x y)) => 8
+Also: Needs to support delayed-eval referring to earlier bindings on rhs. (currently requires the binding to be in &amp;env).</p>
 </td><td class="codes"><pre class="brush: clojure">(c/defmacro let-helper* [can-refer? varlist &amp; body]
   (c/let [varlist (map #(if (symbol? %) [% nil] %) varlist)
           all-vars (map (comp sym first) varlist)
@@ -14101,7 +14265,7 @@ Set NAME's `doc-string-elt' property to ELT.
   {:arglists '([ARG])}
   [arg]
   (if (c/and (seq? arg) (symbol? (first arg)) (= 'lambda (sym (first arg))))
-    arg
+    (el-&gt;clj arg)
     `(quote ~arg)))</pre></td></tr><tr><td class="docs"><p>Eval args until one of them yields nil, then return nil.
   The remaining args are not evalled at all.
   If no arg yields nil, return the last arg's value.</p>
@@ -14170,7 +14334,7 @@ Set NAME's `doc-string-elt' property to ELT.
 </td><td class="codes"><pre class="brush: clojure">(c/defmacro ^:clojure-special-form throw
   {:arglists '([TAG VALUE])}
   [tag value]
-  `(throw (deuce.emacs_lisp.Error. ~tag ~value)))</pre></td></tr><tr><td class="docs"><p>Eval BODY allowing nonlocal exits using `throw'.
+  `(throw* ~tag ~value))</pre></td></tr><tr><td class="docs"><p>Eval BODY allowing nonlocal exits using `throw'.
   TAG is evalled to get the tag to use; it must not be nil.</p>
 
 <p>  Then the BODY is executed.
@@ -14182,10 +14346,15 @@ Set NAME's `doc-string-elt' property to ELT.
   [tag &amp; body]
   `(try
      (progn ~@body)
-     (catch deuce.emacs_lisp.Error e#
-       (if (= ~(el-&gt;clj tag) (.tag e#))
-         (.value e#)
-         (throw e#)))))</pre></td></tr><tr><td class="docs"><p>If COND yields non-nil, do THEN, else do ELSE...
+     (catch ExceptionInfo e#
+       (if (= ~(el-&gt;clj tag) (:tag (ex-data e#)))
+         (:value (ex-data e#))
+         (throw e#)))
+     (catch Exception e#
+       (c/let [tag# (resolve ~tag)]
+              (if (c/and tag# (instance? tag# (cause e#)))
+                e#
+                (throw e#))))))</pre></td></tr><tr><td class="docs"><p>If COND yields non-nil, do THEN, else do ELSE...
   Returns the value of THEN or the value of the last of the ELSE's.
   THEN must be one expression, but ELSE... can be zero or more expressions.
   If COND yields nil, and there are no ELSE's, the value is nil.</p>
@@ -14370,17 +14539,20 @@ Set NAME's `doc-string-elt' property to ELT.
          `(try ~@try-exprs
                ~@(for [expr catch-clauses]
                    (c/let [[_ tag e &amp; exprs] expr]
-                          `(catch deuce.emacs_lisp.Error e#
-                             (if (= ~tag (.tag e#))
+                          `(catch ExceptionInfo e#
+                             (if (= ~tag (:tag (ex-data e#)))
                                (c/let [~e e#]
                                       (do ~@exprs))
                                (throw e#)))))
                ~@finally-clause)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs-lisp.cons" name="deuce.emacs-lisp.cons"><h1 class="project-name">deuce.emacs-lisp.cons</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.emacs-lisp.cons
+  (:require [clojure.core :as c])
   (:refer-clojure :exclude [list cons])
-  (:import [clojure.lang Seqable Sequential IPersistentCollection]
+  (:import [clojure.lang Seqable Sequential
+            IPersistentCollection ISeq Cons
+            IPersistentList PersistentList LazySeq]
            [java.io Writer]
-           [deuce.emacs_lisp Cons]))</pre></td></tr><tr><td class="docs">
+           [java.lang.reflect Field]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defprotocol IList
   (car [this])
   (cdr [this]))</pre></td></tr><tr><td class="docs">
@@ -14391,49 +14563,89 @@ Set NAME's `doc-string-elt' property to ELT.
   IList
   (car [this] nil)
   (cdr [this] nil))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn dotted-list? [x]
+  (and (seq? x) (= '. (last (butlast x)))
+       (satisfies? IList (last x))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn dotted-list-ending-in-pair? [x]
+  (and (seq? x) (= '. (last (butlast x)))
+       (not (satisfies? IList (last x)))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn dotted-pair? [x]
+  (and (seq? x) (= 3 (count x)) (= '. (last (butlast x)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(extend-type IPersistentCollection
   IList
   (car [this] (first this))
-  (cdr [this] (next this)))</pre></td></tr><tr><td class="docs">
+  (cdr [this]
+    (let [cdr (next this)]
+      (if (= '. (first cdr))
+        (second cdr)
+        cdr))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn field-accessor [prefix field class]
+  (eval `(def ^{:private true :tag `Field}
+           ~(symbol (str prefix (name field))) (doto (.getDeclaredField ~class ~(name field))
+                                              (.setAccessible true)))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(doseq [field '[_first _rest _count]]
+  (field-accessor &quot;l&quot; field PersistentList))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(declare list)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(extend-type PersistentList
+  ICons
+  (setcar [^PersistentList this val]
+    (do (.set l_first this val)
+        val))
+  (setcdr [^PersistentList this val]
+    (if (or (instance? IPersistentList val) (nil? val) (= () val))
+      (do
+        (.set l_rest this val)
+        (.set l_count this (int (inc (count val))))) ;; this gets out of sync when changing part of the tail.
+      (if (dotted-pair? this)
+        (setcar (rest (rest this)) val)
+        (do
+          (.set l_rest this (c/list '. val))
+          (.set l_count this (int 3)))))
+    val))</pre></td></tr><tr><td class="docs"><p>This should really be eval-expression-print-length, maybe move this to deuce.emacs.print
+There's also eval-expression-print-level which controls nesting.
+There's also print-level and print-lenght, seem to be nil in Emacs.</p>
 </td><td class="codes"><pre class="brush: clojure">(def ^:private max-print-length 12)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ellipsis [coll]
   (let [s (seq coll)]
     (seq (concat (doall (take max-print-length s))
                  (when (&lt; max-print-length (count s))
                    ['...])))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(extend-type Cons
-  IList
-  (car [this] (.fst this))
-  (cdr [this] (.rst this))
-
-  ICons
-  (setcar [this val] (set! (.fst this) val))
-  (setcdr [this val] (set! (.rst this) val)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmethod print-method Cons [c ^Writer w]
+</td><td class="codes"><pre class="brush: clojure">(defn print-list [c ^Writer w]
   (.write w &quot;(&quot;)
   (loop [c c idx 1]
     (if (&gt; idx max-print-length)
       (.write w &quot;...)&quot;)
       (do
-        (.write w (pr-str (.fst c)))
+        (.write w (pr-str (car c)))
         (cond
-         (not (satisfies? IList (.rst c))) (.write w (str &quot; . &quot; (pr-str (.rst c)) &quot;)&quot;))
-         (.rst c) (do
-                    (.write w &quot; &quot;)
-                    (recur (.rst c) (inc idx)))
-         :else (.write w &quot;)&quot;))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmethod print-dup Cons [c ^Writer out]
-  (.write out (str &quot;#deuce/cons (&quot; (pr-str (.fst c)) &quot; . &quot; (pr-str (.rst c)) &quot;)&quot;)))</pre></td></tr><tr><td class="docs">
+         (not (satisfies? IList (cdr c))) (.write w (str &quot; . &quot; (pr-str (cdr c)) &quot;)&quot;))
+         (seq (cdr c)) (do
+                         (.write w &quot; &quot;)
+                         (recur (cdr c) (inc idx)))
+         :else (.write w &quot;)&quot;))))))</pre></td></tr><tr><td class="docs"><p>(defmethod print-method PersistentList [c ^Writer w]
+  (print-list c w))</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>(defmethod print-method Cons [c ^Writer w]
+  (print-list c w))</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn pair [car cdr]
-  (Cons. car cdr))</pre></td></tr><tr><td class="docs">
+  (if (satisfies? IList cdr)
+    (doto (c/list car)
+      (setcdr cdr))
+    (c/list car '. cdr)))</pre></td></tr><tr><td class="docs"><p>Fix uses of (apply cons/list ...) to something saner</p>
 </td><td class="codes"><pre class="brush: clojure">(defn list [&amp; objects]
   (when (seq objects)
-    (pair (first objects)
-          (apply list (rest objects)))))</pre></td></tr><tr><td class="docs">
+    (pair (car objects)
+          (apply list (cdr objects)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn last-cons [l]
-  (if (not (satisfies? ICons (cdr l))) l (recur (cdr l))))</pre></td></tr><tr><td class="docs">
+  (if (not (satisfies? ICons (cdr l))) l (recur (cdr l))))</pre></td></tr><tr><td class="docs"><p>Figure out where this is actually needed.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn maybe-seq [x]
-  (if (seq? x) (apply list x) x))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs-lisp.globals" name="deuce.emacs-lisp.globals"><h1 class="project-name">deuce.emacs-lisp.globals</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+  (if (and (seq? x)
+           (not (dotted-pair? x))
+           (not (instance? PersistentList x)))
+    (if (dotted-list-ending-in-pair? x)
+      (apply c/list x)
+      (apply list x))
+    x))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs-lisp.globals" name="deuce.emacs-lisp.globals"><h1 class="project-name">deuce.emacs-lisp.globals</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.emacs-lisp.globals
   (:refer-clojure :only []))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs-lisp.parser" name="deuce.emacs-lisp.parser"><h1 class="project-name">deuce.emacs-lisp.parser</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.emacs-lisp.parser
@@ -14446,8 +14658,7 @@ Set NAME's `doc-string-elt' property to ELT.
             [deuce.emacs.textprop :as textprop])
   (:import [java.util Scanner]
            [java.io StringReader StreamTokenizer]
-           [java.util.regex Pattern]
-           [deuce.emacs_lisp Cons]))</pre></td></tr><tr><td class="docs">
+           [java.util.regex Pattern]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare tokenize)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def character-modifier-bits {&quot;\\A&quot; 0x0400000
                               &quot;\\s&quot; 0x0800000
@@ -14459,35 +14670,38 @@ Set NAME's `doc-string-elt' property to ELT.
   (.sval (doto (StreamTokenizer. (StringReader. (reduce (fn [s [m r]] (s/replace s m r)) s
                                                         [[&quot;\\\n&quot; ]
                                                          [&quot;\n&quot; &quot;\\\n&quot;]])))
-           (.nextToken))))</pre></td></tr><tr><td class="docs">
+           (.nextToken))))</pre></td></tr><tr><td class="docs"><p>Various ctrl-characters are broken, many ways they can be specified, this simplified take doesn't fit the Emacs model.
+Should be rewritten with some thought behind it. Maybe a test.
+http://www.gnu.org/software/emacs/manual/html_node/elisp/Character-Type.html doesn't really cover it in all it's glory.
+Looks like edmacro/edmacro-parse-keys actually contains a lot of the logic.
+Like Emacs, certain characters can be read both with single and double backslash. Not necessarily the same ones.</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def emacs-escape-characters {&quot;\\e&quot; \ ;; &lt;ESC&gt;
+                              &quot;\r&quot; \return &quot;\\&quot; \\ &quot;\\s&quot; \space
+                              &quot;\\C-?&quot; 127 &quot;\\d&quot; 127 ;; &lt;DEL&gt;
+                              })</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ^:private parse-character [c]
-  (if-let [emacs-escape-char ({&quot;\\e&quot; \} c)]
-    (int emacs-escape-char)
+  (if-let [escape-char (emacs-escape-characters c)]
+    (int escape-char)
     (let [parts (if (= &quot;-&quot; c) [c] (s/split c #&quot;-&quot;))
           [mods c] [(set (butlast parts)) (last parts)]
+          ctrl-char? #(&lt;= (int \A) (+ % 64) (int \Z)) ;; This is where it really starts to go downhill.
           c (cond
              (re-find #&quot;\\\^(.)&quot; c) (- (int (last c)) 64)
              (re-find #&quot;\\\d+&quot; c) (Integer/parseInt (subs c 1) 8)
              (re-find #&quot;\\x\p{XDigit}&quot; c) (Integer/parseInt (subs c 2) 16)
              (mods &quot;\\C&quot;) (- (int (first (s/upper-case c))) 64)
              :else (int (first (parse-string (str \&quot; c \&quot;)))))]
-      (reduce bit-xor c (map character-modifier-bits (disj mods &quot;\\C&quot;))))))</pre></td></tr><tr><td class="docs">
+      (reduce bit-xor c (map character-modifier-bits
+                             (if (ctrl-char? c)
+                               (disj mods &quot;\\C&quot;)
+                               mods))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ^:private strip-comments [form]
   (remove (every-pred seq? (comp `#{comment} first)) form))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn cons-expand [form]
-  (let [c (apply cons/list (drop-last 2 form))]
-    (cons/setcdr (cons/last-cons c) (last form))
-    c))</pre></td></tr><tr><td class="docs"><p>A literal Cons cell cannot contain unquotes.
-Needs to be dealt with during eval, see deuce.emacs-lisp (and maybe macro expansion).</p>
-</td><td class="codes"><pre class="brush: clojure">(defn syntax-quote-cons-expand [form]
-  (list `cons/pair (car form)
-        (if (satisfies? cons/ICons (cdr form))
-          (syntax-quote-cons-expand (cdr form)) (cdr form))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def ^:dynamic *cons-expand* cons-expand)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ^:private as-vector [form]
   (object-array (vec form)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def ^:private ^Pattern re-str #&quot;(?s)([^\&quot;\\]*(?:\\.[^\&quot;\\]*)*)\)
-(def ^:private ^Pattern re-char #&quot;((\\[CSM]-)*(\\x?\p{XDigit}+|(\\\^?)?.))&quot;)</pre></td></tr><tr><td class="docs">
+(def ^:private ^Pattern re-char #&quot;(?s)((\\[CSMAHs]-)*(\\x?\p{XDigit}+|(\\\^?)?.))&quot;)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ^:private tokenize-all [^Scanner sc]
   (strip-comments (take-while (complement #{`end}) (repeatedly (partial tokenize sc)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ^:private tokenize [^Scanner sc]
@@ -14495,22 +14709,19 @@ Needs to be dealt with during eval, see deuce.emacs-lisp (and maybe macro expans
     (condp find 1
       #&quot;\s&quot; (recur sc)
       #&quot;[)\]]&quot; `end
-      #&quot;\(&quot; (let [form (tokenize-all sc)]
-              (if (= '. (last (butlast form)))
-                (*cons-expand* form)
-                form))
+      #&quot;\(&quot; (tokenize-all sc)
       #&quot;\[&quot; (as-vector (tokenize-all sc))
-      #&quot;,&quot; (list (if (find #&quot;@&quot; 1) `unquote-splicing `unquote) (tokenize sc))
+      #&quot;,&quot; (list (if (find #&quot;@&quot; 1) '#el/sym &quot;\\,@&quot; '#el/sym &quot;\\,&quot;) (tokenize sc))
       #&quot;'&quot; (list 'quote (tokenize sc))
-      #&quot;`&quot; (let [form (binding [*cons-expand* #(syntax-quote-cons-expand (cons-expand %))]
-                        (tokenize sc))]
+      #&quot;`&quot; (let [form  (tokenize sc)]
              (if (symbol? form)
                (list 'quote form)
-               (list `el/syntax-quote form)))
+               (list '#el/sym &quot;\\`&quot; form)))
       #&quot;:&quot; (keyword (.next sc))
       #&quot;\?&quot; (parse-character (find re-char 0))
       #&quot;\ (parse-string (str \&quot; (find re-str 0)))
-      #&quot;;&quot; (list `comment (.nextLine sc)) ;; first line might contain file locals: ;; -*- lexical-binding: t -*-
+      ;; Deal with: ;;; -*- lexical-binding: t -*- or autoload      ;;;###autoload      ;;; Code
+      #&quot;;&quot; (list `comment (.nextLine sc))
       #&quot;#&quot; (condp find 1
              #&quot;'&quot; (list 'function (tokenize sc))
              #&quot;\(&quot; (let [[object start end properties] (tokenize-all sc)]
@@ -14548,7 +14759,8 @@ Needs to be dealt with during eval, see deuce.emacs-lisp (and maybe macro expans
             [deuce.emacs.data :as data]
             [deuce.emacs.eval :as eval]
             [deuce.emacs.editfns :as editfns]
-            [deuce.emacs.lread :as lread])
+            [deuce.emacs.lread :as lread]
+            [taoensso.timbre :as timbre])
   (:gen-class))</pre></td></tr><tr><td class="docs"><p>We want to support emacs -nw -q initially. -q is --no-init-file</p>
 </td><td class="codes"><pre class="brush: clojure">(defn -main [&amp; args]
   (let [option #(hash-set (str &quot;-&quot; %) (str &quot;--&quot; %))
