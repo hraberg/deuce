@@ -12,7 +12,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 [Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs)
 
 
-*2013-03-14 `deuce-loadup.el`**
+**2013-03-14 `deuce-loadup.el`**
 
 The final stretch took time, with each issue taking days to analyze and debug, inevitably leading to subtle - but crucial - changes to `deuce.emacs-lisp` (unquote-splicing working for atoms at the end of a list? Why not!).
 
