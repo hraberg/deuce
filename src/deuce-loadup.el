@@ -170,13 +170,6 @@
 
 (load "help")
 
-;; DEUCE: We should now have Emacs running with only fundamental-mode available. Release 0.1.0.
-;;        M-x butterfly is defined in misc.el, loaded via autoload, see loaddef above. It depends on play/animate.
-
-;; DEUCE: About half-way through loadup.el here. Next up is languages (to skip), various search/replace and actual major modes.
-;;        At the end of loadup some addditional actual initialization happens, see commented out lines below.
-;;        Once loaddefs is in, all bets are off, as anything can be autoloaded.
-
 (load "jka-cmpr-hook")
 (load "epa-hook")
 ;; Any Emacs Lisp source file (*.el) loaded here after can contain
@@ -244,9 +237,8 @@
       (and (boundp 'x-toolkit-scroll-bars)
 	   (load "scroll-bar"))
       (load "select")))
-;; DEUCE: NPE exception in timer/timer--activate, thrown from clojure.core/instance? related to lines:
-;;        (setf (timer--triggered timer) triggered-p)
-;;        (setf (timer--idle-delay timer) idle)
+;; DEUCE: InstantiationException in timer-activate, comes from 'with-no-warnings with 'cl-struct-setf-expander
+;;        Hack to get around this by pre-defining 'last' in deuce.emacs
 (load "emacs-lisp/timer")
 (load "isearch")
 (load "rfn-eshadow")

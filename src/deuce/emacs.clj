@@ -70,6 +70,8 @@
 ;; ;; AOT cl.el gets confused by this alias
 (defalias 'cl-block-wrapper 'identity)
 (defmacro declare (&rest _specs) nil)
+;; with-no-warnings in byte-run.el needs this
+(defun last (list &optional n))
 ;; Hack as delayed-eval doesn't (like some other things) work properly inside let-bindings.
 ;; Needs to be fixed properly, but let's see if we can get through the boot with this hack.
 ;; cl-setf-simple-store-p is used in  cl-macs/cl-setf-do-modify, delayed-eval call refers to earlier binding 'method'.

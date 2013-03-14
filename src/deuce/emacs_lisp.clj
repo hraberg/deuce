@@ -172,7 +172,8 @@
                                  (not (fun fst)))
                         (if (*disallow-undefined* fst)
                           `(throw* '~'void-function '~fst)
-                          (list `delayed-eval x))
+                          (do (debug fst "NOT DEFINED")
+                              (list `delayed-eval x)))
 
                         (expand-dotted-lists (c/cons
                                               (if (seq? fst) (el->clj fst) fst)
@@ -698,7 +699,7 @@
          (throw e#)))
      (catch Exception e#
        (c/let [tag# (resolve ~tag)]
-              (if (instance? tag# (cause e#))
+              (if (c/and tag# (instance? tag# (cause e#)))
                 e#
                 (throw e#))))))
 
