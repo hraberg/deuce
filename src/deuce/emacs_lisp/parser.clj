@@ -28,6 +28,7 @@
 ;; Various ctrl-characters are broken, many ways they can be specified, this simplified take doesn't fit the Emacs model.
 ;; Should be rewritten with some thought behind it. Maybe a test.
 ;; http://www.gnu.org/software/emacs/manual/html_node/elisp/Character-Type.html doesn't really cover it in all it's glory.
+;; Looks like edmacro/edmacro-parse-keys actually contains a lot of the logic.
 (defn ^:private parse-character [c]
   (if-let [emacs-escape-char ({"\\e" \} c)]
     (int emacs-escape-char)

@@ -199,17 +199,18 @@
 
   You can use the function `match-string' to extract the substrings
   matched by the parenthesis constructions in REGEXP."
-  (let [m (re-matcher (re-pattern (-> regexp
+  (let [offset (or start 0)
+        m (re-matcher (re-pattern (-> regexp
                                       (s/replace #"^\\\`" "^")
                                       (s/replace #"\[(.*?)]"
                                                  (fn [x] (str "[" (s/replace (x 1) "[" "\\[") "]")))
                                       (s/replace "\\(" "(")
                                       (s/replace "\\)" ")")))
-                      (subs string (or start 0)))]
+                      (subs string offset))]
     (if (re-find m)
       (do
-        (reset! *current-match-data* m)
-        (.start m))
+        (reset! *current-match-data* {:matcher m :offset offset})
+        (+ offset (.start m)))
       (reset! *current-match-data* nil))))
 
 (defun posix-looking-at (regexp)
@@ -287,8 +288,8 @@
   Value is nil if SUBEXPth pair didn't match, or there were less than
     SUBEXP pairs.
   Zero means the entire text matched by the whole regexp or whole string."
-  (when @*current-match-data* subexp
-        (.start @*current-match-data* subexp)))
+  (when @*current-match-data*
+    (+ (:offset @*current-match-data*) (.start (:matcher @*current-match-data*) subexp))))
 
 (defun search-backward (string &optional bound noerror count)
   "Search backward from point for STRING.
@@ -314,8 +315,8 @@
   Value is nil if SUBEXPth pair didn't match, or there were less than
     SUBEXP pairs.
   Zero means the entire text matched by the whole regexp or whole string."
-  (when @*current-match-data* subexp
-        (.end @*current-match-data* subexp)))
+  (when @*current-match-data*
+    (+ (:offset @*current-match-data*) (.end (:matcher @*current-match-data*) subexp))))
 
 (defun posix-search-backward (regexp &optional bound noerror count)
   "Search backward from point for match for regular expression REGEXP.
