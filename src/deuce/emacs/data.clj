@@ -150,7 +150,7 @@
 (defun logior (&rest ints-or-markers)
   "Return bitwise-or of all the arguments.
   Arguments may be integers, or markers converted to integers."
-  (apply bit-or ints-or-markers))
+  (apply bit-or (promote-chars ints-or-markers)))
 
 (declare arrayp listp)
 
@@ -256,7 +256,7 @@
 (defun logxor (&rest ints-or-markers)
   "Return bitwise-exclusive-or of all the arguments.
   Arguments may be integers, or markers converted to integers."
-  (apply c/bit-xor ints-or-markers)  )
+  (apply c/bit-xor (promote-chars ints-or-markers))  )
 
 (defun floatp (object)
   "Return t if OBJECT is a floating point number."
@@ -321,7 +321,7 @@
 (defun logand (&rest ints-or-markers)
   "Return bitwise-and of all the arguments.
   Arguments may be integers, or markers converted to integers."
-  (apply c/bit-and ints-or-markers))
+  (apply c/bit-and (promote-chars ints-or-markers)))
 
 (defun consp (object)
   "Return t if OBJECT is a cons cell."
@@ -378,7 +378,7 @@
 
 (defun lognot (number)
   "Return the bitwise complement of NUMBER.  NUMBER must be an integer."
-  (bit-not number))
+  (bit-not (promote-char number)))
 
 (declare atom)
 
@@ -494,7 +494,7 @@
 (defun >= (num1 num2)
   "Return t if first arg is greater than or equal to second arg.
   Both must be numbers or markers."
-  (c/>= (promote-char num1) (promote-char  num2)))
+  (c/>= (promote-char num1) (promote-char num2)))
 
 (defun boundp (symbol)
   "Return t if SYMBOL's value is not void."

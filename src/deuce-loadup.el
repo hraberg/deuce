@@ -258,7 +258,7 @@
 (load "replace")
 ;; DEUCE: depends on edmacro/edmacro-parse-keys which blows up with NPE or StackOverflow
 ;;        Could be a regexp issue, last regexp it runs is #"^[ACHMsS]-." against "M-s", which matches.
-;;        Can be reproduced by: (edmacro-parse-keys "M-s a C-s")
+;;        Can be reproduced by: (edmacro-parse-keys "M-s a C-s") => [134217843 97 19]
 (load "buff-menu")
 
 (if (fboundp 'x-create-frame)

@@ -25,18 +25,25 @@
                                                          ["\n" "\\\n"]])))
            (.nextToken))))
 
+;; Various ctrl-characters are broken, many ways they can be specified, this simplified take doesn't fit the Emacs model.
+;; Should be rewritten with some thought behind it. Maybe a test.
+;; http://www.gnu.org/software/emacs/manual/html_node/elisp/Character-Type.html doesn't really cover it in all it's glory.
 (defn ^:private parse-character [c]
   (if-let [emacs-escape-char ({"\\e" \} c)]
     (int emacs-escape-char)
     (let [parts (if (= "-" c) [c] (s/split c #"-"))
           [mods c] [(set (butlast parts)) (last parts)]
+          ctrl-char? #(<= (int \A) (+ % 64) (int \Z)) ;; This is where it really starts to go downhill.
           c (cond
              (re-find #"\\\^(.)" c) (- (int (last c)) 64)
              (re-find #"\\\d+" c) (Integer/parseInt (subs c 1) 8)
              (re-find #"\\x\p{XDigit}" c) (Integer/parseInt (subs c 2) 16)
              (mods "\\C") (- (int (first (s/upper-case c))) 64)
              :else (int (first (parse-string (str \" c \")))))]
-      (reduce bit-xor c (map character-modifier-bits (disj mods "\\C"))))))
+      (reduce bit-xor c (map character-modifier-bits
+                             (if (ctrl-char? c)
+                               (disj mods "\\C")
+                               mods))))))
 
 (defn ^:private strip-comments [form]
   (remove (every-pred seq? (comp `#{comment} first)) form))
