@@ -79,7 +79,7 @@
 ;; Same issue in regexp-opt/regexp-opt. Calls this fn with earlier binding 'sorted-strings'
 (defun regexp-opt-group (strings &optional paren lax))
 
-;; Keymap setup
+;; Keymap setup, should in theory be in deuce.emacs.keymap, but cannot for a reason I forgot.
 (setq global-map (make-keymap))
 (setq esc-map (make-keymap))
 (setq ctl-x-map (make-keymap))

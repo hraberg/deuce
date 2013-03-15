@@ -128,7 +128,7 @@
   In between each pair of results, stick in SEPARATOR.  Thus, \" \" as
   SEPARATOR results in spaces between the values returned by FUNCTION.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
-  (s/join separator (map (el/fun function) (apply cons/list sequence))))
+  (s/join separator (map (el/fun function) (cons/maybe-seq sequence))))
 
 (defun compare-strings (str1 start1 end1 str2 start2 end2 &optional ignore-case)
   "Compare the contents of two strings, converting to multibyte if needed.
@@ -307,7 +307,7 @@
 
 (defun elt (sequence n)
   "Return element of SEQUENCE at index N."
-  (c/nth (apply cons/list sequence) n))
+  (c/nth (cons/maybe-seq sequence) n))
 
 (defun base64-encode-string (string &optional no-line-break)
   "Base64-encode STRING and return the result.
@@ -354,7 +354,7 @@
 (defun assoc (key list)
   "Return non-nil if KEY is `equal' to the car of an element of LIST.
   The value is actually the first element of LIST whose car equals KEY."
-  (some #(c/and (data/consp %) (equal key (car %)) %) (apply cons/list list)))
+  (some #(c/and (data/consp %) (equal key (car %)) %) (cons/maybe-seq list)))
 
 (defun remhash (key table)
   "Remove KEY from TABLE."
@@ -409,7 +409,7 @@
   "Return non-nil if KEY is `eq' to the car of an element of LIST.
   The value is actually the first element of LIST whose car is KEY.
   Elements of LIST that are not conses are ignored."
-  (first (filter #(data/eq key (data/car-safe %)) (apply cons/list list))))
+  (first (filter #(data/eq key (data/car-safe %)) (cons/maybe-seq list))))
 
 (defun string-make-multibyte (string)
   "Return the multibyte equivalent of STRING.
@@ -434,7 +434,7 @@
   The result is a list just as long as SEQUENCE.
   SEQUENCE may be a list, a vector, a bool-vector, or a string."
   (el/check-type 'sequencep sequence)
-  (apply alloc/list (map (el/fun function) sequence)))
+  (apply alloc/list (map (el/fun function) (cons/maybe-seq sequence))))
 
 (defun fillarray (array item)
   "Store each element of ARRAY with ITEM.
@@ -519,7 +519,7 @@
 (defun rassoc (key list)
   "Return non-nil if KEY is `equal' to the cdr of an element of LIST.
   The value is actually the first element of LIST whose cdr equals KEY."
-  (some #(c/and (data/consp %) (equal key (cdr %)) %) (apply cons/list list)))
+  (some #(c/and (data/consp %) (equal key (cdr %)) %) (cons/maybe-seq list)))
 
 (defun equal (o1 o2)
   "Return t if two Lisp objects have similar structure and contents.
@@ -589,7 +589,7 @@
   N counts from zero.  If LIST is not that long, nil is returned."
   (cons/maybe-seq
    (if (pos? n)
-     (c/nth (apply cons/list list) n nil)
+     (c/nth (cons/maybe-seq list) n nil)
      (car list))))
 
 (defun string-to-unibyte (string)
@@ -809,7 +809,7 @@
   Returns the sorted list.  LIST is modified by side effects.
   PREDICATE is called with two elements of LIST, and should return non-nil
   if the first element should sort before the second."
-  (apply cons/list (c/sort (fn [x y] (if ((el/fun predicate) x y) -1 1)) (apply cons/list list))))
+  (apply alloc/list (c/sort (fn [x y] (if ((el/fun predicate) x y) -1 1)) (cons/maybe-seq list))))
 
 (defun base64-decode-string (string)
   "Base64-decode STRING and return the result."
