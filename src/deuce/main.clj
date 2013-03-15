@@ -9,6 +9,12 @@
             [taoensso.timbre :as timbre])
   (:gen-class))
 
+(defn swank [port]
+  (require 'swank.swank)
+  (with-out-str
+    ((resolve 'swank.swank/start-repl) port))
+  (println "Swank connection opened on" port))
+
 ;; We want to support emacs -nw -q initially. -q is --no-init-file
 (defn -main [& args]
   (let [option #(hash-set (str "-" %) (str "--" %))
@@ -25,6 +31,7 @@
                                         (flush)
                                         (System/exit 0))
                  (option "batch") (do (el/setq noninteractive true) nil)
+                 (option "swank-clojure") (swank 4005)
                  #{"-nw" "--no-window-system,"} (do (el/setq inhibit-window-system true) nil)
                  %) args)]
 

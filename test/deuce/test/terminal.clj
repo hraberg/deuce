@@ -19,6 +19,8 @@
 
 ;; [1] https://github.com/sjl/clojure-lanterna/ "A Clojurey wrapper around the Lanterna terminal output library."
 
+;; (System/setProperty "awt.useSystemAAFontSettings" "lcd")
+;; (System/setProperty "swing.aatext" "true")
 
 (def colors {:fg :black :bg :white})
 (def reverse-video {:fg (:bg colors) :bg (:fg colors)})
