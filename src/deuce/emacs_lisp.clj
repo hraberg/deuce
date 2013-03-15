@@ -285,14 +285,15 @@
                                 `(binding [*ns* (the-ns 'clojure.core)]
                                    (warn ~(c/name name) "NOT IMPLEMENTED")))
                              ~(if emacs-lisp?
-                                `(c/let [~@(when rest-arg
-                                             `[~rest-arg (when-let [r# ~rest-arg] (apply cons/list r#))])
-                                         result# (with-local-el-vars ~(vec (mapcat #(c/list % %) the-args))
-                                                   (progn ~@body))]
-                                       ;; There's something wrong with the returned forms, hence the prewalk
-                                       (if ~macro?
-                                         (w/prewalk identity (el->clj result#))
-                                         result#))
+                                `(c/let ~(if rest-arg
+                                           `[~rest-arg (if-let [r# ~rest-arg] (apply cons/list r#) nil)]
+                                           [])
+                                        (c/let [result# (with-local-el-vars ~(vec (mapcat #(c/list % %) the-args))
+                                                          (progn ~@body))]
+                                               ;; There's something wrong with the returned forms, hence the prewalk
+                                               (if ~macro?
+                                                 (w/prewalk identity (el->clj result#))
+                                                 result#)))
                                 `(do ~@body)))
             '~needs-intern? '~name ~doc '~emacs-lisp? '~(seq el-arglist))))
 
