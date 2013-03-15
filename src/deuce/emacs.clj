@@ -72,6 +72,10 @@
 (defmacro declare (&rest _specs) nil)
 ;; with-no-warnings in byte-run.el needs this
 (defun last (list &optional n))
+;; subr defines a simpler dolist, which custom uses, which gets redefined by cl-macs.
+;; During AOT custom loads the latter dolist definition, requiring 'block' - not yet defined.
+;; cl cannot be loaded first, as it depends on help-fns, which depend on custom.
+(defmacro block (name &rest body) (cons 'progn body))
 ;; Hack as delayed-eval doesn't (like some other things) work properly inside let-bindings.
 ;; Needs to be fixed properly, but let's see if we can get through the boot with this hack.
 ;; cl-setf-simple-store-p is used in  cl-macs/cl-setf-do-modify, delayed-eval call refers to earlier binding 'method'.

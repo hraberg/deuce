@@ -245,7 +245,22 @@
     [doc rst]
     [nil body]))
 
-(c/defmacro def-helper* [what line name arglist & body]
+(defn def-helper-process-var* [f needs-intern? name doc emacs-lisp? el-arglist]
+  (c/let [m (merge {:doc doc}
+                   (when emacs-lisp?
+                     {:el-arglist el-arglist
+                      :el-file (when-let [file (el-var 'load-file-name)]
+                                 @file)}))]
+         (if (var? f)
+           (do
+             (alter-meta! f merge m)
+             (alter-var-root f (constantly (with-meta @f (meta f))))
+             (when needs-intern?
+               (intern 'deuce.emacs (with-meta name (dissoc (meta f) :name)) @f)
+               (ns-unmap 'deuce.emacs needs-intern?)))
+           (with-meta f m))))
+
+(c/defmacro def-helper* [what name arglist & body]
   (c/let [[docstring body] (parse-doc-string body)
           name (sym name)
           el-arglist arglist
@@ -262,34 +277,25 @@
           doc (apply str docstring)
           arglist (w/postwalk maybe-sym arglist)
           the-args (remove '#{&} (flatten arglist))
-          needs-intern? (when (c/and (re-find #"/" (c/name name)) (not= '/ name)) (gensym))]
-         `(c/let [f# (~what ~(if needs-intern? needs-intern? name) ~(vec arglist)
-                            ~(when-not (seq body)
-                               `(binding [*ns* (the-ns 'clojure.core)]
-                                  (warn ~(c/name name) "NOT IMPLEMENTED")))
-                            ~(if emacs-lisp?
-                               `(c/let ~(if rest-arg
-                                          `[~rest-arg (if-let [r# ~rest-arg] (apply cons/list r#) nil)]
-                                          [])
-                                       (c/let [result# (with-local-el-vars ~(vec (mapcat #(c/list % %) the-args))
-                                                         (progn ~@body))]
-                                              ;; There's something wrong with the returned forms, hence the prewalk
-                                              (if ~macro?
-                                                (w/prewalk identity (el->clj result#))
-                                                result#)))
-                               `(do ~@body)))]
-                 (if (var? f#)
-                   (do
-                     (alter-meta! f# merge (merge {:doc ~doc
-                                                   :el-arglist '~(seq el-arglist)}
-                                                  (when ~emacs-lisp?
-                                                    {:el-file (when-let [file# (el-var 'load-file-name)]
-                                                                @file#)})))
-                     (alter-var-root f# (constantly (with-meta @f# (meta f#))))
-                     (when ~needs-intern?
-                       (intern 'deuce.emacs (with-meta '~name (dissoc (meta f#) :name)) @f#)
-                       (ns-unmap 'deuce.emacs '~needs-intern?)))
-                   (with-meta f# (assoc (meta f#) :doc ~doc))))))
+          needs-intern? (when (c/and (re-find #"/" (c/name name)) (not= '/ name))
+                          (sym (s/replace (c/name name) "/" "SLASH")))]
+         `(def-helper-process-var*
+            (~what ~(if needs-intern? needs-intern? name) ~(vec arglist)
+                             ~(when-not (seq body)
+                                `(binding [*ns* (the-ns 'clojure.core)]
+                                   (warn ~(c/name name) "NOT IMPLEMENTED")))
+                             ~(if emacs-lisp?
+                                `(c/let ~(if rest-arg
+                                           `[~rest-arg (if-let [r# ~rest-arg] (apply cons/list r#) nil)]
+                                           [])
+                                        (c/let [result# (with-local-el-vars ~(vec (mapcat #(c/list % %) the-args))
+                                                          (progn ~@body))]
+                                               ;; There's something wrong with the returned forms, hence the prewalk
+                                               (if ~macro?
+                                                 (w/prewalk identity (el->clj result#))
+                                                 result#)))
+                                `(do ~@body)))
+            '~needs-intern? '~name ~doc '~emacs-lisp? '~(seq el-arglist))))
 
 (def override? '#{apply-partially})
 
@@ -301,7 +307,7 @@
   [name arglist & body]
   (c/let [name (sym name)]
          `(do ~(when-not (override? name)
-                 `(def-helper* defn ~(-> name meta :line) ~name ~arglist ~@body))
+                 `(def-helper* defn ~name ~arglist ~@body))
               '~name)))
 
 ;; defined in subr.el
@@ -337,11 +343,11 @@
                                            .setDynamic)
                                         ~vars))]
                  (with-meta
-                   (def-helper* fn nil lambda ~args
-                     (binding [*dynamic-vars* (if (dynamic-binding?) (merge *dynamic-vars* closure#) {})]
+                   (def-helper* fn lambda ~args
+                     (binding [*dynamic-vars* (if (dynamic-binding?)
+                                                (merge *dynamic-vars* closure#) {})]
                        (c/let [{:syms ~vars} closure#]
-                              (progn ~@body))))
-                   {:doc ~doc}))))
+                              (progn ~@body)))) {:doc ~doc}))))
 
 ;; defined in subr.el
 (defn apply-partially
@@ -590,7 +596,7 @@
   (c/let [name (sym name)]
          `(do
             ~(when-not ((ns-interns 'deuce.emacs-lisp) name)
-               `(def-helper* c/defmacro ~(-> name meta :line) ~name ~arglist ~@body))
+               `(def-helper* c/defmacro ~name ~arglist ~@body))
             '~name)))
 
 (c/defmacro function
