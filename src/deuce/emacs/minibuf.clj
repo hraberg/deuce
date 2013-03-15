@@ -2,8 +2,9 @@
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
             [deuce.emacs-lisp :as el]
-            [deuce.emacs-lisp.cons :refer [ICons car] :as cons]
+            [deuce.emacs-lisp.cons :refer [car] :as cons]
             [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.data :as data]
             [deuce.emacs.fns :as fns])
   (:refer-clojure :exclude [read-string]))
 
@@ -275,7 +276,7 @@
 
   Unlike `assoc', KEY can also match an entry in LIST consisting of a
   single string, rather than a cons cell whose car is a string."
-  (some #(and (if (satisfies? ICons %)
+  (some #(and (if (data/consp %)
                 (fns/equal key (str (car %)))
                 (fns/equal key %)) %) (seq list)))
 
@@ -303,7 +304,7 @@
   )
 
 (defn ^:private filter-completions [collection predicate]
-  (map #(if (satisfies? ICons %) (car %) %)
+  (map #(if (data/consp %) (car %) %)
        (filter (if predicate (el/fun predicate) identity) collection)))
 
 (defn ^:private try-completion-internal [string collection]

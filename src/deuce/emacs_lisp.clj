@@ -17,7 +17,7 @@
 (timbre/set-config! [:timestamp-pattern] "HH:mm:ss,SSS")
 
 (timbre/set-level! :error)
-(var-set  #'*warn-on-reflection* true)
+(set! *warn-on-reflection* true)
 
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)

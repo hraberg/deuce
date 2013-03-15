@@ -5,7 +5,7 @@
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.data :refer [car cdr setcar setcdr] :as data]
             [deuce.emacs.lread :as lread]
-            [deuce.emacs-lisp.cons :refer [ICons IList] :as cons]
+            [deuce.emacs-lisp.cons :as cons]
             [deuce.emacs-lisp.globals :as globals])
   (import [clojure.lang IPersistentCollection PersistentVector]
           [deuce.emacs.data CharTable]
@@ -248,7 +248,7 @@
   Therefore, write `(setq foo (delete element foo))'
   to be sure of changing the value of `foo'."
   (cond
-   (satisfies? ICons seq) (del equal elt seq)
+   (data/consp seq) (del equal elt seq)
    (data/vectorp seq) (apply alloc/vector (del equal elt (apply alloc/list seq)))
    (and (data/stringp seq) (integer? elt)) (s/replace seq (c/str (c/char elt)) "")
    :else seq))
@@ -354,7 +354,7 @@
 (defun assoc (key list)
   "Return non-nil if KEY is `equal' to the car of an element of LIST.
   The value is actually the first element of LIST whose car equals KEY."
-  (some #(c/and (satisfies? ICons %) (equal key (car %)) %) (apply cons/list list)))
+  (some #(c/and (data/consp %) (equal key (car %)) %) (apply cons/list list)))
 
 (defun remhash (key table)
   "Remove KEY from TABLE."
@@ -519,7 +519,7 @@
 (defun rassoc (key list)
   "Return non-nil if KEY is `equal' to the cdr of an element of LIST.
   The value is actually the first element of LIST whose cdr equals KEY."
-  (some #(c/and (satisfies? ICons %) (equal key (cdr %)) %) (apply cons/list list)))
+  (some #(c/and (data/consp %) (equal key (cdr %)) %) (apply cons/list list)))
 
 (defun equal (o1 o2)
   "Return t if two Lisp objects have similar structure and contents.
@@ -622,7 +622,7 @@
   To get the number of bytes, use `string-bytes'."
   (el/check-type 'sequencep sequence)
   (cond
-   (satisfies? IList sequence)
+   (data/listp sequence)
    (loop [cons sequence
           length 0]
      (if (and (not (data/null cons)) (data/listp cons))

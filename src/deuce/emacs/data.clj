@@ -4,7 +4,7 @@
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs.alloc :as alloc]
-            [deuce.emacs-lisp.cons :refer [ICons IList] :as cons]
+            [deuce.emacs-lisp.cons :as cons]
             [taoensso.timbre :as timbre])
   (:import [java.nio ByteOrder]
            [java.io Writer]
@@ -325,12 +325,12 @@
 
 (defun consp (object)
   "Return t if OBJECT is a cons cell."
-  (satisfies? ICons object))
+  (cons/consp object))
 
 (defun listp (object)
   "Return t if OBJECT is a list, that is, a cons cell or nil.
   Otherwise, return nil."
-  (satisfies? IList object))
+  (cons/listp object))
 
 (defun aref (array idx)
   "Return the element of ARRAY at index IDX.

@@ -98,8 +98,15 @@
 ;; (defmethod print-method Cons [c ^Writer w]
 ;;   (print-list c w))
 
+;; (satisfies? IList object) is slow
+(defn listp [object]
+  (or (nil? object) (sequential? object)))
+
+(defn consp [object]
+  (instance? PersistentList object))
+
 (defn pair [car cdr]
-  (if (satisfies? IList cdr)
+  (if (listp cdr)
     (doto (c/list car)
       (setcdr cdr))
     (c/list car '. cdr)))
@@ -111,7 +118,7 @@
           (apply list (cdr objects)))))
 
 (defn last-cons [l]
-  (if (not (satisfies? ICons (cdr l))) l (recur (cdr l))))
+  (if (not (consp (cdr l))) l (recur (cdr l))))
 
 ;; Figure out where this is actually needed.
 (defn maybe-seq [x]
