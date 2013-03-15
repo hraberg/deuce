@@ -14,7 +14,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 **2013-03-14 [`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/src/deuce-loadup.el)**
 
-The final stretch took time, with each issue taking days to analyze and debug, inevitably leading to subtle - but crucial - changes to [`deuce.emacs-lisp`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs_lisp.clj) (unquote-splicing working for atoms at the end of a list? Why not!).
+The final stretch took time, with each issue taking days to analyze and debug, inevitably leading to subtle - but crucial - changes to [`deuce.emacs-lisp`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs_lisp.clj) (`unquote-splicing` working for atoms at the end of a list? Why not!).
 
 Deuce currently consist of around 12.5k LOC, a majority of which are doc strings and empty stubs generated from Emacs. The files loaded by `loadup.el` compiles into a total of 100k LOC "readable" Clojure. "Dumping" Deuce to an uberjar takes about 10 minutes (excluding the initial Emacs steps):
 
