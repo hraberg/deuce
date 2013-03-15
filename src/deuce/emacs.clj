@@ -70,6 +70,9 @@
 ;; Used by env.
 (defun find-coding-systems-string (string))
 
+;; To show *scratch* when running -Q, not sure if this is supposed to be set somewhere else? 24.1 vs 24.2 issue?
+(setq initial-buffer-choice true)
+
 ;; Hack for a predicate in cl.el, this is defined in emacs-lisp/bytecomp.el, which we're not using
 (defun byte-compile-file-form (form))
 ;; ;; AOT cl.el gets confused by this alias
