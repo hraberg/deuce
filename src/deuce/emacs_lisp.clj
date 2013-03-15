@@ -245,8 +245,9 @@
     [doc rst]
     [nil body]))
 
-(defn def-helper-process-var* [f needs-intern? name doc emacs-lisp? el-arglist]
+(defn def-helper-process-var* [f needs-intern? name doc interactive emacs-lisp? el-arglist]
   (c/let [m (merge {:doc doc}
+                   (when interactive {:interactive interactive})
                    (when emacs-lisp?
                      {:el-arglist el-arglist
                       :el-file (when-let [file (el-var 'load-file-name)]
@@ -295,7 +296,7 @@
                                                  (w/prewalk identity (el->clj result#))
                                                  result#)))
                                 `(do ~@body)))
-            '~needs-intern? '~name ~doc '~emacs-lisp? '~(seq el-arglist))))
+            '~needs-intern? '~name ~doc '~(second interactive) '~emacs-lisp? '~el-arglist)))
 
 (def override? '#{apply-partially})
 
