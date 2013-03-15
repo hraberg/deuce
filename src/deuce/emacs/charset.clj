@@ -6,10 +6,6 @@
             [deuce.emacs-lisp.globals :as globals])
   (:refer-clojure :exclude []))
 
-(def ^:private ^:dynamic charsets (atom {}))
-(def ^:private ^:dynamic plists (atom {}))
-(def ^:private ^:dynamic aliases (atom {}))
-
 (defvar inhibit-load-charset-map nil
   "Inhibit loading of charset maps.  Used when dumping Emacs.")
 
@@ -34,12 +30,11 @@
 
 (defun charset-plist (charset)
   "Return the property list of CHARSET."
-  (apply alloc/list (reduce into [] (@plists charset))))
+  )
 
 (defun set-charset-plist (charset plist)
   "Set CHARSET's property list to PLIST."
-  (swap! plists assoc charset (apply hash-map plist))
-  plist)
+  )
 
 (defun charset-after (&optional pos)
   "Return charset of a character in the current buffer at position POS.
@@ -49,21 +44,15 @@
 
 (defun define-charset-internal (&rest args)
   "For internal use only."
-  (let [name (first args)
-        plist (last args)]
-    (fns/nconc globals/charset-list (alloc/list name))
-    (swap! plists update-in [name] merge (into {} (map vec (partition 2 plist))))
-    (swap! charsets assoc name args)))
+  )
 
 (defun define-charset-alias (alias charset)
   "Define ALIAS as an alias for charset CHARSET."
-  (fns/nconc globals/charset-list (alloc/list alias))
-  (swap! aliases update-in [charset] conj alias)
-  nil)
+  )
 
 (defun charsetp (object)
   "Return non-nil if and only if OBJECT is a charset."
-  (or (contains? @charsets object) ((set (flatten (vals @aliases))) object)))
+  )
 
 (defun encode-char (ch charset &optional restriction)
   "Encode the character CH into a code-point of CHARSET.
@@ -71,7 +60,7 @@
 
   Optional argument RESTRICTION specifies a way to map CH to a
   code-point in CCS.  Currently not supported and just ignored."
-  ch)
+  )
 
 (defun charset-id-internal (&optional charset)
   "Internal use only.
@@ -193,35 +182,3 @@
   See the documentation of the function `charset-info' for the meanings of
   DIMENSION, CHARS, and FINAL-CHAR."
   )
-
-(define-charset-internal 'ascii
-  [:dimension 1
-   :code-space (alloc/vector 0 127)
-   :iso-final-char \B
-   :ascii-compatible-p true
-   :emacs-mule-id 0
-   :code-offset 0])
-
-(define-charset-internal 'iso-8859-1
-  [:dimension 1
-   :code-space (alloc/vector 0 255)
-   :ascii-compatible-p true
-   :code-offset 0])
-
-(define-charset-internal 'unicode
-  [:dimension 3
-   :code-space (alloc/vector 0 255 0 255 0 16)
-   :ascii-compatible-p true
-   :code-offset 0])
-
-(define-charset-internal 'emacs
-  [:dimension 3
-   :code-space (alloc/vector 0 255 0 255 0 63)
-   :ascii-compatible-p true
-   :supplementary-p true
-   :code-offset 0])
-
-(define-charset-internal 'eight-bit
-  [:dimension 1
-   :code-space (alloc/vector 128 255)
-   :code-offset 0x3FFF80])

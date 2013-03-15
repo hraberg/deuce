@@ -23,7 +23,7 @@
 
   You can customize this variable.")
 
-(defvar latin-extra-code-table (alloc/make-vector 256 nil)
+(defvar latin-extra-code-table nil
   "Table of extra Latin codes in the range 128..159 (inclusive).
   This is a vector of length 256.
   If Nth element is non-nil, the existence of code N in a file
@@ -70,7 +70,7 @@
   to explicitly specify some coding system that doesn't use ISO-2022
   escape sequence (e.g `latin-1') on reading by C-x RET c.")
 
-(defvar coding-system-list (alloc/list)
+(defvar coding-system-list nil
   "List of coding systems.
 
   Do not alter the value of this variable manually.  This variable should be
@@ -250,17 +250,12 @@
 
   See also the function `find-operation-coding-system'.")
 
-(def ^:private ^:dynamic coding-systems (atom {}))
-(def ^:private ^:dynamic plists (atom {}))
-(def ^:private ^:dynamic aliases (atom {}))
-(def ^:private ^:dynamic safe-terminal-coding-system (atom {}))
-
-(declare coding-system-aliases check-coding-system)
+(declare check-coding-system)
 
 (defun coding-system-base (coding-system)
   "Return the base of CODING-SYSTEM.
   Any alias or subsidiary coding system is not a base coding system."
-  (first (coding-system-aliases coding-system)))
+  )
 
 (defun encode-big5-char (ch)
   "Encode the Big5 character CH to BIG5 coding system.
@@ -277,22 +272,19 @@
   A vector value indicates that a format of end-of-line should be
   detected automatically.  Nth element of the vector is the subsidiary
   coding system whose eol-type is N."
-  0)
+  )
 
 (defun coding-system-aliases (coding-system)
   "Return the list of aliases of CODING-SYSTEM."
-  (apply alloc/list (reduce into [] (filter #(some #{coding-system} %) (map flatten @aliases)))))
+  )
 
 (defun set-safe-terminal-coding-system-internal (coding-system)
   "Internal use only."
-  (swap! safe-terminal-coding-system coding-system)
-  nil)
+  )
 
 (defun define-coding-system-alias (alias coding-system)
   "Define ALIAS as an alias for CODING-SYSTEM."
-  (fns/nconc globals/coding-system-list [alias])
-  (swap! aliases update-in [coding-system] conj alias)
-  nil)
+  )
 
 (defun decode-big5-char (code)
   "Decode a Big5 character which has CODE in BIG5 coding system.
@@ -305,11 +297,11 @@
 
 (defun coding-system-plist (coding-system)
   "Return the property list of CODING-SYSTEM."
-  (apply alloc/list (reduce into [] (@plists (coding-system-base coding-system)))))
+  )
 
 (defun find-coding-systems-region-internal (start end &optional exclude)
   "Internal use only."
-  true)
+  )
 
 (defun decode-coding-region (start end coding-system &optional destination)
   "Decode the current region from the specified coding system.
@@ -502,21 +494,11 @@
 
 (defun define-coding-system-internal (&rest args)
   "For internal use only."
-  (let [name (first args)
-        plist (nth args 11)
-        plist-map (into {} (map vec (partition 2 plist)))
-        plist-map (assoc plist-map :ascii-compatible-p
-                         (fns/plist-get (charset/charset-plist (let [charset-list (plist-map :charset-list)]
-                                                                 (if (sequential? charset-list)
-                                                                   (first charset-list)
-                                                                   charset-list))) :ascii-compatible-p))]
-    (fns/nconc globals/coding-system-list [name])
-    (swap! plists update-in [name] merge plist-map)
-    (swap! coding-systems assoc name args)))
+  )
 
 (defun coding-system-put (coding-system prop val)
   "Change value in CODING-SYSTEM's property list PROP to VAL."
-  (swap! plists update-in [coding-system prop] val))
+  )
 
 (defun decode-coding-string (string coding-system &optional nocopy buffer)
   "Decode STRING which is encoded in CODING-SYSTEM, and return the result.
@@ -552,15 +534,14 @@
   "Assign higher priority to the coding systems given as arguments.
   If multiple coding systems belong to the same category,
   all but the first one are ignored."
- (el/setq coding-category-list coding-systems)
- nil)
+  )
 
 (defun check-coding-system (coding-system)
   "Check validity of CODING-SYSTEM.
   If valid, return CODING-SYSTEM, else signal a `coding-system-error' error.
   It is valid if it is nil or a symbol defined as a coding system by the
   function `define-coding-system'."
-  (if (or (coding-system-base coding-system) (nil? coding-system))
+  (if (nil? coding-system)
     coding-system
     (el/throw 'coding-system-error coding-system)))
 
@@ -568,4 +549,4 @@
   "Return t if OBJECT is nil or a coding-system.
   See the documentation of `define-coding-system' for information
   about coding-system objects."
-  (boolean (or (coding-system-base object) (nil? object))))
+  )

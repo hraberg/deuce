@@ -65,9 +65,10 @@
 (setq describe-language-environment-map (make-sparse-keymap))
 ;; Used by startup/normal-top-level to set the locale, called with nil.
 (defun set-locale-environment (&optional locale-name frame))
-;; Used by startup/fancy-about-text to find localized tutorial
+;; Used by startup/fancy-about-text to find localized tutorial.
 (defun get-language-info (lang-env key))
-
+;; Used by env.
+(defun find-coding-systems-string (string))
 
 ;; Hack for a predicate in cl.el, this is defined in emacs-lisp/bytecomp.el, which we're not using
 (defun byte-compile-file-form (form))
