@@ -12,9 +12,9 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 [Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs)
 
 
-**2013-03-14 `deuce-loadup.el`**
+**2013-03-14 [`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/src/deuce-loadup.el)**
 
-The final stretch took time, with each issue taking days to analyze and debug, inevitably leading to subtle - but crucial - changes to `deuce.emacs-lisp` (unquote-splicing working for atoms at the end of a list? Why not!).
+The final stretch took time, with each issue taking days to analyze and debug, inevitably leading to subtle - but crucial - changes to [`deuce.emacs-lisp`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs_lisp.clj) (unquote-splicing working for atoms at the end of a list? Why not!).
 
 Deuce currently consist of around 12.5k LOC, a majority of which are doc strings and empty stubs generated from Emacs. The files loaded by `loadup.el` compiles into a total of 100k LOC "readable" Clojure. "Dumping" Deuce to an uberjar takes about 10 minutes (excluding the initial Emacs steps):
 
@@ -46,7 +46,7 @@ Deuce currently consist of around 12.5k LOC, a majority of which are doc strings
     ./deuce --batch --eval "(print (emacs-version))"
 
 
-Focus now changes to the Deuce internals: buffers, windows, keymaps and most crucially - a display for this extensible, customizable editor! The core Emacs Lisp runtime is still more complicated than it has to be, and there are some known issues - like proper closures and setq + delayed-eval (used for things that cannot be resolved at compiled time) not working during binding in let. Speed is another issue.
+Focus now changes to the Deuce internals: buffers, windows, keymaps and most crucially - a display for this extensible, customizable editor! The core Emacs Lisp runtime is still more complicated than it has to be, and there are some known issues - like proper closures and `setq` + `delayed-eval` (used for things that cannot be resolved at compiled time) not working during binding in `let`. Speed is another issue.
 
 
 **2013-03-08 Mutable Persistent Lists**
