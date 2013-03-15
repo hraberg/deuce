@@ -20,13 +20,20 @@
   (car [this] nil)
   (cdr [this] nil))
 
+;; (satisfies? IList object) is slow
+(defn listp [object]
+  (or (nil? object) (sequential? object)))
+
+(defn consp [object]
+  (instance? PersistentList object))
+
 (defn dotted-list? [x]
   (and (seq? x) (= '. (last (butlast x)))
-       (satisfies? IList (last x))))
+       (listp (last x))))
 
 (defn dotted-list-ending-in-pair? [x]
   (and (seq? x) (= '. (last (butlast x)))
-       (not (satisfies? IList (last x)))))
+       (not (listp (last x)))))
 
 (defn dotted-pair? [x]
   (and (seq? x) (= 3 (count x)) (= '. (last (butlast x)))))
@@ -86,7 +93,7 @@
       (do
         (.write w (pr-str (car c)))
         (cond
-         (not (satisfies? IList (cdr c))) (.write w (str " . " (pr-str (cdr c)) ")"))
+         (not (listp (cdr c))) (.write w (str " . " (pr-str (cdr c)) ")"))
          (seq (cdr c)) (do
                          (.write w " ")
                          (recur (cdr c) (inc idx)))
@@ -97,13 +104,6 @@
 
 ;; (defmethod print-method Cons [c ^Writer w]
 ;;   (print-list c w))
-
-;; (satisfies? IList object) is slow
-(defn listp [object]
-  (or (nil? object) (sequential? object)))
-
-(defn consp [object]
-  (instance? PersistentList object))
 
 (defn pair [car cdr]
   (if (listp cdr)
@@ -124,7 +124,7 @@
 (defn maybe-seq [x]
   (if (and (seq? x)
            (not (dotted-pair? x))
-           (not (instance? PersistentList x)))
+           (not (consp x)))
     (if (dotted-list-ending-in-pair? x)
       (apply c/list x)
       (apply list x))
