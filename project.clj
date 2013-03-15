@@ -6,7 +6,7 @@
   :url "http://www.gnu.org/software/emacs/"
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [clojure-lanterna "0.9.2"]
-                 [com.taoensso/timbre "1.4.0"]]
+                 [com.taoensso/timbre "1.5.2"]]
   :plugins [[lein-swank "1.4.5"]
             [lein-difftest "2.0.0"]
             [lein-marginalia "0.7.1"]]
