@@ -59,11 +59,15 @@
 
 (setq t true)
 
-(setq motif-version-string "")
-(setq gtk-version-string "")
-(setq ns-version-string "")
-(setq x-toolkit-scroll-bars nil)
-(setq msdos-long-file-names nil)
+;; Stubs for running without MULE:
+;; These keymaps are referenced from menu-bar.
+(setq mule-menu-keymap (make-sparse-keymap))
+(setq describe-language-environment-map (make-sparse-keymap))
+;; Used by startup/normal-top-level to set the locale, called with nil.
+(defun set-locale-environment (&optional locale-name frame))
+;; Used by startup/fancy-about-text to find localized tutorial
+(defun get-language-info (lang-env key))
+
 
 ;; Hack for a predicate in cl.el, this is defined in emacs-lisp/bytecomp.el, which we're not using
 (defun byte-compile-file-form (form))
@@ -82,6 +86,7 @@
 (defun cl-setf-simple-store-p (sym form))
 ;; Same issue in regexp-opt/regexp-opt. Calls this fn with earlier binding 'sorted-strings'
 (defun regexp-opt-group (strings &optional paren lax))
+
 
 ;; Keymap setup, should in theory be in deuce.emacs.keymap, but cannot for a reason I forgot.
 (setq global-map (make-keymap))

@@ -110,12 +110,13 @@
 ;; DEUCE: Adds custom support for built in variables.
 (load "cus-start")
 ;; DEUCE: MULE defines and deals with character encodings, won't be used, but some fns might be needed.
-(load "international/mule")
-(load "international/mule-conf")
+;;        We're runningw without MULE for now, may revisit.
+;; (load "international/mule")
+;; (load "international/mule-conf")
 ;; DEUCE: unix environment helpers, causes cl.el to be loaded.
 (load "env")
 
-;; DEUCE: Support for loading files with different encodings, won't be used. Mapping to Java encodings might be needed.
+;; DEUCE: Support for loading files with different "formats", not part of Mule.
 (load "format")
 
 ;; DEUCE: All basic editor key bindings are setup here - many refer to fns loaded later on.
@@ -174,11 +175,11 @@
 (load "epa-hook")
 ;; Any Emacs Lisp source file (*.el) loaded here after can contain
 ;; multilingual text.
-(load "international/mule-cmds")
+;; (load "international/mule-cmds")
 (load "case-table")
 ;; This file doesn't exist when building a development version of Emacs
 ;; from the repository.  It is generated just after temacs is built.
-(load "international/charprop.el" t)
+;; (load "international/charprop.el" t)
 ;; DEUCE: NPE in case-table/set-case-syntax-pair
 ;;        Requires better emulation of entire chartab subsystem, will revist.
 ;; (load "international/characters")
@@ -190,7 +191,7 @@
 ;; (load "language/cyrillic")
 ;; (load "language/indian")
 ;; (load "language/sinhala")
-(load "language/english")
+;; (load "language/english")
 ;; (load "language/ethiopic")
 ;; (load "language/european")
 ;; (load "language/czech")
