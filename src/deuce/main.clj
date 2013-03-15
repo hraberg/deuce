@@ -30,7 +30,8 @@
 
     (el/setq command-line-args (alloc/cons "src/bootstrap-emacs" (apply alloc/list (remove nil? args))))
     (lread/load "deuce-loadup.el")
-    nil
+    (println)
+    (flush)
     ;; Pontentially call out and init the clojure-lanterna terminal (when-not inhibit-window-system)
     ;; startup.el may take care of this indirectly and make the callback for us.
     ))
