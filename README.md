@@ -58,7 +58,7 @@ Buffers are naturally pretty complex beasts in Emacs. But we got the basics: swi
     ;; If you want to create a file, visit that file with C-x C-f,
     ;; then enter the text in that file's own buffer.
 
-Now you can connect via Slime to the Swank server running inside Deuce, evaluate Emacs Lisp:
+Now you can connect via Slime to the Swank server running inside Deuce and evaluate Emacs Lisp:
 
 ```clojure
 ;; deuce.emacs is the "Emacs Lisp" namespace, clojure.core is required as c.
