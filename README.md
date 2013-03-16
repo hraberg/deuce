@@ -11,6 +11,101 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs)
 
+**2013-03-26 Basic Buffers**
+
+Buffers are naturally pretty complex beasts in Emacs. But we got the basics: switching and inserting text in different buffers. Overlays, buffer locals, markers and a lot more etc. is not there:
+
+    # Start with Swank so you can poke around:
+    lein -q --swank-clojure
+    Swank connection opened on 4005
+    Loading deuce-loadup.el (source)...
+    Using load-path ("" "emacs-lisp" "language" "international" "textmodes")
+    Loading emacs-lisp/byte-run...
+
+    [... eventually calling deuce.emacs/display-buffers to dump the state to stdout ...]
+
+    --------------- #<buffer *GNU Emacs*> --- [current buffer]
+    Welcome to GNU Emacs, a part of the GNU operating system.
+
+    Get help	   M-x help
+    Emacs manual	   \[info-emacs-manual]	Browse manuals	   \[info]
+    Emacs tutorial	   \[help-with-tutorial]	Undo changes	   \[undo]
+    Buy manuals	   \[view-order-manuals]	Exit Emacs	   \[save-buffers-kill-terminal]
+    Activate menubar   \[tmm-menubar]
+    (`C-' means use the CTRL key.  `M-' means use the Meta (or Alt) key.
+    If you have no Meta key, you may instead type ESC followed by the character.)
+    Useful tasks:
+    Visit New File			Open Home Directory
+    Customize Startup		Open *scratch* buffer
+
+    GNU Emacs 24.2 (jvm-1.8.0-ea_clojure-1.5.1)
+     of 2013-03-16 on X202E
+    Copyright (C) 2012 Free Software Foundation, Inc.
+
+    GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \[describe-no-warranty] for full details.
+    Emacs is Free Software--Free as in Freedom--so you can redistribute copies
+    of Emacs and modify it; type \[describe-copying] to see the conditions.
+    Type \[describe-distribution] for information on getting the latest version.
+    --------------- #<buffer  *Echo Area 1*>
+
+    --------------- #<buffer  *Echo Area 0*>
+    For information about GNU Emacs and the GNU system, type \[about-emacs].
+    --------------- #<buffer  *Minibuf-0*>
+
+    --------------- #<buffer *Messages*> --- [see stdout above]
+    --------------- #<buffer *scratch*>
+    ;; This buffer is for notes you don't want to save, and for Lisp evaluation.
+    ;; If you want to create a file, visit that file with C-x C-f,
+    ;; then enter the text in that file's own buffer.
+
+Now you can connect via Slime to the Swank server running inside Deuce, evaluate Emacs Lisp:
+
+```clojure
+;; deuce.emacs is the "Emacs Lisp" namespace, clojure.core is required as c.
+(in-ns 'deuce.emacs)
+
+(defun factorial (integer)
+  "Compute factorial of an integer."
+  (if (= 1 integer) 1
+    (* integer (factorial (#el/sym "1-" integer))))) ; Note the reader macro for 1-
+;=> factorial
+(factorial 10)
+;=> 3628800
+
+(current-buffer)
+;=> #<buffer *GNU Emacs*>
+
+(emacs-version)
+;=> "GNU Emacs 24.2 (jvm-1.8.0-ea_clojure-1.5.1)\nof 2013-03-16 on X202E"
+```
+
+To kick off the terminal:
+
+```clojure
+;; Switch back to the safety and sanity of Clojure land:
+(c/in-ns 'deuce.main)
+
+(require '[lanterna.screen :as s])
+(def screen (s/get-screen :text)) ;; or :swing
+(s/start screen) ;; Clears the terminal Deuce is running in.
+
+;; Try to draw something useful or react to the keyboard - both still to be done.
+;; See deuce.test.terminal for the general idea.
+
+(s/stop screen) ;; Restores the terminal to what it was. Ctrl-C kills Swank.
+```
+
+To display something for real, we need Emacs windows, of which the minibuffer is one, and finally at least one Emacs frame, that is - a real window or terminal. To this you add the keymaps, which are basically nested in trees, looking somewhat like this:
+
+```el
+slime-mode-map
+(keymap
+  (24 keymap  ;; Sub keymap for C-x
+    (5 . slime-eval-last-expression) ...) ...) ;; Containing C-e, and we now know what to call.
+````
+
+Emacs has many exciting ways of describing keys though (Deuce's parser cannot handle all variants), and there are always more than one keymap in play at once, see ["Active Keymaps"](http://www.gnu.org/software/emacs/manual/html_node/elisp/Active-Keymaps.html) in the unlikely event you're interested in this. As a bonus, the menu bar is a also a keymap.
+
 
 **2013-03-14 [`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/src/deuce-loadup.el)**
 
