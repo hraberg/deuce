@@ -645,6 +645,12 @@ I'll revisit the name if the Clojure port actually becomes usable and the name c
 
 [Down with Emacs Lisp: Dynamic Scope Analysis](http://www-pu.informatik.uni-tuebingen.de/users/sperber/papers/dynamic-scope-analysis.pdf) Matthias Neubauer and Michael Sperber, 2001
 
+[Internal Reprogrammability](http://martinfowler.com/bliki/InternalReprogrammability.html) Martin Fowler, 2013
+
+[Tour de Babel](https://sites.google.com/site/steveyegge2/tour-de-babel) Steve Yegge, 2004 - "Emacs is the 100-year editor."
+
+[The Emacs Problem](https://sites.google.com/site/steveyegge2/the-emacs-problem) Steve Yegge, 2005
+
 [Climacs - An Emacs-like editor in Common Lisp](http://common-lisp.net/project/climacs/)
 
 [Portable Hemlock](http://www.common-lisp.net/project/phemlock/) Another Common Lisp Emacs.
