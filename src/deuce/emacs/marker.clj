@@ -1,6 +1,8 @@
 (ns deuce.emacs.marker
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [deuce.emacs.buffer :as buffer])
+  (:import [deuce.emacs.data Marker])
   (:refer-clojure :exclude []))
 
 (defvar byte-debug-flag nil
@@ -9,7 +11,7 @@
 (defun marker-position (marker)
   "Return the position MARKER points at, as a character number.
   Returns nil if MARKER points nowhere."
-  )
+  (.charpos marker))
 
 (defun buffer-has-markers-at (position)
   "Return t if there are markers pointing at POSITION in the current buffer."
@@ -38,7 +40,7 @@
 (defun marker-buffer (marker)
   "Return the buffer that MARKER points into, or nil if none.
   Returns nil if MARKER points into a dead buffer."
-  )
+  (.buffer marker))
 
 (defun set-marker (marker position &optional buffer)
   "Position MARKER before character number POSITION in BUFFER.
@@ -46,4 +48,7 @@
   If POSITION is nil, makes marker point nowhere.
   Then it no longer slows down editing in any buffer.
   Returns MARKER."
-  )
+  (let [buffer (or buffer (buffer/current-buffer))
+        marker (Marker. position buffer)] ;; Let's try a value object.
+    (reset! (.mark buffer) marker)
+    marker))

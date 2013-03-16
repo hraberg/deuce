@@ -151,7 +151,7 @@
                             (let [f (el/fun function)]
                               (when (-> f meta :autoload)
                                 (ns-unmap 'deuce.emacs (el/sym function))
-                                ((ns-resolve 'deuce.emacs 'load) (-> f meta :file) nil true))))
+                                ((el/fun 'load) (-> f meta :file) nil true))))
           definition  (if macro?
                         (fn autoload-macro [&form &env & args] ;; Note implicit macro args, see defalias
                           (do
@@ -273,10 +273,10 @@
   itself an alias.  If NEW-ALIAS is bound, and BASE-VARIABLE is not,
   then the value of BASE-VARIABLE is set to that of NEW-ALIAS.
   The return value is BASE-VARIABLE."
-  (if-let [base (ns-resolve 'deuce.emacs-lisp.globals base-variable)]
+  (if-let [base (el/global base-variable)]
     (el/defvar-helper* 'deuce.emacs-lisp.globals new-alias
       @base (or docstring (-> base meta :doc)))
-    (when-let [new (ns-resolve 'deuce.emacs-lisp.globals new-alias)]
+    (when-let [new (el/global new-alias)]
       (el/defvar-helper* 'deuce.emacs-lisp.globals base-variable
         @new (or docstring (-> new meta :doc)))))
   base-variable)

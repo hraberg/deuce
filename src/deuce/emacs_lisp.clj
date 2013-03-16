@@ -754,7 +754,15 @@
   If you only want to save the current buffer but not point nor mark,
   then just use `save-current-buffer', or even `with-current-buffer'."
   [& body]
-  `(progn ~@body))
+  `(c/let [current-buffer# ((fun 'current-buffer))
+           point# ((fun 'point))
+           mark# ((fun 'mark-marker))]
+          (try
+            (progn ~@body)
+            (finally
+             ((fun 'set-buffer) current-buffer#)
+             ((fun 'goto-char) point#)
+             ((fun 'set-marker) mark# (.charpos mark#) current-buffer#)))))
 
 (c/defmacro interactive
   "Specify a way of parsing arguments for interactive use of a function.
@@ -828,7 +836,11 @@
   Executes BODY just like `progn'."
   {:arglists '([&rest BODY])}
   [& body]
-  `(progn ~@body))
+  `(c/let [current-buffer# ((fun 'current-buffer))]
+          (try
+            (progn ~@body)
+            (finally
+             ((fun 'set-buffer) current-buffer#)))))
 
 (def clojure-special-forms
   (->> (ns-map 'deuce.emacs-lisp)
@@ -836,7 +848,8 @@
        (into {})))
 
 (defn check-type [pred x]
-  (when-not ((fun pred) x)
+  (if ((fun pred) x)
+    x
     (deuce.emacs-lisp/throw 'wrong-type-argument (cons/list pred x))))
 
 ;; Navgeet's helper macro, will revisit, basically condition-case but for use from Clojure

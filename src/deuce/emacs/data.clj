@@ -62,6 +62,72 @@
                                                    (.purpose char-table)]
                                                   (.contents char-table)))))))
 
+;; struct buffer_text in buffer.h. Contains many other low level fields we hopefully won't need.
+(defrecord BufferText
+    [;; /* Actual address of buffer contents.  If REL_ALLOC is defined,
+     ;;    this address might change when blocks are relocated which can
+     ;;    e.g. happen when malloc is called.  So, don't pass a pointer
+     ;;    into a buffer's text to functions that malloc.  */
+     beg;
+
+     ;; /* The markers that refer to this buffer.
+     ;;  This is actually a single marker ---
+     ;;  successive elements in its marker `chain'
+     ;;  are the other markers referring to this buffer.
+     ;;  This is a singly linked unordered list, which means that it's
+     ;;  very cheap to add a marker to the list and it's also very cheap
+     ;;  to move a marker within a buffer.  */
+     markers])
+
+;; struct buffer in buffer.h. Pretty large, so won't move it all over at once.
+;; The buffer locals are specified with DEFVAR_PER_BUFFER, and their defaults with DEFVAR_BUFFER_DEFAULTS
+;; Thet're all already defined as globals in buffer.clj. We need to put them (with default value at create) on this guy somehow.
+(defrecord Buffer
+    [;; /* This structure holds the coordinates of the buffer contents
+     ;;    in ordinary buffers.  In indirect buffers, this is not used.  */
+     own-text
+
+     ;; /* This points to the `struct buffer_text' that used for this buffer.
+     ;;    In an ordinary buffer, this is the own_text field above.
+     ;;    In an indirect buffer, this is the own_text field of another buffer.  */
+     text
+
+     ;; /* Char position of point in buffer.  */
+     pt
+
+     ;; /* The name of this buffer.  */
+     name
+
+     ;; /* "The mark".  This is a marker which may
+     ;; point into this buffer or may point nowhere.  */
+     mark
+
+     ;; /* t means the mark and region are currently active.  */
+     mark-active])
+
+(defmethod print-method Buffer [buffer w]
+  (.write w (str "#<buffer " @(.name buffer) ">")))
+
+;; struct in buffer.h. Has many other fields, its also a linked list above. Attempting to use as a value object
+(defrecord Marker
+    [;; /* This is the buffer that the marker points into, or 0 if it points nowhere.
+     ;;    Note: a chain of markers can contain markers pointing into different
+     ;;    buffers (the chain is per buffer_text rather than per buffer, so it's
+     ;;    shared between indirect buffers).  */
+     ;; /* This is used for (other than NULL-checking):
+     ;;    - Fmarker_buffer
+     ;;    - Fset_marker: check eq(oldbuf, newbuf) to avoid unchain+rechain.
+     ;;    - unchain_marker: to find the list from which to unchain.
+     ;;    - Fkill_buffer: to only unchain the markers of current indirect buffer.
+     ;;    */
+     buffer;
+
+     ;; /* This is the char position where the marker points.  */
+     charpos])
+
+(defmethod print-method Marker [marker w]
+  (.write w (str "#<marker at " (.charpos marker) " in " (.name (.buffer marker)) ">")))
+
 (defn ^:private promote-char [x]
   (if (char? x) (int x) x))
 
@@ -74,7 +140,7 @@
 
 (defun markerp (object)
   "Return t if OBJECT is a marker (editor pointer)."
-  )
+  (instance? Marker object))
 
 (defun ash (value count)
   "Return VALUE with its bits shifted left by COUNT.
@@ -459,7 +525,7 @@
 
 (defun bufferp (object)
   "Return t if OBJECT is an editor buffer."
-  )
+  (instance? Buffer object))
 
 (defun > (num1 num2)
   "Return t if first arg is greater than second arg.  Both must be numbers or markers."
@@ -658,7 +724,7 @@
 
 (defun integer-or-marker-p (object)
   "Return t if OBJECT is an integer or a marker (editor pointer)."
-  )
+  ((some-fn integerp markerp) object))
 
 (defun min (number-or-marker &rest numbers-or-markers)
   "Return smallest of all the arguments (which must be numbers or markers).

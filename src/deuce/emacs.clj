@@ -70,8 +70,17 @@
 ;; Used by env.
 (defun find-coding-systems-string (string))
 
-;; To show *scratch* when running -Q, not sure if this is supposed to be set somewhere else? 24.1 vs 24.2 issue?
-(setq initial-buffer-choice true)
+;; *scratch* is created by buffer.c
+(get-buffer-create "*scratch*")
+;; *Messages* is created by xdisp.c
+(get-buffer-create "*Messages*")
+;; Minibuffer 0 is the empty one, this is either created by frame.c or minibuffer.c
+;; Not the leading space for buffers in the minibuffer window. *Minibuf-1* etc. gets created once it gets activated.
+;; You can switch to these buffers in a normal window in Emacs and see them change as they're used.
+(get-buffer-create " *Minibuf-0*")
+;; ensure_echo_area_buffers in xdisp.c creates (at least) two echo areas.
+(get-buffer-create " *Echo Area 0*")
+(get-buffer-create " *Echo Area 1*")
 
 ;; Hack for a predicate in cl.el, this is defined in emacs-lisp/bytecomp.el, which we're not using
 (defun byte-compile-file-form (form))

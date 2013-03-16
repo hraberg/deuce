@@ -2,10 +2,14 @@
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
             [clojure.string :as s]
+            [deuce.emacs.buffer :as buffer]
+            [deuce.emacs.data :as data]
+            [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals])
   (:import [java.net InetAddress]
            [java.text SimpleDateFormat]
-           [java.util Date Calendar TimeZone List])
+           [java.util Date Calendar TimeZone List]
+           [deuce.emacs.data Marker])
   (:refer-clojure :exclude [format]))
 
 (defvar buffer-access-fontified-property nil
@@ -57,6 +61,9 @@
         seconds (int (/ now 1000))]
     (list (bit-shift-right seconds 16) (bit-and 0xffff seconds) (* 1000 (mod now 1000)))))
 
+(declare buffer-string buffer-substring buffer-size point mark-marker goto-char
+         point-max point-min insert eobp bobp char-before)
+
 (defun decode-time (&optional specified-time)
   "Decode a time value as (SEC MINUTE HOUR DAY MONTH YEAR DOW DST ZONE).
   The optional SPECIFIED-TIME should be a list of (HIGH LOW . IGNORED),
@@ -89,12 +96,12 @@
   "Return a marker to the maximum permissible value of point in this buffer.
   This is (1+ (buffer-size)), unless narrowing (a buffer restriction)
   is in effect, in which case it is less."
-  )
+  (Marker. (buffer/current-buffer) (point-max)))
 
 (defun preceding-char ()
   "Return the character preceding point, as a number.
   At the beginning of the buffer or accessible region, return 0."
-  )
+  (or (char-before) 0))
 
 (defun translate-region-internal (start end table)
   "Internal use only.
@@ -203,7 +210,7 @@
   to multibyte for insertion (see `unibyte-char-to-multibyte').
   If the current buffer is unibyte, multibyte strings are converted
   to unibyte for insertion."
-  )
+  (insert args))
 
 (defun user-real-login-name ()
   "Return the name of the user's real uid, as a string.
@@ -219,7 +226,7 @@
   "Return the maximum permissible value of point in the current buffer.
   This is (1+ (buffer-size)), unless narrowing (a buffer restriction)
   is in effect, in which case it is less."
-  )
+  (inc (buffer-size)))
 
 (defun char-equal (c1 c2)
   "Return t if two characters match, optionally ignoring case.
@@ -253,7 +260,9 @@
   "Return character in current buffer at position POS.
   POS is an integer or a marker and defaults to point.
   If POS is out of range, the value is nil."
-  )
+  (let [pos (or pos (point))]
+      (when  (< -1 pos (buffer-size))
+        (.charAt (buffer-string) pos))))
 
 (defun gap-size ()
   "Return the size of the current buffer's gap.
@@ -270,7 +279,7 @@
 (defun point-min-marker ()
   "Return a marker to the minimum permissible value of point in this buffer.
   This is the beginning, unless narrowing (a buffer restriction) is in effect."
-  )
+  (Marker. (buffer/current-buffer) (point-min)))
 
 (defun string-to-char (string)
   "Return the first character in STRING."
@@ -278,7 +287,7 @@
 
 (defun point-marker ()
   "Return value of point, as a marker object."
-  )
+  (Marker. (buffer/current-buffer) (point)))
 
 (defun gap-position ()
   "Return the position of the gap, in the current buffer.
@@ -288,7 +297,7 @@
 (defun eolp ()
   "Return t if point is at the end of a line.
   `End of a line' includes point being at the end of the buffer."
-  )
+  (or (eobp) (= \newline (char-after))))
 
 (defun line-end-position (&optional n)
   "Return the character position of the last character on the current line.
@@ -333,7 +342,7 @@
 (defun point-min ()
   "Return the minimum permissible value of point in the current buffer.
   This is 1, unless narrowing (a buffer restriction) is in effect."
-  0)
+  1)
 
 (defun widen ()
   "Remove restrictions (narrowing) from current buffer.
@@ -345,11 +354,13 @@
   If optional arg NOUNDO is non-nil, don't record this change for undo
   and don't mark the buffer as really changed.
   Both characters must have the same length of multi-byte form."
-  )
+  (.replace (.beg (.text (buffer/current-buffer)))
+            start end
+            (s/replace (buffer-substring start end) fromchar tochar)))
 
 (defun bolp ()
   "Return t if point is at the beginning of a line."
-  )
+  (or (bobp) (= \newline (char-before))))
 
 (defun position-bytes (position)
   "Return the byte position for character position POSITION.
@@ -359,7 +370,7 @@
 (defun point ()
   "Return value of point, as an integer.
   Beginning of buffer is position (point-min)."
-  0)
+  @(.pt (buffer/current-buffer)))
 
 (defun field-string (&optional pos)
   "Return the contents of the field surrounding POS as a string.
@@ -369,7 +380,7 @@
 
 (defun region-beginning ()
   "Return the integer value of point or mark, whichever is smaller."
-  )
+  (min (.charpos (mark-marker)) (point)))
 
 (defun line-beginning-position (&optional n)
   "Return the character position of the first character on the current line.
@@ -391,12 +402,12 @@
 (defun following-char ()
   "Return the character following point, as a number.
   At the end of the buffer or accessible region, return 0."
-  )
+  (or (char-after) 0))
 
 (defun eobp ()
   "Return t if point is at the end of the buffer.
   If the buffer is narrowed, this means the end of the narrowed part."
-  )
+  (= (point) (point-max)))
 
 (defun buffer-substring-no-properties (start end)
   "Return the characters of part of the buffer, without the text properties.
@@ -432,7 +443,7 @@
 (defun bobp ()
   "Return t if point is at the beginning of the buffer.
   If the buffer is narrowed, this means the beginning of the narrowed part."
-  )
+  (= 1 (point)))
 
 (defun message-or-box (format-string &rest args)
   "Display a message in a dialog box or in the echo area.
@@ -504,11 +515,13 @@
   "Return the contents of the current buffer as a string.
   If narrowing is in effect, this function returns only the visible part
   of the buffer."
-  )
+  (str (.beg (.text (buffer/current-buffer)))))
 
 (defun current-message ()
   "Return the string currently displayed in the echo area, or nil if none."
-  )
+  ;; Not sure when and why it uses " *Echo Area 1*"
+  (binding [buffer/*current-buffer* (buffer/get-buffer-create " *Echo Area 0*")]
+    (buffer-string)))
 
 (defun delete-field (&optional pos)
   "Delete the field surrounding POS.
@@ -551,13 +564,15 @@
   to multibyte for insertion (see `unibyte-char-to-multibyte').
   If the current buffer is unibyte, multibyte strings are converted
   to unibyte for insertion."
-  )
+  (insert args))
 
 (defun char-before (&optional pos)
   "Return character in current buffer preceding position POS.
   POS is an integer or a marker and defaults to point.
   If POS is out of range, the value is nil."
-  )
+  (let [pos (- (or pos (point)) 2)]
+    (when  (< -1 pos (buffer-size))
+      (.charAt (buffer-string) pos))))
 
 (defun char-to-string (char)
   "Convert arg CHAR to a string containing that character."
@@ -567,7 +582,11 @@
   "Delete the text between START and END.
   If called interactively, delete the region between point and mark.
   This command deletes buffer text without modifying the kill ring."
-  )
+  (.delete (.beg (.own-text (buffer/current-buffer)))
+           (dec start) (dec end))
+  (when (> (point) start)
+    (goto-char (+ (- end start) (- (point) start)))
+    nil))
 
 (defun transpose-regions (startr1 endr1 startr2 endr2 &optional leave-markers)
   "Transpose region STARTR1 to ENDR1 with STARTR2 to ENDR2.
@@ -585,14 +604,20 @@
   Beginning of buffer is position (point-min), end is (point-max).
 
   The return value is POSITION."
-  )
+  (el/check-type 'integer-or-marker-p position)
+  (let [position (if (data/markerp position) (.charpos position) position)
+        real-pos (min (max 1 position) (inc (buffer-size)))]
+    (reset! (.pt (buffer/current-buffer)) real-pos)
+    (when-not (.mark-active (buffer/current-buffer))
+      (reset! (.mark (buffer/current-buffer)) (point-marker)))
+    position))
 
 (defun insert-char (character count &optional inherit)
   "Insert COUNT copies of CHARACTER.
   Point, and before-insertion markers, are relocated as in the function `insert'.
   The optional third arg INHERIT, if non-nil, says to inherit text properties
   from adjoining text, if those properties are sticky."
-  )
+  (insert (apply str (repeat count character))))
 
 (defun system-name ()
   "Return the host name of the machine you are running on, as a string."
@@ -601,11 +626,12 @@
 (defun buffer-size (&optional buffer)
   "Return the number of characters in the current buffer.
   If BUFFER, return the number of characters in that buffer instead."
-  0)
+  (count (.beg (.text (or (and buffer (el/check-type 'bufferp buffer))
+                          (buffer/current-buffer))))))
 
 (defun region-end ()
   "Return the integer value of point or mark, whichever is larger."
-  )
+  (max (.charpos (mark-marker)) (point)))
 
 (defun format-time-string (format-string &optional time universal)
   "Use FORMAT-STRING to format the time TIME, or now if omitted.
@@ -677,7 +703,7 @@
   Point, and before-insertion markers, are relocated as in the function `insert'.
   The optional third arg INHERIT, if non-nil, says to inherit text properties
   from adjoining text, if those properties are sticky."
-  )
+  (insert-char (char byte) count inherit))
 
 (defun compare-buffer-substrings (buffer1 start1 end1 buffer2 start2 end2)
   "Compare two substrings of two buffers; return result as number.
@@ -694,7 +720,7 @@
   "Return this buffer's mark, as a marker object.
   Watch out!  Moving this marker changes the mark position.
   If you set the marker not to point anywhere, the buffer will have no mark."
-  )
+  @(.mark (buffer/current-buffer)))
 
 (defun user-full-name (&optional uid)
   "Return the full name of the user logged in, as a string.
@@ -722,7 +748,17 @@
   If the first argument is nil or the empty string, the function clears
   any existing message; this lets the minibuffer contents show.  See
   also `current-message'."
-  (println (apply format format-string args)))
+  (let [message (apply format format-string args)]
+    (binding [buffer/*current-buffer* (buffer/get-buffer-create "*Messages*")]
+      (insert (str message \newline))) ;; Emacs has logic to figure out if newline is needed.
+
+    ;; The echo area buffers are called " *Echo Area %d*". They share window with the minibuffer.
+    ;; Note the leading space for minibuffer window buffers.
+    (binding [buffer/*current-buffer* (buffer/get-buffer-create " *Echo Area 0*")]
+      (buffer/erase-buffer)
+      (insert message))
+    ;; This will go away
+    (println message)))
 
 (defun insert (&rest args)
   "Insert the arguments, either strings or characters, at point.
@@ -739,7 +775,12 @@
   original bytes of a unibyte string when inserting it into a multibyte
   buffer; to accomplish this, apply `string-as-multibyte' to the string
   and insert the result."
-  (print (apply str args)))
+  (let [string (apply str args)
+        pt @(.pt (buffer/current-buffer))]
+    (.insert (.beg (.own-text (buffer/current-buffer)))
+             (dec pt) string)
+    (goto-char (+ pt (count string))))
+  nil)
 
 (defun buffer-substring (start end)
   "Return the contents of part of the current buffer as a string.
@@ -750,7 +791,7 @@
   This function copies the text properties of that part of the buffer
   into the result string; if you don't want the text properties,
   use `buffer-substring-no-properties' instead."
-  "")
+  (subs (buffer-string) start end))
 
 (defun byte-to-string (byte)
   "Convert arg BYTE to a unibyte string containing that byte."

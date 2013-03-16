@@ -2,10 +2,12 @@
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
             [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.data :as data]
             [deuce.emacs.eval :as eval]
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.cons :as cons]
             [deuce.emacs-lisp.globals :as globals])
+  (:import [deuce.emacs.data Buffer BufferText Marker])
   (:refer-clojure :exclude []))
 
 (defvar before-change-functions nil
@@ -760,8 +762,10 @@
 
   You can customize this variable.")
 
-(def ^:private buffers (atom #{}))
+(def ^:private buffer-alist (atom {}))
 (def ^:dynamic ^:private *current-buffer* nil)
+
+(declare set-buffer other-buffer buffer-name get-buffer)
 
 (defun barf-if-buffer-read-only ()
   "Signal a `buffer-read-only' error if the current buffer is read-only."
@@ -786,7 +790,7 @@
 (defun buffer-live-p (object)
   "Return non-nil if OBJECT is a buffer which has not been killed.
   Value is nil if OBJECT is not a buffer or if it has been killed."
-  (contains? @buffers object))
+  (contains? (set (vals @buffer-alist)) object))
 
 (defun restore-buffer-modified-p (flag)
   "Like `set-buffer-modified-p', with a difference concerning redisplay.
@@ -819,7 +823,7 @@
   it is in the sequence to be tried) even if a buffer with that name exists."
   (loop [idx 2]
     (let [name (str name  "<" idx ">")]
-      (if (and (contains? @buffers name) (not= ignore name))
+      (if (and (contains? @buffer-alist name) (not= ignore name))
         (recur (inc idx))
         name))))
 
@@ -841,6 +845,17 @@
   for positions far away from POS)."
   )
 
+;; The eternal battle of how to represent mutable data like pt and name, nested atoms or updates via root buffer-alist?
+;; The latter doesn't work properly, as save-current-buffer for example allows destructive updates to current buffer it restores.
+(defn ^:private allocate-buffer [name]
+  (let [beg (BufferText. (StringBuilder.) (list))
+        own-text beg
+        pt (atom 1)
+        mark (atom nil)
+        buffer (Buffer. beg own-text pt (atom name) mark false)]
+    (reset! mark (Marker. buffer @pt))
+    buffer))
+
 (defun get-buffer-create (buffer-or-name)
   "Return the buffer specified by BUFFER-OR-NAME, creating a new one if needed.
   If BUFFER-OR-NAME is a string and a live buffer with that name exists,
@@ -850,8 +865,11 @@
 
   If BUFFER-OR-NAME is a buffer instead of a string, return it as given,
   even if it is dead.  The return value is never nil."
-  (swap! buffers conj buffer-or-name)
-  buffer-or-name)
+  (if (data/bufferp buffer-or-name)
+    buffer-or-name
+    (let [buffer (or (get-buffer buffer-or-name) (allocate-buffer buffer-or-name))]
+      (swap! buffer-alist assoc buffer-or-name buffer)
+      buffer)))
 
 (defun overlay-start (overlay)
   "Return the position at which OVERLAY starts."
@@ -862,7 +880,10 @@
   BUFFER-OR-NAME must be either a string or a buffer.  If BUFFER-OR-NAME
   is a string and there is no buffer with that name, return nil.  If
   BUFFER-OR-NAME is a buffer, return it as given."
-  (@buffers buffer-or-name))
+  (if (data/bufferp buffer-or-name)
+    buffer-or-name
+    (and (el/check-type 'stringp buffer-or-name)
+         (@buffer-alist buffer-or-name))))
 
 (defun make-indirect-buffer (base-buffer name &optional clone)
   "Create and return an indirect buffer for buffer BASE-BUFFER, named NAME.
@@ -887,8 +908,6 @@
   BUFFER defaults to the current buffer."
   )
 
-(declare set-buffer other-buffer)
-
 (defun rename-buffer (newname &optional unique)
   "Change current buffer's name to NEWNAME (a string).
   If second arg UNIQUE is nil or omitted, it is an error if a
@@ -898,15 +917,15 @@
   Interactively, you can set UNIQUE with a prefix argument.
   We return the name we actually gave the buffer.
   This does not change the name of the visited file (if any)."
-  (let [buffer-exists? (contains? @buffers newname)]
-    (if (= newname *current-buffer*)
+  (let [buffer-exists? (contains? @buffer-alist newname)]
+    (if (= newname (buffer-name))
       newname
       (if (and unique buffer-exists?)
         (el/throw* 'error (format "Buffer name `%s' is in use" newname))
         (let [newname (if buffer-exists? (generate-new-buffer-name newname) newname)]
-          (swap! buffers disj (current-buffer))
-          (swap! buffers conj newname)
-          (set-buffer newname))))))
+          (swap! buffer-alist dissoc (buffer-name))
+          (swap! buffer-alist assoc newname (current-buffer))
+          (reset! (.name (current-buffer)) newname))))))
 
 (defun overlay-buffer (overlay)
   "Return the buffer OVERLAY belongs to.
@@ -917,7 +936,8 @@
   "Delete the entire contents of the current buffer.
   Any narrowing restriction in effect (see `narrow-to-region') is removed,
   so the buffer is truly empty after this."
-  )
+  (reset! (.pt (current-buffer)) 1)
+  (.setLength (.beg (.text (current-buffer))) 0))
 
 (defun kill-all-local-variables ()
   "Switch to Fundamental mode by killing current buffer's local variables.
@@ -945,7 +965,8 @@
   "Return the name of BUFFER, as a string.
   BUFFER defaults to the current buffer.
   Return nil if BUFFER has been killed."
-  (or buffer (current-buffer)))
+  @(.name (or (and buffer (el/check-type 'bufferp buffer))
+              (current-buffer))))
 
 (defun overlay-put (overlay prop value)
   "Set one property of overlay OVERLAY: give property PROP value VALUE.
@@ -960,7 +981,10 @@
   ends when the current command terminates.  Use `switch-to-buffer' or
   `pop-to-buffer' to switch buffers permanently."
   ;; This is not correct, should only change the binding, but will do for now.
-  (alter-var-root #'*current-buffer* (constantly buffer-or-name)))
+  (alter-var-root #'*current-buffer*
+                  (constantly
+                   (or (get-buffer buffer-or-name)
+                       (el/throw* 'error (format  "No buffer named %s" buffer-or-name))))))
 
 (defun buffer-enable-undo (&optional buffer)
   "Start keeping undo information for buffer BUFFER.
@@ -972,7 +996,7 @@
   If the optional arg FRAME is a frame, we return the buffer list in the
   proper order for that frame: the buffers show in FRAME come first,
   followed by the rest of the buffers."
-  (cons/maybe-seq (seq @buffers)))
+  (cons/maybe-seq (vals @buffer-alist)))
 
 (defun bury-buffer-internal (buffer)
   "Move BUFFER to the end of the buffer list."
@@ -1008,7 +1032,9 @@
 
   Any processes that have this buffer as the `process-buffer' are killed
   with SIGHUP."
-  (let [buffer (or buffer-or-name (current-buffer))]
+  (let [buffer (if (instance? Buffer buffer-or-name)
+                 buffer-or-name
+                 (or (@buffer-alist buffer-or-name (current-buffer))))]
     (if (or (not buffer)
             (and globals/kill-buffer-query-functions
                  (binding [*current-buffer* buffer]
@@ -1017,7 +1043,7 @@
       (do
         (binding [*current-buffer* buffer]
           (eval/run-hooks 'kill-buffer-hook))
-        (swap! buffers disj buffer)
+        (swap! buffer-alist dissoc (.name buffer))
         (set-buffer (other-buffer))
         true))))
 
@@ -1107,7 +1133,9 @@
   The buffer is found by scanning the selected or specified frame's buffer
   list first, followed by the list of all buffers.  If no other buffer
   exists, return the buffer `*scratch*' (creating it if necessary)."
-  (first (remove #{(or buffer (current-buffer))} (buffer-list))))
+  (or (first (remove #{(or (and buffer (el/check-type 'bufferp buffer))
+                           (current-buffer))} (buffer-list)))
+      (get-buffer-create "*scratch*")))
 
 (defun overlays-at (pos)
   "Return a list of the overlays that contain the character at POS."

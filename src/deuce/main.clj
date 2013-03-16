@@ -2,9 +2,10 @@
   (:require [deuce.emacs]
             [deuce.emacs-lisp :as el]
             [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data]
-            [deuce.emacs.eval :as eval]
             [deuce.emacs.editfns :as editfns]
+            [deuce.emacs.eval :as eval]
             [deuce.emacs.lread :as lread]
             [taoensso.timbre :as timbre])
   (:gen-class))
@@ -14,6 +15,18 @@
   (with-out-str
     ((resolve 'swank.swank/start-repl) port))
   (println "Swank connection opened on" port))
+
+(defn display-buffers []
+  (doseq [buffer (buffer/buffer-list)
+          :let [name (buffer/buffer-name buffer)
+                messages? (= name "*Messages*")]]
+    (println "---------------" buffer
+             (cond
+              (= name (buffer/buffer-name)) "--- [current buffer]"
+              messages? "--- [see stdout above]"
+              :else ""))
+    (when-not messages?
+      (println (str (.beg (.text buffer)))))))
 
 ;; We want to support emacs -nw -q initially. -q is --no-init-file
 (defn -main [& args]
@@ -37,8 +50,9 @@
 
     (el/setq command-line-args (alloc/cons "src/bootstrap-emacs" (apply alloc/list (remove nil? args))))
     (lread/load "deuce-loadup.el")
-    (println)
-    (flush)
+    ;; Dump the current buffers to stdout until we have display. *Messages* is already echoed to stdout.
+    (display-buffers)
+
     ;; Pontentially call out and init the clojure-lanterna terminal (when-not inhibit-window-system)
     ;; startup.el may take care of this indirectly and make the callback for us.
     ))
