@@ -38,6 +38,10 @@ I first tried loading this from my local checkout, which ended up trying to auto
 ```
 A real gem.
 
+There's also heuristics in `auto-mode` that tries to figure out what kind of file was just loaded to enable the right modes, most which aren't supported yet, as it tries to search around and do various analysis on the file contents.
+
+One "drawback" right now during the early days, is that when you try to incrementally add stuff, you can never be sure what Emacs is going to throw at you - with `autoloads` and `hooks` all bets are basically off.
+
 
 **2013-03-16 Basic Buffers**
 
