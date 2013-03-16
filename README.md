@@ -13,7 +13,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 **2013-03-26 Basic Buffers**
 
-Buffers are naturally pretty complex beasts in Emacs. But we got the basics: switching and inserting text in different buffers. Overlays, buffer locals, markers and a lot more etc. is not there:
+Buffers are naturally pretty complex beasts in Emacs. But we got the basics: switching and inserting text in different buffers. Overlays, buffer locals, markers etc. is not there yet:
 
     # Start with Swank so you can poke around:
     lein -q --swank-clojure
@@ -76,7 +76,7 @@ Now you can connect via Slime to the Swank server running inside Deuce, evaluate
 ;=> #<buffer *GNU Emacs*>
 
 (emacs-version)
-;=> "GNU Emacs 24.2 (jvm-1.8.0-ea_clojure-1.5.1)\nof 2013-03-16 on X202E"
+;=> "GNU Emacs 24.2 (jvm-1.8.0-ea_clojure-1.5.1)\n of 2013-03-16 on X202E"
 ```
 
 To kick off the terminal:
@@ -95,7 +95,7 @@ To kick off the terminal:
 (s/stop screen) ;; Restores the terminal to what it was. Ctrl-C kills Swank.
 ```
 
-To display something for real, we need Emacs windows, of which the minibuffer is one, and finally at least one Emacs frame, that is - a real window or terminal. To this you add the keymaps, which are basically nested in trees, looking somewhat like this:
+To display something for real, we need Emacs windows, of which the minibuffer is one, and finally at least one Emacs frame - a real "OS" window or terminal. To this mix you add the keymaps, which are basically nested in trees, looking somewhat like this:
 
 ```el
 slime-mode-map
@@ -104,7 +104,7 @@ slime-mode-map
     (5 . slime-eval-last-expression) ...) ...) ;; Containing C-e, and we now know what to call.
 ````
 
-Emacs has many exciting ways of describing keys though (Deuce's parser cannot handle all variants), and there are always more than one keymap in play at once, see ["Active Keymaps"](http://www.gnu.org/software/emacs/manual/html_node/elisp/Active-Keymaps.html) in the unlikely event you're interested in this. As a bonus, the menu bar is a also a keymap.
+Emacs has many exciting ways of describing keys though (the Deuce parser cannot handle all variants), and there are always more than one keymap in play at once, see ["Active Keymaps"](http://www.gnu.org/software/emacs/manual/html_node/elisp/Active-Keymaps.html) in the unlikely event you're interested in this. As a bonus, the menu bar is a also a keymap.
 
 
 **2013-03-14 [`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/src/deuce-loadup.el)**
