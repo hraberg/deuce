@@ -78,6 +78,7 @@
 
 ;; There're also buffer local variables, which will be using deuce.emacs.buffer/current-buffer
 ;; These vars are introduced by deuce.emacs.data/make-local-variable or make-variable-buffer-local
+;; There's also deuce.emacs.buffer/buffer-local-value which looks things up in the same context.
 ;; There's also an obsolete (as of Emacs 22.2) concept of frame locals.
 ;; See deuce.emacs.data/make-variable-frame-local and deuce.emacs.frame/modify-frame-parameters
 (defn el-var-buffer-local [name])
@@ -432,7 +433,7 @@
   (c/let [emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)]
          `(c/let
            ~(reduce into []
-                    (for [[s v] (partition 2 sym-vals)
+                    (for [[s v] (partition 2 2 nil sym-vals)
                           :let [s (sym s)]]
                       [(sym s) (if default?
                                  `(el-var-set-default ~s ~(if emacs-lisp? (el->clj v) v))
@@ -471,6 +472,7 @@
 ;; Everytime you make a 'sane' assumption you're bound to find some Emacs Lisp breaking it:
 ;; (let* ((x 2) (y (setq x 4))) (+ x y)) => 8
 ;; Also: Needs to support delayed-eval referring to earlier bindings on rhs. (currently requires the binding to be in &env).
+;; Need to deal with dots in symbols here. desktop.el has things like (let ((q.txt "something..")))
 (c/defmacro let-helper* [can-refer? varlist & body]
   (c/let [varlist (map #(if (symbol? %) [% nil] %) varlist)
           all-vars (map (comp sym first) varlist)

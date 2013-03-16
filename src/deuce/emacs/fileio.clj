@@ -1,8 +1,12 @@
 (ns deuce.emacs.fileio
-  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
-            [clojure.java.io :as io])
-  (:import [java.nio.file Files LinkOption])
+            [clojure.string :as s]
+            [clojure.java.io :as io]
+            [deuce.emacs.buffer :as buffer]
+            [deuce.emacs.editfns :as editfns])
+  (:import [java.nio.file Files LinkOption
+            NoSuchFileException])
   (:refer-clojure :exclude []))
 
 (defvar file-name-coding-system nil
@@ -142,6 +146,7 @@
 (defun file-name-absolute-p (filename)
   "Return t if file FILENAME specifies an absolute file name.
   On Unix, this is a name starting with a `/' or a `~'."
+  (el/check-type 'stringp filename)
   (.isAbsolute (io/file filename)))
 
 (defun set-visited-file-modtime (&optional time-list)
@@ -161,6 +166,7 @@
 
 (defun file-writable-p (filename)
   "Return t if file FILENAME can be written or created by you."
+  (el/check-type 'stringp filename)
   (Files/isWritable (.toPath (io/file filename))))
 
 (defun car-less-than-car (a b)
@@ -190,11 +196,15 @@
   (expand-file-name \"..\" \"/\") returns \"/..\".  For this reason, use
   (directory-file-name (file-name-directory dirname)) to traverse a
   filesystem tree, not (expand-file-name \"..\"  dirname)."
-  (if (seq default-directory)
-    (.getAbsolutePath (if default-directory
-                        (io/file default-directory name)
-                        (io/file name)))
-    name))
+  (el/check-type 'stringp name)
+  ;; Hack for classpath relative paths during loadup:
+  (if (io/resource name)
+    name
+    (let [file (io/file (s/replace name #"^~" (System/getProperty "user.home")))]
+      (.getAbsolutePath
+       (if (.isAbsolute file)
+         file
+         (io/file (or default-directory (el/el-var-get* 'default-directory)) name))))))
 
 (defun write-region (start end filename &optional append visit lockname mustbenew)
   "Write current region into specified file.
@@ -343,9 +353,12 @@
   This operation exists because a directory is also a file, but its name as
   a directory is different from its name as a file.
   In Unix-syntax, this function just removes the final slash."
-  (if (re-find #"/$" directory)
-    (subs directory 0 (dec (count directory)))
-    directory))
+  (el/check-type 'stringp directory)
+  (if (= "/" directory)
+    directory
+    (if (re-find #"/$" directory)
+      (subs directory 0 (dec (count directory)))
+      directory)))
 
 (defun make-directory-internal (directory)
   "Create a new directory named DIRECTORY."
@@ -360,6 +373,7 @@
 (defun file-readable-p (filename)
   "Return t if file FILENAME exists and you can read it.
   See also `file-exists-p' and `file-attributes'."
+  (el/check-type 'stringp filename)
   (Files/isReadable (.toPath (io/file filename))))
 
 (defun delete-file (filename &optional trash)
@@ -375,6 +389,7 @@
 (defun file-executable-p (filename)
   "Return t if FILENAME can be executed by you.
   For a directory, this means you can access files in that directory."
+  (el/check-type 'stringp filename)
   (Files/isExecutable (.toPath (io/file filename))))
 
 (defun make-temp-name (prefix)
@@ -438,14 +453,29 @@
   This function does code conversion according to the value of
   `coding-system-for-read' or `file-coding-system-alist', and sets the
   variable `last-coding-system-used' to the coding system actually used."
-  )
+  (let [file (io/file filename)
+        contents (slurp file)
+        contents (if (and visit beg end)
+                   (subs contents beg end)
+                   contents)
+        path (.getAbsolutePath file)]
+    (editfns/insert contents)
+    (when visit
+      (reset! (.save-modiff (.own-text (buffer/current-buffer))) (System/currentTimeMillis))
+      ;; This duality should go away once there are real buffer locals.
+      (reset! (.filename (buffer/current-buffer)) path)
+      ;; Hack, but should eventually work, as these vars should be buffer local.
+      (el/setq buffer-file-name path)
+      (el/setq buffer-saved-size (count contents)))
+    (list path (count contents))))
 
 (defun file-name-nondirectory (filename)
   "Return file name FILENAME sans its directory.
   For example, in a Unix-syntax file name,
   this is everything after the last slash,
   or the entire name if it contains no slash."
-  )
+  (el/check-type 'stringp filename)
+  (.getName (io/file filename)))
 
 (defun substitute-in-file-name (filename)
   "Substitute environment variables referred to in FILENAME.
@@ -457,12 +487,17 @@
   If `/~' appears, all of FILENAME through that `/' is discarded.
   If `//' appears, everything up to and including the first of
   those `/' is discarded."
-  )
+  (let [filename (-> filename
+                     (s/replace #".+(~/.+)" "$1")
+                     (s/replace #".+/(/.+)" "$1"))
+        vars (re-seq #"\$(\w+|\{.+\})" filename)]
+    (reduce #(s/replace %1 (first %2) (System/getenv (second %2))) filename vars)))
 
 (defun file-directory-p (filename)
   "Return t if FILENAME names an existing directory.
   Symbolic links to directories count as directories.
   See `file-symlink-p' to distinguish symlinks."
+  (el/check-type 'stringp filename)
   (.isDirectory (io/file filename)))
 
 (defun set-buffer-auto-saved ()
@@ -494,6 +529,7 @@
   A directory name spec may be given instead; then the value is t
   if the directory so specified exists and really is a readable and
   searchable directory."
+  (el/check-type 'stringp filename)
   (file-directory-p filename))
 
 (defun file-name-as-directory (file)
@@ -503,6 +539,7 @@
   The result can be used as the value of `default-directory'
   or passed as second argument to `expand-file-name'.
   For a Unix-syntax file name, just appends a slash."
+  (el/check-type 'stringp file)
   (if (re-find #"/$" file)
     file
     (str file "/")))
@@ -539,6 +576,7 @@
   This is the sort of file that holds an ordinary stream of data bytes.
   Symbolic links to regular files count as regular files.
   See `file-symlink-p' to distinguish symlinks."
+  (el/check-type 'stringp filename)
   (Files/isRegularFile (.toPath (io/file filename)) (make-array LinkOption 0)))
 
 (defun file-name-directory (filename)
@@ -546,7 +584,13 @@
   Return nil if FILENAME does not include a directory.
   Otherwise return a directory name.
   Given a Unix syntax file name, returns a string ending in slash."
-  (file-name-as-directory (.getAbsolutePath (.getParentFile (io/file filename)))))
+  (el/check-type 'stringp filename)
+  (if (= "/" filename)
+    filename
+    (when-let [dir (.getParent (io/file filename))]
+      (if (re-find #"/$" dir)
+        dir
+        (str dir "/")))))
 
 (defun file-symlink-p (filename)
   "Return non-nil if file FILENAME is the name of a symbolic link.
@@ -555,7 +599,13 @@
 
   This function returns t when given the name of a symlink that
   points to a nonexistent file."
-  (Files/isSymbolicLink (.toPath (io/file filename))))
+  (el/check-type 'stringp filename)
+  (let [path (.toPath (io/file filename))]
+    (when (Files/isSymbolicLink path)
+      (try
+        (str (.toRealPath path (make-array LinkOption 0)))
+        (catch NoSuchFileException _
+          true)))))
 
 (defun unhandled-file-name-directory (filename)
   "Return a directly usable directory name somehow associated with FILENAME.

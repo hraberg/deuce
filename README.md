@@ -11,6 +11,34 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs)
 
+**2013-03-16 Visiting Files**
+
+One of those features that just make Emacs so great as an editor is its ability to load files:
+
+```
+lein run -q ~/project.clj
+Loading deuce-loadup.el (source)...
+[ ... ]
+--------------- #<buffer project.clj> --- [current buffer]
+(defproject deuce "0.1.0-SNAPSHOT"
+  :description "DEUCE - Deuce is (not yet) Emacs under Clojure"
+  :license {:name "GNU General Public License Version 3"
+            :url "http://www.gnu.org/licenses/"
+            :distribution :repo}
+  :url "http://www.gnu.org/software/emacs/"
+
+  ...)
+```
+
+I first tried loading this from my local checkout, which ended up trying to autoload `vc-git` and various dependencies - `desktop.el` which blows up in the Clojure compiler with a `ClassFormatError: Illegal field name "q.txt"`:
+
+```el
+(let ((q.txt (desktop-internal-v2s (car p))))
+    ...)
+```
+A real gem.
+
+
 **2013-03-16 Basic Buffers**
 
 Buffers are naturally pretty complex beasts in Emacs. But we got the basics: switching and inserting text in different buffers. Overlays, buffer locals, markers etc. are not there yet:

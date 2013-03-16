@@ -144,10 +144,11 @@
     - 1 - N is the number of characters that match at the beginning.
   If string STR1 is greater, the value is a positive number N;
     N - 1 is the number of characters that match at the beginning."
-  (let [[ str1 str2] (if ignore-case
-                       [(s/lower-case str1) (s/lower-case str2)]
-                       [str1 str2])]
-    (compare (subs str1 start1 end1) (subs str2 start2 end2))))
+  (let [[str1 str2] (if ignore-case
+                      [(s/lower-case str1) (s/lower-case str2)]
+                      [str1 str2])]
+    (compare (subs str1 start1 (or end1 (count str1)))
+             (subs str2 start2 (or end2 (count str2))))))
 
 (defun copy-alist (alist)
   "Return a copy of ALIST.

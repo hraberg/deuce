@@ -404,7 +404,9 @@
                              (or (when-not nosuffix
                                    (io/resource (str file ".el")))
                                  (io/resource file)))
-                           (some identity))
+                           (filter identity)
+                           (remove #(.isDirectory (io/file %)))
+                           first)
                       (.toURL (io/file file)))
               el-extension? (re-find #".el$" file)]
           (when-not nomessage

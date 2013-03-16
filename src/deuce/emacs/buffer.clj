@@ -435,7 +435,7 @@
   "Default value of `case-fold-search' for buffers that don't override it.
   This is the same as (default-value 'case-fold-search).")
 
-(defvar buffer-saved-size nil
+(defvar buffer-saved-size 0
   "Length of current buffer when last read in, saved or auto-saved.
   0 initially.
   -1 means auto-saving turned off until next real save.
@@ -765,7 +765,7 @@
 (def ^:private buffer-alist (atom {}))
 (def ^:dynamic ^:private *current-buffer* nil)
 
-(declare set-buffer other-buffer buffer-name get-buffer)
+(declare current-buffer set-buffer other-buffer buffer-name get-buffer)
 
 (defun barf-if-buffer-read-only ()
   "Signal a `buffer-read-only' error if the current buffer is read-only."
@@ -801,7 +801,8 @@
 (defun buffer-modified-p (&optional buffer)
   "Return t if BUFFER was modified since its file was last read or saved.
   No argument or nil as argument means use current buffer as BUFFER."
-  )
+  (let [text (.own-text (or buffer (current-buffer)))]
+    (> @(.modiff text) @(.save-modiff text))))
 
 (defun buffer-chars-modified-tick (&optional buffer)
   "Return BUFFER's character-change tick counter.
@@ -821,11 +822,13 @@
   (starting at 2) until an unused name is found, and then return that name.
   Optional second argument IGNORE specifies a name that is okay to use (if
   it is in the sequence to be tried) even if a buffer with that name exists."
-  (loop [idx 2]
-    (let [name (str name  "<" idx ">")]
-      (if (and (contains? @buffer-alist name) (not= ignore name))
-        (recur (inc idx))
-        name))))
+  (if-not (contains? @buffer-alist name)
+    name
+    (loop [idx 2]
+      (let [name (str name  "<" idx ">")]
+        (if (and (contains? @buffer-alist name) (not= ignore name))
+          (recur (inc idx))
+          name)))))
 
 (defun set-buffer-multibyte (flag)
   "Set the multibyte flag of the current buffer to FLAG.
@@ -848,11 +851,12 @@
 ;; The eternal battle of how to represent mutable data like pt and name, nested atoms or updates via root buffer-alist?
 ;; The latter doesn't work properly, as save-current-buffer for example allows destructive updates to current buffer it restores.
 (defn ^:private allocate-buffer [name]
-  (let [beg (BufferText. (StringBuilder.) (list))
-        own-text beg
+  (let [now (System/currentTimeMillis)
+        text (BufferText. (StringBuilder.) (atom now) (atom now) nil)
+        own-text text
         pt (atom 1)
         mark (atom nil)
-        buffer (Buffer. beg own-text pt (atom name) mark false)]
+        buffer (Buffer. own-text text pt (atom name) (atom nil) mark false)]
     (reset! mark (Marker. buffer @pt))
     buffer))
 
@@ -936,8 +940,10 @@
   "Delete the entire contents of the current buffer.
   Any narrowing restriction in effect (see `narrow-to-region') is removed,
   so the buffer is truly empty after this."
-  (reset! (.pt (current-buffer)) 1)
-  (.setLength (.beg (.text (current-buffer))) 0))
+  (let [text (.own-text (current-buffer))]
+    (reset! (.pt (current-buffer)) 1)
+    (reset! (.modiff text) (System/currentTimeMillis))
+    (.setLength (.beg text) 0)))
 
 (defun kill-all-local-variables ()
   "Switch to Fundamental mode by killing current buffer's local variables.
@@ -1082,7 +1088,7 @@
 (defun set-buffer-modified-p (flag)
   "Mark current buffer as modified or unmodified according to FLAG.
   A non-nil FLAG means mark the buffer modified."
-  )
+  (reset! (.modiff (.own-text (current-buffer))) (System/currentTimeMillis)))
 
 (defun move-overlay (overlay beg end &optional buffer)
   "Set the endpoints of OVERLAY to BEG and END in BUFFER.

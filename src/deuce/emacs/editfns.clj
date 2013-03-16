@@ -354,9 +354,12 @@
   If optional arg NOUNDO is non-nil, don't record this change for undo
   and don't mark the buffer as really changed.
   Both characters must have the same length of multi-byte form."
-  (.replace (.beg (.text (buffer/current-buffer)))
-            start end
-            (s/replace (buffer-substring start end) fromchar tochar)))
+  (let [text (.own-text (buffer/current-buffer))]
+    (.replace (.beg text)
+              start end
+              (s/replace (buffer-substring start end) fromchar tochar))
+    (reset! (.modiff text) (System/currentTimeMillis))
+    nil))
 
 (defun bolp ()
   "Return t if point is at the beginning of a line."
@@ -515,7 +518,7 @@
   "Return the contents of the current buffer as a string.
   If narrowing is in effect, this function returns only the visible part
   of the buffer."
-  (str (.beg (.text (buffer/current-buffer)))))
+  (str (.beg (.own-text (buffer/current-buffer)))))
 
 (defun current-message ()
   "Return the string currently displayed in the echo area, or nil if none."
@@ -582,11 +585,12 @@
   "Delete the text between START and END.
   If called interactively, delete the region between point and mark.
   This command deletes buffer text without modifying the kill ring."
-  (.delete (.beg (.own-text (buffer/current-buffer)))
-           (dec start) (dec end))
-  (when (> (point) start)
-    (goto-char (+ (- end start) (- (point) start)))
-    nil))
+  (let [text (.own-text (buffer/current-buffer))]
+    (.delete (.beg text) (dec start) (dec end))
+    (reset! (.modiff text) (System/currentTimeMillis))
+    (when (> (point) start)
+      (goto-char (+ (- end start) (- (point) start)))
+      nil)))
 
 (defun transpose-regions (startr1 endr1 startr2 endr2 &optional leave-markers)
   "Transpose region STARTR1 to ENDR1 with STARTR2 to ENDR2.
@@ -626,7 +630,7 @@
 (defun buffer-size (&optional buffer)
   "Return the number of characters in the current buffer.
   If BUFFER, return the number of characters in that buffer instead."
-  (count (.beg (.text (or (and buffer (el/check-type 'bufferp buffer))
+  (count (.beg (.own-text (or (and buffer (el/check-type 'bufferp buffer))
                           (buffer/current-buffer))))))
 
 (defun region-end ()
@@ -776,9 +780,10 @@
   buffer; to accomplish this, apply `string-as-multibyte' to the string
   and insert the result."
   (let [string (apply str args)
-        pt @(.pt (buffer/current-buffer))]
-    (.insert (.beg (.own-text (buffer/current-buffer)))
-             (dec pt) string)
+        pt @(.pt (buffer/current-buffer))
+        text (.own-text (buffer/current-buffer))]
+    (.insert (.beg text) (dec pt) string)
+    (reset! (.modiff text) (System/currentTimeMillis))
     (goto-char (+ pt (count string))))
   nil)
 

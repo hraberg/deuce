@@ -70,13 +70,23 @@
      ;;    into a buffer's text to functions that malloc.  */
      beg;
 
+     ;; /* This counts buffer-modification events
+     ;;    for this buffer.  It is incremented for
+     ;;    each such event, and never otherwise
+     ;;    changed.  */
+     modiff
+
+     ;;	/* Previous value of modiff, as of last
+     ;;    time buffer visited or saved a file.  */
+     save-modiff
+
      ;; /* The markers that refer to this buffer.
-     ;;  This is actually a single marker ---
-     ;;  successive elements in its marker `chain'
-     ;;  are the other markers referring to this buffer.
-     ;;  This is a singly linked unordered list, which means that it's
-     ;;  very cheap to add a marker to the list and it's also very cheap
-     ;;  to move a marker within a buffer.  */
+     ;;    This is actually a single marker ---
+     ;;    successive elements in its marker `chain'
+     ;;    are the other markers referring to this buffer.
+     ;;    This is a singly linked unordered list, which means that it's
+     ;;    very cheap to add a marker to the list and it's also very cheap
+     ;;    to move a marker within a buffer.  */
      markers])
 
 ;; struct buffer in buffer.h. Pretty large, so won't move it all over at once.
@@ -98,8 +108,11 @@
      ;; /* The name of this buffer.  */
      name
 
+     ;; /* The name of the file visited in this buffer, or nil.  */
+     filename
+
      ;; /* "The mark".  This is a marker which may
-     ;; point into this buffer or may point nowhere.  */
+     ;;    point into this buffer or may point nowhere.  */
      mark
 
      ;; /* t means the mark and region are currently active.  */
@@ -511,6 +524,8 @@
   which makes a variable local in just one buffer.
 
   The function `default-value' gets the default value and `set-default' sets it."
+  ;; Hack until we have real buffer locals
+  (set variable nil)
   variable)
 
 (defun char-or-string-p (object)
@@ -627,7 +642,9 @@
 
 (defun setplist (symbol newplist)
   "Set SYMBOL's property list to NEWPLIST, and return NEWPLIST."
-  (alter-meta! (el/global symbol) (constantly newplist)))
+  ;; This and symbol-plist needs to share the *symbol-plists* atom in fns
+  ;; We may want to push that atom down to deuce.emacs-lisp for easy access.
+  newplist)
 
 (defun set-default (symbol value)
   "Set SYMBOL's default value to VALUE.  SYMBOL and VALUE are evaluated.

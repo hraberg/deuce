@@ -302,7 +302,8 @@
   frame, the return value indicates what sort of terminal device it is
   displayed on.  See the documentation of `framep' for possible
   return values."
-  )
+  ;; Emacs startup runs deuce.emacs.emacs/kill-emacs if this returns false.
+  object)
 
 (defun set-frame-width (frame cols &optional pretend)
   "Specify that the frame FRAME has COLS columns.

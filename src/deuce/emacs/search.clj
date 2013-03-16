@@ -1,9 +1,10 @@
 (ns deuce.emacs.search
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
-            [clojure.string :as s])
+            [clojure.string :as s]
+            [taoensso.timbre :as timbre])
   (:refer-clojure :exclude [])
-  (:import [java.util.regex Pattern]))
+  (:import [java.util.regex Pattern PatternSyntaxException]))
 
 (defvar inhibit-changing-match-data nil
   "Internal use only.
@@ -199,19 +200,25 @@
 
   You can use the function `match-string' to extract the substrings
   matched by the parenthesis constructions in REGEXP."
-  (let [offset (or start 0)
-        m (re-matcher (re-pattern (-> regexp
-                                      (s/replace #"^\\\`" "^")
-                                      (s/replace #"\[(.*?)]"
-                                                 (fn [x] (str "[" (s/replace (x 1) "[" "\\[") "]")))
-                                      (s/replace "\\(" "(")
-                                      (s/replace "\\)" ")")))
-                      (subs string offset))]
-    (if (re-find m)
-      (do
-        (reset! *current-match-data* {:matcher m :offset offset})
-        (+ offset (.start m)))
-      (reset! *current-match-data* nil))))
+  ;; http://www.gnu.org/software/emacs/manual/html_node/elisp/Regexp-Special.html
+  (let [pattern (-> regexp
+                    (s/replace #"^\\\`" "^")
+                    (s/replace #"\[(]?.*?)]"
+                               (fn [x]
+                                 (str "[" (s/replace
+                                           (s/replace (x 1) "\\" "\\\\")
+                                           "[" "\\[")
+                                      "]")))
+                    (s/replace "\\(" "(")
+                    (s/replace "\\)" ")"))]
+    (let [offset (or start 0)
+          m (re-matcher (re-pattern pattern)
+                        (subs string offset))]
+      (if (re-find m)
+        (do
+          (reset! *current-match-data* {:matcher m :offset offset})
+          (+ offset (.start m)))
+        (reset! *current-match-data* nil)))))
 
 (defun posix-looking-at (regexp)
   "Return t if text after point matches regular expression REGEXP.

@@ -26,7 +26,7 @@
               messages? "--- [see stdout above]"
               :else ""))
     (when-not messages?
-      (println (str (.beg (.text buffer)))))))
+      (println (str (.beg (.own-text buffer)))))))
 
 ;; We want to support emacs -nw -q initially. -q is --no-init-file
 (defn -main [& args]
