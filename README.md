@@ -22,7 +22,7 @@ Buffers are naturally pretty complex beasts in Emacs. But we got the basics: swi
     Using load-path ("" "emacs-lisp" "language" "international" "textmodes")
     Loading emacs-lisp/byte-run...
 
-    [... eventually calling deuce.emacs/display-buffers to dump the state to stdout ...]
+    [... eventually calling deuce.main/display-buffers to dump the state to stdout ...]
 
     --------------- #<buffer *GNU Emacs*> --- [current buffer]
     Welcome to GNU Emacs, a part of the GNU operating system.
