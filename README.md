@@ -667,6 +667,8 @@ I'll revisit the name if the Clojure port actually becomes usable and the name c
 
 [el4r](http://www.rubyist.net/~rubikitch/computer/el4r/index.en.html) EmacsRuby engine - EmacsLisp for Ruby
 
+[Conkeror](http://conkeror.org/) "Conkeror is a keyboard-oriented, highly-customizable, highly-extensible web browser."
+
 
 #### This is NOT YET GNU Emacs, one component of the GNU/Linux operating system.
 
