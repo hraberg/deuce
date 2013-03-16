@@ -11,7 +11,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs)
 
-**2013-03-16 Visiting Files**
+**2013-03-17 Visiting Files**
 
 One of those features that just make Emacs so great as an editor is its ability to load files:
 
