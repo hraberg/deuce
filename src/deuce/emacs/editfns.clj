@@ -796,7 +796,7 @@
   This function copies the text properties of that part of the buffer
   into the result string; if you don't want the text properties,
   use `buffer-substring-no-properties' instead."
-  (subs (buffer-string) start end))
+  (subs (buffer-string) (dec start) (dec end)))
 
 (defun byte-to-string (byte)
   "Convert arg BYTE to a unibyte string containing that byte."

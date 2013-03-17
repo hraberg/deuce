@@ -6,6 +6,7 @@
             [deuce.emacs.data :as data]
             [deuce.emacs.editfns :as editfns]
             [deuce.emacs.eval :as eval]
+            [deuce.emacs.fileio :as fileio]
             [deuce.emacs.frame :as frame]
             [deuce.emacs.keyboard :as keyboard]
             [deuce.emacs.window :as window])
@@ -458,8 +459,15 @@
         buffer (el/check-type 'bufferp (or buffer (window/window-buffer window)))
         window-width (max (window/window-total-width window)
                           (data/symbol-value 'fill-column))
-        line 1
-        column 1
+        point @(.pt buffer)
+        substring (.substring (.beg (.own-text buffer)) 0 (dec point))
+        line-offset (.lastIndexOf substring "\n")
+        column (dec (if (= -1 line-offset) point (- point line-offset)))
+        line (inc (- (count substring) (count (.replace substring "\n" ""))))
+        modified? (buffer/buffer-modified-p buffer)
+        read-only? (buffer/buffer-local-value 'buffer-read-only buffer)
+        recursion-depth (keyboard/recursion-depth)
+        latin-1-mnemonic "1" ;; "U" is UTF-8, "-" is ASCII. See interntional/mule-conf
         % (fn [x] (re-pattern (str "%(-?\\d*)" x)))
         humanize (fn [x]
                    (some identity (reverse
@@ -468,7 +476,8 @@
                                            (when (> x size)
                                              (str (long (/ x size)) suffix))) )
                                        ["" "k" "M" "G"]))))
-        pad (fn padder
+        pad (fn padder ;; "Numeric constructs are padded by inserting spaces to the left,
+                       ;;  and others are padded by inserting spaces to the right." - not dealt with.
               ([value] (partial padder value))
               ([value [_ pad]]
                  (let [s (str value)]
@@ -480,28 +489,40 @@
         formatter (fn formatter [f] ;; Vastly incomplete and wrong.
                     (condp some [f]
                       string? (reduce #(s/replace %1 (key %2) (val %2)) f
-                                      {(% "e") ""
-                                       (% "n") ""
-                                       (% "z") "1"
-                                       (% "Z") "1:"
-                                       (% "\\[") (apply str (repeat (keyboard/recursion-depth) "[" ))
-                                       (% "\\]") (apply str (repeat (keyboard/recursion-depth) "]"))
-                                       (% "@") "-"
-                                       (% "\\+") "-"
-                                       (% "\\*") "-"
-                                       (% "\\&") "-"
+                                      {(% "e") "" ;; "!MEM FULL! "
+                                       (% "n") "" ;; "Narrow"
+                                       (% "z") latin-1-mnemonic
+                                       (% "Z") (str latin-1-mnemonic (data/symbol-value 'eol-mnemonic-unix))
+                                       (% "\\[") (if (> 5 recursion-depth)
+                                                   "[[[... "
+                                                   (apply str (repeat (keyboard/recursion-depth) "[" )))
+                                       (% "\\]") (if (> 5 recursion-depth)
+                                                   " ...]]]"
+                                                   (apply str (repeat (keyboard/recursion-depth) "]" )))
+                                       (% "@")  "-" ;; files/file-remote-p
+                                       (% "\\+") (cond
+                                                  modified? "*"
+                                                  read-only? "%"
+                                                  :else "-")
+                                       (% "\\*") (cond
+                                                  read-only? "%"
+                                                  modified? "*"
+                                                  :else "-")
+                                       (% "&") (if modified? "*" "-")
                                        (% "l") (str line)
                                        (% "c") (str column)
                                        (% "%") "%"
-                                       (% "i") (pad (editfns/buffer-size buffer))
+                                       (% "i") (pad (editfns/buffer-size buffer)) ;; Should take narrowing in account.
                                        (% "I") (pad (humanize (editfns/buffer-size buffer)))
                                        (% "p") (pad (let [percent (* 100 (long (/ @(.pt buffer)
                                                                                   (inc (editfns/buffer-size buffer)))))]
                                                       (case percent
                                                         0 "Top"
-                                                        100 "All"
+                                                        100 "All" ;; or "Bottom" if top line isn't visible.
                                                         (str percent "%"))))
-                                       ;; (% "P")
+                                       ;; (% "P") ;; The reverse of the above
+                                       (% "m") (pad (buffer/buffer-local-value 'mode-name buffer))
+                                       (% "M") (pad (data/symbol-value 'global-mode-string))
                                        (% "b") (pad (buffer/buffer-name buffer))
                                        (% "f") (pad (buffer/buffer-file-name buffer))
                                        (% "F") (pad (.name (frame/selected-frame)))})
@@ -510,7 +531,7 @@
                              (condp some [fst]
                                integer? (pad (formatter (rest f)) [:ignored (str fst)])
                                #{:eval} (formatter (eval/eval (second f)))
-                               #{:propertize} (formatter (second f))
+                               #{:propertize} (formatter (second f)) ;; Properties are used for tooltips, fonts etc.
                                symbol? (if (and (data/boundp fst) (data/symbol-value fst))
                                          (formatter (second f))
                                          (formatter (nth f 2 nil)))

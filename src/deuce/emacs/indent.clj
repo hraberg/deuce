@@ -1,6 +1,8 @@
 (ns deuce.emacs.indent
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [deuce.emacs.buffer :as buffer]
+            [deuce.emacs.editfns :as editfns])
   (:refer-clojure :exclude []))
 
 (defvar indent-tabs-mode nil
@@ -26,7 +28,9 @@
   however, ^M is treated as end of line when `selective-display' is t.
   Text that has an invisible property is considered as having width 0, unless
   `buffer-invisibility-spec' specifies that it is replaced by an ellipsis."
-  )
+  (let [point (editfns/point)
+        line (.lastIndexOf (subs (editfns/buffer-string) 0 (dec point)) "\n")]
+    (dec (if (= -1 line) point (- point line)))))
 
 (defun compute-motion (from frompos to topos width offsets window)
   "Scan through the current buffer, calculating screen position.

@@ -793,7 +793,8 @@
 (def ^:private buffer-alist (atom {}))
 (def ^:dynamic ^:private *current-buffer* nil)
 
-(declare current-buffer set-buffer other-buffer buffer-name get-buffer buffer-local-value)
+(declare current-buffer set-buffer other-buffer buffer-name
+         get-buffer buffer-local-value set-buffer-modified-p)
 
 (defun barf-if-buffer-read-only ()
   "Signal a `buffer-read-only' error if the current buffer is read-only."
@@ -824,13 +825,14 @@
   "Like `set-buffer-modified-p', with a difference concerning redisplay.
   It is not ensured that mode lines will be updated to show the modified
   state of the current buffer.  Use with care."
-  )
+  (set-buffer-modified-p flag))
 
 (defun buffer-modified-p (&optional buffer)
   "Return t if BUFFER was modified since its file was last read or saved.
   No argument or nil as argument means use current buffer as BUFFER."
-  (let [text (.own-text (or buffer (current-buffer)))]
-    (> @(.modiff text) @(.save-modiff text))))
+  (let [text (.own-text (or buffer (current-buffer)))
+        modiff @(.modiff text)]
+    (and modiff (> modiff @(.save-modiff text)))))
 
 (defun buffer-chars-modified-tick (&optional buffer)
   "Return BUFFER's character-change tick counter.
@@ -880,7 +882,7 @@
 ;; The latter doesn't work properly, save-current-buffer for example allows destructive updates to the current buffer it restores.
 (defn ^:private allocate-buffer [name]
   (let [now (System/currentTimeMillis)
-        text (BufferText. (StringBuilder.) (atom now) (atom now) nil)
+        text (BufferText. (StringBuilder.) (atom nil) (atom now) nil)
         own-text text
         pt (atom 1)
         mark (atom nil)
