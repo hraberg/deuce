@@ -463,7 +463,11 @@
         substring (.substring (.beg (.own-text buffer)) 0 (dec point))
         line-offset (.lastIndexOf substring "\n")
         column (dec (if (= -1 line-offset) point (- point line-offset)))
-        line (inc (- (count substring) (count (.replace substring "\n" ""))))
+        line (if (= -1 line-offset) 1
+               (loop [idx 0 line 1]
+                 (if (= idx line-offset) line
+                     (recur (unchecked-inc idx)
+                            (if (= \newline (.charAt substring idx)) (unchecked-inc line) line)))))
         modified? (buffer/buffer-modified-p buffer)
         read-only? (buffer/buffer-local-value 'buffer-read-only buffer)
         recursion-depth (keyboard/recursion-depth)
@@ -493,10 +497,10 @@
                                        (% "n") "" ;; "Narrow"
                                        (% "z") latin-1-mnemonic
                                        (% "Z") (str latin-1-mnemonic (data/symbol-value 'eol-mnemonic-unix))
-                                       (% "\\[") (if (> 5 recursion-depth)
+                                       (% "\\[") (if (< 5 recursion-depth)
                                                    "[[[... "
                                                    (apply str (repeat (keyboard/recursion-depth) "[" )))
-                                       (% "\\]") (if (> 5 recursion-depth)
+                                       (% "\\]") (if (< 5 recursion-depth)
                                                    " ...]]]"
                                                    (apply str (repeat (keyboard/recursion-depth) "]" )))
                                        (% "@")  "-" ;; files/file-remote-p
@@ -514,7 +518,7 @@
                                        (% "%") "%"
                                        (% "i") (pad (editfns/buffer-size buffer)) ;; Should take narrowing in account.
                                        (% "I") (pad (humanize (editfns/buffer-size buffer)))
-                                       (% "p") (pad (let [percent (* 100 (long (/ @(.pt buffer)
+                                       (% "p") (pad (let [percent (long (* 100 (/ @(.pt buffer)
                                                                                   (inc (editfns/buffer-size buffer)))))]
                                                       (case percent
                                                         0 "Top"
