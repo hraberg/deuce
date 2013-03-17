@@ -515,7 +515,7 @@
                                          (formatter (second f))
                                          (formatter (nth f 2 nil)))
                                (apply str (map formatter f))))
-                       f))]
+                      (str f)))]
     (let [mode-line (formatter format)]
       (s/replace-first mode-line "%-"
                        (apply str (repeat (- window-width (count mode-line)) "-"))))))
