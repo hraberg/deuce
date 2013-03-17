@@ -1,8 +1,11 @@
 (ns deuce.emacs.frame
-  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
             [deuce.emacs.alloc :as alloc]
-            [deuce.emacs.buffer :as buffer])
+            [deuce.emacs.buffer :as buffer]
+            [deuce.emacs.data :as data]
+            [deuce.emacs-lisp.globals :as globals])
+  (:import [deuce.emacs.data Frame Window])
   (:refer-clojure :exclude []))
 
 (defvar menu-bar-mode true
@@ -43,7 +46,24 @@
   use `display-graphic-p' or any of the other `display-*-p'
   predicates which report frame's specific UI-related capabilities.")
 
-(defvar terminal-frame nil
+;; These should obviously live in window.clj
+(def ^:private sequence-number (atom 0))
+
+(defn ^:private allocate-window [minibuffer? parent leftcol top-line total-cols total-lines]
+  (let [[next prev hchild vchild
+         buffer start pointm] (repeatedly #(atom nil))]
+    (Window. minibuffer? next prev hchild vchild parent
+             (atom leftcol) (atom top-line) (atom total-cols) (atom total-lines)
+             buffer start pointm (swap! sequence-number inc))))
+
+(defvar terminal-frame (let [root-window (allocate-window false nil 0 1 10 9)
+                             selected-window (atom root-window)
+                             minibuffer-window (allocate-window true nil 0 9 10 1)
+                             menu-bar-items (atom nil)
+                             terminal (atom nil)]
+                         (reset! (.next root-window) minibuffer-window)
+                         (reset! (.prev minibuffer-window) root-window)
+                         (Frame. "F1" root-window selected-window minibuffer-window menu-bar-items terminal))
   "The initial frame-object, which represents Emacs's stdout.")
 
 (defvar default-frame-alist nil
@@ -95,10 +115,10 @@
   This abnormal hook exists for the benefit of packages like `xt-mouse.el'
   which need to do mouse handling at the Lisp level.")
 
-(defvar default-frame-scroll-bars nil
+(defvar default-frame-scroll-bars 'right
   "Default position of scroll bars on this window-system.")
 
-(defvar default-minibuffer-frame nil
+(defvar default-minibuffer-frame globals/terminal-frame
   "Minibufferless frames use this frame's minibuffer.
 
   Emacs cannot create minibufferless frames unless this is set to an
@@ -162,7 +182,7 @@
    'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
    'pc' for a direct-write MS-DOS frame.
   See also `frame-live-p'."
-  )
+  (instance? Frame object))
 
 (defun frame-visible-p (frame)
   "Return t if FRAME is \"visible\" (actually in use for display).
@@ -174,7 +194,7 @@
   If FRAME is a text-only terminal frame, this always returns t.
   Such frames are always considered visible, whether or not they are
   currently being displayed on the terminal."
-  )
+  (framep frame))
 
 (defun make-terminal-frame (parms)
   "Create an additional terminal frame, possibly on another terminal.
@@ -302,8 +322,7 @@
   frame, the return value indicates what sort of terminal device it is
   displayed on.  See the documentation of `framep' for possible
   return values."
-  ;; Emacs startup runs deuce.emacs.emacs/kill-emacs if this returns false.
-  object)
+  (framep object))
 
 (defun set-frame-width (frame cols &optional pretend)
   "Specify that the frame FRAME has COLS columns.
@@ -429,7 +448,7 @@
 
 (defun selected-frame ()
   "Return the frame that is now selected."
-  (str "#<frame " (buffer/current-buffer) ">"))
+  globals/terminal-frame)
 
 (defun redirect-frame-focus (frame &optional focus-frame)
   "Arrange for keystrokes typed at FRAME to be sent to FOCUS-FRAME.

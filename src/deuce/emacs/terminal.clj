@@ -1,6 +1,10 @@
 (ns deuce.emacs.terminal
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [lanterna.screen :as s]
+            [deuce.emacs.frame :as frame]
+            [deuce.emacs-lisp.cons :as cons]
+            [deuce.emacs-lisp.globals :as globals])
   (:refer-clojure :exclude []))
 
 (defvar delete-terminal-functions nil
@@ -13,9 +17,17 @@
   "Non-nil means call this function to ring the bell.
   The function should accept no arguments.")
 
+(defn ^:private terminal-resized [width height])
+
+(defn ^:private init-initial-terminal []
+  (let [terminal (s/get-screen :text)]
+    (reset! (.terminal globals/terminal-frame) terminal)
+    (s/add-resize-listener terminal terminal-resized)
+    (s/start terminal)))
+
 (defun terminal-list ()
   "Return a list of all terminal devices."
-  )
+  (cons/maybe-seq (remove nil? (map #(deref (.terminal %)) (frame/frame-list)))))
 
 (defun terminal-parameter (terminal parameter)
   "Return TERMINAL's value for parameter PARAMETER.
@@ -36,7 +48,7 @@
   If FRAME is nil, the selected frame is used.
 
   The terminal device is represented by its integer identifier."
-  )
+  @(.terminal (or frame (frame/selected-frame))))
 
 (defun delete-terminal (&optional terminal force)
   "Delete TERMINAL by deleting all frames on it and closing the terminal.

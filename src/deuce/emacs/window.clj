@@ -1,6 +1,9 @@
 (ns deuce.emacs.window
-  (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:use [deuce.emacs-lisp :only (defun defvar) :as el])
+  (:require [clojure.core :as c]
+            [deuce.emacs.buffer :as buffer]
+            [deuce.emacs-lisp.cons :as cons])
+  (:import [deuce.emacs.data Window])
   (:refer-clojure :exclude []))
 
 (defvar window-combination-limit nil
@@ -125,11 +128,13 @@
 
   You can customize this variable.")
 
+(declare windowp selected-window)
+
 (defun window-live-p (object)
   "Return t if OBJECT is a live window and nil otherwise.
   A live window is a window that displays a buffer.
   Internal windows and deleted windows are not live."
-  )
+  (windowp object))
 
 (defun window-combination-limit (window)
   "Return combination limit of window WINDOW.
@@ -224,7 +229,7 @@
 (defun minibuffer-window (&optional frame)
   "Return the minibuffer window for frame FRAME.
   If FRAME is omitted or nil, it defaults to the selected frame."
-  )
+  (.minibuffer-window (or frame ((el/fun 'selected-frame)))))
 
 (defun scroll-up (&optional arg)
   "Scroll text of selected window upward ARG lines.
@@ -252,7 +257,7 @@
   "Return the parent window of window WINDOW.
   If WINDOW is omitted or nil, it defaults to the selected window.
   Return nil for a window with no parent (e.g. a root window)."
-  )
+  @(.parent (or window (selected-window))))
 
 (defun pos-visible-in-window-p (&optional pos window partially)
   "Return non-nil if position POS is currently on the frame in WINDOW.
@@ -335,7 +340,7 @@
   value is 0 if there is no window to the left of WINDOW.
 
   If WINDOW is omitted or nil, it defaults to the selected window."
-  )
+  @(.left-col (or window (selected-window))))
 
 (defun window-next-sibling (&optional window)
   "Return the next sibling window of window WINDOW.
@@ -417,7 +422,7 @@
   there is no window above WINDOW.
 
   If WINDOW is omitted or nil, it defaults to the selected window."
-  )
+  @(.top-line (or window (selected-window))))
 
 (defun window-line-height (&optional line window)
   "Return height in pixels of text line LINE in window WINDOW.
@@ -558,7 +563,10 @@
 
   This function runs `window-scroll-functions' before running
   `window-configuration-change-hook'."
-  )
+  (reset! (.buffer (el/check-type 'windowp
+                                  (or window (selected-window))))
+          (el/check-type 'bufferp (buffer/get-buffer buffer-or-name)))
+  nil)
 
 (defun window-parameter (window parameter)
   "Return WINDOW's value for PARAMETER.
@@ -584,7 +592,8 @@
 
   Note that the main editor command loop sets the current buffer to the
   buffer of the selected window before each command."
-  )
+  (el/check-type 'windowp window)
+  (reset! (.selected-window ((el/fun 'selected-frame))) window))
 
 (defun window-absolute-pixel-edges (&optional window)
   "Return a list of the edge pixel coordinates of WINDOW.
@@ -648,7 +657,7 @@
 (defun window-minibuffer-p (&optional window)
   "Return non-nil if WINDOW is a minibuffer window.
   If WINDOW is omitted or nil, it defaults to the selected window."
-  )
+  (.mini-p (or window (selected-window))))
 
 (defun frame-first-window (&optional frame-or-window)
   "Return the topmost, leftmost live window on FRAME-OR-WINDOW.
@@ -689,7 +698,7 @@
   "Return the selected window.
   The selected window is the window in which the standard cursor for
   selected windows appears and to which many commands apply."
-  )
+  @(.selected-window ((el/fun 'selected-frame))))
 
 (defun move-to-window-line (arg)
   "Position point relative to window.
@@ -754,14 +763,24 @@
   MINIBUF nil or omitted means include the minibuffer window only
   if it's active.
   MINIBUF neither nil nor t means never include the minibuffer window."
-  )
+  (loop [w (or window (.root-window (or frame ((el/fun 'selected-frame)))))
+         acc []]
+    (if w
+      (recur @(.next w)
+             (concat
+              (when-let [h @(.hchild w)] (window-list frame minibuf h))
+              (when-let [v @(.vchild w)] (window-list frame minibuf v))
+              (if (and (not minibuf) (.mini-p w))
+                acc
+                (conj acc w))))
+      (cons/maybe-seq (reverse acc)))))
 
 (defun frame-root-window (&optional frame-or-window)
   "Return the root window of FRAME-OR-WINDOW.
   If omitted, FRAME-OR-WINDOW defaults to the currently selected frame.
   With a frame argument, return that frame's root window.
   With a window argument, return the root window of that window's frame."
-  )
+  (.root-window (or frame-or-window ((el/fun 'selected-frame)))))
 
 (defun window-fringes (&optional window)
   "Get width of fringes of window WINDOW.
@@ -786,7 +805,7 @@
   "Return the buffer displayed in window WINDOW.
   If WINDOW is omitted or nil, it defaults to the selected window.
   Return nil for an internal window or a deleted window."
-  )
+  @(.buffer (or window (selected-window))))
 
 (defun set-window-configuration (configuration)
   "Set the configuration of windows and buffers as specified by CONFIGURATION.
@@ -903,7 +922,7 @@
 
 (defun windowp (object)
   "Return t if OBJECT is a window and nil otherwise."
-  )
+  (instance? Window object))
 
 (defun set-window-dedicated-p (window flag)
   "Mark WINDOW as dedicated according to FLAG.

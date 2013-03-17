@@ -6,7 +6,9 @@
             [deuce.emacs.data :as data]
             [deuce.emacs.editfns :as editfns]
             [deuce.emacs.eval :as eval]
+            [deuce.emacs.frame :as frame]
             [deuce.emacs.lread :as lread]
+            [deuce.emacs.window :as window]
             [taoensso.timbre :as timbre])
   (:gen-class))
 
@@ -16,7 +18,13 @@
     ((resolve 'swank.swank/start-repl) port))
   (println "Swank connection opened on" port))
 
-(defn display-buffers []
+(defn display-state-of-emacs []
+  (doseq [frame (frame/frame-list)]
+    (println "---------------" frame
+             (if (= frame (frame/selected-frame)) "--- [selected frame]" "")))
+  (doseq [window (window/window-list nil true)]
+    (println "---------------" window
+             (if (= window (window/selected-window)) "--- [selected window]" "")))
   (doseq [buffer (buffer/buffer-list)
           :let [name (buffer/buffer-name buffer)
                 messages? (= name "*Messages*")]]
@@ -50,8 +58,8 @@
 
     (el/setq command-line-args (alloc/cons "src/bootstrap-emacs" (apply alloc/list (remove nil? args))))
     (lread/load "deuce-loadup.el")
-    ;; Dump the current buffers to stdout until we have display. *Messages* is already echoed to stdout.
-    (display-buffers)
+    ;; Dump the current buffers etc. to stdout until we have display. *Messages* is already echoed to stdout.
+    (display-state-of-emacs)
 
     ;; Pontentially call out and init the clojure-lanterna terminal (when-not inhibit-window-system)
     ;; startup.el may take care of this indirectly and make the callback for us.

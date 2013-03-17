@@ -1,7 +1,6 @@
 (ns deuce.emacs.dispnew
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c]
-            [lanterna.screen :as s])
+  (:require [clojure.core :as c])
   (:refer-clojure :exclude []))
 
 (defvar no-redraw-on-reenter nil

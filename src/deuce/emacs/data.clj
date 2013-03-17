@@ -143,6 +143,95 @@
 (defmethod print-method Marker [marker w]
   (.write w (str "#<marker at " (.charpos marker) " in " (.name (.buffer marker)) ">")))
 
+(defrecord Frame
+    [;; /* Name of this frame: a Lisp string.  It is used for looking up resources,
+     ;;    as well as for the title in some cases.  */
+     name
+
+     ;; /* This frame's root window.  Every frame has one.
+     ;;    If the frame has only a minibuffer window, this is it.
+     ;;    Otherwise, if the frame has a minibuffer window, this is its sibling.  */
+     root-window
+
+     ;; /* This frame's selected window.
+     ;;    Each frame has its own window hierarchy
+     ;;    and one of the windows in it is selected within the frame.
+     ;;    The selected window of the selected frame is Emacs's selected window.  */
+     selected-window
+
+     ;; /* This frame's minibuffer window.
+     ;;    Most frames have their own minibuffer windows,
+     ;;    but only the selected frame's minibuffer window
+     ;;    can actually appear to exist.  */
+     minibuffer-window
+
+     ;; /* Vector describing the items to display in the menu bar.
+     ;;    Each item has four elements in this vector.
+     ;;    They are KEY, STRING, SUBMAP, and HPOS.
+     ;;    (HPOS is not used in when the X toolkit is in use.)
+     ;;    There are four additional elements of nil at the end, to terminate.  */
+     menu-bar-items
+
+     ;; /* The terminal device that this frame uses.  If this is NULL, then
+     ;;    the frame has been deleted. */
+     terminal])
+
+(defmethod print-method Frame [frame w]
+  (.write w (str "#<frame " (.name frame) " "
+                 (format "0x%x" (System/identityHashCode frame)) ">")))
+
+(defrecord Window
+    [;; /* t if this window is a minibuffer window.  */
+     mini-p
+
+     ;; /* Following (to right or down) and preceding (to left or up) child
+     ;;    at same level of tree.  */
+     next prev
+
+     ;; /* First child of this window: vchild is used if this is a vertical
+     ;;    combination, hchild if this is a horizontal combination.  Of the
+     ;;    fields vchild, hchild and buffer, one and only one is non-nil
+     ;;    unless the window is dead.  */
+     hchild
+     vchild
+
+     ;; /* The window this one is a child of.  */
+     parent
+
+     ;; /* The upper left corner coordinates of this window, as integers
+     ;;    relative to upper left corner of frame = 0, 0.  */
+     left-col
+     top-line
+
+     ;; /* The size of the window.  */
+     total-lines
+     total-cols
+
+     ;; /* The buffer displayed in this window.  Of the fields vchild,
+     ;;    hchild and buffer, one and only one is non-nil unless the window
+     ;;    is dead.  */
+     buffer
+
+     ;; /* A marker pointing to where in the text to start displaying.
+     ;;    BIDI Note: This is the _logical-order_ start, i.e. the smallest
+     ;;    buffer position visible in the window, not necessarily the
+     ;;    character displayed in the top left corner of the window.  */
+     start
+
+     ;; /* A marker pointing to where in the text point is in this window,
+     ;;    used only when the window is not selected.
+     ;;    This exists so that when multiple windows show one buffer
+     ;;    each one can have its own value of point.  */
+     pointm
+
+     ;; /* Unique number of window assigned when it was created.  */
+     sequence-number])
+
+(defmethod print-method Window [window w]
+  (.write w (str "#<window " (.sequence-number window)
+                 (when-let [buffer @(.buffer window)]
+                   (str " on " @(.name buffer))) ">")))
+
 (defn ^:private promote-char [x]
   (if (char? x) (int x) x))
 
