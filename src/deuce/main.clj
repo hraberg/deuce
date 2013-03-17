@@ -18,6 +18,12 @@
     ((resolve 'swank.swank/start-repl) port))
   (println "Swank connection opened on" port))
 
+(defn nrepl [port]
+  (require 'clojure.tools.nrepl.server)
+  (with-out-str
+    ((resolve 'clojure.tools.nrepl.server/start-server) :port port))
+  (println "nrepl server listening on" port))
+
 (defn display-state-of-emacs []
   (doseq [frame (frame/frame-list)]
     (println "---------------" frame
@@ -53,6 +59,7 @@
                                         (System/exit 0))
                  (option "batch") (do (el/setq noninteractive true) nil)
                  (option "swank-clojure") (swank 4005)
+                 (option "nrepl") (nrepl 7888)
                  #{"-nw" "--no-window-system,"} (do (el/setq inhibit-window-system true) nil)
                  %) args)]
 
