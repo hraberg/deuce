@@ -405,7 +405,8 @@
                                    (io/resource (str file ".el")))
                                  (io/resource file)))
                            (filter identity)
-                           (remove #(.isDirectory (io/file %)))
+                           (remove #(when (= "file" (.getProtocol %))
+                                      (.isDirectory (io/file %))))
                            first)
                       (.toURL (io/file file)))
               el-extension? (re-find #".el$" file)]
