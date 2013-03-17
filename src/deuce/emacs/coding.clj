@@ -18,7 +18,7 @@
   from GNU Find and GNU Grep.  Emacs will then ignore the null bytes and
   decode text as usual.")
 
-(defvar eol-mnemonic-undecided nil
+(defvar eol-mnemonic-undecided ":"
   "*String displayed in mode line when end-of-line format is not yet determined.
 
   You can customize this variable.")
@@ -96,7 +96,7 @@
 (defvar enable-character-translation nil
   "*Non-nil enables character translation while encoding and decoding.")
 
-(defvar eol-mnemonic-unix nil
+(defvar eol-mnemonic-unix ":"
   "*String displayed in mode line for UNIX-like (LF) end-of-line format.
 
   You can customize this variable.")
@@ -109,7 +109,7 @@
   There are three such tables: `file-coding-system-alist',
   `process-coding-system-alist', and `network-coding-system-alist'.")
 
-(defvar eol-mnemonic-mac nil
+(defvar eol-mnemonic-mac "/"
   "*String displayed in mode line for MAC-like (CR) end-of-line format.
 
   You can customize this variable.")
@@ -130,7 +130,7 @@
 
   The default value is `select-safe-coding-system' (which see).")
 
-(defvar eol-mnemonic-dos nil
+(defvar eol-mnemonic-dos "\\"
   "*String displayed in mode line for DOS-like (CRLF) end-of-line format.
 
   You can customize this variable.")

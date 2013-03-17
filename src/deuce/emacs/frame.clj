@@ -46,24 +46,7 @@
   use `display-graphic-p' or any of the other `display-*-p'
   predicates which report frame's specific UI-related capabilities.")
 
-;; These should obviously live in window.clj
-(def ^:private sequence-number (atom 0))
-
-(defn ^:private allocate-window [minibuffer? parent leftcol top-line total-cols total-lines]
-  (let [[next prev hchild vchild
-         buffer start pointm] (repeatedly #(atom nil))]
-    (Window. minibuffer? next prev hchild vchild parent
-             (atom leftcol) (atom top-line) (atom total-cols) (atom total-lines)
-             buffer start pointm (swap! sequence-number inc))))
-
-(defvar terminal-frame (let [root-window (allocate-window false nil 0 1 10 9)
-                             selected-window (atom root-window)
-                             minibuffer-window (allocate-window true nil 0 9 10 1)
-                             menu-bar-items (atom nil)
-                             terminal (atom nil)]
-                         (reset! (.next root-window) minibuffer-window)
-                         (reset! (.prev minibuffer-window) root-window)
-                         (Frame. "F1" root-window selected-window minibuffer-window menu-bar-items terminal))
+(defvar terminal-frame nil
   "The initial frame-object, which represents Emacs's stdout.")
 
 (defvar default-frame-alist nil
@@ -132,6 +115,17 @@
   displayed.
 
   This variable is local to the current terminal and cannot be buffer-local.")
+
+(defn ^:private make-initial-frame []
+  (let [allocate-window (ns-resolve 'deuce.emacs.window 'allocate-window)
+        root-window (allocate-window false nil 0 1 10 9)
+        selected-window (atom root-window)
+        minibuffer-window (allocate-window true nil 0 9 10 1)
+        menu-bar-items (atom nil)
+        terminal (atom nil)]
+    (reset! (.next root-window) minibuffer-window)
+    (reset! (.prev minibuffer-window) root-window)
+    (Frame. "F1" root-window selected-window minibuffer-window menu-bar-items terminal)))
 
 (defun delete-frame (&optional frame force)
   "Delete FRAME, permanently eliminating it from use.

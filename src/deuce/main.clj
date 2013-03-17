@@ -9,6 +9,7 @@
             [deuce.emacs.frame :as frame]
             [deuce.emacs.lread :as lread]
             [deuce.emacs.window :as window]
+            [deuce.emacs.xdisp :as xdisp]
             [taoensso.timbre :as timbre])
   (:gen-class))
 
@@ -28,9 +29,12 @@
   (doseq [frame (frame/frame-list)]
     (println "---------------" frame
              (if (= frame (frame/selected-frame)) "--- [selected frame]" "")))
-  (doseq [window (window/window-list nil true)]
+  (doseq [window (window/window-list nil true)
+          :let [buffer (window/window-buffer window)]]
     (println "---------------" window
-             (if (= window (window/selected-window)) "--- [selected window]" "")))
+             (if (= window (window/selected-window)) "--- [selected window]" ""))
+    (when-not (re-find #" \*" (buffer/buffer-name buffer))
+      (println (xdisp/format-mode-line (buffer/buffer-local-value 'mode-line-format buffer) nil window buffer))))
   (doseq [buffer (buffer/buffer-list)
           :let [name (buffer/buffer-name buffer)
                 messages? (= name "*Messages*")]]

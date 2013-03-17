@@ -68,7 +68,7 @@
   "A number incremented each time this buffer is displayed in a window.
   The function `set-window-buffer' increments it.")
 
-(defvar vertical-scroll-bar nil
+(defvar vertical-scroll-bar true
   "*Position of this buffer's vertical scroll bar.
   The value takes effect whenever you tell a window to display this buffer;
   for instance, with `set-window-buffer' or when `display-buffer' displays it.
@@ -117,7 +117,7 @@
   "Default value of `fringes-outside-margins' for buffers that don't override it.
   This is the same as (default-value 'fringes-outside-margins).")
 
-(defvar mode-name nil
+(defvar mode-name "Fundamental"
   "Pretty name of current buffer's major mode.
   Usually a string, but can use any of the constructs for `mode-line-format',
   which see.
@@ -210,7 +210,7 @@
 
   You can customize this variable.")
 
-(defvar buffer-auto-save-file-format nil
+(defvar buffer-auto-save-file-format true
   "*Format in which to write auto-save files.
   Should be a list of symbols naming formats that are defined in `format-alist'.
   If it is t, which is the default, auto-save files are written in the
@@ -405,7 +405,7 @@
 (defvar buffer-read-only nil
   "Non-nil if this buffer is read-only.")
 
-(defvar major-mode nil
+(defvar major-mode 'fundamental-mode
   "Symbol for current buffer's major mode.
   The default value (normally `fundamental-mode') affects new buffers.
   A value of nil means to use the current buffer's major mode, provided
@@ -575,7 +575,7 @@
 
   You can customize this variable.")
 
-(defvar case-fold-search nil
+(defvar case-fold-search true
   "*Non-nil if searches and matches should ignore case.
 
   You can customize this variable.")
@@ -674,7 +674,7 @@
   "Default value of `buffer-file-coding-system' for buffers not overriding it.
   This is the same as (default-value 'buffer-file-coding-system).")
 
-(defvar cursor-in-non-selected-windows nil
+(defvar cursor-in-non-selected-windows true
   "*Non-nil means show a cursor in non-selected windows.
   If nil, only shows a cursor in the selected window.
   If t, displays a cursor related to the usual cursor type
@@ -692,7 +692,7 @@
   all the rest of the line invisible; also, when saving the buffer
   in a file, save the ^M as a newline.")
 
-(defvar selective-display-ellipses nil
+(defvar selective-display-ellipses true
   "Non-nil means display ... on previous line when a line is invisible.
 
   You can customize this variable.")
@@ -739,7 +739,7 @@
   then characters with property value PROP are invisible,
   and they have an ellipsis as well if ELLIPSIS is non-nil.")
 
-(defvar bidi-display-reordering nil
+(defvar bidi-display-reordering true
   "Non-nil means reorder bidirectional text for display in the visual order.")
 
 (defvar default-right-margin-width nil

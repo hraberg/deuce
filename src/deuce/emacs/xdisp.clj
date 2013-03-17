@@ -1,6 +1,14 @@
 (ns deuce.emacs.xdisp
-  (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:use [deuce.emacs-lisp :only (defun defvar) :as el])
+  (:require [clojure.core :as c]
+            [clojure.string :as s]
+            [deuce.emacs.buffer :as buffer]
+            [deuce.emacs.data :as data]
+            [deuce.emacs.editfns :as editfns]
+            [deuce.emacs.eval :as eval]
+            [deuce.emacs.frame :as frame]
+            [deuce.emacs.keyboard :as keyboard]
+            [deuce.emacs.window :as window])
   (:refer-clojure :exclude []))
 
 (defvar scroll-step nil
@@ -446,7 +454,71 @@
   Optional third and fourth args WINDOW and BUFFER specify the window
   and buffer to use as the context for the formatting (defaults
   are the selected window and the WINDOW's buffer)."
-  )
+  (let [window (el/check-type 'windowp (or window (window/selected-window)))
+        buffer (el/check-type 'bufferp (or buffer (window/window-buffer window)))
+        window-width (max (window/window-total-width window)
+                          (data/symbol-value 'fill-column))
+        line 1
+        column 1
+        % (fn [x] (re-pattern (str "%(-?\\d*)" x)))
+        humanize (fn [x]
+                   (some identity (reverse
+                          (map-indexed (fn [idx suffix]
+                                         (let [size (Math/pow 1024 idx)]
+                                           (when (> x size)
+                                             (str (long (/ x size)) suffix))) )
+                                       ["" "k" "M" "G"]))))
+        pad (fn padder
+              ([value] (partial padder value))
+              ([value [_ pad]]
+                 (let [s (str value)]
+                   (c/format (str "%" pad "s")
+                             (if (seq pad)
+                               (let [pad (Integer/parseInt pad)]
+                                 (subs s 0 (min (count s) (Math/abs pad))))
+                               s)))))
+        formatter (fn formatter [f] ;; Vastly incomplete and wrong.
+                    (condp some [f]
+                      string? (reduce #(s/replace %1 (key %2) (val %2)) f
+                                      {(% "e") ""
+                                       (% "n") ""
+                                       (% "z") "1"
+                                       (% "Z") "1:"
+                                       (% "\\[") (apply str (repeat (keyboard/recursion-depth) "[" ))
+                                       (% "\\]") (apply str (repeat (keyboard/recursion-depth) "]"))
+                                       (% "@") "-"
+                                       (% "\\+") "-"
+                                       (% "\\*") "-"
+                                       (% "\\&") "-"
+                                       (% "l") (str line)
+                                       (% "c") (str column)
+                                       (% "%") "%"
+                                       (% "i") (pad (editfns/buffer-size buffer))
+                                       (% "I") (pad (humanize (editfns/buffer-size buffer)))
+                                       (% "p") (pad (let [percent (* 100 (long (/ @(.pt buffer)
+                                                                                  (inc (editfns/buffer-size buffer)))))]
+                                                      (case percent
+                                                        0 "Top"
+                                                        100 "All"
+                                                        (str percent "%"))))
+                                       ;; (% "P")
+                                       (% "b") (pad (buffer/buffer-name buffer))
+                                       (% "f") (pad (buffer/buffer-file-name buffer))
+                                       (% "F") (pad (.name (frame/selected-frame)))})
+                      symbol? (formatter (data/symbol-value f))
+                      seq? (let [fst (first f)]
+                             (condp some [fst]
+                               integer? (pad (formatter (rest f)) [:ignored (str fst)])
+                               #{:eval} (formatter (eval/eval (second f)))
+                               #{:propertize} (formatter (second f))
+                               symbol? (if (and (data/boundp fst) (data/symbol-value fst))
+                                         (formatter (second f))
+                                         (formatter (nth f 2 nil)))
+                               (apply str (map formatter f))))
+                       f))]
+    (let [mode-line (formatter format)]
+      (s/replace-first mode-line "%-"
+                       (apply str (repeat (- window-width (count mode-line)) "-"))))))
 
 (defun invisible-p (pos-or-prop)
   "Non-nil if the property makes the text invisible.

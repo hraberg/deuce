@@ -2,6 +2,7 @@
   (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
             [deuce.emacs.buffer :as buffer]
+            [deuce.emacs.frame :as frame]
             [deuce.emacs-lisp.cons :as cons])
   (:import [deuce.emacs.data Window])
   (:refer-clojure :exclude []))
@@ -130,6 +131,15 @@
 
 (declare windowp selected-window)
 
+(def ^:private sequence-number (atom 0))
+
+(defn ^:private allocate-window [minibuffer? parent leftcol top-line total-cols total-lines]
+  (let [[next prev hchild vchild
+         buffer start pointm] (repeatedly #(atom nil))]
+    (Window. minibuffer? next prev hchild vchild parent
+             (atom leftcol) (atom top-line) (atom total-cols) (atom total-lines)
+             buffer start pointm (swap! sequence-number inc))))
+
 (defun window-live-p (object)
   "Return t if OBJECT is a live window and nil otherwise.
   A live window is a window that displays a buffer.
@@ -153,7 +163,7 @@
 
   On a graphical display, this total width is reported as an
   integer multiple of the default character width."
-  )
+  @(.total-cols (or window (selected-window))))
 
 (defun window-normal-size (&optional window horizontal)
   "Return the normal height of window WINDOW.
@@ -229,7 +239,7 @@
 (defun minibuffer-window (&optional frame)
   "Return the minibuffer window for frame FRAME.
   If FRAME is omitted or nil, it defaults to the selected frame."
-  (.minibuffer-window (or frame ((el/fun 'selected-frame)))))
+  (.minibuffer-window (or frame (frame/selected-frame))))
 
 (defun scroll-up (&optional arg)
   "Scroll text of selected window upward ARG lines.
@@ -593,7 +603,7 @@
   Note that the main editor command loop sets the current buffer to the
   buffer of the selected window before each command."
   (el/check-type 'windowp window)
-  (reset! (.selected-window ((el/fun 'selected-frame))) window))
+  (reset! (.selected-window (frame/selected-frame)) window))
 
 (defun window-absolute-pixel-edges (&optional window)
   "Return a list of the edge pixel coordinates of WINDOW.
@@ -617,7 +627,7 @@
 
   On a graphical display, this total height is reported as an
   integer multiple of the default character height."
-  )
+  @(.total-lines (or window (selected-window))))
 
 (defun next-window (&optional window minibuf all-frames)
   "Return live window after WINDOW in the cyclic ordering of windows.
@@ -698,7 +708,7 @@
   "Return the selected window.
   The selected window is the window in which the standard cursor for
   selected windows appears and to which many commands apply."
-  @(.selected-window ((el/fun 'selected-frame))))
+  @(.selected-window (frame/selected-frame)))
 
 (defun move-to-window-line (arg)
   "Position point relative to window.
@@ -763,7 +773,7 @@
   MINIBUF nil or omitted means include the minibuffer window only
   if it's active.
   MINIBUF neither nil nor t means never include the minibuffer window."
-  (loop [w (or window (.root-window (or frame ((el/fun 'selected-frame)))))
+  (loop [w (or window (.root-window (or frame (frame/selected-frame))))
          acc []]
     (if w
       (recur @(.next w)
@@ -780,7 +790,7 @@
   If omitted, FRAME-OR-WINDOW defaults to the currently selected frame.
   With a frame argument, return that frame's root window.
   With a window argument, return the root window of that window's frame."
-  (.root-window (or frame-or-window ((el/fun 'selected-frame)))))
+  (.root-window (or frame-or-window (frame/selected-frame))))
 
 (defun window-fringes (&optional window)
   "Get width of fringes of window WINDOW.

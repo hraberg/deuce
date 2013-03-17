@@ -69,6 +69,12 @@
 (defun get-language-info (lang-env key))
 ;; Used by env.
 (defun find-coding-systems-string (string))
+;; These are used by the mode line
+(setq current-input-method)
+(defun coding-system-eol-type-mnemonic (coding-system)
+  (symbol-value 'eol-mnemonic-unix))
+
+(setq terminal-frame ((c/ns-resolve 'deuce.emacs.frame 'make-initial-frame)))
 
 ;; *scratch* is created by buffer.c
 (set-window-buffer (selected-window)

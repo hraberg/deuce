@@ -579,7 +579,7 @@
 
 (defun recursion-depth ()
   "Return the current depth in recursive edits."
-  )
+  0)
 
 (defun read-key-sequence-vector (prompt &optional continue-echo dont-downcase-last can-return-switch-frame cmd-loop)
   "Like `read-key-sequence' but always return a vector."
