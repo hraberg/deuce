@@ -11,7 +11,9 @@
             [lein-difftest "2.0.0"]
             [lein-marginalia "0.7.1"]]
   :profiles {:dev {:dependencies [[org.clojure/tools.trace "0.7.5"]
-                                  [swank-clojure "1.4.3"]]}}
+                                  [swank-clojure "1.4.3"]
+                                  [org.clojure/tools.nrepl "0.2.2"]
+                                  [clojure-complete "0.2.2"]]}}
   :resource-paths ["emacs/lisp"]
   :jar-exclusions [#".*\.elc"]
   :java-source-paths ["src"]
