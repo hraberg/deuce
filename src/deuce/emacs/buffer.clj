@@ -1,13 +1,17 @@
 (ns deuce.emacs.buffer
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
+            [clojure.string :as s]
+            [clojure.java.io :as io]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.data :as data]
             [deuce.emacs.eval :as eval]
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.cons :as cons]
             [deuce.emacs-lisp.globals :as globals])
-  (:import [deuce.emacs.data Buffer BufferText Marker])
+  (:import [deuce.emacs.data Buffer BufferText Marker]
+           [clojure.lang Var]
+           [java.io PushbackReader])
   (:refer-clojure :exclude []))
 
 (defvar before-change-functions nil
@@ -628,7 +632,7 @@
 
   You can customize this variable.")
 
-(defvar default-fill-column (el/el-var-get* 'fill-column)
+(defvar default-fill-column nil
   "Default value of `fill-column' for buffers that do not override it.
   This is the same as (default-value 'fill-column).")
 
@@ -655,7 +659,7 @@
   This value applies in buffers that don't have their own local values.
   This is the same as (default-value 'scroll-down-aggressively).")
 
-(defvar default-tab-width (el/el-var-get* 'tab-width)
+(defvar default-tab-width nil
   "Default value of `tab-width' for buffers that do not override it.
   This is the same as (default-value 'tab-width).")
 
@@ -738,7 +742,7 @@
 (defvar bidi-display-reordering nil
   "Non-nil means reorder bidirectional text for display in the visual order.")
 
-(defvar default-right-margin-width (el/el-var-get* 'right-margin-width)
+(defvar default-right-margin-width nil
   "Default value of `right-margin-width' for buffers that don't override it.
   This is the same as (default-value 'right-margin-width).")
 
@@ -762,10 +766,34 @@
 
   You can customize this variable.")
 
+(def ^:private not-buffer-locals
+  '#{kill-buffer-hook before-change-functions after-change-functions
+     first-change-hook transient-mark-mode inhibit-read-only
+     kill-buffer-query-functions change-major-mode-hook buffer-list-update-hook})
+
+(defn ^:private read-buffer-locals []
+  (with-open [r (PushbackReader. (io/reader (io/resource (str (s/replace (ns-name *ns*) "." "/") ".clj"))))]
+    (group-by #(keyword (or (re-find #"default" (name %)) "local"))
+              (remove not-buffer-locals
+                      (map second
+                           (filter (every-pred seq? (comp '#{defvar} first))
+                                   (take-while (complement nil?)
+                                               (repeatedly #(read r false nil)))))))))
+
+(defn ^:private init-buffer-locals []
+  (let [{:keys [default local]} (read-buffer-locals)]
+    (reset! el/buffer-locals (set local))
+    (doseq [d default
+            :when (not= 'default-directory d)]
+      (let [l (el/global (@el/buffer-locals (symbol (s/replace (name d) "default-" ""))))]
+        (.refer (the-ns 'deuce.emacs-lisp.globals) d l)))))
+
+(init-buffer-locals)
+
 (def ^:private buffer-alist (atom {}))
 (def ^:dynamic ^:private *current-buffer* nil)
 
-(declare current-buffer set-buffer other-buffer buffer-name get-buffer)
+(declare current-buffer set-buffer other-buffer buffer-name get-buffer buffer-local-value)
 
 (defun barf-if-buffer-read-only ()
   "Signal a `buffer-read-only' error if the current buffer is read-only."
@@ -849,14 +877,15 @@
   )
 
 ;; The eternal battle of how to represent mutable data like pt and name, nested atoms or updates via root buffer-alist?
-;; The latter doesn't work properly, as save-current-buffer for example allows destructive updates to current buffer it restores.
+;; The latter doesn't work properly, save-current-buffer for example allows destructive updates to the current buffer it restores.
 (defn ^:private allocate-buffer [name]
   (let [now (System/currentTimeMillis)
         text (BufferText. (StringBuilder.) (atom now) (atom now) nil)
         own-text text
         pt (atom 1)
         mark (atom nil)
-        buffer (Buffer. own-text text pt (atom name) (atom nil) mark false)]
+        buffer-locals (atom {})
+        buffer (Buffer. own-text text pt (atom name) mark buffer-locals false)]
     (reset! mark (Marker. buffer @pt))
     buffer))
 
@@ -1020,7 +1049,9 @@
   For a symbol that is locally unbound, just the symbol appears in the value.
   Note that storing new VALUEs in these elements doesn't change the variables.
   No argument or nil as argument means use current buffer as BUFFER."
-  )
+  (cons/maybe-seq (map #(alloc/cons (key %) (when-let [v (val %)] @v))
+                       (merge (zipmap @el/buffer-locals (repeat nil))
+                              @(.local-var-alist (or buffer (current-buffer)))))))
 
 (defun kill-buffer (&optional buffer-or-name)
   "Kill buffer BUFFER-OR-NAME.
@@ -1107,13 +1138,14 @@
 (defun buffer-file-name (&optional buffer)
   "Return name of file BUFFER is visiting, or nil if none.
   No argument or nil as argument means use the current buffer."
-  globals/buffer-file-name)
+  (buffer-local-value 'buffer-file-name (or buffer (current-buffer))))
 
 (defun buffer-local-value (variable buffer)
   "Return the value of VARIABLE in BUFFER.
   If VARIABLE does not have a buffer-local binding in BUFFER, the value
   is the default binding of the variable."
-  )
+  (binding [*current-buffer* buffer]
+    (el/el-var-get* variable)))
 
 (defun get-file-buffer (filename)
   "Return the buffer visiting file FILENAME (a string).

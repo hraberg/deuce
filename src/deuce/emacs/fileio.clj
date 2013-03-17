@@ -462,9 +462,7 @@
     (editfns/insert contents)
     (when visit
       (reset! (.save-modiff (.own-text (buffer/current-buffer))) (System/currentTimeMillis))
-      ;; This duality should go away once there are real buffer locals.
-      (reset! (.filename (buffer/current-buffer)) path)
-      ;; Hack, but should eventually work, as these vars should be buffer local.
+      ;; These vars are buffer local.
       (el/setq buffer-file-name path)
       (el/setq buffer-saved-size (count contents)))
     (list path (count contents))))

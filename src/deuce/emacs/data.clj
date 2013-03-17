@@ -8,7 +8,7 @@
             [taoensso.timbre :as timbre])
   (:import [java.nio ByteOrder]
            [java.io Writer]
-           [clojure.lang Symbol])
+           [clojure.lang Symbol Var])
   (:refer-clojure :exclude [+ * - / aset set < = > max >= <= mod atom min]))
 
 (declare consp car cdr)
@@ -108,12 +108,14 @@
      ;; /* The name of this buffer.  */
      name
 
-     ;; /* The name of the file visited in this buffer, or nil.  */
-     filename
-
      ;; /* "The mark".  This is a marker which may
      ;;    point into this buffer or may point nowhere.  */
      mark
+
+     ;; /* Alist of elements (SYMBOL . VALUE-IN-THIS-BUFFER) for all
+     ;;    per-buffer variables of this buffer.  For locally unbound
+     ;;    symbols, just the symbol appears as the element.  */
+     local-var-alist
 
      ;; /* t means the mark and region are currently active.  */
      mark-active])
@@ -275,7 +277,7 @@
 
 (defun symbol-plist (symbol)
   "Return SYMBOL's property list."
-  )
+  (cons/maybe-seq (map #(cons/pair (key val) (val %)) (@el/symbol-plists 'symbol))))
 
 (defun stringp (object)
   "Return t if OBJECT is a string."
@@ -391,7 +393,10 @@
 
   Do not use `make-local-variable' to make a hook variable buffer-local.
   Instead, use `add-hook' and specify t for the LOCAL argument."
-  variable)
+  (let [buffer-locals (.local-var-alist ((el/fun 'current-buffer)))]
+    (when-not (contains? @buffer-locals variable)
+      (swap! buffer-locals assoc variable (Var/create)))
+    variable))
 
 (defun numberp (object)
   "Return t if OBJECT is a number (floating point or integer)."
@@ -524,8 +529,7 @@
   which makes a variable local in just one buffer.
 
   The function `default-value' gets the default value and `set-default' sets it."
-  ;; Hack until we have real buffer locals
-  (set variable nil)
+  (swap! el/buffer-locals conj variable)
   variable)
 
 (defun char-or-string-p (object)
@@ -588,7 +592,9 @@
   This is the value that is seen in buffers that do not have their own values
   for this variable.  The default value is meaningful for variables with
   local bindings in certain buffers."
-  (.getRawRoot (el/global symbol)))
+  (if-let [v (el/global symbol)]
+    (.getRawRoot v)
+    (el/throw* 'void-variable (list symbol))))
 
 (defun setcar (cell newcar)
   "Set the car of CELL to be NEWCAR.  Returns NEWCAR."
@@ -642,8 +648,7 @@
 
 (defun setplist (symbol newplist)
   "Set SYMBOL's property list to NEWPLIST, and return NEWPLIST."
-  ;; This and symbol-plist needs to share the *symbol-plists* atom in fns
-  ;; We may want to push that atom down to deuce.emacs-lisp for easy access.
+  (swap! el/symbol-plists assoc symbol (into {} (map #(vector (car %) (cdr %)) newplist)))
   newplist)
 
 (defun set-default (symbol value)
@@ -663,7 +668,9 @@
 (defun kill-local-variable (variable)
   "Make VARIABLE no longer have a separate value in the current buffer.
   From now on the default value will apply in this buffer.  Return VARIABLE."
-  )
+  (let [buffer-locals (.local-var-alist ((el/fun 'current-buffer)))]
+    (swap! buffer-locals dissoc variable)
+    variable))
 
 (defun car (list)
   "Return the car of LIST.  If arg is nil, return nil.

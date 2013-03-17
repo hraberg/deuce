@@ -39,9 +39,6 @@
   "A list of symbols which are the features of the executing Emacs.
   Used by `featurep' and `require', and altered by `provide'.")
 
-
-(def ^:dynamic ^:private *symbol-plists* (atom {}))
-
 (defun provide (feature &optional subfeatures)
   "Announce that FEATURE is a feature of the current Emacs.
   The optional argument SUBFEATURES should be a list of symbols listing
@@ -576,7 +573,7 @@
 (defun put (symbol propname value)
   "Store SYMBOL's PROPNAME property with value VALUE.
   It can be retrieved with `(get SYMBOL PROPNAME)'."
-  (swap! *symbol-plists* assoc-in [symbol propname] value)
+  (swap! el/symbol-plists assoc-in [symbol propname] value)
   value)
 
 (defun base64-decode-region (beg end)
@@ -697,7 +694,7 @@
 (defun get (symbol propname)
   "Return the value of SYMBOL's PROPNAME property.
   This is the last value stored with `(put SYMBOL PROPNAME VALUE)'."
-  (get-in @*symbol-plists* [symbol propname]))
+  (get-in @el/symbol-plists [symbol propname]))
 
 (defun lax-plist-get (plist prop)
   "Extract a value from a property list, comparing with `equal'.

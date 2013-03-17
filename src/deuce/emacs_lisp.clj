@@ -17,7 +17,9 @@
 (timbre/set-config! [:timestamp-pattern] "HH:mm:ss,SSS")
 
 (timbre/set-level! :error)
-(set! *warn-on-reflection* true)
+;; Needs to fix circular reference to deuce.emacs.data.Buffer
+;; Push all defrecords down into deuce.emacs-lisp.structs or something?
+;; (set! *warn-on-reflection* true)
 
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
@@ -76,15 +78,27 @@
 
 (def ^:dynamic *dynamic-vars* {})
 
-;; There're also buffer local variables, which will be using deuce.emacs.buffer/current-buffer
-;; These vars are introduced by deuce.emacs.data/make-local-variable or make-variable-buffer-local
-;; There's also deuce.emacs.buffer/buffer-local-value which looks things up in the same context.
+(def symbol-plists (atom {}))
+
 ;; There's also an obsolete (as of Emacs 22.2) concept of frame locals.
 ;; See deuce.emacs.data/make-variable-frame-local and deuce.emacs.frame/modify-frame-parameters
-(defn el-var-buffer-local [name])
+;; This is the set of variables which can potentially be buffer local, values are stored in local-var-alist on Buffer.
+;; It's initialized by deuce.emacs.buffer/init-buffer-locals
+(def buffer-locals (atom #{}))
+
+(defn el-var-buffer-local [needs-to-exist? name]
+  (when-let [buffer ((fun 'current-buffer))]
+    (c/let [buffer-local (@(.local-var-alist buffer) name)]
+           (if-not needs-to-exist?
+             (c/or buffer-local
+                   (when (contains? @buffer-locals name)
+                     (c/let [v (Var/create)]
+                            (swap! (.local-var-alist buffer) assoc name v)
+                            v)))
+             (when (c/and buffer-local (bound? buffer-local)) buffer-local)))))
 
 (defn el-var [name]
-  ((some-fn *dynamic-vars* el-var-buffer-local global) name))
+  ((some-fn *dynamic-vars* (partial el-var-buffer-local true) global) name))
 
 (defn el-var-get* [name]
   (c/let [name (sym name)]
@@ -113,7 +127,7 @@
   (c/let [name (sym name)]
          `(c/let [value# ~value]
                  (if-let [^Var v# (c/or ~(c/and (symbol? name) (name &env) name)
-                                        ((some-fn *dynamic-vars* el-var-buffer-local) '~name))]
+                                        ((some-fn *dynamic-vars* (partial el-var-buffer-local false)) '~name))]
                    (if (c/or (c/and (.hasRoot v#) (not (.getThreadBinding v#))) (not (bound? v#)))
                      (alter-var-root v# (constantly value#))
                      (var-set v# value#))
