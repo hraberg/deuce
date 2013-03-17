@@ -9,7 +9,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 ### What is there to see?
 
-[Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs)
+[Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors)
 
 **2013-03-17 Visiting Files**
 
