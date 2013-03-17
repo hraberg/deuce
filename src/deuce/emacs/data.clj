@@ -240,7 +240,7 @@
 
 (defun natnump (object)
   "Return t if OBJECT is a nonnegative integer."
-  ((every-pred neg? integer?) object))
+  ((every-pred integer? (complement neg?)) object))
 
 (defun markerp (object)
   "Return t if OBJECT is a marker (editor pointer)."
