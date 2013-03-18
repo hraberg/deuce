@@ -1121,7 +1121,7 @@
 (defun set-buffer-modified-p (flag)
   "Mark current buffer as modified or unmodified according to FLAG.
   A non-nil FLAG means mark the buffer modified."
-  (reset! (.modiff (.own-text (current-buffer))) (System/currentTimeMillis)))
+  (reset! (.modiff (.own-text (current-buffer))) (when flag (System/currentTimeMillis))))
 
 (defun move-overlay (overlay beg end &optional buffer)
   "Set the endpoints of OVERLAY to BEG and END in BUFFER.

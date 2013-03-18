@@ -485,52 +485,55 @@
                        ;;  and others are padded by inserting spaces to the right." - not dealt with.
               ([value] (partial padder value))
               ([value [_ pad]]
-                 (let [s (str value)]
-                   (c/format (str "%" pad "s")
-                             (if (seq pad)
-                               (let [pad (Integer/parseInt pad)]
-                                 (subs s 0 (min (count s) (Math/abs pad))))
+                 (let [s (str value)
+                       pad (when (seq pad) (Integer/parseInt pad))]
+                   (c/format (str "%" (if (or (not pad) (neg? pad)) ""
+                                          (if (and (pos? pad) (number? value)) pad (- pad))) "s")
+                             (if (and pad (neg? pad))
+                               (subs s 0 (min (count s) (- pad)))
                                s)))))
         formatter (fn formatter [f] ;; Vastly incomplete and wrong.
                     (condp some [f]
-                      string? (reduce #(s/replace %1 (key %2) (val %2)) f
-                                      {(% "e") "" ;; "!MEM FULL! "
-                                       (% "n") "" ;; "Narrow"
-                                       (% "z") coding-system-mnemonic
-                                       (% "Z") (str coding-system-mnemonic eol-type-mnemnonic)
-                                       (% "\\[") (if (< 5 recursion-depth)
-                                                   "[[[... "
-                                                   (apply str (repeat (keyboard/recursion-depth) "[" )))
-                                       (% "\\]") (if (< 5 recursion-depth)
-                                                   " ...]]]"
-                                                   (apply str (repeat (keyboard/recursion-depth) "]" )))
-                                       (% "@")  "-" ;; files/file-remote-p
-                                       (% "\\+") (cond
-                                                  modified? "*"
-                                                  read-only? "%"
-                                                  :else "-")
-                                       (% "\\*") (cond
-                                                  read-only? "%"
-                                                  modified? "*"
-                                                  :else "-")
-                                       (% "&") (if modified? "*" "-")
-                                       (% "l") (str line)
-                                       (% "c") (str column)
-                                       (% "%") "%"
-                                       (% "i") (pad (editfns/buffer-size buffer)) ;; Should take narrowing in account.
-                                       (% "I") (pad (humanize (editfns/buffer-size buffer)))
-                                       (% "p") (pad (let [percent (long (* 100 (/ @(.pt buffer)
-                                                                                  (inc (editfns/buffer-size buffer)))))]
-                                                      (case percent
-                                                        0 "Top"
-                                                        100 "All" ;; or "Bottom" if top line isn't visible.
-                                                        (str percent "%"))))
-                                       ;; (% "P") ;; The reverse of the above
-                                       (% "m") (pad (buffer/buffer-local-value 'mode-name buffer))
-                                       (% "M") (pad (data/symbol-value 'global-mode-string))
-                                       (% "b") (pad (buffer/buffer-name buffer))
-                                       (% "f") (pad (buffer/buffer-file-name buffer))
-                                       (% "F") (pad (.name (frame/selected-frame)))})
+                      string? (let [%% (str (gensym "PERCENT"))]
+                                (-> ;; Deal with %% last.
+                                 (reduce #(s/replace %1 (key %2) (val %2)) (s/replace f "%%" %%)
+                                         {(% "e") "" ;; "!MEM FULL! "
+                                          (% "n") "" ;; "Narrow"
+                                          (% "z") coding-system-mnemonic
+                                          (% "Z") (str coding-system-mnemonic eol-type-mnemnonic)
+                                          (% "\\[") (if (< 5 recursion-depth)
+                                                      "[[[... "
+                                                      (apply str (repeat (keyboard/recursion-depth) "[" )))
+                                          (% "\\]") (if (< 5 recursion-depth)
+                                                      " ...]]]"
+                                                      (apply str (repeat (keyboard/recursion-depth) "]" )))
+                                          (% "@")  "-" ;; files/file-remote-p
+                                          (% "\\+") (cond
+                                                     modified? "*"
+                                                     read-only? "%"
+                                                     :else "-")
+                                          (% "\\*") (cond
+                                                     read-only? "%"
+                                                     modified? "*"
+                                                     :else "-")
+                                          (% "&") (if modified? "*" "-")
+                                          (% "l") (str line)
+                                          (% "c") (str column)
+                                          (% "i") (pad (editfns/buffer-size buffer)) ;; Should take narrowing in account.
+                                          (% "I") (pad (humanize (editfns/buffer-size buffer)))
+                                          (% "p") (pad (let [percent (long (* 100 (/ @(.pt buffer)
+                                                                                     (inc (editfns/buffer-size buffer)))))]
+                                                         (case percent
+                                                           0 "Top"
+                                                           100 "All" ;; or "Bottom" if top line isn't visible.
+                                                           (str percent "%"))))
+                                          ;; (% "P") ;; The reverse of the above
+                                          (% "m") (pad (buffer/buffer-local-value 'mode-name buffer))
+                                          (% "M") (pad (data/symbol-value 'global-mode-string))
+                                          (% "b") (pad (buffer/buffer-name buffer))
+                                          (% "f") (pad (buffer/buffer-file-name buffer))
+                                          (% "F") (pad (.name (frame/selected-frame)))})
+                                 (s/replace %% "%")))
                       symbol? (formatter (data/symbol-value f))
                       seq? (let [fst (first f)]
                              (condp some [fst]
@@ -543,8 +546,8 @@
                                (apply str (map formatter f))))
                       (str f)))]
     (let [mode-line (formatter format)]
-      (s/replace-first mode-line "%-"
-                       (apply str (repeat (- window-width (count mode-line)) "-"))))))
+      (s/replace mode-line #"%-$"
+                 (apply str (repeat (- window-width (count mode-line)) "-"))))))
 
 (defun invisible-p (pos-or-prop)
   "Non-nil if the property makes the text invisible.
