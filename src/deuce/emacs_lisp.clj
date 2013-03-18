@@ -489,14 +489,19 @@
 ;; Need to deal with dots in symbols here. desktop.el has things like (let ((q.txt "something..")))
 (c/defmacro let-helper* [can-refer? varlist & body]
   (c/let [varlist (map #(if (symbol? %) [% nil] %) varlist)
-          all-vars (map (comp sym first) varlist)
+          illegal-symbols (into {} (map #(c/let [v (name (first %))]
+                                                (when (re-find #"\." v)
+                                                  [(first %)
+                                                   (sym (s/replace v "." "_dot_"))]))
+                                        varlist))
+          all-vars (map (comp sym first) (w/postwalk-replace illegal-symbols varlist))
           temps (zipmap all-vars (repeatedly #(gensym "local__")))]
          `(c/let ~(vec (concat
                         (interleave (map (if can-refer? identity temps) all-vars)
                                     (map (comp el->clj second) varlist))
                         (when-not can-refer? (interleave all-vars (map temps all-vars)))))
                  (with-local-el-vars ~(interleave all-vars all-vars)
-                   (progn ~@body)))))
+                   (progn ~@(w/postwalk-replace illegal-symbols body))))))
 
 (c/defmacro let
   "Bind variables according to VARLIST then eval BODY.
