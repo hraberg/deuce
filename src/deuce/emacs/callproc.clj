@@ -33,7 +33,7 @@
   Each element should be a string of the form ENVVARNAME=VALUE.
   The elements must normally be decoded (using `locale-coding-system') for use.")
 
-(defvar data-directory nil
+(defvar data-directory "etc/"
   "Directory of machine-independent files that come with GNU Emacs.
   These are files intended for Emacs to use while it runs.")
 

@@ -65,8 +65,10 @@
 (setq describe-language-environment-map (make-sparse-keymap))
 ;; Used by startup/normal-top-level to set the locale, called with nil.
 (defun set-locale-environment (&optional locale-name frame))
+(setq current-language-environment "English")
 ;; Used by startup/fancy-about-text to find localized tutorial.
-(defun get-language-info (lang-env key))
+(defun get-language-info (lang-env key)
+  (({"English" {'tutorial "TUTORIAL"}} lang-env {}) key))
 ;; Used by env.
 (defun find-coding-systems-string (string))
 ;; These are used by the mode line

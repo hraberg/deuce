@@ -4,6 +4,8 @@
             [clojure.string :as s]
             [clojure.java.io :as io]
             [deuce.emacs.buffer :as buffer]
+            [deuce.emacs.data :as data]
+            [deuce.emacs.eval :as eval]
             [deuce.emacs.editfns :as editfns])
   (:import [java.nio.file Files LinkOption
             NoSuchFileException])
@@ -197,14 +199,16 @@
   (directory-file-name (file-name-directory dirname)) to traverse a
   filesystem tree, not (expand-file-name \"..\"  dirname)."
   (el/check-type 'stringp name)
-  ;; Hack for classpath relative paths during loadup:
-  (if (io/resource name)
-    name
-    (let [file (io/file (s/replace name #"^~" (System/getProperty "user.home")))]
-      (.getAbsolutePath
-       (if (.isAbsolute file)
-         file
-         (io/file (or default-directory (el/el-var-get* 'default-directory)) name))))))
+  (let [default-directory (or default-directory (data/symbol-value 'default-directory))]
+    (cond
+     ;; Hack for classpath relative paths:
+     (io/resource name) name
+     (io/resource (str default-directory name)) (str default-directory name)
+     :else (let [file (io/file (s/replace name #"^~" (System/getProperty "user.home")))]
+             (.getAbsolutePath
+              (if (.isAbsolute file)
+                file
+                (io/file default-directory name)))))))
 
 (defun write-region (start end filename &optional append visit lockname mustbenew)
   "Write current region into specified file.
@@ -453,18 +457,27 @@
   This function does code conversion according to the value of
   `coding-system-for-read' or `file-coding-system-alist', and sets the
   variable `last-coding-system-used' to the coding system actually used."
-  (let [file (io/file filename)
+  (let [file (let [file (io/file filename)]
+               (if (.exists file)
+                 (.toURL file)
+                 (io/resource filename)))
         contents (slurp file)
         contents (if (and visit beg end)
                    (subs contents beg end)
                    contents)
-        path (.getAbsolutePath file)]
+        path (.getPath file)
+        point (editfns/point)]
     (editfns/insert contents)
     (when visit
       (reset! (.save-modiff (.own-text (buffer/current-buffer))) (System/currentTimeMillis))
       ;; These vars are buffer local.
       (el/setq buffer-file-name path)
+      (el/setq buffer-file-truename filename) ; Might be correct, should be result of files/file-truename.
       (el/setq buffer-saved-size (count contents)))
+    (doseq [f (data/symbol-value 'after-insert-file-functions)]
+      (editfns/goto-char 1)
+      (eval/funcall f (count contents)))
+    (editfns/goto-char point)
     (list path (count contents))))
 
 (defun file-name-nondirectory (filename)
@@ -583,12 +596,10 @@
   Otherwise return a directory name.
   Given a Unix syntax file name, returns a string ending in slash."
   (el/check-type 'stringp filename)
-  (if (= "/" filename)
+  (if (re-find #"/$" filename)
     filename
-    (when-let [dir (.getParent (io/file filename))]
-      (if (re-find #"/$" dir)
-        dir
-        (str dir "/")))))
+    (when-let [parent (.getParent (io/file filename))]
+      (file-name-as-directory parent))))
 
 (defun file-symlink-p (filename)
   "Return non-nil if file FILENAME is the name of a symbolic link.

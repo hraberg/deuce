@@ -11,7 +11,7 @@
            [clojure.lang Symbol Var])
   (:refer-clojure :exclude [+ * - / aset set < = > max >= <= mod atom min]))
 
-(declare consp car cdr)
+(declare consp car cdr set-default)
 
 (defvar most-positive-fixnum Long/MAX_VALUE
   "The largest value that is representable in a Lisp integer.")
@@ -618,6 +618,7 @@
   which makes a variable local in just one buffer.
 
   The function `default-value' gets the default value and `set-default' sets it."
+  (set-default variable nil)
   (swap! el/buffer-locals conj variable)
   variable)
 
