@@ -30,7 +30,8 @@
 
   Used in `word-search-forward', `word-search-backward',
   `word-search-forward-lax', `word-search-backward-lax'."
-  )
+  (str "\\b" (s/replace (s/trim string) #"\W+" "\\\\W\\\\W*")
+       (when (or (not lax) (re-find #"\s$" string)) "\\b")))
 
 (defun search-forward (string &optional bound noerror count)
   "Search forward from point for STRING.
@@ -350,4 +351,8 @@
 
 (defun regexp-quote (string)
   "Return a regexp string which matches exactly STRING and nothing else."
-  string)
+  (let [slash (str (gensym "SLASH"))]
+    (s/replace
+     (reduce #(s/replace %1 (str %2) (str "\\" %2)) (s/replace string "\\" slash)
+             "[*.?+^$")
+     slash "\\\\")))
