@@ -2,6 +2,7 @@
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
             [clojure.string :as s]
+            [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data]
             [deuce.emacs-lisp.cons :as cons]
             [taoensso.timbre :as timbre])
@@ -215,7 +216,8 @@
                     (s/replace "\\(" "(")
                     (s/replace "\\)" ")"))]
     (let [offset (or start 0)
-          m (re-matcher (re-pattern pattern)
+          ignore-case? (data/symbol-value 'case-fold-search)
+          m (re-matcher (re-pattern (str (if ignore-case? "(?iu)" "") pattern))
                         (subs string offset))
           inhibit? (data/symbol-value 'inhibit-changing-match-data)]
       (if (re-find m)
