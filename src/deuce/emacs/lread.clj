@@ -414,7 +414,7 @@
             (editfns/message "Loading %s%s..." file (if el-extension? " (source)" "")))
           (binding [globals/load-file-name (.getFile url)
                     globals/load-in-progress true]
-            (let [file (str (when (seq path) (str path "/"))
+            (let [file (str (when (seq path) (str (s/replace path #"^/" "") "/"))
                             (s/replace file  #".el$" ""))
                   clj-file (str (s/replace file "-" "_") ".clj")
                   clj-name (symbol (s/replace file "/" "."))

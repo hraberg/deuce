@@ -573,7 +573,7 @@
 (defun put (symbol propname value)
   "Store SYMBOL's PROPNAME property with value VALUE.
   It can be retrieved with `(get SYMBOL PROPNAME)'."
-  (swap! el/symbol-plists assoc-in [symbol propname] value)
+  (swap! el/symbol-plists assoc-in [(el/sym symbol) propname] value)
   value)
 
 (defun base64-decode-region (beg end)
@@ -694,7 +694,7 @@
 (defun get (symbol propname)
   "Return the value of SYMBOL's PROPNAME property.
   This is the last value stored with `(put SYMBOL PROPNAME VALUE)'."
-  (get-in @el/symbol-plists [symbol propname]))
+  (get-in @el/symbol-plists [(el/sym symbol) propname]))
 
 (defun lax-plist-get (plist prop)
   "Extract a value from a property list, comparing with `equal'.

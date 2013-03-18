@@ -3,7 +3,7 @@
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals])
   (:refer-clojure :only [])
-  (:use [deuce.emacs-lisp :only [and apply-partially catch cond condition-case defconst defmacro
+  (:use [deuce.emacs-lisp :only [and apply-partially catch cond condition-case defconst define-compiler-macro defmacro
                                  defun defvar function if interactive lambda let let* or prog1 prog2 progn quote
                                  save-current-buffer save-excursion save-restriction setq setq-default
                                  unwind-protect while throw]]

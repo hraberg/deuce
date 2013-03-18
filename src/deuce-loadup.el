@@ -252,7 +252,7 @@
 ;;        There's a totally wonderful error that comes from this guy occasionally when runnng as uberjar:
 ;;        ClassCastException: clojure.lang.PersistentList cannot be cast to clojure.lang.Named
 ;;        Some cl argument list expansion goes wrong and pass in a list inside the argument list.
-;;        It's not consistent, sometimes it works, and once having built the jar, it stays working.
+;;        The root cause seems to be define-compiler-macro. Stubbing it out for now, should be "safe".
 (load "register")
 (load "textmodes/paragraphs")
 ;; DEUCE: Hack in deuce.emacs to deal with (void-variable sorted-strings) -  same delayed-eval issue as font-lock above.

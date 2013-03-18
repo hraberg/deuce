@@ -200,15 +200,11 @@
   filesystem tree, not (expand-file-name \"..\"  dirname)."
   (el/check-type 'stringp name)
   (let [default-directory (or default-directory (data/symbol-value 'default-directory))]
-    (cond
-     ;; Hack for classpath relative paths:
-     (io/resource name) name
-     (io/resource (str default-directory name)) (str default-directory name)
-     :else (let [file (io/file (s/replace name #"^~" (System/getProperty "user.home")))]
-             (.getAbsolutePath
-              (if (.isAbsolute file)
-                file
-                (io/file default-directory name)))))))
+    (let [file (io/file (s/replace name #"^~" (System/getProperty "user.home")))]
+      (.getAbsolutePath
+       (if (.isAbsolute file)
+         file
+         (io/file default-directory name))))))
 
 (defun write-region (start end filename &optional append visit lockname mustbenew)
   "Write current region into specified file.

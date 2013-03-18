@@ -33,7 +33,7 @@
   (.write w "]"))
 
 (defmethod print-dup Symbol [s ^Writer w]
-  (if (and (re-find  #"([\\,/]|^\d)" (name s)) (not= "/" (name s)))
+  (if (and (re-find  #"([\\,/]|^\d|::)" (name s)) (not= "/" (name s)))
     (.write w (str "#el/sym " (pr-str (name s))))
     (.write w (str s))))
 
@@ -141,7 +141,7 @@
      charpos])
 
 (defmethod print-method Marker [marker w]
-  (.write w (str "#<marker at " (.charpos marker) " in " (.name (.buffer marker)) ">")))
+  (.write w (str "#<marker at " (.charpos marker) " in " @(.name (.buffer marker)) ">")))
 
 (defrecord Frame
     [;; /* Name of this frame: a Lisp string.  It is used for looking up resources,

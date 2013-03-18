@@ -33,9 +33,10 @@
   (symbol nil s))
 
 (defn sym [s]
-  (if (true? s)
-      '#el/sym "true"
-      (symbol nil (name s))))
+  (c/cond
+   (true? s)'#el/sym "true"
+   (nil? s) '#el/sym "nil"
+   :else (symbol nil (name s))))
 
 ; "reused" from data.clj
 (defn not-null? [object]
@@ -250,7 +251,7 @@
         (error (-> e cause .getMessage) (with-out-str (pp/pprint emacs-lisp)))
         (throw e)))))
 
-;; defined in eval.clj
+;; Defined in eval.clj
 (defn eval [body & [lexical]]
   (binding [*ns* (the-ns 'deuce.emacs)]
     (with-bindings (if lexical {(global 'lexical-binding) true} {})
@@ -327,7 +328,7 @@
                  `(def-helper* defn ~name ~arglist ~@body))
               '~name)))
 
-;; defined in subr.el
+;; Defined in subr.el
 (c/defmacro lambda
   "Return a lambda expression.
   A call of the form (lambda ARGS DOCSTRING INTERACTIVE BODY) is
@@ -366,7 +367,7 @@
                        (c/let [{:syms ~vars} closure#]
                               (progn ~@body)))) {:doc ~doc}))))
 
-;; defined in subr.el
+;; Defined in subr.el
 (defn apply-partially
   "Return a function that is a partial application of FUN to ARGS.
   ARGS is a list of the first N arguments to pass to FUN.
@@ -376,6 +377,21 @@
   [fun & args]
   (fn partial [& new-args]
     (apply (deuce.emacs-lisp/fun fun) (concat args new-args))))
+
+;; Defined in cl-macs.el. Optimizes existing fns which complicates things a lot.
+(c/defmacro define-compiler-macro
+ "Define a compiler-only macro.
+  This is like `defmacro', but macro expansion occurs only if the call to
+  FUNC is compiled (i.e., not interpreted).  Compiler macros should be used
+  for optimizing the way calls to FUNC are compiled; the form returned by
+  BODY should do the same thing as a call to the normal function called
+  FUNC, though possibly more efficiently.  Note that, like regular macros,
+  compiler macros are expanded repeatedly until no further expansions are
+  possible.  Unlike regular macros, BODY can decide to \"punt\" and leave the
+  original function call alone by declaring an initial `&whole foo' parameter
+  and then returning foo."
+  {:arglists '([FUNC ARGS &rest BODY])}
+  [func args & body])
 
 (c/defmacro unwind-protect
   "Do BODYFORM, protecting with UNWINDFORMS.

@@ -1,6 +1,7 @@
 (ns deuce.emacs.keymap
   (:use [deuce.emacs-lisp :only (defun defvar setq) :as el])
   (:require [clojure.core :as c]
+            [clojure.walk :as w]
             [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs-lisp.parser :as parser]
             [deuce.emacs.alloc :as alloc]
@@ -121,7 +122,7 @@
   Any key definitions that are subkeymaps are recursively copied.
   However, a key definition which is a symbol whose definition is a keymap
   is not copied."
-  )
+  (w/postwalk identity keymap))
 
 (defun map-keymap-internal (function keymap)
   "Call FUNCTION once for each event binding in KEYMAP.
