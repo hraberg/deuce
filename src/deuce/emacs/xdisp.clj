@@ -481,8 +481,7 @@
                                            (when (> x size)
                                              (str (long (/ x size)) suffix))) )
                                        ["" "k" "M" "G"]))))
-        pad (fn padder ;; "Numeric constructs are padded by inserting spaces to the left,
-                       ;;  and others are padded by inserting spaces to the right." - not dealt with.
+        pad (fn padder
               ([value] (partial padder value))
               ([value [_ pad]]
                  (let [s (str value)
