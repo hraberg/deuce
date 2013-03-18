@@ -240,7 +240,11 @@
    a string (takes text from string, starting at the beginning)
    t (read text line using minibuffer and use it, or read from
       standard input in batch mode)."
-  (first (parser/parse stream)))
+  (let [stream (or stream (data/symbol-value 'standard-input))
+        stream (if (data/bufferp stream)
+                 (editfns/buffer-substring (editfns/point) (inc (editfns/buffer-size)))
+                 stream)]
+    (first (parser/parse stream))))
 
 (defun read-char (&optional prompt inherit-input-method seconds)
   "Read a character from the command input (keyboard or macro).

@@ -123,7 +123,7 @@
 ;; Figure out where this is actually needed.
 (defn maybe-seq [x]
   (if (and (seq? x)
-           (not (dotted-pair? x))
+;           (not (dotted-pair? x))
            (not (consp x)))
     (if (dotted-list-ending-in-pair? x)
       (apply c/list x)

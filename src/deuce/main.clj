@@ -25,6 +25,9 @@
     ((resolve 'clojure.tools.nrepl.server/start-server) :port port))
   (println "nrepl server listening on" port))
 
+(defn display-mode-line []
+  (println (xdisp/format-mode-line (buffer/buffer-local-value 'mode-line-format (buffer/current-buffer)))))
+
 (defn display-state-of-emacs []
   (doseq [frame (frame/frame-list)]
     (println "---------------" frame

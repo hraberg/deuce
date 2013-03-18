@@ -1082,7 +1082,7 @@
       (do
         (binding [*current-buffer* buffer]
           (eval/run-hooks 'kill-buffer-hook))
-        (swap! buffer-alist dissoc (.name buffer))
+        (swap! buffer-alist dissoc @(.name buffer))
         (set-buffer (other-buffer))
         true))))
 

@@ -1,6 +1,9 @@
 (ns deuce.emacs.print
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [deuce.emacs.buffer :as buffer]
+            [deuce.emacs.data :as data]
+            [deuce.emacs.editfns :as editfns])
   (:refer-clojure :exclude [print]))
 
 (defvar print-circle nil
@@ -185,7 +188,12 @@
 
   If PRINTCHARFUN is omitted, the value of `standard-output' (which see)
   is used instead."
-  )
+  (let [printcharfun (or printcharfun (data/symbol-value 'standard-output))
+        s (prin1-to-string object)]
+    (condp some [printcharfun]
+      #{nil true} (editfns/message s)
+      data/bufferp (binding [buffer/*current-buffer* printcharfun]
+                     (editfns/insert s)))))
 
 (defun external-debugging-output (character)
   "Write CHARACTER to stderr.

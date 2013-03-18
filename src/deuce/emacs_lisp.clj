@@ -237,7 +237,7 @@
        (second (last %)))
 
      (c/and (seq? %) (= '#el/sym "\\`" (first %)))
-     (w/postwalk cons/maybe-seq (el->clj (syntax-quote* (second %))))
+     (el->clj (syntax-quote* (second %)))
 
      (= '#el/sym "\\," %) `unquote
      (= '#el/sym "\\,@" %) `unquote-splicing

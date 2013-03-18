@@ -24,6 +24,11 @@
   or other such regexp constructs are not replaced with this.
   A value of nil (which is the normal value) means treat spaces literally.")
 
+(declare string-match re-search-forward regexp-quote
+         match-end match-data set-match-data)
+
+(def ^:private current-match-data (atom nil))
+
 (defun word-search-regexp (string &optional lax)
   "Return a regexp which matches words, ignoring punctuation.
   Given STRING, a string of words separated by word delimiters,
@@ -52,7 +57,7 @@
   `case-fold-search', which see.
 
   See also the functions `match-beginning', `match-end' and `replace-match'."
-  )
+  (re-search-forward (regexp-quote string) bound noerror count))
 
 (defun re-search-backward (regexp &optional bound noerror count)
   "Search backward from point for match for regular expression REGEXP.
@@ -70,9 +75,28 @@
 
   See also the functions `match-beginning', `match-end', `match-string',
   and `replace-match'."
-  )
-
-(def ^:private current-match-data (atom nil))
+  (let [point (editfns/point)
+        count (el/check-type 'integerp (or count 1))]
+    (cond
+     (zero? count) point
+     (neg? count) (re-search-forward regexp bound noerror (- count))
+     :else
+     (let [bound (el/check-type 'integerp (or bound 1))]
+       (loop [offset (editfns/goto-char bound)
+              matches []]
+         (if (string-match (el/check-type 'stringp regexp)
+                           (subs (editfns/buffer-string) 0 (dec point))
+                           (dec offset))
+           (when (< (editfns/goto-char (match-end 0)) point)
+             (recur (editfns/point) (conj matches (match-data))))
+           (if-let [match (nth (reverse matches) (dec count) nil)]
+             (do (set-match-data match)
+                 (editfns/goto-char (inc (first match))))
+             (do (editfns/goto-char (if-not (contains? #{nil true} noerror)
+                                      bound
+                                      point))
+                 (when-not noerror
+                   (el/throw* 'search-failed (format "Search failed: %s" regexp)))))))))))
 
 (defun set-match-data (list &optional reseat)
   "Set internal data on last search match from elements of LIST.
@@ -97,7 +121,7 @@
   Relies on the function `word-search-regexp' to convert a sequence
   of words in STRING to a regexp used to search words without regard
   to punctuation."
-  )
+  (re-search-forward (word-search-regexp string true) bound noerror count))
 
 (defun word-search-backward (string &optional bound noerror count)
   "Search backward from point for STRING, ignoring differences in punctuation.
@@ -111,7 +135,7 @@
   Relies on the function `word-search-regexp' to convert a sequence
   of words in STRING to a regexp used to search words without regard
   to punctuation."
-  )
+  (re-search-backward (word-search-regexp string) bound noerror count))
 
 (defun posix-search-forward (regexp &optional bound noerror count)
   "Search forward from point for regular expression REGEXP.
@@ -128,7 +152,7 @@
 
   See also the functions `match-beginning', `match-end', `match-string',
   and `replace-match'."
-  )
+  (search-forward regexp bound noerror count))
 
 (defun word-search-forward (string &optional bound noerror count)
   "Search forward from point for STRING, ignoring differences in punctuation.
@@ -142,7 +166,7 @@
   Relies on the function `word-search-regexp' to convert a sequence
   of words in STRING to a regexp used to search words without regard
   to punctuation."
-  )
+  (re-search-forward (word-search-regexp string) bound noerror count))
 
 (defun word-search-backward-lax (string &optional bound noerror count)
   "Search backward from point for STRING, ignoring differences in punctuation.
@@ -160,7 +184,7 @@
   Relies on the function `word-search-regexp' to convert a sequence
   of words in STRING to a regexp used to search words without regard
   to punctuation."
-  )
+  (re-search-backward (word-search-regexp string true) bound noerror count))
 
 (defun looking-at (regexp)
   "Return t if text after point matches regular expression REGEXP.
@@ -186,7 +210,26 @@
 
   See also the functions `match-beginning', `match-end', `match-string',
   and `replace-match'."
-  )
+  (let [point (editfns/point)
+        count (el/check-type 'integerp (or count 1))]
+    (cond
+     (zero? count) point
+     (neg? count) (re-search-backward regexp bound noerror (- count))
+     :else
+     (let [bound (el/check-type 'integerp (or bound (editfns/buffer-size)))]
+       (loop [count (dec count)]
+         (if (string-match (el/check-type 'stringp regexp)
+                           (subs (editfns/buffer-string) 0 bound)
+                           (dec (editfns/point)))
+           (do (editfns/goto-char (inc (match-end 0)))
+               (if (zero? count)
+                 (editfns/point)
+                 (recur (dec count))))
+           (do (editfns/goto-char (if-not (contains? #{nil true} noerror)
+                                    bound
+                                    point))
+               (when-not noerror
+                 (el/throw* 'search-failed (format "Search failed: %s" regexp))))))))))
 
 (defun posix-string-match (regexp string &optional start)
   "Return index of start of first match for REGEXP in STRING, or nil.
@@ -196,7 +239,7 @@
   For index of first char beyond the match, do (match-end 0).
   `match-end' and `match-beginning' also give indices of substrings
   matched by parenthesis constructs in the pattern."
-  )
+  (string-match regexp string start))
 
 (defun string-match (regexp string &optional start)
   "Return index of start of first match for REGEXP in STRING, or nil.
@@ -243,7 +286,7 @@
   This function modifies the match data that `match-beginning',
   `match-end' and `match-data' access; save and restore the match
   data if you want to preserve them."
-  )
+  (looking-at regexp))
 
 (defun match-data (&optional integers reuse reseat)
   "Return a list containing all info on what the last search matched.
@@ -330,7 +373,7 @@
   `case-fold-search', which see.
 
   See also the functions `match-beginning', `match-end' and `replace-match'."
-  )
+  (re-search-backward (regexp-quote string) bound noerror count))
 
 (defun match-end (subexp)
   "Return position of end of text matched by last search.
@@ -359,7 +402,7 @@
 
   See also the functions `match-beginning', `match-end', `match-string',
   and `replace-match'."
-  )
+  (search-backward regexp bound noerror count))
 
 (defun regexp-quote (string)
   "Return a regexp string which matches exactly STRING and nothing else."

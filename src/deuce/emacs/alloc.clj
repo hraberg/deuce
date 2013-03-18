@@ -3,6 +3,7 @@
         [taoensso.timbre :as timbre
          :only (trace debug info warn error fatal spy)])
   (:require [clojure.core :as c]
+            [clojure.walk :as w]
             [deuce.emacs-lisp.cons :as cons])
   (:refer-clojure :exclude [vector cons list])
   (:import [java.util Arrays]))
@@ -167,7 +168,7 @@
   "Make a copy of object OBJ in pure storage.
   Recursively copies contents of vectors and cons cells.
   Does not copy symbols.  Copies strings without text properties."
-  obj)
+  (cons/maybe-seq obj))
 
 (defun memory-limit ()
   "Return the address of the last byte Emacs has allocated, divided by 1024.

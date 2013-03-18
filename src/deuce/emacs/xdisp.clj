@@ -524,7 +524,7 @@
                                                                                      (inc (editfns/buffer-size buffer)))))]
                                                          (case percent
                                                            0 "Top"
-                                                           100 "All" ;; or "Bottom" if top line isn't visible.
+                                                           100 "Bottom" ;; or "All" if top line is visible.
                                                            (str percent "%"))))
                                           ;; (% "P") ;; The reverse of the above
                                           (% "m") (pad (buffer/buffer-local-value 'mode-name buffer))

@@ -269,7 +269,7 @@
   "Return character in current buffer at position POS.
   POS is an integer or a marker and defaults to point.
   If POS is out of range, the value is nil."
-  (let [pos (or pos (point))]
+  (let [pos (dec (or pos (point)))]
       (when  (< -1 pos (buffer-size))
         (.charAt (buffer-string) pos))))
 
