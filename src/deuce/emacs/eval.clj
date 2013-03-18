@@ -3,6 +3,7 @@
   (:require [clojure.core :as c]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.data :as data]
+            [deuce.emacs-lisp.cons :as cons]
             [deuce.emacs-lisp :as el])
   (:refer-clojure :exclude [apply eval macroexpand]))
 
@@ -400,7 +401,7 @@
                                (expander form))
                              (if (and (seq? form)
                                       (not= 'quote (first form)))
-                               (apply list (map shadow-walker form))
+                               (cons/maybe-seq (map shadow-walker form))
                                form))) form)
         expansion (if-let [m  (and (seq? form) (-> (el/fun (first form)) meta))]
                     (if (and (:macro m) (= (the-ns 'deuce.emacs-lisp) (:ns m)))

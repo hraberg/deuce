@@ -47,6 +47,7 @@
 
 (defn fun [s]
   (c/cond (fn? s) s
+          (var? s) (fun @s)
           (symbol? s) (c/let [f (ns-resolve 'deuce.emacs (sym s))]
                              ;; Not sure we want alias handling leaking down to here.
                              ;; On the other hand, 24.3 uses defalias + lambda as primary macros.
