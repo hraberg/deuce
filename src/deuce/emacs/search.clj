@@ -1,9 +1,10 @@
 (ns deuce.emacs.search
-  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
             [clojure.string :as s]
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data]
+            [deuce.emacs.editfns :as editfns]
             [deuce.emacs-lisp.cons :as cons]
             [taoensso.timbre :as timbre])
   (:refer-clojure :exclude [])
@@ -166,7 +167,10 @@
   This function modifies the match data that `match-beginning',
   `match-end' and `match-data' access; save and restore the match
   data if you want to preserve them."
-  )
+  (when (string-match (str "^" (el/check-type 'stringp regexp))
+                      (editfns/buffer-string)
+                      (dec (editfns/point)))
+    true))
 
 (defun re-search-forward (regexp &optional bound noerror count)
   "Search forward from point for regular expression REGEXP.
@@ -205,6 +209,8 @@
   You can use the function `match-string' to extract the substrings
   matched by the parenthesis constructions in REGEXP."
   ;; http://www.gnu.org/software/emacs/manual/html_node/elisp/Regexp-Special.html
+  (el/check-type 'stringp regexp)
+  (el/check-type 'stringp string)
   (let [pattern (-> regexp
                     (s/replace #"^\\\`" "^")
                     (s/replace #"\[(]?.*?)]"
@@ -215,7 +221,7 @@
                                       "]")))
                     (s/replace "\\(" "(")
                     (s/replace "\\)" ")"))]
-    (let [offset (or start 0)
+    (let [offset (el/check-type 'integerp (or start 0))
           ignore-case? (data/symbol-value 'case-fold-search)
           m (re-matcher (re-pattern (str (if ignore-case? "(?iu)" "") pattern))
                         (subs string offset))
