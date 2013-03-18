@@ -1,6 +1,8 @@
 (ns deuce.emacs.editfns
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
+            [clojure.java.io :as io]
+            [clojure.java.shell :as sh]
             [clojure.string :as s]
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data]
@@ -188,7 +190,10 @@
 (defun user-uid ()
   "Return the effective uid of Emacs.
   Value is an integer or a float, depending on the value."
-  )
+  (try
+    (Integer/parseInt (s/trim (:out (sh/sh "id" "-u"))))
+    (catch Exception _
+      -1)))
 
 (defun set-time-zone-rule (tz)
   "Set the local time zone using TZ, a string specifying a time zone rule.
@@ -221,7 +226,10 @@
 
 (defun emacs-pid ()
   "Return the process ID of Emacs, as an integer."
-  )
+  (let [self (io/file "/proc/self")]
+    (if (.exists self)
+      (Integer/parseInt (.getName (.getCanonicalFile self)))
+      -1)))
 
 (defun point-max ()
   "Return the maximum permissible value of point in the current buffer.
@@ -422,7 +430,7 @@
 (defun user-real-uid ()
   "Return the real uid of Emacs.
   Value is an integer or a float, depending on the value."
-  )
+  (user-uid))
 
 (defun field-end (&optional pos escape-from-edge limit)
   "Return the end of the field surrounding POS.
