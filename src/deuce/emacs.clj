@@ -72,7 +72,8 @@
 ;; These are used by the mode line
 (setq current-input-method)
 (defun coding-system-eol-type-mnemonic (coding-system)
-  (symbol-value 'eol-mnemonic-unix))
+  (symbol-value ({0 'eol-mnemonic-unix 1 'eol-mnemonic-dos 2 'eol-mnemonic-mac}
+                 (coding-system-eol-type coding-system) 'eol-mnemonic-undecided)))
 
 (setq terminal-frame ((c/ns-resolve 'deuce.emacs.frame 'make-initial-frame)))
 

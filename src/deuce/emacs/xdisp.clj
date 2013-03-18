@@ -471,7 +471,8 @@
         modified? (buffer/buffer-modified-p buffer)
         read-only? (buffer/buffer-local-value 'buffer-read-only buffer)
         recursion-depth (keyboard/recursion-depth)
-        latin-1-mnemonic "1" ;; "U" is UTF-8, "-" is ASCII. See interntional/mule-conf
+        coding-system-mnemonic "1" ;; "1" is ISO-Latin-1, U" is UTF-8, "-" is ASCII. See interntional/mule-conf
+        eol-type-mnemnonic ((el/fun 'coding-system-eol-type-mnemonic) nil)
         % (fn [x] (re-pattern (str "%(-?\\d*)" x)))
         humanize (fn [x]
                    (some identity (reverse
@@ -495,8 +496,8 @@
                       string? (reduce #(s/replace %1 (key %2) (val %2)) f
                                       {(% "e") "" ;; "!MEM FULL! "
                                        (% "n") "" ;; "Narrow"
-                                       (% "z") latin-1-mnemonic
-                                       (% "Z") (str latin-1-mnemonic (data/symbol-value 'eol-mnemonic-unix))
+                                       (% "z") coding-system-mnemonic
+                                       (% "Z") (str coding-system-mnemonic eol-type-mnemnonic)
                                        (% "\\[") (if (< 5 recursion-depth)
                                                    "[[[... "
                                                    (apply str (repeat (keyboard/recursion-depth) "[" )))

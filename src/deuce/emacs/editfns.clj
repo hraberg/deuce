@@ -4,6 +4,7 @@
             [clojure.string :as s]
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data]
+            [deuce.emacs.window :as window]
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals])
   (:import [java.net InetAddress]
@@ -62,7 +63,7 @@
     (list (bit-shift-right seconds 16) (bit-and 0xffff seconds) (* 1000 (mod now 1000)))))
 
 (declare buffer-string buffer-substring buffer-size point mark-marker goto-char
-         point-max point-min insert eobp bobp char-before)
+         point-max point-min insert eobp bobp char-before message)
 
 (defun decode-time (&optional specified-time)
   "Decode a time value as (SEC MINUTE HOUR DAY MONTH YEAR DOW DST ZONE).
@@ -458,7 +459,7 @@
 
   If the first argument is nil or the empty string, clear any existing
   message; let the minibuffer contents show."
-  )
+  (message format-string args))
 
 (defun propertize (string &rest properties)
   "Return a copy of STRING with text properties added.
@@ -752,17 +753,26 @@
   If the first argument is nil or the empty string, the function clears
   any existing message; this lets the minibuffer contents show.  See
   also `current-message'."
-  (let [message (apply format format-string args)]
-    (binding [buffer/*current-buffer* (buffer/get-buffer-create "*Messages*")]
-      (insert (str message \newline))) ;; Emacs has logic to figure out if newline is needed.
-
-    ;; The echo area buffers are called " *Echo Area %d*". They share window with the minibuffer.
-    ;; Note the leading space for minibuffer window buffers.
-    (binding [buffer/*current-buffer* (buffer/get-buffer-create " *Echo Area 0*")]
-      (buffer/erase-buffer)
-      (insert message))
-    ;; This will go away
-    (println message)))
+  ;; The echo area buffers are called " *Echo Area %d*". They share window with the minibuffer.
+  ;; Note the leading space for minibuffer window buffers.
+  ;; Need to pick the right ones here instead of just 0.
+  (let [message (when message (apply format format-string args))
+        echo-area (buffer/get-buffer-create " *Echo Area 0*")
+        minibuffer (buffer/get-buffer-create " *Minibuf-0*")]
+    (if (seq message)
+      (do
+        (binding [buffer/*current-buffer* (buffer/get-buffer-create "*Messages*")]
+          (insert (str message \newline))) ;; Emacs has logic to figure out if newline is needed.
+        (binding [buffer/*current-buffer* echo-area]
+          (buffer/erase-buffer)
+          (insert message))
+        (window/set-window-buffer (window/minibuffer-window) echo-area)
+        ;; This will go away
+        (println message))
+      (do
+        (binding [buffer/*current-buffer* echo-area]
+          (buffer/erase-buffer))
+        (window/set-window-buffer (window/minibuffer-window) minibuffer)))))
 
 (defun insert (&rest args)
   "Insert the arguments, either strings or characters, at point.
@@ -826,4 +836,4 @@
 
   If the first argument is nil or the empty string, clear any existing
   message; let the minibuffer contents show."
-  )
+  (message format-string args))

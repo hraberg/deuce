@@ -14,8 +14,9 @@
                                   [swank-clojure "1.4.3"]
                                   [org.clojure/tools.nrepl "0.2.2"]
                                   [clojure-complete "0.2.2"]]}}
-  :resource-paths ["emacs/lisp"]
-  :jar-exclusions [#".*\.elc"]
+  :resource-paths ["emacs/lisp" "resources"]
+  :jar-exclusions [#".*\.elc" #"TUTORIAL\..*"
+                   #"ChangeLog.*" #"Makefile.*" #"README" #"\.gitignore"]
   :java-source-paths ["src"]
   :jvm-opts ["-Xss4m"]
   :main deuce.main)

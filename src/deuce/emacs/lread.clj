@@ -399,23 +399,24 @@
     (binding [loads-in-progress (conj loads-in-progress file)]
       (try
         ;; see locate-file-internal below, maybe should be delegating to it
-        (let [url (or (->> (for [l globals/load-path
-                                 :let [file (s/replace (str l "/" file) #"^/" "")]]
-                             (or (when-not nosuffix
-                                   (io/resource (str file ".el")))
-                                 (io/resource file)))
-                           (filter identity)
-                           (remove #(when (= "file" (.getProtocol %))
-                                      (.isDirectory (io/file %))))
-                           first)
-                      (.toURL (io/file file)))
+        (let [[path url] (or (->> (for [l globals/load-path
+                                        :let [file (s/replace (str l "/" file) #"^/" "")]]
+                                    [l (or (when-not nosuffix
+                                             (io/resource (str file ".el")))
+                                           (io/resource file))])
+                                  (filter (comp identity second))
+                                  (remove #(when (= "file" (.getProtocol (second %)))
+                                             (.isDirectory (io/file (second %)))))
+                                  first)
+                             ["" (.toURL (io/file file))])
               el-extension? (re-find #".el$" file)]
           (when-not nomessage
             (editfns/message "Loading %s%s..." file (if el-extension? " (source)" "")))
           (binding [globals/load-file-name (.getFile url)
                     globals/load-in-progress true]
-            (let [file (s/replace file  #".el$" "")
-                  clj-file (str (s/replace file "-" "_") ".clj") ;; should use actual classpath relative location, not loadpath
+            (let [file (str (when (seq path) (str path "/"))
+                            (s/replace file  #".el$" ""))
+                  clj-file (str (s/replace file "-" "_") ".clj")
                   clj-name (symbol (s/replace file "/" "."))
                   last-modified #(if % (.getLastModified (.openConnection %)) -1)
                   load-raw-clj #(Compiler/load (io/reader (io/resource clj-file)) clj-file (.getName (io/file clj-file)))]

@@ -272,7 +272,7 @@
   A vector value indicates that a format of end-of-line should be
   detected automatically.  Nth element of the vector is the subsidiary
   coding system whose eol-type is N."
-  )
+  ({"\n" '0 "\r\n" 1 "\r" 2} (System/lineSeparator)))
 
 (defun coding-system-aliases (coding-system)
   "Return the list of aliases of CODING-SYSTEM."

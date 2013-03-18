@@ -46,9 +46,10 @@
     (when-not messages?
       (println (str (.beg (.own-text buffer)))))))
 
-;; We want to support emacs -nw -q initially. -q is --no-init-file
+;; We want to support emacs -q initially. -q is --no-init-file
 (defn -main [& args]
   (let [option #(hash-set (str "-" %) (str "--" %))
+        inhibit-window-system (atom nil)
         args (map
               #(condp some [%]
                  (option "script") "-scriptload"
@@ -64,10 +65,19 @@
                  (option "batch") (do (el/setq noninteractive true) nil)
                  (option "swank-clojure") (swank 4005)
                  (option "nrepl") (nrepl 7888)
-                 #{"-nw" "--no-window-system,"} (do (el/setq inhibit-window-system true) nil)
+                 #{"-nw" "--no-window-system,"} (do (reset! inhibit-window-system true))
                  %) args)]
 
     (el/setq command-line-args (alloc/cons "src/bootstrap-emacs" (apply alloc/list (remove nil? args))))
+
+    (when-not (data/symbol-value 'noninteractive)
+      ;; Emacs opens the terminal before loadup.
+      ;; In temacs you get an empty frame, with the actual load echoed to the Echo Area.
+      ;; The mode line is the default (just dashes), the cursor is top left, and there's no menu bar.
+      ;; This means we are a bit too eager in deuce.emacs setting up the *scratch* buffer.
+      ;; inhibit-window-system could maybe be used to switch between :text and :swing in lanterna.
+      )
+
     (lread/load "deuce-loadup.el")
     ;; Dump the current buffers etc. to stdout until we have display. *Messages* is already echoed to stdout.
     (display-state-of-emacs)

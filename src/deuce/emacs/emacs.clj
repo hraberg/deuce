@@ -2,6 +2,7 @@
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
             [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.fns :as fns]
             [deuce.emacs-lisp.globals :as globals])
   (:import [java.io File])
   (:refer-clojure :exclude []))
@@ -72,6 +73,8 @@
 
   Also note that this is not a generic facility for accessing external
   libraries; only those already known by Emacs will be loaded.")
+
+(fns/put 'dynamic-library-alist 'risky-local-variable true)
 
 (defvar emacs-copyright "Copyright (C) 2012 Free Software Foundation, Inc."
   "Short copyright string for this version of Emacs.")
