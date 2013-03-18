@@ -518,7 +518,7 @@
                                     (map (comp el->clj second) varlist))
                         (when-not can-refer? (interleave all-vars (map temps all-vars)))))
                  (with-local-el-vars ~(interleave all-vars all-vars)
-                   (progn ~@(w/postwalk-replace illegal-symbols body))))))
+                   (progn ~@(if (seq illegal-symbols) (w/postwalk-replace illegal-symbols body) body))))))
 
 (c/defmacro let
   "Bind variables according to VARLIST then eval BODY.

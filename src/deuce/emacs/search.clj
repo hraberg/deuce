@@ -2,6 +2,7 @@
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
             [clojure.string :as s]
+            [deuce.emacs-lisp.cons :as cons]
             [taoensso.timbre :as timbre])
   (:refer-clojure :exclude [])
   (:import [java.util.regex Pattern PatternSyntaxException]))
@@ -67,14 +68,14 @@
   and `replace-match'."
   )
 
-(def ^:private ^:dynamic *current-match-data* (atom nil))
+(def ^:private current-match-data (atom nil))
 
 (defun set-match-data (list &optional reseat)
   "Set internal data on last search match from elements of LIST.
   LIST should have been created by calling `match-data' previously.
 
   If optional arg RESEAT is non-nil, make markers on LIST point nowhere."
-  (reset! *current-match-data* list))
+  (reset! current-match-data list))
 
 (defun word-search-forward-lax (string &optional bound noerror count)
   "Search forward from point for STRING, ignoring differences in punctuation.
@@ -215,10 +216,13 @@
           m (re-matcher (re-pattern pattern)
                         (subs string offset))]
       (if (re-find m)
-        (do
-          (reset! *current-match-data* {:matcher m :offset offset})
-          (+ offset (.start m)))
-        (reset! *current-match-data* nil)))))
+        (first
+          (reset! current-match-data
+                  (cons/maybe-seq
+                   (map (partial + offset)
+                        (mapcat #(vector (.start m %) (.end m %))
+                                (range (inc (.groupCount m))))))))
+        (reset! current-match-data nil)))))
 
 (defun posix-looking-at (regexp)
   "Return t if text after point matches regular expression REGEXP.
@@ -248,7 +252,7 @@
   REUSE list will be modified to point to nowhere.
 
   Return value is undefined if the last search failed."
-  @*current-match-data*)
+  @current-match-data)
 
 (defun replace-match (newtext &optional fixedcase literal string subexp)
   "Replace text matched by last search with NEWTEXT.
@@ -295,8 +299,8 @@
   Value is nil if SUBEXPth pair didn't match, or there were less than
     SUBEXP pairs.
   Zero means the entire text matched by the whole regexp or whole string."
-  (when @*current-match-data*
-    (+ (:offset @*current-match-data*) (.start (:matcher @*current-match-data*) subexp))))
+  (when @current-match-data
+    (nth @current-match-data (* subexp 2) nil)))
 
 (defun search-backward (string &optional bound noerror count)
   "Search backward from point for STRING.
@@ -322,8 +326,8 @@
   Value is nil if SUBEXPth pair didn't match, or there were less than
     SUBEXP pairs.
   Zero means the entire text matched by the whole regexp or whole string."
-  (when @*current-match-data*
-    (+ (:offset @*current-match-data*) (.end (:matcher @*current-match-data*) subexp))))
+  (when @current-match-data
+    (nth @current-match-data (inc (* subexp 2)) nil)))
 
 (defun posix-search-backward (regexp &optional bound noerror count)
   "Search backward from point for match for regular expression REGEXP.
