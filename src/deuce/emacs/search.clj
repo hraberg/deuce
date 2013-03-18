@@ -2,6 +2,7 @@
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
             [clojure.string :as s]
+            [deuce.emacs.data :as data]
             [deuce.emacs-lisp.cons :as cons]
             [taoensso.timbre :as timbre])
   (:refer-clojure :exclude [])
@@ -215,15 +216,18 @@
                     (s/replace "\\)" ")"))]
     (let [offset (or start 0)
           m (re-matcher (re-pattern pattern)
-                        (subs string offset))]
+                        (subs string offset))
+          inhibit? (data/symbol-value 'inhibit-changing-match-data)]
       (if (re-find m)
-        (first
-          (reset! current-match-data
-                  (cons/maybe-seq
-                   (map (partial + offset)
-                        (mapcat #(vector (.start m %) (.end m %))
-                                (range (inc (.groupCount m))))))))
-        (reset! current-match-data nil)))))
+        (let [m (cons/maybe-seq
+                 (map (partial + offset)
+                      (mapcat #(vector (.start m %) (.end m %))
+                              (range (inc (.groupCount m))))))]
+          (when-not inhibit?
+            (reset! current-match-data m))
+          (first m))
+        (when-not inhibit?
+          (reset! current-match-data nil))))))
 
 (defun posix-looking-at (regexp)
   "Return t if text after point matches regular expression REGEXP.
