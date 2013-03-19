@@ -15,10 +15,12 @@
   (loop [idx 0 acc [0]]
     (let [idx (.indexOf s (int \newline) idx)]
       (if (>= idx 0)
-        (recur (inc idx) (conj acc idx))
+        (recur (inc idx) (conj acc (inc idx)))
         (int-array acc)))))
 
 ;; Now I've seen some convoluted Clojure in my days...
+;; Emacs "remembers" how long the line you started from and tries to "regain" that column when moving around.
+;; With some luck this is taken care of by some Emacs Lisp somewhere (right..).
 (defn ^:private move-lines [s offset lines]
   (let [line-indexes (line-indexes s)
         pos-to-line #(let [pos (Arrays/binarySearch line-indexes %)]
@@ -27,12 +29,16 @@
         offset-of-line #(cond
                          (>= % (count line-indexes)) (count s)
                          (neg? %) 0
-                         :else (inc (aget line-indexes %)))
+                         :else (aget line-indexes %))
         col (- offset (aget line-indexes line))
         new-line (+ line lines)
         line-offset (offset-of-line new-line)
-        new-offset (if (zero? line-offset) 0
-                       (min (+ line-offset col) (offset-of-line (inc new-line))))]
+        empty-line? (zero? (- (offset-of-line (inc new-line)) line-offset))
+        new-offset (cond
+                    (neg? new-line) 0
+                    empty-line? (inc line-offset)
+                    :else (min (+ line-offset col)
+                               (dec (offset-of-line (inc new-line)))))]
     (editfns/goto-char (inc new-offset))
     (cond
      (< (count line-indexes) new-line) (- new-line (count line-indexes))

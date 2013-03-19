@@ -464,7 +464,7 @@
         line-offset (.lastIndexOf substring "\n")
         column (dec (if (= -1 line-offset) point (- point line-offset)))
         line (if (= -1 line-offset) 1
-               (loop [idx 0 line 1]
+               (loop [idx 0 line 2]
                  (if (= idx line-offset) line
                      (recur (unchecked-inc idx)
                             (if (= \newline (.charAt substring idx)) (unchecked-inc line) line)))))
