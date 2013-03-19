@@ -11,7 +11,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors)
 
-**2013-03-17 Mode Lines and Menu Bar**
+**2013-03-19 Mode Lines and Menu Bar**
 
 We're getting there, it's still all rendered to stdout:
 
