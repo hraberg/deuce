@@ -174,7 +174,7 @@
   "Return the address of the last byte Emacs has allocated, divided by 1024.
   This may be helpful in debugging Emacs's memory usage.
   We divide the value by 1024 to make sure it fits in a Lisp integer."
-  )
+  (/ (.maxMemory (Runtime/getRuntime)) 1024))
 
 (defun make-vector (length init)
   "Return a newly created vector of length LENGTH, with each element being INIT.

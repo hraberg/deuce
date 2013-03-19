@@ -496,7 +496,7 @@
                       string? (let [%% (str (gensym "PERCENT"))]
                                 (-> ;; Deal with %% last.
                                  (reduce #(s/replace %1 (key %2) (val %2)) (s/replace f "%%" %%)
-                                         {(% "e") "" ;; "!MEM FULL! "
+                                         {(% "e") (if (data/symbol-value 'memory-full) "!MEM FULL! " "")
                                           (% "n") "" ;; "Narrow"
                                           (% "z") coding-system-mnemonic
                                           (% "Z") (str coding-system-mnemonic eol-type-mnemnonic)
