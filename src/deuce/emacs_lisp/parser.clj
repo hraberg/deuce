@@ -84,6 +84,7 @@
       ;; Deal with: ;;; -*- lexical-binding: t -*- or autoload      ;;;###autoload      ;;; Code
       #";" (list `comment (.nextLine sc))
       #"#" (condp find 1
+             ;; #"^" is a CharTable looking like this: #^[nil nil keymap ...]
              #"'" (list 'function (tokenize sc))
              #"\(" (let [[object start end properties] (tokenize-all sc)]
                      (list `textprop/set-text-properties start end properties object))
