@@ -1187,4 +1187,9 @@
   according to `default-major-mode'.
   Use this function before selecting the buffer, since it may need to inspect
   the current buffer's major mode."
-  )
+  (when-let [mode (if (= "*scratch*" (buffer-name buffer))
+                    (data/symbol-value 'initial-major-mode)
+                    (or (data/default-value 'major-mode)
+                        (data/symbol-value 'major-mode)))]
+    (binding [current-buffer buffer]
+      (eval/funcall mode))))

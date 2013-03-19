@@ -129,7 +129,7 @@
 
   You can customize this variable.")
 
-(declare windowp selected-window)
+(declare windowp selected-window window-buffer)
 
 (def ^:private sequence-number (atom 0))
 
