@@ -20,11 +20,14 @@ We're getting there, it's still all rendered to stdout:
 File Edit Options Buffers Tools Lisp-Interaction Help
 --------------- #<window 3 on *scratch*> --- [selected window]
 -1:----F1  *scratch*      Bot L4     (Lisp Interaction) ------------
+--------------- #<window 4 on  *Echo Area 0*>
 [ ... more output from deuce.main/display-state-of-emacs ... ]
 --------------- #<buffer *scratch*> --- [current buffer]
 ;; This buffer is for notes you don't want to save, and for Lisp evaluation.
 ;; If you want to create a file, visit that file with C-x C-f,
 ;; then enter the text in that file's own buffer.
+--------------- #<buffer  *Echo Area 0*>
+For information about GNU Emacs and the GNU system, type \[about-emacs].
 ```
 
 
