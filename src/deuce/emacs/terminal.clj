@@ -17,7 +17,8 @@
   "Non-nil means call this function to ring the bell.
   The function should accept no arguments.")
 
-(defn ^:private terminal-resized [width height])
+(defn ^:private terminal-resized [width height]
+  (println "resize terminal to " width height))
 
 (defn ^:private init-initial-terminal []
   (let [terminal (s/get-screen :text)]

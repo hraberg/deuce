@@ -1,5 +1,6 @@
 (ns deuce.main
   (:require [clojure.string :as s]
+            [lanterna.screen :as sc]
             [deuce.emacs]
             [deuce.emacs-lisp :as el]
             [deuce.emacs.alloc :as alloc]
@@ -10,6 +11,7 @@
             [deuce.emacs.fns :as fns]
             [deuce.emacs.frame :as frame]
             [deuce.emacs.lread :as lread]
+            [deuce.emacs.terminal :as terminal]
             [deuce.emacs.window :as window]
             [deuce.emacs.xdisp :as xdisp]
             [taoensso.timbre :as timbre])
@@ -27,12 +29,12 @@
     ((resolve 'clojure.tools.nrepl.server/start-server) :port port))
   (println "nrepl server listening on" port))
 
-(defn display-mode-line []
-  (println (xdisp/format-mode-line (buffer/buffer-local-value 'mode-line-format (buffer/current-buffer)))))
+(defn render-mode-line []
+  (xdisp/format-mode-line (buffer/buffer-local-value 'mode-line-format (buffer/current-buffer))))
 
 ;; The way this does this is probably utterly wrong, written by data inspection, not reading Emacs source.
 ;; But produces the expected result:
-(defn display-menu-bar []
+(defn render-menu-bar []
   (when (data/symbol-value 'menu-bar-mode)
     (let [map-for-mode #(let [map (symbol (str % "-map"))]
                           (when (data/boundp map)
@@ -48,11 +50,79 @@
           final-items (map menu-bar-by-name (data/symbol-value 'menu-bar-final-items))
           menu-bar (concat (mapcat menus-for-map (concat [global-map major-mode-map] minor-mode-maps))
                            (map menu-name final-items))]
-      (println (s/join " " menu-bar)))))
+      (st/join " " menu-bar))))
+
+;; Renders a single window using Lanterna. Scrolling and position of are point very buggy.
+;; Hard to bootstrap, requires fiddling when connected to Swank inside Deuce atm.
+(defn display-using-lanterna []
+  (def colors {:fg :black :bg :default})
+  (def reverse-video {:fg :white :bg :black})
+  (declare screen)
+
+  (defn puts
+    ([x y s] (puts x y s colors))
+    ([x y s opts] (sc/put-string screen x y (str s) opts)))
+
+  (defn line
+    ([y] (line y colors))
+    ([y opts]
+       (let [[width _] (sc/get-size screen)]
+         (puts 0 y (apply str (repeat width " ")) opts))))
+
+  (defn blank [_ height]
+    (sc/clear screen)
+    (sc/redraw screen)
+    (doseq [y (range 0 height)]
+      (line y)))
+
+  (def screen (terminal/frame-terminal))
+  (let [[width height] (sc/get-size screen)
+        window (window/selected-window)
+        buffer (window/window-buffer window)
+        mode-line (- height 2)]
+    (reset! (.total-cols window) width)
+    (reset! (.total-lines window) (- mode-line 2))
+
+    ;; Menu Bar
+    (line 0 reverse-video)
+    (puts 0 0 (render-menu-bar) reverse-video)
+
+    ;; Point
+    (let [line-indexes ((ns-resolve 'deuce.emacs.cmds 'line-indexes)
+                        (str (.beg (.own-text buffer))))
+          pt @(.pt buffer)
+          line ((ns-resolve 'deuce.emacs.cmds 'pos-to-line) line-indexes pt)
+          scroll (max (- line @(.total-lines window)) 0)
+          px (dec (- pt (aget line-indexes line)))
+          py (inc (- line scroll))
+          [px py] (if (neg? px) ;; Horrible.
+                    [(dec (- pt (aget line-indexes (dec line)))) (dec py)]
+                    [px py])]
+      (sc/move-cursor screen (max px 0) py)
+
+      ;; Window Text
+      (let [lines (s/split (.beg (.own-text buffer)) #"\n")
+            buffer-start 1]
+        (dotimes [n (max (count lines) @(.total-lines window))]
+          (when (< (+ scroll n) (count lines))
+            (puts 0 (+ buffer-start n) (format (str "%-" width "s")
+                                               (nth lines (+ scroll n))))))))
+
+    ;; Mode Line
+    (line mode-line reverse-video)
+    (puts 0 mode-line (render-mode-line) reverse-video)
+
+    ;; Mini Buffer
+    (let [mini-buffer (dec height)]
+      (puts 0 mini-buffer
+            (format (str "%-" width "s")
+                    (.beg (.own-text (window/window-buffer
+                                      (window/minibuffer-window)))))))
+    (sc/redraw screen)))
 
 ;; Doesn't take window size and scrolling into account.
 (defn display-visible-state-of-emacs []
-  (display-menu-bar)
+  (println (render-menu-bar))
   (doseq [window (window/window-list nil true)
           :let [buffer (window/window-buffer window)]]
     (when-let [header-line (buffer/buffer-local-value 'header-line-format buffer)]
@@ -74,7 +144,7 @@
   (doseq [frame (frame/frame-list)]
     (println "---------------" frame
              (if (= frame (frame/selected-frame)) "--- [selected frame]" ""))
-    (display-menu-bar))
+    (println (render-menu-bar)))
   (doseq [window (window/window-list nil true)
           :let [buffer (window/window-buffer window)]]
     (println "---------------" window

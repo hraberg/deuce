@@ -1,9 +1,12 @@
 (ns deuce.emacs.frame
   (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
+            [lanterna.screen :as s]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data]
+            [deuce.emacs.fns :as fns]
+            [deuce.emacs-lisp.cons :as cons]
             [deuce.emacs-lisp.globals :as globals])
   (:import [deuce.emacs.data Frame Window])
   (:refer-clojure :exclude []))
@@ -159,12 +162,15 @@
   It is a list of elements of the form (PARM . VALUE), where PARM is a symbol.
   The meaningful PARMs depend on the kind of frame.
   If FRAME is omitted, return information on the currently selected frame."
-  )
+  (let [frame (el/check-type 'framep (or frame (selected-frame)))]
+    (list (cons/pair 'width (frame-pixel-width frame))
+          (cons/pair 'height (frame-pixel-height frame))
+          (cons/pair 'name (.name frame)))))
 
 (defun frame-parameter (frame parameter)
   "Return FRAME's value for parameter PARAMETER.
   If FRAME is nil, describe the currently selected frame."
-  nil)
+  (fns/assq parameter (frame-parameters (or frame (selected-frame)))))
 
 (defun framep (object)
   "Return non-nil if OBJECT is a frame.
@@ -307,7 +313,7 @@
   For a text-only terminal, it includes the menu bar.  In this case, the
   result is really in characters rather than pixels (i.e., is identical
   to `frame-height')."
-  )
+  (second (s/get-size @(.terminal (or frame (selected-frame))))))
 
 (defun frame-live-p (object)
   "Return non-nil if OBJECT is a frame which has not been deleted.
@@ -357,7 +363,7 @@
   "Return FRAME's width in pixels.
   For a terminal frame, the result really gives the width in characters.
   If FRAME is omitted, the selected frame is used."
-  )
+  (first (s/get-size @(.terminal (or frame (selected-frame))))))
 
 (defun set-frame-height (frame lines &optional pretend)
   "Specify that the frame FRAME has LINES lines.
