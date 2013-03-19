@@ -105,6 +105,8 @@
 
   You can customize this variable.")
 
+(declare apply eval funcall)
+
 (defun user-variable-p (variable)
   "Return t if VARIABLE is intended to be set and modified by users.
   (The alternative is a variable used internally in a Lisp program.)
@@ -130,8 +132,6 @@
             (and (symbol? object) (el/fun object))
             (and (seq? object) (= 'lambda (first object))))
     true))
-
-(declare eval)
 
 (defun autoload (function file &optional docstring interactive type)
   "Define FUNCTION to autoload from FILE.
@@ -208,8 +208,6 @@
   (not (or executing-kbd-macro noninteractive))."
   nil)
 
-(declare funcall)
-
 (defun run-hook-with-args (hook &rest args)
   "Run HOOK with the specified arguments ARGS.
   HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
@@ -231,9 +229,7 @@
   "Call first argument as a function, passing remaining arguments to it.
   Return the value that function returns.
   Thus, (funcall 'cons 'x 'y) returns (x . y)."
-  (c/apply (cond (symbol? function) (data/symbol-function function)
-                 (data/listp function) (eval function)
-                 :else function) arguments))
+  (apply function arguments))
 
 (defun run-hook-wrapped (hook wrap-function &rest args)
   "Run HOOK, passing each function through WRAP-FUNCTION.
@@ -322,8 +318,9 @@
   Thus, (apply '+ 1 2 '(3 4)) returns 10."
   (let [rest (last arguments)]
     (el/check-type 'listp rest)
-    (c/apply (if (symbol? function) (data/symbol-function function) function)
-             (c/apply alloc/list (concat (butlast arguments) rest)))))
+    (c/apply (cond (symbol? function) (data/symbol-function function)
+                   (data/listp function) (eval function)
+                   :else function) (c/apply alloc/list (concat (butlast arguments) rest)))))
 
 (defun run-hooks (&rest hooks)
   "Run each hook in HOOKS.

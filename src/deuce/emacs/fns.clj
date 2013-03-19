@@ -707,8 +707,9 @@
 (defun maphash (function table)
   "Call FUNCTION for all entries in hash table TABLE.
   FUNCTION is called with two arguments, KEY and VALUE."
-  (map (el/fun function) table)
-  nil)
+  (let [f (el/fun function)]
+    (dorun (map #(f (key %) (val %)) table))
+    nil))
 
 (defun rassq (key list)
   "Return non-nil if KEY is `eq' to the cdr of an element of LIST.
@@ -775,7 +776,7 @@
         plist)
     (nconc plist (alloc/list prop val))))
 
-(defun puthash (key value table)
+(defun puthash (key value ^Map table)
   "Associate KEY with VALUE in hash table TABLE.
   If KEY is already present in table, replace its current value with
   VALUE.  In any case, return VALUE."
@@ -807,7 +808,8 @@
   Returns the sorted list.  LIST is modified by side effects.
   PREDICATE is called with two elements of LIST, and should return non-nil
   if the first element should sort before the second."
-  (apply alloc/list (c/sort (fn [x y] (if ((el/fun predicate) x y) -1 1)) (cons/maybe-seq list))))
+  (let [f (el/fun predicate)]
+    (apply alloc/list (c/sort (fn [x y] (if (f x y) -1 1)) (cons/maybe-seq list)))))
 
 (defun base64-decode-string (string)
   "Base64-decode STRING and return the result."

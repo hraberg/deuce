@@ -53,8 +53,8 @@
                              ;; Not sure we want alias handling leaking down to here.
                              ;; On the other hand, 24.3 uses defalias + lambda as primary macros.
                              ;; Hack to protect against backquote alias, needs proper fix.
-                             (if-let [alias (c/and  (not= '#el/sym "\\`" s)
-                                                    (-> f meta :alias))]
+                             (if-let [alias (c/and (not= '#el/sym "\\`" s)
+                                                   (-> f meta :alias))]
                                (if (symbol? alias) ;; See binding/mode-specific-command-prefix
                                  (fun alias)
                                  alias)

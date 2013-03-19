@@ -36,8 +36,11 @@
           :let [buffer (window/window-buffer window)]]
     (println "---------------" window
              (if (= window (window/selected-window)) "--- [selected window]" ""))
-    (when-not (re-find #" \*" (buffer/buffer-name buffer))
-      (println (xdisp/format-mode-line (buffer/buffer-local-value 'mode-line-format buffer) nil window buffer))))
+    (when-let [header-line (buffer/buffer-local-value 'header-line-format buffer)]
+      (println (xdisp/format-mode-line header-line nil window buffer)))
+    (when-let [mode-line (and (not (re-find #" \*" (buffer/buffer-name buffer)))
+                              (buffer/buffer-local-value 'mode-line-format buffer))]
+      (println (xdisp/format-mode-line mode-line nil window buffer))))
   (doseq [buffer (buffer/buffer-list)
           :let [name (buffer/buffer-name buffer)
                 messages? (= name "*Messages*")]]

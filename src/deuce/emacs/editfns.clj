@@ -12,6 +12,7 @@
   (:import [java.net InetAddress]
            [java.text SimpleDateFormat]
            [java.util Date Calendar TimeZone List]
+           [java.lang.management ManagementFactory]
            [deuce.emacs.data Marker])
   (:refer-clojure :exclude [format]))
 
@@ -222,13 +223,13 @@
   "Return the name of the user's real uid, as a string.
   This ignores the environment variables LOGNAME and USER, so it differs from
   `user-login-name' when running under `su'."
-  globals/user-real-login-name)
+  (data/symbol-value 'user-real-login-name))
 
 (defun emacs-pid ()
   "Return the process ID of Emacs, as an integer."
-  (let [self (io/file "/proc/self")]
-    (if (.exists self)
-      (Integer/parseInt (.getName (.getCanonicalFile self)))
+  (let [runtime-name (.getName (ManagementFactory/getRuntimeMXBean))]
+    (if-let [[[_ pid]] (re-seq #"^(\d+)@\w+" runtime-name)]
+      (Integer/parseInt pid)
       -1)))
 
 (defun point-max ()
@@ -450,7 +451,7 @@
 
   If optional argument UID is an integer or a float, return the login name
   of the user with that uid, or nil if there is no such user."
-  globals/user-login-name)
+  (data/symbol-value 'user-login-name))
 
 (defun bobp ()
   "Return t if point is at the beginning of the buffer.
@@ -634,7 +635,7 @@
 
 (defun system-name ()
   "Return the host name of the machine you are running on, as a string."
-  globals/system-name)
+  (data/symbol-value 'system-name))
 
 (defun buffer-size (&optional buffer)
   "Return the number of characters in the current buffer.

@@ -1147,7 +1147,7 @@
   If VARIABLE does not have a buffer-local binding in BUFFER, the value
   is the default binding of the variable."
   (binding [*current-buffer* buffer]
-    (el/el-var-get* variable)))
+    (data/symbol-value variable)))
 
 (defun get-file-buffer (filename)
   "Return the buffer visiting file FILENAME (a string).
