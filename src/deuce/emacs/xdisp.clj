@@ -502,10 +502,10 @@
                                           (% "Z") (str coding-system-mnemonic eol-type-mnemnonic)
                                           (% "\\[") (if (< 5 recursion-depth)
                                                       "[[[... "
-                                                      (apply str (repeat (keyboard/recursion-depth) "[" )))
+                                                      (s/join (repeat (keyboard/recursion-depth) "[" )))
                                           (% "\\]") (if (< 5 recursion-depth)
                                                       " ...]]]"
-                                                      (apply str (repeat (keyboard/recursion-depth) "]" )))
+                                                      (s/join (repeat (keyboard/recursion-depth) "]" )))
                                           (% "@")  "-" ;; files/file-remote-p
                                           (% "\\+") (cond
                                                      modified? "*"
@@ -542,11 +542,11 @@
                                symbol? (if (and (data/boundp fst) (data/symbol-value fst))
                                          (formatter (second f))
                                          (formatter (nth f 2 nil)))
-                               (apply str (map formatter f))))
+                               (s/join (map formatter f))))
                       (str f)))]
     (let [mode-line (formatter format)]
       (s/replace mode-line #"%-$"
-                 (apply str (repeat (- window-width (count mode-line)) "-"))))))
+                 (s/join (repeat (- window-width (count mode-line)) "-"))))))
 
 (defun invisible-p (pos-or-prop)
   "Non-nil if the property makes the text invisible.

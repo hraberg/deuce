@@ -1,5 +1,6 @@
 (ns deuce.main
-  (:require [deuce.emacs]
+  (:require [clojure.string :as s]
+            [deuce.emacs]
             [deuce.emacs-lisp :as el]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.buffer :as buffer]
@@ -31,7 +32,9 @@
 (defn display-state-of-emacs []
   (doseq [frame (frame/frame-list)]
     (println "---------------" frame
-             (if (= frame (frame/selected-frame)) "--- [selected frame]" "")))
+             (if (= frame (frame/selected-frame)) "--- [selected frame]" ""))
+    (when (data/symbol-value 'menu-bar-mode)
+      (println (s/join " " @(.menu-bar-items frame)))))
   (doseq [window (window/window-list nil true)
           :let [buffer (window/window-buffer window)]]
     (println "---------------" window
