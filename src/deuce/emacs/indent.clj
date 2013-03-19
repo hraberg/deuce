@@ -30,7 +30,7 @@
   `buffer-invisibility-spec' specifies that it is replaced by an ellipsis."
   (let [point (editfns/point)
         line (.lastIndexOf (subs (editfns/buffer-string) 0 (dec point)) "\n")]
-    (dec (if (= -1 line) point (- point line)))))
+    (dec (if (= -1 line) point (dec (- point line))))))
 
 (defun compute-motion (from frompos to topos width offsets window)
   "Scan through the current buffer, calculating screen position.

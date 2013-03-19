@@ -66,7 +66,7 @@
     (list (bit-shift-right seconds 16) (bit-and 0xffff seconds) (* 1000 (mod now 1000)))))
 
 (declare buffer-string buffer-substring buffer-size point mark-marker goto-char
-         point-max point-min insert eobp bobp char-before message)
+         point-max point-min insert eobp bobp char-before message delete-region)
 
 (defun decode-time (&optional specified-time)
   "Decode a time value as (SEC MINUTE HOUR DAY MONTH YEAR DOW DST ZONE).
@@ -544,7 +544,9 @@
 
 (defun delete-and-extract-region (start end)
   "Delete the text between START and END and return it."
-  )
+  (let [deleted (buffer-substring start end)]
+    (delete-region start end)
+    deleted))
 
 (defun current-time-zone (&optional specified-time)
   "Return the offset and name for the local time zone.

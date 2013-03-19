@@ -60,7 +60,9 @@
     (let [s (str (.beg (.own-text buffer)))
           point (dec @(.pt buffer))]
       (if (= window (window/selected-window))
-        (println (str (subs s 0 point) \u258b (let [after-point (inc point)]
+        (println (str (subs s 0 point) \u258b (let [after-point (if (= (editfns/char-after) \newline)
+                                                                  point
+                                                                  (inc point))]
                                                 (when (< after-point (count s))
                                                   (subs s after-point (count s))))))
         (println s)))
