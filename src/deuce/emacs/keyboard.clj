@@ -120,7 +120,7 @@
   If there's an active input method, the events are given to
   `input-method-function'.")
 
-(defvar echo-keystrokes nil
+(defvar echo-keystrokes 1
   "Nonzero means echo unfinished commands after this many seconds of pause.
   The value may be integer or floating point.
   If the value is zero, don't echo at all.
@@ -273,7 +273,7 @@
 (defvar special-event-map nil
   "Keymap defining bindings for special events to execute at low level.")
 
-(defvar menu-prompting nil
+(defvar menu-prompting true
   "Non-nil means prompt with menus when appropriate.
   This is done when reading from a keymap that has a prompt string,
   for elements that have prompt strings.
@@ -304,7 +304,7 @@
   suppressed only after special commands that set
   `disable-point-adjustment' (which see) to non-nil.")
 
-(defvar polling-period nil
+(defvar polling-period 2
   "Interval between polling for input during Lisp execution.
   The reason for polling is to make C-g work to stop a running program.
   Polling is needed only when using X windows and SIGIO does not work.
@@ -403,14 +403,14 @@
   the context (a string which normally goes at the start of the message),
   and the Lisp function within which the error was signaled.")
 
-(defvar suggest-key-bindings nil
+(defvar suggest-key-bindings true
   "Non-nil means show the equivalent key-binding when M-x command has one.
   The value can be a length of time to show the message for.
   If the value is non-nil and not a number, we wait 2 seconds.
 
   You can customize this variable.")
 
-(defvar selection-inhibit-update-commands nil
+(defvar selection-inhibit-update-commands '(handle-switch-frame handle-select-window)
   "List of commands which should not update the selection.
   Normally, if `select-active-regions' is non-nil and the mark remains
   active after a command (i.e. the mark was not deactivated), the Emacs
@@ -426,7 +426,7 @@
   This is used internally by graphical displays that do not render
   tool-bar separators natively.  Otherwise it is unused (e.g. on GTK).")
 
-(defvar double-click-time nil
+(defvar double-click-time 500
   "Maximum time between mouse clicks to make a double-click.
   Measured in milliseconds.  The value nil means disable double-click
   recognition; t means double-clicks have no time limit and are detected
@@ -440,7 +440,7 @@
 
   You can customize this variable.")
 
-(defvar auto-save-timeout nil
+(defvar auto-save-timeout 30
   "Number of seconds idle time before auto-save.
   Zero or nil means disable auto-saving due to idleness.
   After auto-saving due to this many seconds of idle time,
@@ -477,7 +477,7 @@
   as they will already have been added once as they were read for the first time.
   An element of the form (t . EVENT) forces EVENT to be added to that list.")
 
-(defvar menu-prompt-more-char nil
+(defvar menu-prompt-more-char (int \space)
   "Character to see next line of menu prompt.
   Type this character while in a menu prompt to rotate around the lines of it.")
 

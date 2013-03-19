@@ -77,6 +77,7 @@
   (symbol-value ({0 'eol-mnemonic-unix 1 'eol-mnemonic-dos 2 'eol-mnemonic-mac}
                  (coding-system-eol-type coding-system) 'eol-mnemonic-undecided)))
 
+;; I'm the one and only Frame
 (setq terminal-frame ((c/ns-resolve 'deuce.emacs.frame 'make-initial-frame)))
 
 ;; *scratch* is created by buffer.c
@@ -111,7 +112,6 @@
 ;; Same issue in regexp-opt/regexp-opt. Calls this fn with earlier binding 'sorted-strings'
 (defun regexp-opt-group (strings &optional paren lax))
 
-
 ;; Keymap setup, should in theory be in deuce.emacs.keymap, but cannot for a reason I forgot.
 (setq global-map (make-keymap))
 (setq esc-map (make-keymap))
@@ -120,6 +120,10 @@
 (setq function-key-map (make-sparse-keymap))
 ;; This map has a few low-level (like delete-frame) key defs in keybaoard.c
 (setq special-event-map (make-sparse-keymap))
+(setq local-function-key-map (make-sparse-keymap))
+; (set-keymap-parent globals/local-function-key-map globals/function-key-map)
+(setq input-decode-map (make-sparse-keymap))
+(setq key-translation-map (make-sparse-keymap))
 
 (setq minibuffer-local-map (make-sparse-keymap))
 (setq minibuffer-local-ns-map (make-sparse-keymap))
