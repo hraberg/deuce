@@ -165,13 +165,6 @@
      ;;    can actually appear to exist.  */
      minibuffer-window
 
-     ;; /* Vector describing the items to display in the menu bar.
-     ;;    Each item has four elements in this vector.
-     ;;    They are KEY, STRING, SUBMAP, and HPOS.
-     ;;    (HPOS is not used in when the X toolkit is in use.)
-     ;;    There are four additional elements of nil at the end, to terminate.  */
-     menu-bar-items
-
      ;; /* The terminal device that this frame uses.  If this is NULL, then
      ;;    the frame has been deleted. */
      terminal])

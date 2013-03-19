@@ -121,11 +121,10 @@
         root-window (allocate-window false nil 0 1 10 9)
         selected-window (atom root-window)
         minibuffer-window (allocate-window true nil 0 9 10 1)
-        menu-bar-items (atom nil)
         terminal (atom nil)]
     (reset! (.next root-window) minibuffer-window)
     (reset! (.prev minibuffer-window) root-window)
-    (Frame. "F1" root-window selected-window minibuffer-window menu-bar-items terminal)))
+    (Frame. "F1" root-window selected-window minibuffer-window terminal)))
 
 (defun delete-frame (&optional frame force)
   "Delete FRAME, permanently eliminating it from use.

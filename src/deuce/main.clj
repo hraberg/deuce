@@ -7,6 +7,7 @@
             [deuce.emacs.data :as data]
             [deuce.emacs.editfns :as editfns]
             [deuce.emacs.eval :as eval]
+            [deuce.emacs.fns :as fns]
             [deuce.emacs.frame :as frame]
             [deuce.emacs.lread :as lread]
             [deuce.emacs.window :as window]
@@ -29,12 +30,31 @@
 (defn display-mode-line []
   (println (xdisp/format-mode-line (buffer/buffer-local-value 'mode-line-format (buffer/current-buffer)))))
 
+;; The way this does this is probably utterly wrong, written by data inspection, not reading Emacs source.
+;; But produces the expected result:
+(defn display-menu-bar []
+  (when (data/symbol-value 'menu-bar-mode)
+    (let [map-for-mode #(let [map (symbol (str % "-map"))]
+                          (when (data/boundp map)
+                            (data/symbol-value map)))
+          menu-name #(last %)
+          ;; The consp check here is suspicious.
+          ;; There's a "menu-bar" string in there which probably shouldn't be.
+          menus-for-map #(map menu-name (filter data/consp (fns/nthcdr 2 (fns/assq 'menu-bar %))))
+          menu-bar-by-name #(data/symbol-value (symbol (str "menu-bar-" %)))
+          global-map (data/symbol-value 'global-map)
+          major-mode-map (map-for-mode (data/symbol-value 'major-mode))
+          minor-mode-maps (map map-for-mode (data/symbol-value 'minor-mode-list))
+          final-items (map menu-bar-by-name (data/symbol-value 'menu-bar-final-items))
+          menu-bar (concat (mapcat menus-for-map (concat [global-map major-mode-map] minor-mode-maps))
+                           (map menu-name final-items))]
+      (println (s/join " " menu-bar)))))
+
 (defn display-state-of-emacs []
   (doseq [frame (frame/frame-list)]
     (println "---------------" frame
              (if (= frame (frame/selected-frame)) "--- [selected frame]" ""))
-    (when (data/symbol-value 'menu-bar-mode)
-      (println (s/join " " @(.menu-bar-items frame)))))
+    (display-menu-bar))
   (doseq [window (window/window-list nil true)
           :let [buffer (window/window-buffer window)]]
     (println "---------------" window

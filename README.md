@@ -11,6 +11,23 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors)
 
+**2013-03-17 Mode Lines and Menu Bar**
+
+We're getting there, it's still all rendered to stdout:
+
+```
+--------------- #<frame F1 0x4a4f3edf> --- [selected frame]
+File Edit Options Buffers Tools Lisp-Interaction Help
+--------------- #<window 3 on *scratch*> --- [selected window]
+-1:----F1  *scratch*      Bot L4     (Lisp Interaction) ------------
+[ ... more output from deuce.main/display-state-of-emacs ... ]
+--------------- #<buffer *scratch*> --- [current buffer]
+;; This buffer is for notes you don't want to save, and for Lisp evaluation.
+;; If you want to create a file, visit that file with C-x C-f,
+;; then enter the text in that file's own buffer.
+```
+
+
 **2013-03-17 Visiting Files**
 
 One of those features that just make Emacs so great as an editor is its ability to load files:
