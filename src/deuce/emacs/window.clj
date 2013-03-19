@@ -63,7 +63,7 @@
 (defvar minibuffer-scroll-window nil
   "Non-nil means it is the window that C-M-v in minibuffer should scroll.")
 
-(defvar auto-window-vscroll nil
+(defvar auto-window-vscroll true
   "Non-nil means to automatically adjust `window-vscroll' to view tall lines.")
 
 (defvar mode-line-in-non-selected-windows true
