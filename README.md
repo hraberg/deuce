@@ -13,7 +13,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 **2013-03-19 Mode Lines and Menu Bar**
 
-We're getting there, now with Lanterna:
+We're getting there, now with [Lanterna](https://code.google.com/p/lanterna/):
 
 <img width="648" src=https://github.com/hraberg/deuce/raw/master/deuce-lanterna.png alt="Deuce is (not yet) Emacs under Clojure - *scratch*" title="Deuce is (not yet) Emacs under Clojure - *scratch*" />
 
