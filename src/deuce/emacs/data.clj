@@ -200,6 +200,10 @@
      total-lines
      total-cols
 
+     ;; /* The normal size of the window.  */
+     normal-lines
+     normal-cols
+
      ;; /* The buffer displayed in this window.  Of the fields vchild,
      ;;    hchild and buffer, one and only one is non-nil unless the window
      ;;    is dead.  */

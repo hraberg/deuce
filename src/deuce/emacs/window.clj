@@ -134,17 +134,17 @@
 (def ^:private sequence-number (atom 0))
 
 (defn ^:private allocate-window [minibuffer? parent leftcol top-line total-cols total-lines]
-  (let [[next prev hchild vchild
+  (let [[next prev hchild vchild normal-lines normal-cols
          buffer start pointm] (repeatedly #(atom nil))]
     (Window. minibuffer? next prev hchild vchild parent
-             (atom leftcol) (atom top-line) (atom total-cols) (atom total-lines)
-             buffer start pointm (swap! sequence-number inc))))
+             (atom leftcol) (atom top-line) (atom total-lines) (atom total-cols)
+             normal-lines normal-cols buffer start pointm (swap! sequence-number inc))))
 
 (defun window-live-p (object)
   "Return t if OBJECT is a live window and nil otherwise.
   A live window is a window that displays a buffer.
   Internal windows and deleted windows are not live."
-  (windowp object))
+  (and (windowp object) @(.buffer object)))
 
 (defun window-combination-limit (window)
   "Return combination limit of window WINDOW.
@@ -169,7 +169,7 @@
   "Return the normal height of window WINDOW.
   If WINDOW is omitted or nil, it defaults to the selected window.
   If HORIZONTAL is non-nil, return the normal width of WINDOW."
-  )
+  @(.normal-lines (or window (selected-window))))
 
 (defun scroll-other-window (&optional arg)
   "Scroll next window upward ARG lines; or near full screen if no ARG.
@@ -603,6 +603,7 @@
   Note that the main editor command loop sets the current buffer to the
   buffer of the selected window before each command."
   (el/check-type 'windowp window)
+  (buffer/set-buffer (window-buffer window))
   (reset! (.selected-window (frame/selected-frame)) window))
 
 (defun window-absolute-pixel-edges (&optional window)
