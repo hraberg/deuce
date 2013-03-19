@@ -36,7 +36,7 @@
 (defvar other-window-scroll-buffer nil
   "If non-nil, this is a buffer and C-M-v should scroll its window.")
 
-(defvar window-persistent-parameters nil
+(defvar window-persistent-parameters '((clone-of . true))
   "Alist of persistent window parameters.
   This alist specifies which window parameters shall get saved by
   `current-window-configuration' and `window-state-get' and subsequently
@@ -66,7 +66,7 @@
 (defvar auto-window-vscroll nil
   "Non-nil means to automatically adjust `window-vscroll' to view tall lines.")
 
-(defvar mode-line-in-non-selected-windows nil
+(defvar mode-line-in-non-selected-windows true
   "Non-nil means to use `mode-line-inactive' face in non-selected windows.
   If the minibuffer is active, the `minibuffer-scroll-window' mode line
   is displayed in the `mode-line' face.
@@ -82,7 +82,7 @@
 
   You can customize this variable.")
 
-(defvar next-screen-context-lines nil
+(defvar next-screen-context-lines 2
   "Number of lines of continuity when scrolling by screenfuls.
 
   You can customize this variable.")
@@ -90,7 +90,7 @@
 (defvar window-point-insertion-type nil
   "Type of marker to use for `window-point'.")
 
-(defvar recenter-redisplay nil
+(defvar recenter-redisplay 'tty
   "Non-nil means `recenter' redraws entire frame.
   If this option is non-nil, then the `recenter' command with a nil
   argument will redraw the entire frame; the special value `tty' causes
