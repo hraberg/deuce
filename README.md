@@ -16,19 +16,18 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 We're getting there, it's still all rendered to stdout:
 
 ```
---------------- #<frame F1 0x4a4f3edf> --- [selected frame]
 File Edit Options Buffers Tools Lisp-Interaction Help
---------------- #<window 3 on *scratch*> --- [selected window]
--1:----F1  *scratch*      Bot L4     (Lisp Interaction) ------------
---------------- #<window 4 on  *Echo Area 0*>
-[ ... more output from deuce.main/display-state-of-emacs ... ]
---------------- #<buffer *scratch*> --- [current buffer]
 ;; This buffer is for notes you don't want to save, and for Lisp evaluation.
 ;; If you want to create a file, visit that file with C-x C-f,
 ;; then enter the text in that file's own buffer.
---------------- #<buffer  *Echo Area 0*>
+
+Deuce is (not yet) Emacs under Clojure
+▋
+-1:**--F1  *scratch*      Bot L6     (Lisp Interaction) ------------
 For information about GNU Emacs and the GNU system, type \[about-emacs].
 ```
+
+Doesn't take windows sizes, scrolling or splits into account, as none of these are even implemented, but you can now conveniently edit text from the REPL and echo your edits with `deuce.main/display-visible-state-of-emacs`. The very opposite of a display editor! The echo area message should also been cleared, but the command loop that deals with that doesn't exist yet either, so the edits are all made via lower level APIs, like `insert`, `goto-char` etc.
 
 
 **2013-03-17 Visiting Files**

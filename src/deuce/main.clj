@@ -50,6 +50,24 @@
                            (map menu-name final-items))]
       (println (s/join " " menu-bar)))))
 
+;; Doesn't take window size and scrolling into account.
+(defn display-visible-state-of-emacs []
+  (display-menu-bar)
+  (doseq [window (window/window-list nil true)
+          :let [buffer (window/window-buffer window)]]
+    (when-let [header-line (buffer/buffer-local-value 'header-line-format buffer)]
+      (println (xdisp/format-mode-line header-line nil window buffer)))
+    (let [s (str (.beg (.own-text buffer)))
+          point (dec @(.pt buffer))]
+      (if (= window (window/selected-window))
+        (println (str (subs s 0 point) \u258b (let [after-point (inc point)]
+                                                (when (< after-point (count s))
+                                                  (subs s after-point (count s))))))
+        (println s)))
+    (when-let [mode-line (and (not (re-find #" \*" (buffer/buffer-name buffer)))
+                              (buffer/buffer-local-value 'mode-line-format buffer))]
+      (println (xdisp/format-mode-line mode-line nil window buffer)))))
+
 (defn display-state-of-emacs []
   (doseq [frame (frame/frame-list)]
     (println "---------------" frame
