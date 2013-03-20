@@ -55,6 +55,7 @@
 
 ;; Renders a single window using Lanterna. Scrolling is not properly taken care of.
 ;; Hard to bootstrap, requires fiddling when connected to Swank inside Deuce atm.
+;; Consider moving all this into deuce.emacs.dispnew
 (defn display-using-lanterna []
   (def colors {:bg :default :fg :default})
   (def reverse-video {:fg :white :bg :black})
@@ -138,6 +139,10 @@
                    width (window/window-total-height mini-buffer-window))
 
     (sc/redraw screen)))
+
+(defn launch-terminal []
+  ((ns-resolve 'deuce.emacs.terminal 'init-initial-terminal))
+  (display-using-lanterna))
 
 ;; Doesn't take window size and scrolling into account.
 (defn display-visible-state-of-emacs []

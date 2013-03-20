@@ -11,7 +11,7 @@
            [clojure.lang Symbol Var])
   (:refer-clojure :exclude [+ * - / aset set < = > max >= <= mod atom min]))
 
-(declare consp car cdr set-default default-boundp)
+(declare consp car cdr set-default default-boundp markerp)
 
 (defvar most-positive-fixnum Long/MAX_VALUE
   "The largest value that is representable in a Lisp integer.")
@@ -236,7 +236,10 @@
                    (str " on " @(.name buffer))) ">")))
 
 (defn ^:private promote-char [x]
-  (if (char? x) (int x) x))
+  (cond
+   (char? x) (int x)
+   (markerp x) @(.charpos x)
+   :else x))
 
 (defn ^:private promote-chars [xs]
   (map promote-char xs))
@@ -642,6 +645,7 @@
 
 (defun > (num1 num2)
   "Return t if first arg is greater than second arg.  Both must be numbers or markers."
+  (println num2 num2)
   (c/> (promote-char num1) (promote-char num2)))
 
 (defun max (number-or-marker &rest numbers-or-markers)

@@ -142,7 +142,7 @@
 
 (defun minibuffer-depth ()
   "Return current depth of activations of minibuffer, a nonnegative integer."
-  )
+  0)
 
 (declare filter-completions)
 

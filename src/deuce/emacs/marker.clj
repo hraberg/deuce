@@ -53,10 +53,11 @@
   If POSITION is nil, makes marker point nowhere.
   Then it no longer slows down editing in any buffer.
   Returns MARKER."
-  (let [buffer (or buffer (buffer/current-buffer))]
-    (when-let [old-buffer (.buffer marker)]
-      (swap! (.text old-buffer) remove #{marker}))
+  (let [buffer (el/check-type 'bufferp (or buffer (buffer/current-buffer)))]
+    (when-let [old-buffer @(.buffer marker)]
+      (swap! (.markers (.text old-buffer)) #(seq (remove #{marker} %))))
     (reset! (.buffer marker) buffer)
     (reset! (.charpos marker) position)
+    (println (.text buffer) marker)
     (swap! (.markers (.text buffer)) conj marker)
     marker))

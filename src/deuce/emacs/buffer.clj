@@ -885,13 +885,12 @@
 ;; The latter doesn't work properly, save-current-buffer for example allows destructive updates to the current buffer it restores.
 (defn ^:private allocate-buffer [name]
   (let [now (System/currentTimeMillis)
-        text (BufferText. (StringBuilder.) (atom nil) (atom now) nil)
+        text (BufferText. (StringBuilder.) (atom nil) (atom now) (atom nil))
         own-text text
         pt (atom 1)
-        mark (atom nil)
+        mark (atom (alloc/make-marker))
         buffer-locals (atom {})
         buffer (Buffer. own-text text pt (atom name) mark buffer-locals false)]
-    (reset! mark (allocate-marker nil buffer @pt))
     buffer))
 
 (defun get-buffer-create (buffer-or-name)

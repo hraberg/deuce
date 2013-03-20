@@ -201,7 +201,7 @@
 
   If the optional fourth argument LIMIT is non-nil, don't search
   past position LIMIT; return LIMIT if nothing is found before LIMIT."
-  )
+  limit)
 
 (defun get-text-property (position prop &optional object)
   "Return the value of POSITION's property PROP, in OBJECT.

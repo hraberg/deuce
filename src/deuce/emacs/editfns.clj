@@ -624,8 +624,6 @@
   (let [position (if (data/markerp position) (.charpos position) position)
         real-pos (min (max 1 position) (inc (buffer-size)))]
     (reset! (.pt (buffer/current-buffer)) real-pos)
-    (when-not (.mark-active (buffer/current-buffer))
-      (reset! (.mark (buffer/current-buffer)) (point-marker)))
     position))
 
 (defun insert-char (character count &optional inherit)

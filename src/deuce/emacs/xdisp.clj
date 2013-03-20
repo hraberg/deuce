@@ -463,7 +463,10 @@
         buffer (el/check-type 'bufferp (or buffer (window/window-buffer window)))
         window-width (max (window/window-total-width window)
                           (data/symbol-value 'fill-column)) ;; Hack for stdout
+        window-height (max (window/window-total-height window) 10)
+        lines (count (filter #{\newline} (str (.beg (.text buffer)))))
         [column line] (point-coords-for-buffer buffer)
+        all-visible? (> window-height lines)
         modified? (buffer/buffer-modified-p buffer)
         read-only? (buffer/buffer-local-value 'buffer-read-only buffer)
         recursion-depth (keyboard/recursion-depth)
@@ -516,12 +519,14 @@
                                           (% "c") (str column)
                                           (% "i") (pad (editfns/buffer-size buffer)) ;; Should take narrowing in account.
                                           (% "I") (pad (humanize (editfns/buffer-size buffer)))
-                                          (% "p") (pad (let [percent (long (* 100 (/ @(.pt buffer)
-                                                                                     (inc (editfns/buffer-size buffer)))))]
-                                                         (case percent
-                                                           0 "Top"
-                                                           100 "Bottom" ;; or "All" if top line is visible.
-                                                           (str percent "%"))))
+                                          (% "p") (pad (if all-visible?
+                                                         "All"
+                                                         (let [percent (long (* 100 (/ @(.pt buffer)
+                                                                                       (inc (editfns/buffer-size buffer)))))]
+                                                           (case percent
+                                                             0 "Top"
+                                                             100 "Bottom"
+                                                             (str percent "%")))))
                                           ;; (% "P") ;; The reverse of the above
                                           (% "m") (pad (buffer/buffer-local-value 'mode-name buffer))
                                           (% "M") (pad (data/symbol-value 'global-mode-string))

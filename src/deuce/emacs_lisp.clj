@@ -800,7 +800,7 @@
             (finally
              ((fun 'set-buffer) current-buffer#)
              ((fun 'goto-char) point#)
-             ((fun 'set-marker) mark# (.charpos mark#) current-buffer#)))))
+             ((fun 'set-marker) mark# @(.charpos mark#) current-buffer#)))))
 
 (c/defmacro interactive
   "Specify a way of parsing arguments for interactive use of a function.
