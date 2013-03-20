@@ -125,8 +125,7 @@
 
           ;; Point
           (let [[px py] ((ns-resolve 'deuce.emacs.cmds 'point-coords) line-indexes (dec pt))
-                py (inc (- py scroll))
-                [px py] [(max px 0) (- py (if menu-bar-mode 0 1))]]
+                py (inc (- py scroll))]
             (if (= window (window/selected-window))
               (sc/move-cursor screen px py)
               (sc/put-string screen px py (str (nth text (dec pt))) reverse-video)))
