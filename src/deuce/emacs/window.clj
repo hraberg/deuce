@@ -4,7 +4,7 @@
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.frame :as frame]
             [deuce.emacs-lisp.cons :as cons])
-  (:import [deuce.emacs.data Window])
+  (:import [deuce.emacs.data Window Marker])
   (:refer-clojure :exclude []))
 
 (defvar window-combination-limit nil
@@ -134,8 +134,10 @@
 (def ^:private sequence-number (atom 0))
 
 (defn ^:private allocate-window [minibuffer? parent leftcol top-line total-cols total-lines]
-  (let [[next prev hchild vchild normal-lines normal-cols
-         buffer start pointm] (repeatedly #(atom nil))]
+  (let [[next prev hchild vchild
+         buffer start pointm] (repeatedly #(atom nil))
+         normal-lines (atom 1.0)
+         normal-cols (atom 1.0)]
     (Window. minibuffer? next prev hchild vchild parent
              (atom leftcol) (atom top-line) (atom total-lines) (atom total-cols)
              normal-lines normal-cols buffer start pointm (swap! sequence-number inc))))
@@ -315,7 +317,11 @@
 (defun set-window-point (window pos)
   "Make point value in WINDOW be at position POS in WINDOW's buffer.
   Return POS."
-  )
+  ;; There's an attempt to track this in set-window-buffer and select-window
+  (el/check-type 'integerp pos)
+  (let [window (el/check-type 'windowp (or window (selected-window)))]
+    (reset! (.pointm window)  (Marker. (window-buffer window) pos))
+    (reset! (.pt (window-buffer window)) pos)))
 
 (defun window-point (&optional window)
   "Return current value of point in WINDOW.
@@ -329,7 +335,11 @@
   It would be more strictly correct to return the `top-level' value
   of point, outside of any save-excursion forms.
   But that is hard to define."
-  )
+  ;; There's an attempt to track this in set-window-buffer and select-window
+  (let [window (el/check-type 'windowp (or window (selected-window)))]
+    (if-let [pointm (and (not= (selected-window) window) @(.pointm window))]
+      (.charpos pointm)
+      @(.pt (window-buffer window)))))
 
 (defun window-pixel-edges (&optional window)
   "Return a list of the edge pixel coordinates of WINDOW.
@@ -603,7 +613,11 @@
   Note that the main editor command loop sets the current buffer to the
   buffer of the selected window before each command."
   (el/check-type 'windowp window)
+  (when (selected-window)
+    (set-window-point (selected-window) (window-point (selected-window))))
   (buffer/set-buffer (window-buffer window))
+  (when-not @(.pointm window)
+    (set-window-point window @(.pt (window-buffer window))))
   (reset! (.selected-window (frame/selected-frame)) window))
 
 (defun window-absolute-pixel-edges (&optional window)
