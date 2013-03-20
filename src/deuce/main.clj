@@ -99,13 +99,13 @@
           (puts 0 (+ top-line n) (pad (nth lines (+ scroll n) " ") cols)))
 
         (let [[px py] ((ns-resolve 'deuce.emacs.cmds 'point-coords) line-indexes (dec pt))
-              py (inc (- py scroll))]
+              py (+ top-line (- py scroll))]
           (if (= window (window/selected-window))
             (sc/move-cursor screen px py)
             (sc/put-string screen px py (str (nth text (dec pt) "")) reverse-video)))
 
         (when mode-line
-          (puts 0 total-lines (pad (xdisp/format-mode-line mode-line nil window buffer) cols) reverse-video)))))
+          (puts 0 (+ top-line total-lines) (pad (xdisp/format-mode-line mode-line nil window buffer) cols) reverse-video)))))
 
   (defn render-window [window x y width height]
     ;; We should walk the tree, splitting windows as we go.
@@ -132,9 +132,9 @@
     (when menu-bar-mode
       (puts 0 0 (pad (render-menu-bar) width) reverse-video))
 
-    (render-window (window/frame-root-window) 0 (if menu-bar 1 0)
-                   width (+ (dec mini-buffer) menu-bar))
-    (render-window (window/minibuffer-window) 0 (+ (dec mini-buffer) menu-bar)
+    (render-window (window/frame-root-window) 0 menu-bar
+                   width (- mini-buffer menu-bar))
+    (render-window (window/minibuffer-window) 0 mini-buffer
                    width (window/window-total-height mini-buffer-window))
 
     (sc/redraw screen)))
