@@ -46,6 +46,16 @@
 
   You can customize this variable.")
 
+(defn ^:private move-marker [marker pt offset]
+  (when-let [pos @(.charpos marker)]
+    (cond
+     (and @(.insertion-type marker) (>= pos pt))
+     (swap! (.charpos marker) + offset)
+
+     (> pos pt)
+     (swap! (.charpos marker) + offset)))
+  marker)
+
 (defun byte-to-position (bytepos)
   "Return the character position for byte position BYTEPOS.
   If BYTEPOS is out of range, the value is nil."
@@ -787,16 +797,6 @@
         (binding [buffer/*current-buffer* echo-area]
           (buffer/erase-buffer))
         (window/set-window-buffer (window/minibuffer-window) minibuffer)))))
-
-(defn ^:private move-marker [marker pt offset]
-  (when-let [pos @(.charpos marker)]
-    (cond
-     (and @(.insertion-type marker) (>= pos pt))
-     (swap! (.charpos marker) + offset)
-
-     (> pos pt)
-     (swap! (.charpos marker) + offset)))
-  marker)
 
 (defun insert (&rest args)
   "Insert the arguments, either strings or characters, at point.
