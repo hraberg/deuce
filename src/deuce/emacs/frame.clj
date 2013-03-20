@@ -312,7 +312,9 @@
   For a text-only terminal, it includes the menu bar.  In this case, the
   result is really in characters rather than pixels (i.e., is identical
   to `frame-height')."
-  (second (s/get-size @(.terminal (or frame (selected-frame))))))
+  (if-let [s  @(.terminal (or frame (selected-frame)))]
+    (second (s/get-size s))
+    0))
 
 (defun frame-live-p (object)
   "Return non-nil if OBJECT is a frame which has not been deleted.
@@ -362,7 +364,9 @@
   "Return FRAME's width in pixels.
   For a terminal frame, the result really gives the width in characters.
   If FRAME is omitted, the selected frame is used."
-  (first (s/get-size @(.terminal (or frame (selected-frame))))))
+  (if-let [s  @(.terminal (or frame (selected-frame)))]
+    (first (s/get-size s))
+    0))
 
 (defun set-frame-height (frame lines &optional pretend)
   "Specify that the frame FRAME has LINES lines.
