@@ -115,10 +115,7 @@
      ;; /* Alist of elements (SYMBOL . VALUE-IN-THIS-BUFFER) for all
      ;;    per-buffer variables of this buffer.  For locally unbound
      ;;    symbols, just the symbol appears as the element.  */
-     local-var-alist
-
-     ;; /* t means the mark and region are currently active.  */
-     mark-active])
+     local-var-alist])
 
 (defmethod print-method Buffer [buffer w]
   (.write w (str "#<buffer " @(.name buffer) ">")))

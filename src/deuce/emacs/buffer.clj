@@ -890,7 +890,7 @@
         pt (atom 1)
         mark (atom (alloc/make-marker))
         buffer-locals (atom {})
-        buffer (Buffer. own-text text pt (atom name) mark buffer-locals false)]
+        buffer (Buffer. own-text text pt (atom name) mark buffer-locals)]
     buffer))
 
 (defun get-buffer-create (buffer-or-name)
