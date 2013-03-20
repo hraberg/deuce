@@ -5,7 +5,6 @@
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data]
-            [deuce.emacs.fns :as fns]
             [deuce.emacs-lisp.cons :as cons]
             [deuce.emacs-lisp.globals :as globals])
   (:import [deuce.emacs.data Frame Window])
@@ -129,6 +128,8 @@
     (reset! (.prev minibuffer-window) root-window)
     (Frame. "F1" root-window selected-window minibuffer-window terminal)))
 
+(declare selected-frame frame-pixel-width frame-pixel-height)
+
 (defun delete-frame (&optional frame force)
   "Delete FRAME, permanently eliminating it from use.
   FRAME defaults to the selected frame.
@@ -170,7 +171,7 @@
 (defun frame-parameter (frame parameter)
   "Return FRAME's value for parameter PARAMETER.
   If FRAME is nil, describe the currently selected frame."
-  (fns/assq parameter (frame-parameters (or frame (selected-frame)))))
+  ((el/fun 'assq) parameter (frame-parameters (or frame (selected-frame)))))
 
 (defun framep (object)
   "Return non-nil if OBJECT is a frame.
@@ -244,8 +245,6 @@
   "Make the frame FRAME visible (assuming it is an X window).
   If omitted, FRAME defaults to the currently selected frame."
   )
-
-(declare selected-frame)
 
 (defun frame-list ()
   "Return a list of all live frames."

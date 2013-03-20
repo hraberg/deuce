@@ -1,6 +1,7 @@
 (ns deuce.main
   (:require [clojure.string :as s]
             [lanterna.screen :as sc]
+            [lanterna.terminal :as te]
             [deuce.emacs]
             [deuce.emacs-lisp :as el]
             [deuce.emacs.alloc :as alloc]
@@ -50,7 +51,7 @@
           final-items (map menu-bar-by-name (data/symbol-value 'menu-bar-final-items))
           menu-bar (concat (mapcat menus-for-map (concat [global-map major-mode-map] minor-mode-maps))
                            (map menu-name final-items))]
-      (st/join " " menu-bar))))
+      (s/join " " menu-bar))))
 
 ;; Renders a single window using Lanterna. Scrolling is not properly taken care of.
 ;; Hard to bootstrap, requires fiddling when connected to Swank inside Deuce atm.
