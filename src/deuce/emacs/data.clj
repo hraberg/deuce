@@ -642,7 +642,6 @@
 
 (defun > (num1 num2)
   "Return t if first arg is greater than second arg.  Both must be numbers or markers."
-  (println num2 num2)
   (c/> (promote-char num1) (promote-char num2)))
 
 (defun max (number-or-marker &rest numbers-or-markers)
