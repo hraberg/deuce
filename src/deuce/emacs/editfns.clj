@@ -133,7 +133,7 @@
   to multibyte for insertion (see `unibyte-char-to-multibyte').
   If the current buffer is unibyte, multibyte strings are converted
   to unibyte for insertion."
-  )
+  (insert args))
 
 (defun field-beginning (&optional pos escape-from-edge limit)
   "Return the beginning of the field surrounding POS.
