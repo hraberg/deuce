@@ -63,81 +63,79 @@
     ([x y s] (puts x y s colors))
     ([x y s opts] (sc/put-string screen x y (str s) opts)))
 
-  (defn line
-    ([y] (line y colors))
-    ([y opts]
-       (let [[width _] (sc/get-size screen)]
-         (puts 0 y (apply str (repeat width " ")) opts))))
-
   ;; If the screen gets messed up by other output like a stack trace you need to call this.
   (defn blank
     ([] (apply blank (sc/get-size screen)))
     ([_ height]
        (sc/clear screen)
-       (sc/redraw screen)
-       (doseq [y (range 0 height)]
-         (line y))))
+       (sc/redraw screen)))
+
+  (defn pad [s cols]
+    (format (str "%-" cols "s") s))
+
+  (defn render-live-window [window]
+    (let [buffer (window/window-buffer window)
+          minibuffer? (window/window-minibuffer-p window)
+          header-line (when-not minibuffer?
+                        (buffer/buffer-local-value 'header-line-format buffer))
+          mode-line (when-not minibuffer?
+                      (buffer/buffer-local-value 'mode-line-format buffer))
+          line-indexes ((ns-resolve 'deuce.emacs.cmds 'line-indexes)
+                        (str (.beg (.own-text buffer))))
+          pt @(.pt buffer)
+          line ((ns-resolve 'deuce.emacs.cmds 'pos-to-line) line-indexes pt)
+          total-lines (- @(.total-lines window) (or (count (remove nil? [header-line mode-line])) 0))
+          scroll (max (- line total-lines) 0)]
+      (let [text (.beg (.own-text buffer))
+            lines (s/split text #"\n")
+            cols @(.total-cols window)
+            top-line @(.top-line window)
+            top-line (if header-line (inc top-line) top-line)]
+
+        (when header-line
+          (puts 0 (dec top-line) (pad (xdisp/format-mode-line header-line nil window buffer) cols) reverse-video))
+
+        (dotimes [n total-lines]
+          (puts 0 (+ top-line n) (pad (nth lines (+ scroll n) " ") cols)))
+
+        (let [[px py] ((ns-resolve 'deuce.emacs.cmds 'point-coords) line-indexes (dec pt))
+              py (inc (- py scroll))]
+          (if (= window (window/selected-window))
+            (sc/move-cursor screen px py)
+            (sc/put-string screen px py (str (nth text (dec pt) "")) reverse-video)))
+
+        (when mode-line
+          (puts 0 total-lines (pad (xdisp/format-mode-line mode-line nil window buffer) cols) reverse-video)))))
+
+  (defn render-window [window x y width height]
+    ;; We should walk the tree, splitting windows as we go.
+    ;; top or left children in turn have next siblings all sharing this area.
+    ;; A live window is a normal window with buffer.
+    (reset! (.top-line window) y)
+    (reset! (.left-col window) x)
+    ;; "normal" size is a weight between 0 - 1.0, should hopfully add up.
+    (reset! (.total-cols window) (long (* @(.normal-cols window) width)))
+    (reset! (.total-lines window) (long (* @(.normal-lines window) height)))
+
+    (condp some [window]
+      window/window-live-p (render-live-window window)
+      window/window-top-child (throw (UnsupportedOperationException.))
+      window/window-left-child (throw (UnsupportedOperationException.))))
 
   (def screen (terminal/frame-terminal))
   (let [[width height] (sc/get-size screen)
         mini-buffer-window (window/minibuffer-window)
         mini-buffer (- height (window/window-total-height mini-buffer-window))
         menu-bar-mode (data/symbol-value 'menu-bar-mode)
-        menu-bar (if menu-bar-mode 1 0)
-        pad (fn [s cols] (format (str "%-" cols "s") s))]
+        menu-bar (if menu-bar-mode 1 0)]
 
-    ;; Menu Bar
     (when menu-bar-mode
       (puts 0 0 (pad (render-menu-bar) width) reverse-video))
 
-    ;; This should walk (frame-root-window), not just displaying selected-window.
-    ;; Needs to happen on a per-window basis.
-    ;; The values should depend on where in the tree they are, not menu-bar/mini-buffer.
-    (let [window (window/frame-root-window)
-          buffer (window/window-buffer window)
-          header-line (buffer/buffer-local-value 'header-line-format buffer)
-          mode-line (buffer/buffer-local-value 'mode-line-format buffer)]
-      (reset! (.top-line window) (+ menu-bar (if header-line 1 0)))
-      (reset! (.left-col window) 0) ;; Can't just be 0 of course.
-      ;; "normal" size is a weight between 0 - 1.0
-      (reset! (.total-cols window) (long (* @(.normal-cols window) width)))
-      (reset! (.total-lines window) (long (* @(.normal-lines window) (+ (dec mini-buffer) menu-bar))))
-
-
-      (let [line-indexes ((ns-resolve 'deuce.emacs.cmds 'line-indexes)
-                          (str (.beg (.own-text buffer))))
-            pt @(.pt buffer)
-            line ((ns-resolve 'deuce.emacs.cmds 'pos-to-line) line-indexes pt)
-            total-lines (- @(.total-lines window) (count (remove nil? #{header-line mode-line})))
-            scroll (max (- line total-lines) 0)]
-        ;; Window Text
-        (let [text (.beg (.own-text buffer))
-              lines (s/split text #"\n")
-              cols @(.total-cols window)
-              top-line @(.top-line window)
-              top-line (if header-line (inc top-line) top-line)]
-
-          (when header-line
-            (puts 0 (dec top-line) (pad (xdisp/format-mode-line header-line nil window buffer) cols) reverse-video))
-
-          (dotimes [n total-lines]
-            (puts 0 (+ top-line n) (pad (nth lines (+ scroll n) " ") cols)))
-
-          ;; Point
-          (let [[px py] ((ns-resolve 'deuce.emacs.cmds 'point-coords) line-indexes (dec pt))
-                py (inc (- py scroll))]
-            (if (= window (window/selected-window))
-              (sc/move-cursor screen px py)
-              (sc/put-string screen px py (str (nth text (dec pt))) reverse-video)))
-
-          ;; Mode Line - using total-lines is wrong here, as the reset! logic above assumes one large window.
-          (when mode-line
-            (puts 0 total-lines (pad (xdisp/format-mode-line mode-line nil window buffer) cols) reverse-video)))))
-
-    ;; Mini Buffer - Can also have a point. And how to tell it's active?
-    (dotimes [n @(.total-lines mini-buffer-window)]
-      (puts 0 (+ n mini-buffer)
-            (pad (.beg (.own-text (window/window-buffer mini-buffer-window))) width)))
+    (render-window (window/frame-root-window) 0 (if menu-bar 1 0)
+                   width (+ (dec mini-buffer) menu-bar))
+    (render-window (window/minibuffer-window) 0 (+ (dec mini-buffer) menu-bar)
+                   width (window/window-total-height mini-buffer-window))
 
     (sc/redraw screen)))
 

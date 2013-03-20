@@ -1084,7 +1084,7 @@
   Return nil if WINDOW is a live window (live windows have no children).
   Return nil if WINDOW is an internal window whose children form a
   horizontal combination."
-  )
+  @(.vchild (el/check-type 'windowp window)))
 
 (defun window-new-total (&optional window)
   "Return the new total size of window WINDOW.
@@ -1112,7 +1112,7 @@
   Return nil if WINDOW is a live window (live windows have no children).
   Return nil if WINDOW is an internal window whose children form a
   vertical combination."
-  )
+  @(.hchild (el/check-type 'windowp window)))
 
 (defun window-edges (&optional window)
   "Return a list of the edge coordinates of WINDOW.
