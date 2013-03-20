@@ -52,7 +52,7 @@
                            (map menu-name final-items))]
       (st/join " " menu-bar))))
 
-;; Renders a single window using Lanterna. Scrolling and position of point are very buggy.
+;; Renders a single window using Lanterna. Scrolling is not properly taken care of.
 ;; Hard to bootstrap, requires fiddling when connected to Swank inside Deuce atm.
 (defn display-using-lanterna []
   (def colors {:fg :black :bg :default})
