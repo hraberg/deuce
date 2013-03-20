@@ -437,6 +437,10 @@
   See also `bidi-paragraph-direction'."
   )
 
+(defn ^:private point-coords-for-buffer [buffer]
+  (let [[px py] ((ns-resolve 'deuce.emacs.cmds 'point-coords) buffer)]
+    [px (inc py)]))
+
 (defun format-mode-line (format &optional face window buffer)
   "Format a string out of a mode line format specification.
   First arg FORMAT specifies the mode line format (see `mode-line-format'
@@ -458,16 +462,8 @@
   (let [window (el/check-type 'windowp (or window (window/selected-window)))
         buffer (el/check-type 'bufferp (or buffer (window/window-buffer window)))
         window-width (max (window/window-total-width window)
-                          (data/symbol-value 'fill-column))
-        point @(.pt buffer)
-        substring (.substring (.beg (.own-text buffer)) 0 (dec point))
-        line-offset (.lastIndexOf substring "\n")
-        column (dec (if (= -1 line-offset) point (- point line-offset)))
-        line (if (= -1 line-offset) 1
-               (loop [idx 0 line 2]
-                 (if (= idx line-offset) line
-                     (recur (unchecked-inc idx)
-                            (if (= \newline (.charAt substring idx)) (unchecked-inc line) line)))))
+                          (data/symbol-value 'fill-column)) ;; Hack for stdout
+        [column line] (point-coords-for-buffer buffer)
         modified? (buffer/buffer-modified-p buffer)
         read-only? (buffer/buffer-local-value 'buffer-read-only buffer)
         recursion-depth (keyboard/recursion-depth)
@@ -546,7 +542,7 @@
                       (str f)))]
     (let [mode-line (formatter format)]
       (s/replace mode-line #"%-$"
-                 (s/join (repeat (- window-width (count mode-line)) "-"))))))
+                 (s/join (repeat (+ (- window-width (count mode-line)) (count "%-")) "-"))))))
 
 (defun invisible-p (pos-or-prop)
   "Non-nil if the property makes the text invisible.

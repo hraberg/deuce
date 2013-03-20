@@ -29,8 +29,11 @@
     ((resolve 'clojure.tools.nrepl.server/start-server) :port port))
   (println "nrepl server listening on" port))
 
-(defn render-mode-line []
-  (xdisp/format-mode-line (buffer/buffer-local-value 'mode-line-format (buffer/current-buffer))))
+(defn render-mode-line
+  ([] (xdisp/format-mode-line (buffer/buffer-local-value 'mode-line-format (buffer/current-buffer))))
+  ([window buffer]
+     (when-let [mode-line (buffer/buffer-local-value 'mode-line-format buffer)]
+       (xdisp/format-mode-line mode-line nil window buffer))))
 
 ;; The way this does this is probably utterly wrong, written by data inspection, not reading Emacs source.
 ;; But produces the expected result:
@@ -80,60 +83,58 @@
 
   (def screen (terminal/frame-terminal))
   (let [[width height] (sc/get-size screen)
-        window (window/selected-window)
-        buffer (window/window-buffer window)
         mini-buffer-window (window/minibuffer-window)
         mini-buffer (- height (window/window-total-height mini-buffer-window))
-        mode-line (when (buffer/buffer-local-value 'mode-line-format buffer) (dec mini-buffer))
         menu-bar-mode (data/symbol-value 'menu-bar-mode)
-        menu-bar (if menu-bar-mode 1 0)]
+        menu-bar (if menu-bar-mode 1 0)
+        pad (fn [s cols] (format (str "%-" cols "s") s))]
 
     ;; Menu Bar
     (when menu-bar-mode
-      (line 0 reverse-video)
-      (puts 0 0 (render-menu-bar) reverse-video))
+      (puts 0 0 (pad (render-menu-bar) width) reverse-video))
 
-    ;; This should walk the (frame-root-window), not just displaying selected-window.
-
+    ;; This should walk (frame-root-window), not just displaying selected-window.
     ;; Needs to happen on a per-window basis.
-    ;; The values should depend on where in the tree they are, not mode-line/menu-bar.
-    (reset! (.top-line window) menu-bar)
-    (reset! (.left-col window) 0) ;; Can't just be 0 of course.
-    ;; "normal" size is a weight between 0 - 1.0
-    (reset! (.total-cols window) (long (* @(.normal-cols window) width)))
-    (reset! (.total-lines window) (long (* @(.normal-lines window) (+ (dec mode-line) menu-bar))))
+    ;; The values should depend on where in the tree they are, not menu-bar/mini-buffer.
+    (let [window (window/frame-root-window)
+          buffer (window/window-buffer window)
+          mode-line (when (buffer/buffer-local-value 'mode-line-format buffer) (dec mini-buffer))]
+      (reset! (.top-line window) menu-bar)
+      (reset! (.left-col window) 0) ;; Can't just be 0 of course.
+      ;; "normal" size is a weight between 0 - 1.0
+      (reset! (.total-cols window) (long (* @(.normal-cols window) width)))
+      (reset! (.total-lines window) (long (* @(.normal-lines window) (+ (dec mode-line) menu-bar))))
 
-    ;; Point - needs to consolidate / reuse point calculations, this is broken, there are two others that work.
-    (let [line-indexes ((ns-resolve 'deuce.emacs.cmds 'line-indexes)
-                        (str (.beg (.own-text buffer))))
-          pt @(.pt buffer)
-          line ((ns-resolve 'deuce.emacs.cmds 'pos-to-line) line-indexes pt)
-          scroll (max (- line @(.total-lines window)) 0)
-          px (dec (- pt (aget line-indexes line)))
-          py (inc (- line scroll))
-          [px py] (if (neg? px) ;; Horrible.
-                    [(dec (- pt (aget line-indexes (dec line)))) (dec py)]
-                    [px py])]
-      (sc/move-cursor screen (max px 0) (- py (if menu-bar-mode 0 1)))
+      (let [line-indexes ((ns-resolve 'deuce.emacs.cmds 'line-indexes)
+                          (str (.beg (.own-text buffer))))
+            pt @(.pt buffer)
+            line ((ns-resolve 'deuce.emacs.cmds 'pos-to-line) line-indexes pt)
+            scroll (max (- line @(.total-lines window)) 0)]
+        ;; Window Text
+        (let [text (.beg (.own-text buffer))
+              lines (s/split text #"\n")
+              cols @(.total-cols window)
+              top-line @(.top-line window)
+              total-lines @(.total-lines window)]
+          (dotimes [n total-lines]
+            (puts 0 (+ top-line n) (pad (nth lines (+ scroll n) " ") cols)))
 
-      ;; Window Text
-      (let [lines (s/split (.beg (.own-text buffer)) #"\n")
-            cols @(.total-cols window)
-            buffer-start @(.top-line window)]
-        (dotimes [n @(.total-lines window)]
-          (puts 0 (+ buffer-start n) (format (str "%-" cols "s")
-                                             (nth lines (+ scroll n) " "))))))
+          ;; Point
+          (let [[px py] ((ns-resolve 'deuce.emacs.cmds 'point-coords) line-indexes (dec pt))
+                py (inc (- py scroll))
+                [px py] [(max px 0) (- py (if menu-bar-mode 0 1))]]
+            (if (= window (window/selected-window))
+              (sc/move-cursor screen px py)
+              (sc/put-string screen px py (str (nth text (dec pt))) reverse-video)))
 
-    ;; Mode Line - should be integrated with the drawing of a specific window.
-    (when mode-line
-      (line mode-line reverse-video)
-      (puts 0 mode-line (render-mode-line) reverse-video))
+          ;; Mode Line - using total-lines is wrong here, as the reset! logic above assumes one large window.
+          (when mode-line
+            (puts 0 total-lines (pad (render-mode-line window buffer) cols) reverse-video)))))
 
-    ;; Mini Buffer - Should draw it's line(s) using the same logic as other windows above.
-    ;; Can also have a point when active.
-    (puts 0 mini-buffer
-          (format (str "%-" width "s")
-                  (.beg (.own-text (window/window-buffer mini-buffer-window)))))
+    ;; Mini Buffer - Can also have a point. And how to tell it's active?
+    (dotimes [n @(.total-lines mini-buffer-window)]
+      (puts 0 (+ n mini-buffer)
+            (pad (.beg (.own-text (window/window-buffer mini-buffer-window))) width)))
 
     (sc/redraw screen)))
 
