@@ -30,10 +30,7 @@
   (println "nrepl server listening on" port))
 
 (defn render-mode-line
-  ([] (xdisp/format-mode-line (buffer/buffer-local-value 'mode-line-format (buffer/current-buffer))))
-  ([window buffer]
-     (when-let [mode-line (buffer/buffer-local-value 'mode-line-format buffer)]
-       (xdisp/format-mode-line mode-line nil window buffer))))
+  [] (xdisp/format-mode-line (buffer/buffer-local-value 'mode-line-format (buffer/current-buffer))))
 
 ;; The way this does this is probably utterly wrong, written by data inspection, not reading Emacs source.
 ;; But produces the expected result:
@@ -98,24 +95,31 @@
     ;; The values should depend on where in the tree they are, not menu-bar/mini-buffer.
     (let [window (window/frame-root-window)
           buffer (window/window-buffer window)
-          mode-line (when (buffer/buffer-local-value 'mode-line-format buffer) (dec mini-buffer))]
-      (reset! (.top-line window) menu-bar)
+          header-line (buffer/buffer-local-value 'header-line-format buffer)
+          mode-line (buffer/buffer-local-value 'mode-line-format buffer)]
+      (reset! (.top-line window) (+ menu-bar (if header-line 1 0)))
       (reset! (.left-col window) 0) ;; Can't just be 0 of course.
       ;; "normal" size is a weight between 0 - 1.0
       (reset! (.total-cols window) (long (* @(.normal-cols window) width)))
-      (reset! (.total-lines window) (long (* @(.normal-lines window) (+ (dec mode-line) menu-bar))))
+      (reset! (.total-lines window) (long (* @(.normal-lines window) (+ (dec mini-buffer) menu-bar))))
+
 
       (let [line-indexes ((ns-resolve 'deuce.emacs.cmds 'line-indexes)
                           (str (.beg (.own-text buffer))))
             pt @(.pt buffer)
             line ((ns-resolve 'deuce.emacs.cmds 'pos-to-line) line-indexes pt)
-            scroll (max (- line @(.total-lines window)) 0)]
+            total-lines (- @(.total-lines window) (count (remove nil? #{header-line mode-line})))
+            scroll (max (- line total-lines) 0)]
         ;; Window Text
         (let [text (.beg (.own-text buffer))
               lines (s/split text #"\n")
               cols @(.total-cols window)
               top-line @(.top-line window)
-              total-lines @(.total-lines window)]
+              top-line (if header-line (inc top-line) top-line)]
+
+          (when header-line
+            (puts 0 (dec top-line) (pad (xdisp/format-mode-line header-line nil window buffer) cols) reverse-video))
+
           (dotimes [n total-lines]
             (puts 0 (+ top-line n) (pad (nth lines (+ scroll n) " ") cols)))
 
@@ -129,7 +133,7 @@
 
           ;; Mode Line - using total-lines is wrong here, as the reset! logic above assumes one large window.
           (when mode-line
-            (puts 0 total-lines (pad (render-mode-line window buffer) cols) reverse-video)))))
+            (puts 0 total-lines (pad (xdisp/format-mode-line mode-line nil window buffer) cols) reverse-video)))))
 
     ;; Mini Buffer - Can also have a point. And how to tell it's active?
     (dotimes [n @(.total-lines mini-buffer-window)]
