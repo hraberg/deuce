@@ -465,7 +465,7 @@
         point (editfns/point)]
     (editfns/insert contents)
     (when visit
-      (reset! (.save-modiff (.own-text (buffer/current-buffer))) (System/currentTimeMillis))
+      (reset! (.save-modiff (.text (buffer/current-buffer))) (System/currentTimeMillis))
       ;; These vars are buffer local.
       (el/setq buffer-file-name path)
       (el/setq buffer-file-truename filename) ; Might be correct, should be result of files/file-truename.

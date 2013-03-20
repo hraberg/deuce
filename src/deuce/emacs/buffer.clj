@@ -830,7 +830,7 @@
 (defun buffer-modified-p (&optional buffer)
   "Return t if BUFFER was modified since its file was last read or saved.
   No argument or nil as argument means use current buffer as BUFFER."
-  (let [text (.own-text (or buffer (current-buffer)))
+  (let [text (.text (or buffer (current-buffer)))
         modiff @(.modiff text)]
     (and modiff (> modiff @(.save-modiff text)))))
 
@@ -878,6 +878,9 @@
   for positions far away from POS)."
   )
 
+(defn ^:private allocate-marker [insertion-type buffer charpos]
+  (Marker. (atom  insertion-type) (atom buffer) (atom charpos)))
+
 ;; The eternal battle of how to represent mutable data like pt and name, nested atoms or updates via root buffer-alist?
 ;; The latter doesn't work properly, save-current-buffer for example allows destructive updates to the current buffer it restores.
 (defn ^:private allocate-buffer [name]
@@ -888,7 +891,7 @@
         mark (atom nil)
         buffer-locals (atom {})
         buffer (Buffer. own-text text pt (atom name) mark buffer-locals false)]
-    (reset! mark (Marker. buffer @pt))
+    (reset! mark (allocate-marker nil buffer @pt))
     buffer))
 
 (defun get-buffer-create (buffer-or-name)
@@ -971,7 +974,7 @@
   "Delete the entire contents of the current buffer.
   Any narrowing restriction in effect (see `narrow-to-region') is removed,
   so the buffer is truly empty after this."
-  (let [text (.own-text (current-buffer))]
+  (let [text (.text (current-buffer))]
     (reset! (.pt (current-buffer)) 1)
     (reset! (.modiff text) (System/currentTimeMillis))
     (.setLength (.beg text) 0)))
@@ -1121,7 +1124,7 @@
 (defun set-buffer-modified-p (flag)
   "Mark current buffer as modified or unmodified according to FLAG.
   A non-nil FLAG means mark the buffer modified."
-  (reset! (.modiff (.own-text (current-buffer))) (when flag (System/currentTimeMillis))))
+  (reset! (.modiff (.text (current-buffer))) (when flag (System/currentTimeMillis))))
 
 (defun move-overlay (overlay beg end &optional buffer)
   "Set the endpoints of OVERLAY to BEG and END in BUFFER.

@@ -100,7 +100,7 @@
   "Return a marker to the maximum permissible value of point in this buffer.
   This is (1+ (buffer-size)), unless narrowing (a buffer restriction)
   is in effect, in which case it is less."
-  (Marker. (buffer/current-buffer) (point-max)))
+  ((ns-resolve 'deuce.emacs.buffer 'allocate-marker) nil (buffer/current-buffer) (point-max)))
 
 (defun preceding-char ()
   "Return the character preceding point, as a number.
@@ -289,7 +289,7 @@
 (defun point-min-marker ()
   "Return a marker to the minimum permissible value of point in this buffer.
   This is the beginning, unless narrowing (a buffer restriction) is in effect."
-  (Marker. (buffer/current-buffer) (point-min)))
+  ((ns-resolve 'deuce.emacs.buffer 'allocate-marker) nil (buffer/current-buffer) (point-min)))
 
 (defun string-to-char (string)
   "Return the first character in STRING."
@@ -297,7 +297,7 @@
 
 (defun point-marker ()
   "Return value of point, as a marker object."
-  (Marker. (buffer/current-buffer) (point)))
+  ((ns-resolve 'deuce.emacs.buffer 'allocate-marker) nil (buffer/current-buffer) (point)))
 
 (defun gap-position ()
   "Return the position of the gap, in the current buffer.
@@ -364,7 +364,7 @@
   If optional arg NOUNDO is non-nil, don't record this change for undo
   and don't mark the buffer as really changed.
   Both characters must have the same length of multi-byte form."
-  (let [text (.own-text (buffer/current-buffer))]
+  (let [text (.text (buffer/current-buffer))]
     (.replace (.beg text)
               start end
               (s/replace (buffer-substring start end) fromchar tochar))
@@ -528,7 +528,7 @@
   "Return the contents of the current buffer as a string.
   If narrowing is in effect, this function returns only the visible part
   of the buffer."
-  (str (.beg (.own-text (buffer/current-buffer)))))
+  (str (.beg (.text (buffer/current-buffer)))))
 
 (defun current-message ()
   "Return the string currently displayed in the echo area, or nil if none."
@@ -597,7 +597,7 @@
   "Delete the text between START and END.
   If called interactively, delete the region between point and mark.
   This command deletes buffer text without modifying the kill ring."
-  (let [text (.own-text (buffer/current-buffer))]
+  (let [text (.text (buffer/current-buffer))]
     (.delete (.beg text) (dec start) (dec end))
     (reset! (.modiff text) (System/currentTimeMillis))
     (when (> (point) start)
@@ -642,7 +642,7 @@
 (defun buffer-size (&optional buffer)
   "Return the number of characters in the current buffer.
   If BUFFER, return the number of characters in that buffer instead."
-  (count (.beg (.own-text (or (and buffer (el/check-type 'bufferp buffer))
+  (count (.beg (.text (or (and buffer (el/check-type 'bufferp buffer))
                           (buffer/current-buffer))))))
 
 (defun region-end ()
@@ -802,7 +802,7 @@
   and insert the result."
   (let [string (apply str args)
         pt @(.pt (buffer/current-buffer))
-        text (.own-text (buffer/current-buffer))]
+        text (.text (buffer/current-buffer))]
     (.insert (.beg text) (dec pt) string)
     (reset! (.modiff text) (System/currentTimeMillis))
     (goto-char (+ pt (count string))))

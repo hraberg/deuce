@@ -23,7 +23,7 @@
     (if (neg? pos) (- (- pos) 2) pos)))
 
 (defn ^:private point-coords
-  ([buffer] (point-coords (line-indexes (str (.beg (.own-text buffer)))) (dec @(.pt buffer))))
+  ([buffer] (point-coords (line-indexes (str (.beg (.text buffer)))) (dec @(.pt buffer))))
   ([line-indexes offset]
       (let [pos-to-line (partial pos-to-line line-indexes)
             line (pos-to-line offset)

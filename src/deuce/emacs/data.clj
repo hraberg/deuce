@@ -125,7 +125,11 @@
 
 ;; struct in buffer.h. Has many other fields, its also a linked list above. Attempting to use as a value object
 (defrecord Marker
-    [;; /* This is the buffer that the marker points into, or 0 if it points nowhere.
+    [;; /* 1 means normal insertion at the marker's position
+      ;;   leaves the marker after the inserted text.  */
+     insertion-type
+
+     ;; /* This is the buffer that the marker points into, or 0 if it points nowhere.
      ;;    Note: a chain of markers can contain markers pointing into different
      ;;    buffers (the chain is per buffer_text rather than per buffer, so it's
      ;;    shared between indirect buffers).  */
@@ -141,7 +145,9 @@
      charpos])
 
 (defmethod print-method Marker [marker w]
-  (.write w (str "#<marker at " (.charpos marker) " in " @(.name (.buffer marker)) ">")))
+  (.write w (str "#<marker" (if @(.buffer marker)
+                              (str " at " @(.charpos marker) " in " @(.name @(.buffer marker)))
+                              (str " in no buffer")) ">")))
 
 (defrecord Frame
     [;; /* Name of this frame: a Lisp string.  It is used for looking up resources,

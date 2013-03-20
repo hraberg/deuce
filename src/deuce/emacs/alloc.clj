@@ -132,7 +132,7 @@
 
 (defun make-marker ()
   "Return a newly allocated marker which does not point at any place."
-  )
+  ((ns-resolve 'deuce.emacs.buffer 'allocate-marker) nil nil nil))
 
 (declare list)
 

@@ -320,7 +320,7 @@
   ;; There's an attempt to track this in set-window-buffer and select-window
   (el/check-type 'integerp pos)
   (let [window (el/check-type 'windowp (or window (selected-window)))]
-    (reset! (.pointm window)  (Marker. (window-buffer window) pos))
+    (reset! (.pointm window)  ((ns-resolve 'deuce.emacs.buffer 'allocate-marker) nil (window-buffer window) pos))
     (reset! (.pt (window-buffer window)) pos)))
 
 (defun window-point (&optional window)
