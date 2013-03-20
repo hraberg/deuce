@@ -122,10 +122,7 @@
       window/window-left-child (throw (UnsupportedOperationException.))))
 
   (def screen (terminal/frame-terminal))
-  (sc/add-resize-listener screen (fn [w h]
-                                   (blank)
-                                   (display-using-lanterna)))
-  (let [[width height] (sc/get-size screen)
+  (let [[width height] (te/get-size (.getTerminal screen))
         mini-buffer-window (window/minibuffer-window)
         mini-buffer (- height (window/window-total-height mini-buffer-window))
         menu-bar-mode (data/symbol-value 'menu-bar-mode)
