@@ -636,7 +636,7 @@
 
   The return value is POSITION."
   (el/check-type 'integer-or-marker-p position)
-  (let [position (if (data/markerp position) (.charpos position) position)
+  (let [position (if (data/markerp position) @(.charpos position) position)
         real-pos (min (max 1 position) (inc (buffer-size)))]
     (reset! (.pt (buffer/current-buffer)) real-pos)
     position))

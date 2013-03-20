@@ -974,9 +974,8 @@
   Any narrowing restriction in effect (see `narrow-to-region') is removed,
   so the buffer is truly empty after this."
   (let [text (.text (current-buffer))]
-    (reset! (.pt (current-buffer)) 1)
-    (reset! (.modiff text) (System/currentTimeMillis))
-    (.setLength (.beg text) 0)))
+    ((el/fun 'delete-region) 1 (inc (.length (.beg text))))
+    nil))
 
 (defun kill-all-local-variables ()
   "Switch to Fundamental mode by killing current buffer's local variables.
