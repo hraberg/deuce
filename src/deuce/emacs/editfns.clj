@@ -284,7 +284,8 @@
   BUFFER may be a buffer or a buffer name.
   Arguments START and END are character positions specifying the substring.
   They default to the values of (point-min) and (point-max) in BUFFER."
-  )
+  (insert (binding [buffer/current-buffer buffer]
+            (buffer-substring start end))))
 
 (defun point-min-marker ()
   "Return a marker to the minimum permissible value of point in this buffer.
@@ -597,9 +598,13 @@
   "Delete the text between START and END.
   If called interactively, delete the region between point and mark.
   This command deletes buffer text without modifying the kill ring."
-  (let [text (.text (buffer/current-buffer))]
+  (let [buffer (buffer/current-buffer)
+        text (.text buffer)]
     (.delete (.beg text) (dec start) (dec end))
     (reset! (.modiff text) (System/currentTimeMillis))
+    (when-not (some #{@(.mark buffer)} @(.markers text))
+      (swap! (.mark buffer) #(move-marker % start (- start end))))
+    (swap! (.markers text) #(doall (map (fn [m] (move-marker m start (- start end))) %)))
     (when (> (point) start)
       (goto-char (+ (- end start) (- (point) start)))
       nil)))
@@ -783,6 +788,16 @@
           (buffer/erase-buffer))
         (window/set-window-buffer (window/minibuffer-window) minibuffer)))))
 
+(defn ^:private move-marker [marker pt offset]
+  (when-let [pos @(.charpos marker)]
+    (cond
+     (and @(.insertion-type marker) (>= pos pt))
+     (swap! (.charpos marker) + offset)
+
+     (> pos pt)
+     (swap! (.charpos marker) + offset)))
+  marker)
+
 (defun insert (&rest args)
   "Insert the arguments, either strings or characters, at point.
   Point and before-insertion markers move forward to end up
@@ -799,10 +814,14 @@
   buffer; to accomplish this, apply `string-as-multibyte' to the string
   and insert the result."
   (let [string (apply str args)
-        pt @(.pt (buffer/current-buffer))
-        text (.text (buffer/current-buffer))]
+        buffer (buffer/current-buffer)
+        pt @(.pt buffer)
+        text (.text buffer)]
     (.insert (.beg text) (dec pt) string)
     (reset! (.modiff text) (System/currentTimeMillis))
+    (when-not (some #{@(.mark buffer)} @(.markers text))
+      (swap! (.mark buffer) #(move-marker % pt (count string))))
+    (swap! (.markers text) #(doall (map (fn [m] (move-marker m pt (count string))) %)))
     (goto-char (+ pt (count string))))
   nil)
 
