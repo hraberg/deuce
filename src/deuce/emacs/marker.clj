@@ -58,6 +58,5 @@
       (swap! (.markers (.text old-buffer)) #(seq (remove #{marker} %))))
     (reset! (.buffer marker) buffer)
     (reset! (.charpos marker) position)
-    (println (.text buffer) marker)
     (swap! (.markers (.text buffer)) conj marker)
     marker))
