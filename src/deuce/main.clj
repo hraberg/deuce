@@ -55,7 +55,7 @@
 ;; Renders a single window using Lanterna. Scrolling is not properly taken care of.
 ;; Hard to bootstrap, requires fiddling when connected to Swank inside Deuce atm.
 (defn display-using-lanterna []
-  (def colors {:fg :black :bg :default})
+  (def colors {:bg :default :fg :default})
   (def reverse-video {:fg :white :bg :black})
   (declare screen)
 
@@ -76,10 +76,9 @@
   (defn render-live-window [window]
     (let [buffer (window/window-buffer window)
           minibuffer? (window/window-minibuffer-p window)
-          header-line (when-not minibuffer?
-                        (buffer/buffer-local-value 'header-line-format buffer))
-          mode-line (when-not minibuffer?
-                      (buffer/buffer-local-value 'mode-line-format buffer))
+          [header-line mode-line] (when-not minibuffer?
+                                    [(buffer/buffer-local-value 'header-line-format buffer)
+                                     (buffer/buffer-local-value 'mode-line-format buffer)])
           line-indexes ((ns-resolve 'deuce.emacs.cmds 'line-indexes)
                         (str (.beg (.own-text buffer))))
           pt @(.pt buffer)
@@ -105,7 +104,7 @@
             (sc/put-string screen px py (str (nth text (dec pt) "")) reverse-video)))
 
         (when mode-line
-          (puts 0 (+ top-line total-lines) (pad (xdisp/format-mode-line mode-line nil window buffer) cols) reverse-video)))))
+          (puts 0 (+ top-line total-lines) (pad (xdisp/format-mode-line mode-line nil window buffer) cols) {:bg :white})))))
 
   (defn render-window [window x y width height]
     ;; We should walk the tree, splitting windows as we go.
@@ -123,6 +122,9 @@
       window/window-left-child (throw (UnsupportedOperationException.))))
 
   (def screen (terminal/frame-terminal))
+  (sc/add-resize-listener screen (fn [w h]
+                                   (blank)
+                                   (display-using-lanterna)))
   (let [[width height] (sc/get-size screen)
         mini-buffer-window (window/minibuffer-window)
         mini-buffer (- height (window/window-total-height mini-buffer-window))

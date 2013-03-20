@@ -154,7 +154,7 @@
   the function in which the error occurred is unconditionally removed, since
   otherwise the error might happen repeatedly and make Emacs nonfunctional.")
 
-(defvar minibuffer-message-timeout nil
+(defvar minibuffer-message-timeout 2
   "How long to display an echo-area message when the minibuffer is active.
   If the value is not a number, such messages don't time out.")
 
