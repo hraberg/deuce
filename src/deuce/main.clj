@@ -59,6 +59,7 @@
 (defn display-using-lanterna []
   (def colors {:bg :default :fg :default})
   (def reverse-video {:fg :white :bg :black})
+  (def region-colors {:fg :default :bg :yellow})
   (declare screen)
 
   (defn puts
@@ -83,24 +84,51 @@
                                      (buffer/buffer-local-value 'mode-line-format buffer)])
           line-indexes ((ns-resolve 'deuce.emacs.cmds 'line-indexes)
                         (str (.beg (.own-text buffer))))
+          pos-to-line (partial (ns-resolve 'deuce.emacs.cmds 'pos-to-line) line-indexes)
+          point-coords (partial (ns-resolve 'deuce.emacs.cmds 'point-coords) line-indexes)
           pt @(.pt buffer)
-          line ((ns-resolve 'deuce.emacs.cmds 'pos-to-line) line-indexes pt)
+          line (pos-to-line pt)
           total-lines (- @(.total-lines window) (or (count (remove nil? [header-line mode-line])) 0))
-          scroll (max (- line total-lines) 0)]
+          scroll (max (- line total-lines) 0)
+          mark-active? (buffer/buffer-local-value 'mark-active buffer)]
       (let [text (.beg (.own-text buffer))
             lines (s/split text #"\n")
             cols @(.total-cols window)
             top-line @(.top-line window)
-            top-line (if header-line (inc top-line) top-line)]
+            top-line (if header-line (inc top-line) top-line)
+            screen-coords (fn [[x y]] [x  (+ top-line (- y scroll))])] ;; Not dealing with horizontal scroll.
 
         (when header-line
           (puts 0 (dec top-line) (pad (xdisp/format-mode-line header-line nil window buffer) cols) reverse-video))
 
-        (dotimes [n total-lines]
-          (puts 0 (+ top-line n) (pad (nth lines (+ scroll n) " ") cols)))
+        (let [[[rbx rby] [rex rey]]
+              (if mark-active?
+                [(screen-coords (point-coords (dec (editfns/region-beginning))))
+                 (screen-coords (point-coords (dec (editfns/region-end))))]
+                [[-1 -1] [-1 -1]])]
 
-        (let [[px py] ((ns-resolve 'deuce.emacs.cmds 'point-coords) line-indexes (dec pt))
-              py (+ top-line (- py scroll))]
+          (dotimes [n total-lines]
+            (let [screen-line (+ top-line n)
+                  text (pad (nth lines (+ scroll n) " ") cols)]
+              (cond
+               (= screen-line rby rey) (do
+                                         (puts 0 screen-line (subs text 0 rbx))
+                                         (puts rbx screen-line (subs text rbx rex) region-colors)
+                                         (puts rex screen-line (subs text rex)))
+
+               (= screen-line rby) (do
+                                     (puts 0 screen-line (subs text 0 rbx))
+                                     (puts rbx screen-line (subs text rbx) region-colors))
+
+               (= screen-line rey) (do
+                                     (puts 0 screen-line (subs text 0 rex) region-colors)
+                                     (puts rex screen-line (subs text rex)))
+
+               (< rby screen-line rey) (puts 0 screen-line text region-colors)
+
+               :else (puts 0 screen-line text)))))
+
+        (let [[px py] (screen-coords (point-coords (dec pt)))]
           (if (= window (window/selected-window))
             (sc/move-cursor screen px py)
             (sc/put-string screen px py (str (nth text (dec pt) "")) reverse-video)))

@@ -393,7 +393,7 @@
 
 (defun region-beginning ()
   "Return the integer value of point or mark, whichever is smaller."
-  (min (.charpos (mark-marker)) (point)))
+  (min @(.charpos (mark-marker)) (point)))
 
 (defun line-beginning-position (&optional n)
   "Return the character position of the first character on the current line.
@@ -645,7 +645,7 @@
 
 (defun region-end ()
   "Return the integer value of point or mark, whichever is larger."
-  (max (.charpos (mark-marker)) (point)))
+  (max @(.charpos (mark-marker)) (point)))
 
 (defun format-time-string (format-string &optional time universal)
   "Use FORMAT-STRING to format the time TIME, or now if omitted.
