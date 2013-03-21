@@ -25,7 +25,7 @@
 
 (defn ^:private parse-string [s]
   (.sval (doto (StreamTokenizer. (StringReader. (reduce (fn [s [m r]] (s/replace s m r)) s
-                                                        {"\\\n" "" "\n" "\\\n"})))
+                                                        [["\\\n" ""]  ["\n" "\\\n"]])))
            (.nextToken))))
 
 ;; Like Emacs, certain characters can be read both with single and double backslash. Not necessarily the same ones.
