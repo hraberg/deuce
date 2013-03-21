@@ -79,6 +79,7 @@
 
 ;; I'm the one and only Frame
 (setq terminal-frame ((c/ns-resolve 'deuce.emacs.frame 'make-initial-frame)))
+(setq last-event-frame terminal-frame)
 
 ;; *scratch* is created by buffer.c
 (set-window-buffer (selected-window)

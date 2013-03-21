@@ -15,7 +15,9 @@
   The argument may be a character or string.  The result has the same type.
   The argument object is not altered--the value is a copy.
   See also `capitalize', `downcase' and `upcase-initials'."
-  (s/upper-case obj))
+  (if ((some-fn char? integer?) obj)
+    (int (Character/toUpperCase obj))
+    (s/upper-case obj)))
 
 (defun capitalize-word (arg)
   "Capitalize the following word (or ARG words), moving over.
@@ -78,4 +80,6 @@
   "Convert argument to lower case and return that.
   The argument may be a character or string.  The result has the same type.
   The argument object is not altered--the value is a copy."
-  (s/lower-case obj))
+  (if ((some-fn char? integer?) obj)
+    (int (Character/toLowerCase obj))
+    (s/lower-case obj)))
