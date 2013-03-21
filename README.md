@@ -660,6 +660,8 @@ I'll revisit the name if the Clojure port actually becomes usable and the name c
 
 [The Emacs Problem](https://sites.google.com/site/steveyegge2/the-emacs-problem) Steve Yegge, 2005
 
+[In the Beginning was the Command Line](www.cryptonomicon.com/beginning.html) Neal Stephenson, 1999 - "Emacs outshines all other editing software in approximately the same way that the noonday sun does the stars. It is not just bigger and brighter; it simply makes everything else vanish."
+
 [Climacs - An Emacs-like editor in Common Lisp](http://common-lisp.net/project/climacs/)
 
 [Portable Hemlock](http://www.common-lisp.net/project/phemlock/) Another Common Lisp Emacs.
