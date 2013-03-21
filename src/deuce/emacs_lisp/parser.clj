@@ -32,7 +32,7 @@
 (def emacs-escape-characters {"\\e" \ ;; <ESC>
                               "\r" \return "\\" \\ "\\s" \space
                               "\\C-?" 127 "\\d" 127 ;; <DEL>
-                              })
+                              "\\^?" 127})
 
 ;; Various ctrl-characters are broken, many ways they can be specified, this simplified take doesn't fit the Emacs model.
 ;; Should be rewritten with some thought behind it. Maybe a test.
@@ -42,10 +42,15 @@
 ;; Here's an attempt at doing something more correct, see deuce.emacs.keyboard/event-convert-list:
 (defn event-convert-list-internal [mods base]
   (let [[mods base] [(set mods) (int base)]
-        maybe-control (casefiddle/downcase base)
-        [mods base] (if (and (mods 'control) (<= (int \a) maybe-control (int \z)))
-                      [(disj mods 'control) (- maybe-control (dec (int \a)))]
-                      [mods base])
+        maybe-control (casefiddle/upcase base)
+        [mods base] (cond
+                     (and (mods 'control) (Character/isISOControl (char base)))
+                     [(disj mods 'control) base]
+
+                     (and (mods 'control) (< (- maybe-control (int \@)) (int \space)))
+                     [(disj mods 'control) (- maybe-control (int \@))]
+
+                     :else [mods base])
         uppercase (casefiddle/upcase base)
         [mods base] (if (mods 'shift)
                       [(if (not= base uppercase)
@@ -60,7 +65,8 @@
     (let [parts (if (= "-" c) [c] (s/split c #"-"))
           [mods c] [(set (butlast parts)) (last parts)]
           c (cond
-             (re-find #"\\\^(.)" c) (event-convert-list-internal '(control) (last c))
+             (re-find #"\\\^(.)" c) (event-convert-list-internal
+                                     '(control) (- (int (casefiddle/upcase (last c))) (int \@)))
              (re-find #"\\\d+" c) (Integer/parseInt (subs c 1) 8)
              (re-find #"\\x\p{XDigit}" c) (Integer/parseInt (subs c 2) 16)
              :else (int (first (parse-string (str \" c \")))))]
