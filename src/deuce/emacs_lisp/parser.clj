@@ -23,16 +23,23 @@
                                control 0x4000000
                                meta 0x8000000})
 
+;; In theory escape characters in strings should
 (defn ^:private parse-string [s]
-  (.sval (doto (StreamTokenizer. (StringReader. (reduce (fn [s [m r]] (s/replace s m r)) s
-                                                        [["\\\n" ""]  ["\n" "\\\n"]])))
+  (.sval (doto (StreamTokenizer. (StringReader.
+                                  (reduce (fn [s [m r]] (s/replace s m r)) s
+                                          [["\\\n" ""]
+                                           ["\\\\" "\\"]
+                                           ["\\" "\\\\"]
+                                           ["\n" "\\\n"]  ;; This is highly dubious
+                                           ])
+                                  ))
            (.nextToken))))
 
 ;; Like Emacs, certain characters can be read both with single and double backslash. Not necessarily the same ones.
 (def emacs-escape-characters {"\\e" \ ;; <ESC>
                               "\r" \return "\\" \\ "\\s" \space
                               "\\C-?" \ "\\d" \ ;; <DEL>
-                              "\\^?" \})
+                              "\\^?" \ "\\-" \- "-" \- "\"" \"})
 
 ;; Various ctrl-characters are broken, many ways they can be specified, this simplified take doesn't fit the Emacs model.
 ;; Should be rewritten with some thought behind it. Maybe a test.
@@ -47,7 +54,7 @@
                      (and (mods 'control) (Character/isISOControl (char base)))
                      [(disj mods 'control) base]
 
-                     (and (mods 'control) (< (- maybe-control (int \@)) (int \space)))
+                     (and (mods 'control) (< -1 (- maybe-control (int \@)) (int \space)))
                      [(disj mods 'control) (- maybe-control (int \@))]
 
                      :else [mods base])
@@ -62,15 +69,20 @@
 (defn ^:private parse-character [c]
   (if-let [escape-char (emacs-escape-characters c)]
     (int escape-char)
-    (let [parts (if (= "-" c) [c] (s/split c #"-"))
+    (let [parts  (if (re-find #".+--$" c)
+                   (vec (concat (s/split c #"-") ["-"]))
+                   (s/split c #"-"))
           [mods c] [(set (butlast parts)) (last parts)]
           c (cond
+             (character-modifier-symbols c) -1
              (re-find #"\\\^(.)" c) (event-convert-list-internal
                                      '(control) (- (int (casefiddle/upcase (last c))) (int \@)))
              (re-find #"\\\d+" c) (Integer/parseInt (subs c 1) 8)
              (re-find #"\\x\p{XDigit}" c) (Integer/parseInt (subs c 2) 16)
+             (re-find #"\\." c) (parse-character (str (last c))) ;; In Emacs certain characters can be escaped without effect.
              :else (int (first (parse-string (str \" c \")))))]
-      (event-convert-list-internal (replace character-modifier-symbols mods) c))))
+      (if (= -1 c) c
+        (event-convert-list-internal (replace character-modifier-symbols mods) c)))))
 
 (defn ^:private strip-comments [form]
   (remove (every-pred seq? (comp `#{comment} first)) form))
