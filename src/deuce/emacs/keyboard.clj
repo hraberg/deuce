@@ -495,11 +495,6 @@
   and its non-prefix bindings override ordinary bindings.
   Another difference is that it is global rather than keyboard-local.")
 
-(def ^:private modifier-names (let [mods '{alt "\\A" super "\\s" hyper "\\H"
-                                           shift "\\S" control "\\C" meta "\\M"}]
-                                (zipmap (keys mods)
-                                        (map parser/character-modifier-bits (vals mods)))))
-
 (defun event-convert-list (event-desc)
   "Convert the event description list EVENT-DESC to an event type.
   EVENT-DESC should contain one base event type (a character or symbol)
@@ -507,19 +502,8 @@
   drag, down, double or triple).  The base must be last.
   The return value is an event type (a character or symbol) which
   has the same base event type and all the specified modifiers."
-  (let [[mods base] [(set (butlast event-desc)) (last event-desc)]
-        base (int base)
-        maybe-control (casefiddle/downcase base)
-        [mods base] (if (and (mods 'control) (<= (int \a) maybe-control (int \z)))
-                      [(disj mods 'control) (- maybe-control (dec (int \a)))]
-                      [mods base])
-        uppercase (casefiddle/upcase base)
-        [mods base] (if (mods 'shift)
-                      [(if (not= base uppercase)
-                         (disj mods 'shift)
-                         mods) uppercase]
-                      [mods base])]
-    (reduce bit-xor base (map int (replace modifier-names mods)))))
+  (let [[mods base] [(set (butlast event-desc)) (last event-desc)]]
+    (parser/event-convert-list-internal mods base)))
 
 (defun input-pending-p ()
   "Return t if command input is currently available with no wait.

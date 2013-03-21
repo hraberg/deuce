@@ -5,6 +5,7 @@
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.cons :refer [car cdr] :as cons]
             [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.casefiddle :as casefiddle]
             [deuce.emacs.textprop :as textprop])
   (:import [java.util Scanner]
            [java.io StringReader StreamTokenizer]
@@ -12,46 +13,58 @@
 
 (declare tokenize)
 
-(def character-modifier-bits {"\\A" 0x0400000
-                              "\\s" 0x0800000
-                              "\\H" 0x1000000
-                              "\\S" 0x2000000
-                              "\\C" 0x4000000
-                              "\\M" 0x8000000})
+(def character-modifier-symbols '{"\\A" alt "\\s" super "\\H" hyper
+                                  "\\S" shift "\\C" control "\\M" meta})
+
+(def character-modifier-bits '{alt 0x0400000
+                               super 0x0800000
+                               hyper 0x1000000
+                               shift 0x2000000
+                               control 0x4000000
+                               meta 0x8000000})
 
 (defn ^:private parse-string [s]
   (.sval (doto (StreamTokenizer. (StringReader. (reduce (fn [s [m r]] (s/replace s m r)) s
-                                                        [["\\\n" ""]
-                                                         ["\n" "\\\n"]])))
+                                                        {"\\\n" "" "\n" "\\\n"})))
            (.nextToken))))
+
+;; Like Emacs, certain characters can be read both with single and double backslash. Not necessarily the same ones.
+(def emacs-escape-characters {"\\e" \ ;; <ESC>
+                              "\r" \return "\\" \\ "\\s" \space
+                              "\\C-?" 127 "\\d" 127 ;; <DEL>
+                              })
 
 ;; Various ctrl-characters are broken, many ways they can be specified, this simplified take doesn't fit the Emacs model.
 ;; Should be rewritten with some thought behind it. Maybe a test.
 ;; http://www.gnu.org/software/emacs/manual/html_node/elisp/Character-Type.html doesn't really cover it in all it's glory.
 ;; Looks like edmacro/edmacro-parse-keys actually contains a lot of the logic.
-;; Like Emacs, certain characters can be read both with single and double backslash. Not necessarily the same ones.
 
-(def emacs-escape-characters {"\\e" \ ;; <ESC>
-                              "\r" \return "\\" \\ "\\s" \space
-                              "\\C-?" 127 "\\d" 127 ;; <DEL>
-                              })
+;; Here's an attempt at doing something more correct, see deuce.emacs.keyboard/event-convert-list:
+(defn event-convert-list-internal [mods base]
+  (let [[mods base] [(set mods) (int base)]
+        maybe-control (casefiddle/downcase base)
+        [mods base] (if (and (mods 'control) (<= (int \a) maybe-control (int \z)))
+                      [(disj mods 'control) (- maybe-control (dec (int \a)))]
+                      [mods base])
+        uppercase (casefiddle/upcase base)
+        [mods base] (if (mods 'shift)
+                      [(if (not= base uppercase)
+                         (disj mods 'shift)
+                         mods) uppercase]
+                      [mods base])]
+    (reduce bit-xor base (replace character-modifier-bits mods))))
 
 (defn ^:private parse-character [c]
   (if-let [escape-char (emacs-escape-characters c)]
     (int escape-char)
     (let [parts (if (= "-" c) [c] (s/split c #"-"))
           [mods c] [(set (butlast parts)) (last parts)]
-          ctrl-char? #(<= (int \A) (+ % 64) (int \Z)) ;; This is where it really starts to go downhill.
           c (cond
-             (re-find #"\\\^(.)" c) (- (int (last c)) 64)
+             (re-find #"\\\^(.)" c) (event-convert-list-internal '(control) (last c))
              (re-find #"\\\d+" c) (Integer/parseInt (subs c 1) 8)
              (re-find #"\\x\p{XDigit}" c) (Integer/parseInt (subs c 2) 16)
-             (mods "\\C") (- (int (first (s/upper-case c))) 64)
              :else (int (first (parse-string (str \" c \")))))]
-      (reduce bit-xor c (map character-modifier-bits
-                             (if (ctrl-char? c)
-                               (disj mods "\\C")
-                               mods))))))
+      (event-convert-list-internal (replace character-modifier-symbols mods) c))))
 
 (defn ^:private strip-comments [form]
   (remove (every-pred seq? (comp `#{comment} first)) form))
