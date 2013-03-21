@@ -23,7 +23,32 @@
                                control 0x4000000
                                meta 0x8000000})
 
-;; In theory escape characters in strings should
+
+;; In theory escape characters in strings should be escaped inside Emacs strings somewhat like this:
+;; This is not used right now, but is a potential start of a new string and character parser.
+(defn ^:private parse-control-char [maybe-control]
+  (cond
+   (> maybe-control 127) (char (- maybe-control 96))
+
+   (= (int \?) maybe-control) \ ;; DEL
+
+   ;; This case results in a normal xor modifier in a character.
+   (or (> (int \?)  maybe-control (int \space))
+       (>=  maybe-control (int \{))
+       (#{\tab \return \newline} (char maybe-control)))
+   (el/throw* 'error "Invalid modifier in string")
+
+   :else (char (mod maybe-control 32))))
+
+(defn ^:private resolve-emacs-escape-codes [s]
+  (-> s
+      (s/replace #"\\M-(.)"
+                 (fn [[meta base]]
+                   (str (char (bit-xor 128 (int (first base)))))))
+      (s/replace #"(?s)\\C-(\\?.)" ;; Optional backslash handling somewhat confusing.
+                 (fn [[control base]]
+                   (str (parse-control-char (int (last base))))))))
+
 (defn ^:private parse-string [s]
   (.sval (doto (StreamTokenizer. (StringReader.
                                   (reduce (fn [s [m r]] (s/replace s m r)) s
