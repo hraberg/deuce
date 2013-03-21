@@ -56,102 +56,104 @@
 ;; Renders a single window using Lanterna. Scrolling is not properly taken care of.
 ;; Hard to bootstrap, requires fiddling when connected to Swank inside Deuce atm.
 ;; Consider moving all this into deuce.emacs.dispnew
+(def screen (terminal/frame-terminal))
+
+(def colors {:bg :default :fg :default})
+(def reverse-video {:fg :white :bg :black})
+(def region-colors {:fg :default :bg :yellow})
+
+(defn puts
+  ([x y s] (puts x y s colors))
+  ([x y s opts] (sc/put-string screen x y (str s) opts)))
+
+;; If the screen gets messed up by other output like a stack trace you need to call this.
+(defn blank
+  ([] (apply blank (sc/get-size screen)))
+  ([_ height]
+     (sc/clear screen)
+     (sc/redraw screen)))
+
+(defn pad [s cols]
+  (format (str "%-" cols "s") s))
+
+(doseq [f '[line-indexes pos-to-line point-coords]]
+  (eval `(def ~f (ns-resolve 'deuce.emacs.cmds '~f))))
+
+(defn render-live-window [window]
+  (let [buffer (window/window-buffer window)
+        minibuffer? (window/window-minibuffer-p window)
+        [header-line mode-line] (when-not minibuffer?
+                                  [(buffer/buffer-local-value 'header-line-format buffer)
+                                   (buffer/buffer-local-value 'mode-line-format buffer)])
+        line-indexes (line-indexes (str (.beg (.own-text buffer))))
+        pos-to-line (partial pos-to-line line-indexes)
+        point-coords (partial point-coords line-indexes)
+        pt @(.pt buffer)
+        line (pos-to-line pt)
+        total-lines (- @(.total-lines window) (or (count (remove nil? [header-line mode-line])) 0))
+        scroll (max (- line total-lines) 0)
+        mark-active? (buffer/buffer-local-value 'mark-active buffer)
+        selected-window? (= window (window/selected-window))]
+    (let [text (.beg (.own-text buffer))
+          lines (s/split text #"\n")
+          cols @(.total-cols window)
+          top-line @(.top-line window)
+          top-line (if header-line (inc top-line) top-line)
+          screen-coords (fn [[x y]] [x  (+ top-line (- y scroll))])] ;; Not dealing with horizontal scroll.
+
+      (when header-line
+        (puts 0 (dec top-line) (pad (xdisp/format-mode-line header-line nil window buffer) cols) reverse-video))
+
+      (let [[[rbx rby] [rex rey]]
+            (if (and mark-active? selected-window?)
+              [(screen-coords (point-coords (dec (editfns/region-beginning))))
+               (screen-coords (point-coords (dec (editfns/region-end))))]
+              [[-1 -1] [-1 -1]])]
+
+        (dotimes [n total-lines]
+          (let [screen-line (+ top-line n)
+                text (pad (nth lines (+ scroll n) " ") cols)]
+            (cond
+             (= screen-line rby rey) (do
+                                       (puts 0 screen-line (subs text 0 rbx))
+                                       (puts rbx screen-line (subs text rbx rex) region-colors)
+                                       (puts rex screen-line (subs text rex)))
+
+             (= screen-line rby) (do
+                                   (puts 0 screen-line (subs text 0 rbx))
+                                   (puts rbx screen-line (subs text rbx) region-colors))
+
+             (= screen-line rey) (do
+                                   (puts 0 screen-line (subs text 0 rex) region-colors)
+                                   (puts rex screen-line (subs text rex)))
+
+             (< rby screen-line rey) (puts 0 screen-line text region-colors)
+
+             :else (puts 0 screen-line text)))))
+
+      (when selected-window?
+        (let [[px py] (screen-coords (point-coords (dec pt)))]
+          (sc/move-cursor screen px py)))
+
+      (when mode-line
+        (puts 0 (+ top-line total-lines) (pad (xdisp/format-mode-line mode-line nil window buffer) cols) {:bg :white})))))
+
+(defn render-window [window x y width height]
+  ;; We should walk the tree, splitting windows as we go.
+  ;; top or left children in turn have next siblings all sharing this area.
+  ;; A live window is a normal window with buffer.
+  (reset! (.top-line window) y)
+  (reset! (.left-col window) x)
+  ;; "normal" size is a weight between 0 - 1.0, should hopfully add up.
+  (reset! (.total-cols window) (long (* @(.normal-cols window) width)))
+  (reset! (.total-lines window) (long (* @(.normal-lines window) height)))
+
+  (condp some [window]
+    window/window-live-p (render-live-window window)
+    window/window-top-child (throw (UnsupportedOperationException.))
+    window/window-left-child (throw (UnsupportedOperationException.))))
+
 (defn display-using-lanterna []
-  (def colors {:bg :default :fg :default})
-  (def reverse-video {:fg :white :bg :black})
-  (def region-colors {:fg :default :bg :yellow})
-  (declare screen)
-
-  (defn puts
-    ([x y s] (puts x y s colors))
-    ([x y s opts] (sc/put-string screen x y (str s) opts)))
-
-  ;; If the screen gets messed up by other output like a stack trace you need to call this.
-  (defn blank
-    ([] (apply blank (sc/get-size screen)))
-    ([_ height]
-       (sc/clear screen)
-       (sc/redraw screen)))
-
-  (defn pad [s cols]
-    (format (str "%-" cols "s") s))
-
-  (defn render-live-window [window]
-    (let [buffer (window/window-buffer window)
-          minibuffer? (window/window-minibuffer-p window)
-          [header-line mode-line] (when-not minibuffer?
-                                    [(buffer/buffer-local-value 'header-line-format buffer)
-                                     (buffer/buffer-local-value 'mode-line-format buffer)])
-          line-indexes ((ns-resolve 'deuce.emacs.cmds 'line-indexes)
-                        (str (.beg (.own-text buffer))))
-          pos-to-line (partial (ns-resolve 'deuce.emacs.cmds 'pos-to-line) line-indexes)
-          point-coords (partial (ns-resolve 'deuce.emacs.cmds 'point-coords) line-indexes)
-          pt @(.pt buffer)
-          line (pos-to-line pt)
-          total-lines (- @(.total-lines window) (or (count (remove nil? [header-line mode-line])) 0))
-          scroll (max (- line total-lines) 0)
-          mark-active? (buffer/buffer-local-value 'mark-active buffer)
-          selected-window? (= window (window/selected-window))]
-      (let [text (.beg (.own-text buffer))
-            lines (s/split text #"\n")
-            cols @(.total-cols window)
-            top-line @(.top-line window)
-            top-line (if header-line (inc top-line) top-line)
-            screen-coords (fn [[x y]] [x  (+ top-line (- y scroll))])] ;; Not dealing with horizontal scroll.
-
-        (when header-line
-          (puts 0 (dec top-line) (pad (xdisp/format-mode-line header-line nil window buffer) cols) reverse-video))
-
-        (let [[[rbx rby] [rex rey]]
-              (if (and mark-active? selected-window?)
-                [(screen-coords (point-coords (dec (editfns/region-beginning))))
-                 (screen-coords (point-coords (dec (editfns/region-end))))]
-                [[-1 -1] [-1 -1]])]
-
-          (dotimes [n total-lines]
-            (let [screen-line (+ top-line n)
-                  text (pad (nth lines (+ scroll n) " ") cols)]
-              (cond
-               (= screen-line rby rey) (do
-                                         (puts 0 screen-line (subs text 0 rbx))
-                                         (puts rbx screen-line (subs text rbx rex) region-colors)
-                                         (puts rex screen-line (subs text rex)))
-
-               (= screen-line rby) (do
-                                     (puts 0 screen-line (subs text 0 rbx))
-                                     (puts rbx screen-line (subs text rbx) region-colors))
-
-               (= screen-line rey) (do
-                                     (puts 0 screen-line (subs text 0 rex) region-colors)
-                                     (puts rex screen-line (subs text rex)))
-
-               (< rby screen-line rey) (puts 0 screen-line text region-colors)
-
-               :else (puts 0 screen-line text)))))
-
-        (when selected-window?
-          (let [[px py] (screen-coords (point-coords (dec pt)))]
-            (sc/move-cursor screen px py)))
-
-        (when mode-line
-          (puts 0 (+ top-line total-lines) (pad (xdisp/format-mode-line mode-line nil window buffer) cols) {:bg :white})))))
-
-  (defn render-window [window x y width height]
-    ;; We should walk the tree, splitting windows as we go.
-    ;; top or left children in turn have next siblings all sharing this area.
-    ;; A live window is a normal window with buffer.
-    (reset! (.top-line window) y)
-    (reset! (.left-col window) x)
-    ;; "normal" size is a weight between 0 - 1.0, should hopfully add up.
-    (reset! (.total-cols window) (long (* @(.normal-cols window) width)))
-    (reset! (.total-lines window) (long (* @(.normal-lines window) height)))
-
-    (condp some [window]
-      window/window-live-p (render-live-window window)
-      window/window-top-child (throw (UnsupportedOperationException.))
-      window/window-left-child (throw (UnsupportedOperationException.))))
-
-  (def screen (terminal/frame-terminal))
   (let [[width height] (te/get-size (.getTerminal screen))
         mini-buffer-window (window/minibuffer-window)
         mini-buffer (- height (window/window-total-height mini-buffer-window))
