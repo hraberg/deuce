@@ -435,7 +435,7 @@
   paragraphs, text begins at the right margin and is read from right to left.
 
   See also `bidi-paragraph-direction'."
-  )
+  'left-to-right)
 
 (defn ^:private point-coords-for-buffer [buffer]
   (let [[px py] ((ns-resolve 'deuce.emacs.cmds 'point-coords) buffer)]

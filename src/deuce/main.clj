@@ -160,6 +160,8 @@
         menu-bar-mode (data/symbol-value 'menu-bar-mode)
         menu-bar (if menu-bar-mode 1 0)]
 
+    ;; Explore using bold to trigger "increased intensity" to select the proper white color.
+    ;; http://en.wikipedia.org/wiki/ANSI_escape_sequences
     (when menu-bar-mode
       (puts 0 0 (pad (render-menu-bar) width) reverse-video))
 

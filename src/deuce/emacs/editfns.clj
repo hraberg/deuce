@@ -780,6 +780,7 @@
   ;; The echo area buffers are called " *Echo Area %d*". They share window with the minibuffer.
   ;; Note the leading space for minibuffer window buffers.
   ;; Need to pick the right ones here instead of just 0.
+  ;; Part of this is duplicated in deuce.emacs.lread/echo, consolidate when we know more.
   (let [message (when message (apply format format-string args))
         echo-area (buffer/get-buffer-create " *Echo Area 0*")
         minibuffer (buffer/get-buffer-create " *Minibuf-0*")]

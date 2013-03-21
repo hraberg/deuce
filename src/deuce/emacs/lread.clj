@@ -5,17 +5,24 @@
             [clojure.string :as s]
             [clojure.pprint :as pp]
             [clojure.walk :as w]
+            [lanterna.screen :as sc]
+            [lanterna.common]
+            [lanterna.constants]
             [taoensso.timbre :as timbre]
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.cons :refer [car cdr] :as cons]
             [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data]
             [deuce.emacs.editfns :as editfns]
             [deuce.emacs.eval :as eval]
+            [deuce.emacs.terminal :as terminal]
+            [deuce.emacs.window :as window]
             [deuce.emacs-lisp.parser :as parser])
   (:refer-clojure :exclude [read intern load])
   (:import [java.io FileNotFoundException]
+           [com.googlecode.lanterna.input Key]
            [clojure.lang Symbol Compiler]))
 
 (defvar old-style-backquotes nil
@@ -201,6 +208,37 @@
   "Stream for read to get input from.
   See documentation of `read' for possible values.")
 
+(defn ^:private echo [message]
+  ;; Emacs uses 2 echo areas and switches between them.
+  (let [echo-area (buffer/get-buffer-create " *Echo Area 0*")]
+    (if (seq message)
+      (binding [buffer/*current-buffer* echo-area]
+        (buffer/erase-buffer)
+        (editfns/insert message))
+      (binding [buffer/*current-buffer* echo-area]
+        (buffer/erase-buffer)))
+    (window/set-window-buffer (window/minibuffer-window) echo-area)))
+
+(defn ^:private read-event-internal [prompt inherit-input-method seconds]
+  (when prompt (echo prompt))
+  (lanterna.common/block-on #(.readInput (terminal/frame-terminal)) []
+                            (when seconds {:timeout (* 1000 seconds)})))
+
+(defn ^:private key-to-integer [^Key k]
+  (parser/event-convert-list-internal
+   (remove nil? [(when (.isAltPressed k) 'meta)
+                 (when (.isCtrlPressed k) 'control)])
+   (.getCharacter k)))
+
+(def ^:private lanterna-to-emacs-event {:enter "return"
+                                        :page-down "next"
+                                        :page-up "prior"
+                                        :reverse-tab "S-iso-lefttab"})
+
+(def ^:private lanterna-valid-chars {:escape (Key. \)
+                                     :backspace (Key. \)
+                                     :enter (Key. \return)})
+
 (defun read-event (&optional prompt inherit-input-method seconds)
   "Read an event object from the input stream.
   If the optional argument PROMPT is non-nil, display that as a prompt.
@@ -211,7 +249,13 @@
   specifying the maximum number of seconds to wait for input.  If no
   input arrives in that time, return nil.  SECONDS may be a
   floating-point value."
-  )
+  (let [^Key k (read-event-internal prompt inherit-input-method seconds)]
+    (let [kind (lanterna.constants/key-codes (.getKind k))]
+      (if (= kind :normal)
+        (key-to-integer k)
+        (symbol (str (when (.isCtrlPressed k) "C-")
+                     (when (.isAltPressed k) "M-")
+                     (lanterna-to-emacs-event kind (name kind))))))))
 
 (defun read-char-exclusive (&optional prompt inherit-input-method seconds)
   "Read a character from the command input (keyboard or macro).
@@ -227,7 +271,17 @@
   specifying the maximum number of seconds to wait for input.  If no
   input arrives in that time, return nil.  SECONDS may be a
   floating-point value."
-  )
+  ;; Non-normal keys with modifiers, like Shift-Arrow-Up etc.
+  ;; comes as a string of escape codes probably not dealt with by Lanterna.
+  ;; See com.googlecode.lanterna.input.CommonProfile
+  ;; We might want to write a specific EmacsProfile.
+  (let [k (read-event-internal prompt inherit-input-method seconds)
+        kind (lanterna.constants/key-codes (.getKind k))
+        k (lanterna-valid-chars kind k)
+        kind (lanterna.constants/key-codes (.getKind k))]
+    (if (or (= :normal kind) (Character/isISOControl (.getCharacter k)))
+      (key-to-integer k)
+      (el/throw* 'error "Non-character input-event"))))
 
 (defun read (&optional stream)
   "Read one Lisp expression as text from STREAM, return as Lisp object.
@@ -267,7 +321,7 @@
   specifying the maximum number of seconds to wait for input.  If no
   input arrives in that time, return nil.  SECONDS may be a
   floating-point value."
-  )
+  (read-char-exclusive prompt inherit-input-method seconds))
 
 (defun eval-buffer (&optional buffer printflag filename unibyte do-allow-print)
   "Execute the current buffer as Lisp code.
@@ -319,7 +373,7 @@
   If there is none, one is created by this function and returned.
   A second optional argument specifies the obarray to use;
   it defaults to the value of `obarray'."
-  (symbol string))
+  (symbol nil string))
 
 (defun get-load-suffixes ()
   "Return the suffixes that `load' should try if a suffix is required.

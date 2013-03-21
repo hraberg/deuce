@@ -31,8 +31,8 @@
 ;; Like Emacs, certain characters can be read both with single and double backslash. Not necessarily the same ones.
 (def emacs-escape-characters {"\\e" \ ;; <ESC>
                               "\r" \return "\\" \\ "\\s" \space
-                              "\\C-?" 127 "\\d" 127 ;; <DEL>
-                              "\\^?" 127})
+                              "\\C-?" \ "\\d" \ ;; <DEL>
+                              "\\^?" \})
 
 ;; Various ctrl-characters are broken, many ways they can be specified, this simplified take doesn't fit the Emacs model.
 ;; Should be rewritten with some thought behind it. Maybe a test.
