@@ -90,7 +90,8 @@
           line (pos-to-line pt)
           total-lines (- @(.total-lines window) (or (count (remove nil? [header-line mode-line])) 0))
           scroll (max (- line total-lines) 0)
-          mark-active? (buffer/buffer-local-value 'mark-active buffer)]
+          mark-active? (buffer/buffer-local-value 'mark-active buffer)
+          selected-window? (= window (window/selected-window))]
       (let [text (.beg (.own-text buffer))
             lines (s/split text #"\n")
             cols @(.total-cols window)
@@ -102,7 +103,7 @@
           (puts 0 (dec top-line) (pad (xdisp/format-mode-line header-line nil window buffer) cols) reverse-video))
 
         (let [[[rbx rby] [rex rey]]
-              (if mark-active?
+              (if (and mark-active? selected-window?)
                 [(screen-coords (point-coords (dec (editfns/region-beginning))))
                  (screen-coords (point-coords (dec (editfns/region-end))))]
                 [[-1 -1] [-1 -1]])]
@@ -128,10 +129,9 @@
 
                :else (puts 0 screen-line text)))))
 
-        (let [[px py] (screen-coords (point-coords (dec pt)))]
-          (if (= window (window/selected-window))
-            (sc/move-cursor screen px py)
-            (sc/put-string screen px py (str (nth text (dec pt) "")) reverse-video)))
+        (when selected-window?
+          (let [[px py] (screen-coords (point-coords (dec pt)))]
+            (sc/move-cursor screen px py)))
 
         (when mode-line
           (puts 0 (+ top-line total-lines) (pad (xdisp/format-mode-line mode-line nil window buffer) cols) {:bg :white})))))
