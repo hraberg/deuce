@@ -38,6 +38,7 @@ Notable things that won't be supported in 0.1.0:
   * While [Autload](http://www.gnu.org/software/emacs/manual/html_node/elisp/Autoload.html) works, whatever that gets loaded probably won't
 * [Frames](http://www.gnu.org/software/emacs/manual/html_node/emacs/Frames.html) Deuce only supports one single frame.
 * [Text Properties](http://www.gnu.org/software/emacs/manual/html_node/elisp/Text-Properties.html) and [Overlays](http://www.gnu.org/software/emacs/manual/html_node/elisp/Overlays.html)
+  * Text properties are double trouble, as the main reason to implement them is to vastly complicate your rendering to support bold, italic etc. They can also be copied between buffers and other exciting things.
   * If time allows, I might add rudimentary support for overlays, they're implemented on top of markers, and would enable links.
 * When running out of the standalone jar, Deuce still compiles newly loaded files to `target/classes`, which isn't on the classpath.
 * All the exciting bits when Clojure actually takes the front seat. Web UI.
