@@ -37,6 +37,8 @@ Notable things that won't be supported in 0.1.0:
   * Doing so may or may not work, but very likely this will attempt to call some native (C)lojure part of Deuce that doesn't exist or won't work for this particular case.
   * While [Autload](http://www.gnu.org/software/emacs/manual/html_node/elisp/Autoload.html) works, whatever that gets loaded probably won't
 * [Frames](http://www.gnu.org/software/emacs/manual/html_node/emacs/Frames.html) Deuce only supports one single frame.
+* [Text Properties](http://www.gnu.org/software/emacs/manual/html_node/elisp/Text-Properties.html) and [Overlays](http://www.gnu.org/software/emacs/manual/html_node/elisp/Overlays.html)
+  * If time allows, I might add rudimentary support for overlays, they're implemented on top of markers, and would enable links.
 * When running out of the standalone jar, Deuce still compiles newly loaded files to `target/classes`, which isn't on the classpath.
 * All the exciting bits when Clojure actually takes the front seat. Web UI.
   * First Deuce needs to work for Emacs Lisp in "legacy mode" before we can shift focus to Clojure and modernize things. I expect this to stay as the focus for the rest of 2013.
