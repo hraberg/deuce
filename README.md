@@ -46,7 +46,7 @@ Notable things that won't be supported in 0.1.0:
 * Anything else you can think of!
 
 
-It's hard to estimate how long this will take, sometimes you accidentally implement a subsystem of Emacs in a handful of lines of Clojure, but more often you get stuck in subtle details (writing almost no code) reading the Emacs C source desperately trying to figure out how the heck something is supposed to be working. Often you also get into a state where you're married to your 80% solution for a problem, but in your heart of heart knows you'll have to ditch and rewrite it to do the "proper" thing.
+It's hard to estimate how long this will take, sometimes you accidentally implement a subsystem of Emacs in a handful of lines of Clojure, but more often you get stuck in subtle details (writing almost no code) reading the Emacs C source desperately trying to figure out how the heck something is supposed to be working. Often you also get into a state where you're married to your 80% solution for a problem, but in your heart of heart know you'll have to ditch and rewrite it to do the "proper" thing.
 
 I usually switch between two approaches: trying to do what Emacs does based on treating it as a black box and implementing a function based on its documentation, or actually understand the source of what it -really- does. The best approach so far seems to be the former, and only occasionally take a peak at the source to disambiguate corner cases. But the closer to the core you get, the more this model breaks down. Something like the command loop for example is really a C part of Emacs, it's not a user level API - it is the main loop of the program itself. Implemented in screen after screen of wonderful C honed over 30 years.
 
