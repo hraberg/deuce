@@ -32,7 +32,7 @@ This is roughly the order the remaining bits has to be solved in:
 Notable things that won't be supported in 0.1.0:
 
 * [Lisp Interaction Mode](http://www.gnu.org/software/emacs/manual/html_node/emacs/Lisp-Interaction.html).
-  * Deuce can obviously evaluate (most) Emacs Lisp, but to make this actual mode really work, you need to support the (Syntax)[http://www.gnu.org/software/emacs/manual/html_node/elisp/Syntax-Basics.html] subsystem.
+  * Deuce can obviously evaluate (most) Emacs Lisp, but to make this actual mode really work, you need to support the [Syntax](http://www.gnu.org/software/emacs/manual/html_node/elisp/Syntax-Basics.html) subsystem.
 * [Loading](http://www.gnu.org/software/emacs/manual/html_node/elisp/How-Programs-Do-Loading.html) of arbrirarty Emacs Lisp outside of `deuce-loadup.el`
   * Doing so may or may not work, but very likely this will attempt to call some native (C)lojure part of Deuce that doesn't exist or won't work for this particular case.
   * While [Autload](http://www.gnu.org/software/emacs/manual/html_node/elisp/Autoload.html) works, whatever that gets loaded probably won't
