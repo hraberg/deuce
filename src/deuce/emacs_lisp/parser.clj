@@ -23,48 +23,59 @@
                                control 0x4000000
                                meta 0x8000000})
 
-
 ;; In theory escape characters in strings should be escaped inside Emacs strings somewhat like this:
 ;; This is not used right now, but is a potential start of a new string and character parser.
-(defn ^:private parse-control-char [maybe-control]
+(defn ^:private parse-control-char [maybe-control & [for-string?]]
   (cond
-   (> maybe-control 127) (char (- maybe-control 96))
+   (> maybe-control 127) (when for-string?
+                           (char (- maybe-control 96)))
 
    (= (int \?) maybe-control) \ ;; DEL
 
-   ;; This case results in a normal xor modifier in a character.
+   ;; This case results in a normal xor modifier in event-convert-list-internal by returning nul.
    (or (> (int \?)  maybe-control (int \space))
        (>=  maybe-control (int \{))
        (#{\tab \return \newline} (char maybe-control)))
-   (el/throw* 'error "Invalid modifier in string")
+   (when for-string? (el/throw* 'error "Invalid modifier in string"))
 
    :else (char (mod maybe-control 32))))
 
-(defn ^:private resolve-emacs-escape-codes [s]
+;; See http://www.gnu.org/software/emacs/manual/html_node/elisp/Nonprinting-Characters.html
+(defn ^:private resolve-control-chars [s]
   (-> s
-      (s/replace #"\\M-(.)"
+      (s/replace #"\\M-(.)"   ;; "\M-i" converts into "á". This only works for 7-bit ASCII.
                  (fn [[meta base]]
-                   (str (char (bit-xor 128 (int (first base)))))))
-      (s/replace #"(?s)\\C-(\\?.)" ;; Optional backslash handling somewhat confusing.
+                   (let [c (int (first base))]
+                     (if (< c 128)
+                       (str (char (bit-xor 128 c)))
+                       (el/throw* 'error "Invalid modifier in string")))))
+      (s/replace #"\\d" "") ;; DEL
+      (s/replace #"\\e" "") ;; ESC
+      (s/replace #"\\s" " ")
+      (s/replace #"(?s)\\+(?:C-|\^)(\\?.)" ;; Optional backslash handling somewhat confusing.
                  (fn [[control base]]
-                   (str (parse-control-char (int (last base))))))))
+                   (if (re-find #"^\\\\" control) ;; Can be a quoted control char
+                     control
+                     (str (parse-control-char (int (last base)) :for-string)))))))
 
+;; This takes an actual quoted String. Can easiest be called from the REPL by chaining (pr-str "...")
 (defn ^:private parse-string [s]
   (.sval (doto (StreamTokenizer. (StringReader.
-                                  (reduce (fn [s [m r]] (s/replace s m r)) s
+                                  (reduce (fn [s [m r]] (s/replace s m r))
+                                          (resolve-control-chars s)
                                           [["\\\n" ""]
-                                           ["\\\\" "\\"]
-                                           ["\\" "\\\\"]
+                                           ["\\\r" ""]
+                                           ;; ["\\\\" "\\"]
+                                           ;; ["\\" "\\\\"]
+                                           ["\r" "\\\r"]
                                            ["\n" "\\\n"]  ;; This is highly dubious
                                            ])
                                   ))
            (.nextToken))))
 
 ;; Like Emacs, certain characters can be read both with single and double backslash. Not necessarily the same ones.
-(def emacs-escape-characters {"\\e" \ ;; <ESC>
-                              "\r" \return "\\" \\ "\\s" \space
-                              "\\C-?" \ "\\d" \ ;; <DEL>
-                              "\\^?" \ "\\-" \- "-" \- "\"" \"})
+(def emacs-problem-chars {"\\" \\ "\\s" \space
+                          "\\-" \- "-" \- "\"" \"})
 
 ;; Various ctrl-characters are broken, many ways they can be specified, this simplified take doesn't fit the Emacs model.
 ;; Should be rewritten with some thought behind it. Maybe a test.
@@ -72,42 +83,44 @@
 ;; Looks like edmacro/edmacro-parse-keys actually contains a lot of the logic.
 
 ;; Here's an attempt at doing something more correct, see deuce.emacs.keyboard/event-convert-list:
-(defn event-convert-list-internal [mods base]
+(defn event-convert-list-internal [mods base & [no-modifier-conversion]]   ;; no-modifiers-conversion is used when parsing chars.
   (let [[mods base] [(set mods) (int base)]
-        maybe-control (casefiddle/upcase base)
-        [mods base] (cond
-                     (and (mods 'control) (Character/isISOControl (char base)))
-                     [(disj mods 'control) base]
+        [mods base] (if-let [control-char (and (mods 'control)             ;; This turns '(control \space) into 0: "\^@"
+                                               (parse-control-char base))] ;; It is a valid 5 bit or 127 control char
+                      [(disj (if (and (not no-modifier-conversion)
+                                      (Character/isUpperCase (char base))) ;; Remove control modifier as its baked in.
+                               (conj mods 'shift)                          ;; If original was upper case, add shift modifier
+                               mods) 'control) (int control-char)]
+                      [mods base])
+        [mods base] (if (and (mods 'shift) (not no-modifier-conversion)    ;; Turns '(shift \a) into \A
+                             (Character/isLowerCase (char base))           ;; If and only if a 7 bit ASCII char, upper case it
+                             (< base 128))
+                      [(disj mods 'shift) (casefiddle/upcase base)]        ;; Remove shift modified as its baked in.
+                      [mods base])]                                        ;; (But upper case characters can have 'shift as well.)
+    (reduce bit-xor base (replace character-modifier-bits mods))))         ;; XOR in the modifiers.
 
-                     (and (mods 'control) (< -1 (- maybe-control (int \@)) (int \space)))
-                     [(disj mods 'control) (- maybe-control (int \@))]
-
-                     :else [mods base])
-        uppercase (casefiddle/upcase base)
-        [mods base] (if (mods 'shift)
-                      [(if (not= base uppercase)
-                         (disj mods 'shift)
-                         mods) uppercase]
-                      [mods base])]
-    (reduce bit-xor base (replace character-modifier-bits mods))))
-
+;; Takes an Emacs-style charcter specifier without the leading ?
+;; Turns "C-a" into \
+;; Returns characters for things that fit below Character/MAX_VALUE, otherwise ints.
+;; We may want our own real type for this. It parses the base character as a string first.
 (defn ^:private parse-character [c]
-  (if-let [escape-char (emacs-escape-characters c)]
-    (int escape-char)
+  (if-let [c (emacs-problem-chars c)]
+    c
     (let [parts  (if (re-find #".+--$" c)
                    (vec (concat (s/split c #"-") ["-"]))
                    (s/split c #"-"))
           [mods c] [(set (butlast parts)) (last parts)]
           c (cond
              (character-modifier-symbols c) -1
-             (re-find #"\\\^(.)" c) (event-convert-list-internal
-                                     '(control) (- (int (casefiddle/upcase (last c))) (int \@)))
              (re-find #"\\\d+" c) (Integer/parseInt (subs c 1) 8)
              (re-find #"\\x\p{XDigit}" c) (Integer/parseInt (subs c 2) 16)
-             (re-find #"\\." c) (parse-character (str (last c))) ;; In Emacs certain characters can be escaped without effect.
              :else (int (first (parse-string (str \" c \")))))]
       (if (= -1 c) c
-        (event-convert-list-internal (replace character-modifier-symbols mods) c)))))
+          (let [c (event-convert-list-internal
+                   (replace character-modifier-symbols mods) c :no-modifier-conversion)]
+            (if (<= c (int (Character/MAX_VALUE)))
+              (char c)
+              (int c)))))))
 
 (defn ^:private strip-comments [form]
   (remove (every-pred seq? (comp `#{comment} first)) form))
