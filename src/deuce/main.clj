@@ -35,9 +35,7 @@
 ;; (select-window (frame-root-window)) ;; Get out of the minibuffer.
 ;; (set-mark-command nil) ;; Activate the mark
 ;; (forward-line) ;; Select some text.
-;; (delete-region (region-beginning) (region-end)) ;; Cut
 ;; (pop-mark) ;; Remove mark / Deselect.
-;; (yank) ;; Paste
 
 (defn swank [port]
   (require 'swank.swank)
