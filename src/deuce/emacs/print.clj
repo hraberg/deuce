@@ -223,7 +223,7 @@
 
   If PRINTCHARFUN is omitted, the value of `standard-output' (which see)
   is used instead."
-  )
+  (println object))
 
 (defun write-char (character &optional printcharfun)
   "Output character CHARACTER to stream PRINTCHARFUN.
