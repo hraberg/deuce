@@ -1,6 +1,8 @@
 (ns deuce.emacs.dired
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [clojure.java.io :as io]
+            [deuce.emacs-lisp.cons :as cons])
   (:refer-clojure :exclude []))
 
 (defvar completion-ignored-extensions nil
@@ -65,7 +67,17 @@
   If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
    Otherwise, the list returned is sorted with `string-lessp'.
    NOSORT is useful if you plan to sort the result yourself."
-  )
+  (cons/maybe-seq
+   ((if nosort identity sort)
+    (filter (if match
+              #(re-find (re-pattern
+                         ((ns-resolve 'deuce.emacs.search
+                                      'emacs-regex-to-java) match)) %)
+              identity)
+            (map #(if full
+                    (.getCanonicalPath %)
+                    (.getName %))
+                 (.listFiles (io/file directory)))))))
 
 (defun file-name-completion (file directory &optional predicate)
   "Complete file name FILE in directory DIRECTORY.

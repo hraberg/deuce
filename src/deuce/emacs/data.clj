@@ -33,7 +33,7 @@
   (.write w "]"))
 
 (defmethod print-dup Symbol [s ^Writer w]
-  (if (and (re-find  #"([\\,/]|^\d|::)" (name s)) (not= "/" (name s)))
+  (if (and (re-find  #"([\\,/]|^\d|::|:$)" (name s)) (not= "/" (name s)))
     (.write w (str "#el/sym " (pr-str (name s))))
     (.write w (str s))))
 

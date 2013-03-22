@@ -241,6 +241,18 @@
   matched by parenthesis constructs in the pattern."
   (string-match regexp string start))
 
+(defn ^:private emacs-regex-to-java [regexp]
+  (-> regexp
+      (s/replace #"^\\\`" "^")
+      (s/replace #"\[(]?.*?)]"
+                 (fn [x]
+                   (str "[" (s/replace
+                             (s/replace (x 1) "\\" "\\\\")
+                             "[" "\\[")
+                        "]")))
+      (s/replace "\\(" "(")
+      (s/replace "\\)" ")")))
+
 (defun string-match (regexp string &optional start)
   "Return index of start of first match for REGEXP in STRING, or nil.
   Matching ignores case if `case-fold-search' is non-nil.
@@ -254,16 +266,7 @@
   ;; http://www.gnu.org/software/emacs/manual/html_node/elisp/Regexp-Special.html
   (el/check-type 'stringp regexp)
   (el/check-type 'stringp string)
-  (let [pattern (-> regexp
-                    (s/replace #"^\\\`" "^")
-                    (s/replace #"\[(]?.*?)]"
-                               (fn [x]
-                                 (str "[" (s/replace
-                                           (s/replace (x 1) "\\" "\\\\")
-                                           "[" "\\[")
-                                      "]")))
-                    (s/replace "\\(" "(")
-                    (s/replace "\\)" ")"))]
+  (let [pattern (emacs-regex-to-java regexp)]
     (let [offset (el/check-type 'integerp (or start 0))
           ignore-case? (data/symbol-value 'case-fold-search)
           m (re-matcher (re-pattern (str (if ignore-case? "(?iu)" "") pattern))

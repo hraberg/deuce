@@ -141,6 +141,8 @@
   each of those additional buffers as well, in addition to the original
   buffer.  The relevant buffer is current during each function call.")
 
+(declare file-name-as-directory)
+
 (defun clear-buffer-auto-save-failure ()
   "Clear any record of a recent auto-save failure in the current buffer."
   )
@@ -199,12 +201,16 @@
   (directory-file-name (file-name-directory dirname)) to traverse a
   filesystem tree, not (expand-file-name \"..\"  dirname)."
   (el/check-type 'stringp name)
-  (let [default-directory (or default-directory (data/symbol-value 'default-directory))]
-    (let [file (io/file (s/replace name #"^~" (System/getProperty "user.home")))]
-      (.getAbsolutePath
-       (if (.isAbsolute file)
-         file
-         (io/file default-directory name))))))
+  (let [directory (or default-directory (data/symbol-value 'default-directory))]
+    (if-let [resource (io/resource (str (file-name-as-directory directory) name))]
+      (.getPath resource)
+      (let [file (io/file (s/replace name #"^~" (System/getProperty "user.home")))
+            file (if (.isAbsolute file)
+                   file
+                   (io/file directory name))]
+        (if (and (not (.exists file)) (not (seq default-directory))) ;; Assume its classpath relative dir.
+          name
+          (.getCanonicalPath file))))))
 
 (defun write-region (start end filename &optional append visit lockname mustbenew)
   "Write current region into specified file.

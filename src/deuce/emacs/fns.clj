@@ -10,7 +10,7 @@
   (import [clojure.lang IPersistentCollection PersistentVector]
           [deuce.emacs.data CharTable]
           [java.lang.management ManagementFactory]
-          [java.util List Map HashMap Collections Objects Arrays]
+          [java.util List Map HashMap Collections Objects Arrays Random]
           [java.nio CharBuffer]
           [java.nio.charset Charset]
           [javax.xml.bind DatatypeConverter]
@@ -330,6 +330,8 @@
   With one argument, just copy STRING without its properties."
   (subs string (or from 0) (or to (count string))))
 
+(def ^:private rnd (Random.))
+
 (defun random (&optional limit)
   "Return a pseudo-random number.
   All integers representable in Lisp are equally likely.
@@ -337,7 +339,13 @@
   With positive integer LIMIT, return random number in interval [0,LIMIT).
   With argument t, set the random number seed from the current time and pid.
   Other values of LIMIT are ignored."
-  (rand-int limit))
+  (if (true? limit)
+    (do
+      (.setSeed rnd (System/currentTimeMillis))
+      (random))
+    (if ((every-pred integer? pos?) limit)
+      (.nextLong rnd limit)
+      (.nextLong rnd))))
 
 (defun concat (&rest sequences)
   "Concatenate all the arguments and make the result a string.

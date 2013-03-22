@@ -408,6 +408,22 @@
           (.write w "\n")))
       (finally (timbre/set-level! level)))))
 
+(defn ^:private locate-file [filename path suffixes predicate]
+  (let [predicate (or predicate (el/fun 'file-readable-p))]
+    (->> (for [l path
+               :let [file (str l "/" filename)
+                     find-resource #(let [url (str (s/replace file  #"^/" "") %)]
+                                      (or (io/resource (s/replace url "-" "_"))
+                                          (io/resource url)))
+                     find-file #(let [f (io/file (str file %))]
+                                  (and (.exists f) (predicate (.getAbsolutePath f))
+                                       (.toURL f)))]]
+           [l (some identity (mapcat (juxt find-file find-resource) (or suffixes '(""))))])
+         (filter (comp identity second))
+         (remove #(when (= "file" (.getProtocol (second %)))
+                    (.isDirectory (io/file (second %)))))
+         first)))
+
 (def ^:private ^:dynamic loads-in-progress #{})
 
 (defun load (file &optional noerror nomessage nosuffix must-suffix)
@@ -456,17 +472,8 @@
     true ;; not really correct
     (binding [loads-in-progress (conj loads-in-progress file)]
       (try
-        ;; see locate-file-internal below, maybe should be delegating to it
-        (let [[path url] (or (->> (for [l globals/load-path
-                                        :let [file (s/replace (str l "/" file) #"^/" "")]]
-                                    [l (or (when-not nosuffix
-                                             (io/resource (str file ".el")))
-                                           (io/resource file))])
-                                  (filter (comp identity second))
-                                  (remove #(when (= "file" (.getProtocol (second %)))
-                                             (.isDirectory (io/file (second %)))))
-                                  first)
-                             ["" (.toURL (io/file file))])
+        (let [[path url] (locate-file file (data/symbol-value 'load-path)
+                                      (when-not nosuffix '("" ".el")) nil)
               el-extension? (re-find #".el$" file)]
           (when-not nomessage
             (editfns/message "Loading %s%s..." file (if el-extension? " (source)" "")))
@@ -513,7 +520,8 @@
   in which case file-name-handlers are ignored.
   This function will normally skip directories, so if you want it to find
   directories, make sure the PREDICATE function returns `dir-ok' for them."
-  )
+  (let [[dir file] (locate-file filename path suffixes predicate)]
+    (when file (.getPath file))))
 
 (defun unintern (name obarray)
   "Delete the symbol named NAME, if any, from OBARRAY.
