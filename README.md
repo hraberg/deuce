@@ -35,7 +35,7 @@ Notable things that won't be supported in 0.1.0:
   * Deuce can obviously evaluate (most) Emacs Lisp, but to make this actual mode really work, you need to support the [Syntax](http://www.gnu.org/software/emacs/manual/html_node/elisp/Syntax-Basics.html) subsystem.
 * [Loading](http://www.gnu.org/software/emacs/manual/html_node/elisp/How-Programs-Do-Loading.html) of arbrirarty Emacs Lisp outside of `deuce-loadup.el`
   * Doing so may or may not work, but very likely this will attempt to call some native (C)lojure part of Deuce that doesn't exist or won't work for this particular case.
-  * While [Autload](http://www.gnu.org/software/emacs/manual/html_node/elisp/Autoload.html) works, whatever that gets loaded probably won't
+  * While [Autoload](http://www.gnu.org/software/emacs/manual/html_node/elisp/Autoload.html) works, whatever that gets loaded probably won't
 * [Frames](http://www.gnu.org/software/emacs/manual/html_node/emacs/Frames.html) Deuce only supports one single frame.
 * [Text Properties](http://www.gnu.org/software/emacs/manual/html_node/elisp/Text-Properties.html) and [Overlays](http://www.gnu.org/software/emacs/manual/html_node/elisp/Overlays.html)
   * Text properties are double trouble, as the main reason to implement them is to vastly complicate your rendering to support bold, italic etc. They can also be copied between buffers and other exciting things.
