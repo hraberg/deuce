@@ -1,5 +1,5 @@
 (ns deuce.emacs.emacs
-  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.fns :as fns]
@@ -126,12 +126,12 @@
   "Mark the Emacs daemon as being initialized.
   This finishes the daemonization process by doing the other half of detaching
   from the parent process and its tty file descriptors."
-  )
+  (el/throw 'error "This function can only be called if emacs is run as a daemon"))
 
 (defun daemonp ()
   "Return non-nil if the current emacs process is a daemon.
   If the daemon was given a name argument, return that name."
-  )
+  nil)
 
 (defun kill-emacs (&optional arg)
   "Exit the Emacs job and kill it.
