@@ -36,6 +36,8 @@
 ;; (set-mark-command nil) ;; Activate the mark
 ;; (forward-line) ;; Select some text.
 ;; (pop-mark) ;; Remove mark / Deselect.
+;; (find-file "~/.bashrc") ;; Open a file.
+
 
 (defn swank [port]
   (require 'swank.swank)
