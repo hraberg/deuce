@@ -142,7 +142,7 @@
      charpos])
 
 (defmethod print-method Marker [marker w]
-  (.write w (str "#<marker" (if @(.buffer marker)
+  (.write w (str "#<marker" (if (and @(.charpos marker) @(.buffer marker))
                               (str " at " @(.charpos marker) " in " @(.name @(.buffer marker)))
                               (str " in no buffer")) ">")))
 

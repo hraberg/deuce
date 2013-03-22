@@ -616,7 +616,7 @@
       (swap! (.mark buffer) #(move-marker % start (- start end))))
     (swap! (.markers text) #(doall (map (fn [m] (move-marker m start (- start end))) %)))
     (when (> (point) start)
-      (goto-char (+ (- end start) (- (point) start)))
+      (goto-char start)
       nil)))
 
 (defun transpose-regions (startr1 endr1 startr2 endr2 &optional leave-markers)

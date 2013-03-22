@@ -26,7 +26,7 @@
   ([buffer] (point-coords (line-indexes (str (.beg (.text buffer)))) (dec @(.pt buffer))))
   ([line-indexes offset]
       (let [pos-to-line (partial pos-to-line line-indexes)
-            line (pos-to-line offset)
+            line (max (pos-to-line offset) 0)
             col (- offset (aget line-indexes line))]
         [col line])))
 

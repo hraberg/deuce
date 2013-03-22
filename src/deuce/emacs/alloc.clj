@@ -1,12 +1,14 @@
 (ns deuce.emacs.alloc
-  (:use [deuce.emacs-lisp :only (defun defvar)]
+  (:use [deuce.emacs-lisp :only (defun defvar) :as el]
         [taoensso.timbre :as timbre
          :only (trace debug info warn error fatal spy)])
   (:require [clojure.core :as c]
             [clojure.walk :as w]
             [deuce.emacs-lisp.cons :as cons])
   (:refer-clojure :exclude [vector cons list])
-  (:import [java.util Arrays]))
+  (:import [java.util Arrays]
+           [java.lang.management ManagementFactory MemoryNotificationInfo MemoryType]
+           [javax.management NotificationListener NotificationEmitter]))
 
 (defvar purify-flag nil
   "Non-nil means loading Lisp code in order to dump an executable.
@@ -82,6 +84,19 @@
 
 (defvar floats-consed nil
   "Number of floats that have been consed so far.")
+
+;; From http://www.javaspecialists.eu/archive/Issue092.html
+(let [tenured-gen-pool (->> (ManagementFactory/getMemoryPoolMXBeans)
+                            (filter #(and (= (.getType %) MemoryType/HEAP) (.isUsageThresholdSupported %)))
+                            first)
+      warning-level 0.8]
+  (.setUsageThreshold tenured-gen-pool
+                      (long (* warning-level (.getMax (.getUsage tenured-gen-pool)))))
+  (.addNotificationListener (ManagementFactory/getMemoryMXBean)
+                            (proxy [NotificationListener] []
+                              (handleNotification [n hb]
+                                (when (= (.getType n) MemoryNotificationInfo/MEMORY_THRESHOLD_EXCEEDED)
+                                  (el/setq memory-full true)))) nil nil))
 
 (defun make-bool-vector (length init)
   "Return a new bool-vector of length LENGTH, using INIT for each element.

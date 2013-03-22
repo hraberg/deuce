@@ -2,6 +2,7 @@
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
             [lanterna.screen :as s]
+            [deuce.emacs.eval :as eval]
             [deuce.emacs.frame :as frame]
             [deuce.emacs-lisp.cons :as cons]
             [deuce.emacs-lisp.globals :as globals])
@@ -55,7 +56,10 @@
   Normally, you may not delete a display if all other displays are suspended,
   but if the second argument FORCE is non-nil, you may do so."
   (when-let [terminal (or terminal (frame-terminal))]
-    (s/stop terminal)))
+    (eval/run-hook-with-args 'delete-terminal-functions terminal)
+    (s/stop terminal)
+    (when (= terminal (frame-terminal))
+      (reset! (.terminal globals/terminal-frame) nil))))
 
 (defun set-terminal-parameter (terminal parameter value)
   "Set TERMINAL's value for parameter PARAMETER to VALUE.

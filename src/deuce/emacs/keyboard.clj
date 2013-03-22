@@ -1,8 +1,12 @@
 (ns deuce.emacs.keyboard
   (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
+            [clojure.java.shell :as sh]
             [deuce.emacs.casefiddle :as casefiddle]
+            [deuce.emacs.editfns :as editfns]
+            [deuce.emacs.term :as term]
             [deuce.emacs-lisp.parser :as parser])
+  (:import [sun.misc Signal SignalHandler])
   (:refer-clojure :exclude []))
 
 (defvar last-command-event nil
@@ -565,6 +569,10 @@
   a special event, so ignore the prefix argument and don't clear it."
   )
 
+(Signal/handle (Signal. "CONT")
+               (proxy [SignalHandler] []
+                 (handle [s] (term/resume-tty))))
+
 (defun suspend-emacs (&optional stuffstring)
   "Stop Emacs and return to superior process.  You can resume later.
   If `cannot-suspend' is non-nil, or if the system doesn't support job
@@ -578,7 +586,10 @@
 
   Some operating systems cannot stop the Emacs process and resume it later.
   On such systems, Emacs starts a subshell instead of suspending."
-  )
+  (term/suspend-tty)
+  (.invoke
+   (doto (.getDeclaredMethod Signal "raise0" (into-array [Integer/TYPE]))
+     (.setAccessible true)) nil (object-array [(int 20)])))
 
 (defun recursion-depth ()
   "Return the current depth in recursive edits."

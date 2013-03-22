@@ -18,6 +18,27 @@
             [taoensso.timbre :as timbre])
   (:gen-class))
 
+;; Start Deuce like this: lein trampoline run -q --swank-clojure
+
+;; Connect to Swank/nREPL from Emacs:
+
+;; user> (in-ns 'deuce.emacs)  ;; We're now in Emacs Lisp
+
+;; (switch-to-buffer "*Messages*") ;; Shows the boot messages, Loading ...etc.
+;; (switch-to-buffer "*scratch*") ;; Displays *scratch*
+;; (insert "Deuce is (not yet) Emacs under Clojure") ;; Insert some text.
+;; (beginning-of-line) ;; Ctrl-a
+;; (kill-line) ;; Kill the line.
+;; (yank) ;; Yank it back.
+;; (forward-line -4) ;; C-u 4 up
+;; (read-extended-command) ;; Activates Minibuffer, but it cannot do anything
+;; (select-window (frame-root-window)) ;; Get out of the minibuffer.
+;; (set-mark-command nil) ;; Activate the mark
+;; (forward-line) ;; Select some text.
+;; (delete-region (region-beginning) (region-end)) ;; Cut
+;; (pop-mark) ;; Remove mark / Deselect.
+;; (yank) ;; Paste
+
 (defn swank [port]
   (require 'swank.swank)
   (with-out-str
@@ -74,7 +95,6 @@
   ([] (apply blank (sc/get-size screen)))
   ([width height]
      (sc/clear screen)
-     (te/clear (.getTerminal screen))
      (sc/redraw screen)))
 
 (doseq [f '[line-indexes pos-to-line point-coords]]
@@ -92,7 +112,7 @@
         pt @(.pt buffer)
         line (pos-to-line pt)
         total-lines (- @(.total-lines window) (or (count (remove nil? [header-line mode-line])) 0))
-        scroll (max (- line total-lines) 0)
+        scroll (max (inc (- line total-lines)) 0)
         mark-active? (buffer/buffer-local-value 'mark-active buffer)
         selected-window? (= window (window/selected-window))]
     (let [text (.beg (.own-text buffer))
@@ -171,16 +191,32 @@
 
     (sc/redraw screen)))
 
+(def running (atom nil))
+
+(defn stop-render-loop []
+  (reset! running nil))
+
+;; Not the real thing, but keeps the UI changing while using the REPL before we got a real command loop.
+(defn start-render-loop []
+  (reset! running true)
+  (blank)
+  (future
+    (while @running
+      (try
+        (display-using-lanterna)
+        (Thread/sleep 50)
+        (catch Exception e
+          (reset! running nil)
+          (throw e))))))
+
 ;; Callback run by faces/tty-run-terminal-initialization based on deuce.emacs.term/tty-type returning "lanterna"
 ;; Has Emacs Lisp proxy in deuce.emacs.
 (defn terminal-init-lanterna []
   (try
     ((ns-resolve 'deuce.emacs.terminal 'init-initial-terminal))
     (def screen (terminal/frame-terminal))
-
     ;; Doesn't set up the screen properly yet
-    (blank)
-    (display-using-lanterna)
+    (start-render-loop)
     (catch Exception e
       (when screen
         (sc/stop screen)
