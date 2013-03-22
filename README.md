@@ -57,7 +57,7 @@ One "drawback" right now during the early days, is that when you try to incremen
 Buffers are naturally pretty complex beasts in Emacs. But we got the basics: switching and inserting text in different buffers. Overlays, buffer locals, markers etc. are not there yet:
 
     # Start with Swank so you can poke around:
-    lein -q --swank-clojure
+    lein run -q --swank-clojure
     Swank connection opened on 4005
     Loading deuce-loadup.el (source)...
     Using load-path ("" "emacs-lisp" "language" "international" "textmodes")
@@ -160,7 +160,7 @@ Deuce currently consist of around 12.5k LOC, a majority of which are doc strings
     make -C emacs
 
     # Start Deuce, all Emacs Lisp referenced by `deuce-loadup.el` is turned into Clojure and compiled to `.class` files:
-    lein main -q
+    lein run -q
     Loading deuce-loadup.el (source)...
     Using load-path ("" "emacs-lisp" "language" "international" "textmodes")
     Loading emacs-lisp/byte-run...
@@ -534,7 +534,7 @@ Larger than the technical challenges - which are mainly about scale - is the fac
 
 ### Building
 
-`lein uberjar` will bundle together Deuce, Clojure and the Emacs Lisp from GNU Emacs into an executable jar (which currently can only do limited evaluation of Emacs Lisp in batch mode).
+`lein uberjar` will bundle together Deuce, Clojure and the Emacs Lisp from GNU Emacs into an executable jar. See the **2013-03-14 [`deuce-loadup.el`]** update above for details.
 
 
 ### The Road Map
