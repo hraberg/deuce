@@ -412,7 +412,7 @@
   (let [predicate (or predicate (el/fun 'file-readable-p))]
     (->> (for [l path
                :let [file (str l "/" filename)
-                     find-resource #(let [url (str (s/replace file  #"^/" "") %)]
+                     find-resource #(let [url (str (s/replace file  #"^/*" "") %)]
                                       (or (io/resource (s/replace url "-" "_"))
                                           (io/resource url)))
                      find-file #(let [f (io/file (str file %))]
@@ -479,8 +479,8 @@
             (editfns/message "Loading %s%s..." file (if el-extension? " (source)" "")))
           (binding [globals/load-file-name (.getFile url)
                     globals/load-in-progress true]
-            (let [file (str (when (seq path) (str (s/replace path #"^/" "") "/"))
-                            (s/replace file  #".el$" ""))
+            (let [file (s/replace (str (when (seq path) (str path "/"))
+                                       (s/replace file  #".el$" "")) #"^/*" "")
                   clj-file (str (s/replace file "-" "_") ".clj")
                   clj-name (symbol (s/replace file "/" "."))
                   last-modified #(if % (.getLastModified (.openConnection %)) -1)

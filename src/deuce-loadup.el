@@ -380,12 +380,12 @@
 
 (set-buffer-modified-p nil)
 
-;; DEUCE: We'll try to skip this and try to use the load-path built until now.
-;;        lread.c:init_lread does lots of stuff.
 ;; reset the load-path.  See lread.c:init_lread why.
 (if (or (equal (nth 3 command-line-args) "bootstrap")
 	(equal (nth 4 command-line-args) "bootstrap"))
     (setcdr load-path nil))
+;; DEUCE: Resetting load-path to (""), subdirs.el will rebuild it.
+(setcdr load-path nil)
 
 (remove-hook 'after-load-functions (lambda (f) (garbage-collect)))
 

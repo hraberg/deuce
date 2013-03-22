@@ -208,8 +208,8 @@
             file (if (.isAbsolute file)
                    file
                    (io/file directory name))]
-        (if (and (not (.exists file)) (not (seq default-directory))) ;; Assume its classpath relative dir.
-          name
+        (if-not (.exists file) ;; Assume its classpath relative dir.
+          (str (file-name-as-directory directory) name)
           (.getCanonicalPath file))))))
 
 (defun write-region (start end filename &optional append visit lockname mustbenew)
