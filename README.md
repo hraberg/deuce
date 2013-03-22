@@ -43,6 +43,9 @@ Notable things that won't be supported in 0.1.0:
 * When running out of the standalone jar, Deuce still compiles newly loaded files to `target/classes`, which isn't on the classpath.
 * All the exciting bits when Clojure actually takes the front seat. Web UI.
   * First Deuce needs to work for Emacs Lisp in "legacy mode" before we can shift focus to Clojure and modernize things. I expect this to stay as the focus for the rest of 2013.
+* Speed
+  * Deuce takes about a minute to start, which I've decided is "good enough" for 0.1.0.
+  * Deuce won't be your platform of choice for your high-performance Emacs Lisp needs anytime soon.
 * Anything else you can think of!
 
 
