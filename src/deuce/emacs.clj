@@ -81,6 +81,10 @@
 (setq terminal-frame ((c/ns-resolve 'deuce.emacs.frame 'make-initial-frame)))
 (setq last-event-frame terminal-frame)
 
+;; Callback run by faces/tty-run-terminal-initialization based on deuce.emacs.term/tty-type returning "lanterna"
+(defun terminal-init-lanterna ()
+  ((c/ns-resolve 'deuce.main 'terminal-init-lanterna)))
+
 ;; *scratch* is created by buffer.c
 (set-window-buffer (selected-window)
                    (get-buffer-create "*scratch*"))

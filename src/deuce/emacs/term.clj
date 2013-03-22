@@ -58,9 +58,7 @@
 
   TERMINAL can be a terminal object, a frame, or nil (meaning the
   selected frame's terminal)."
-  ;; Returning a real terminal type here causes Emacs to load xterm.el etc.
-  ;(System/getenv "TERM")
-  )
+  "lanterna")
 
 (defun tty-display-color-cells (&optional terminal)
   "Return the number of colors supported by the tty device TERMINAL.

@@ -66,15 +66,16 @@
   ([x y s] (puts x y s colors))
   ([x y s opts] (sc/put-string screen x y (str s) opts)))
 
+(defn pad [s cols]
+  (format (str "%-" cols "s") s))
+
 ;; If the screen gets messed up by other output like a stack trace you need to call this.
 (defn blank
   ([] (apply blank (sc/get-size screen)))
-  ([_ height]
+  ([width height]
      (sc/clear screen)
+     (te/clear (.getTerminal screen))
      (sc/redraw screen)))
-
-(defn pad [s cols]
-  (format (str "%-" cols "s") s))
 
 (doseq [f '[line-indexes pos-to-line point-coords]]
   (eval `(def ~f (ns-resolve 'deuce.emacs.cmds '~f))))
@@ -160,8 +161,6 @@
         menu-bar-mode (data/symbol-value 'menu-bar-mode)
         menu-bar (if menu-bar-mode 1 0)]
 
-    ;; Explore using bold to trigger "increased intensity" to select the proper white color.
-    ;; http://en.wikipedia.org/wiki/ANSI_escape_sequences
     (when menu-bar-mode
       (puts 0 0 (pad (render-menu-bar) width) reverse-video))
 
@@ -172,12 +171,25 @@
 
     (sc/redraw screen)))
 
-;; See  faces/tty-run-terminal-initialization which is called from startup, it should in theory call back here.
-;; We might be able to specify a terminal-init-lanterna fn and see what happens..
-(defn launch-terminal []
-  (def screen (terminal/frame-terminal))
-  ((ns-resolve 'deuce.emacs.terminal 'init-initial-terminal))
-  (display-using-lanterna))
+;; Callback run by faces/tty-run-terminal-initialization based on deuce.emacs.term/tty-type returning "lanterna"
+;; Has Emacs Lisp proxy in deuce.emacs.
+(defn terminal-init-lanterna []
+  (try
+    ((ns-resolve 'deuce.emacs.terminal 'init-initial-terminal))
+    (def screen (terminal/frame-terminal))
+
+    ;; Doesn't set up the screen properly yet
+    (blank)
+    (display-using-lanterna)
+    (catch Exception e
+      (when screen
+        (sc/stop screen)
+        (throw e)))))
+
+;; Still to come...
+(defn command-loop []
+  ;; M-x awesomeness
+  )
 
 ;; Doesn't take window size and scrolling into account.
 (defn display-visible-state-of-emacs []
@@ -248,18 +260,5 @@
 
     (el/setq command-line-args (alloc/cons "src/bootstrap-emacs" (apply alloc/list (remove nil? args))))
 
-    (when-not (data/symbol-value 'noninteractive)
-      ;; Emacs opens the terminal before loadup.
-      ;; In temacs you get an empty frame, with the actual load echoed to the Echo Area.
-      ;; The mode line is the default (just dashes), the cursor is top left, and there's no menu bar.
-      ;; This means we are a bit too eager in deuce.emacs setting up the *scratch* buffer.
-      ;; inhibit-window-system could maybe be used to switch between :text and :swing in lanterna.
-      )
-
     (lread/load "deuce-loadup.el")
-    ;; Dump the current buffers etc. to stdout until we have display. *Messages* is already echoed to stdout.
-    (display-state-of-emacs)
-
-    ;; Pontentially call out and init the clojure-lanterna terminal (when-not inhibit-window-system)
-    ;; startup.el may take care of this indirectly and make the callback for us.
-    ))
+    (command-loop)))

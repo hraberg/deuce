@@ -54,7 +54,8 @@
 
   Normally, you may not delete a display if all other displays are suspended,
   but if the second argument FORCE is non-nil, you may do so."
-  (s/stop (or terminal (frame-terminal))))
+  (when-let [terminal (or terminal (frame-terminal))]
+    (s/stop terminal)))
 
 (defun set-terminal-parameter (terminal parameter value)
   "Set TERMINAL's value for parameter PARAMETER to VALUE.

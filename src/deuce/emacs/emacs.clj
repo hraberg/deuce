@@ -3,6 +3,7 @@
   (:require [clojure.core :as c]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.fns :as fns]
+            [deuce.emacs.terminal :as terminal]
             [deuce.emacs-lisp.globals :as globals])
   (:import [java.io File])
   (:refer-clojure :exclude []))
@@ -145,6 +146,7 @@
   is a list of functions (of no args),
   all of which are called before Emacs is actually killed."
   (doall (map #(%) globals/kill-emacs-hook))
+  (terminal/delete-terminal)
   (System/exit (if (integer? arg) arg 0)))
 
 (defun dump-emacs (filename symfile)

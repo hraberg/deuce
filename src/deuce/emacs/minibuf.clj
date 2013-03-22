@@ -4,8 +4,11 @@
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.cons :refer [car] :as cons]
             [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data]
-            [deuce.emacs.fns :as fns])
+            [deuce.emacs.editfns :as editfns]
+            [deuce.emacs.fns :as fns]
+            [deuce.emacs.window :as window])
   (:refer-clojure :exclude [read-string]))
 
 (defvar minibuffer-history-variable nil
@@ -140,11 +143,26 @@
    confirmation if the user submitted the input right after any of the
    completion commands listed in `minibuffer-confirm-exit-commands'.")
 
+(declare filter-completions active-minibuffer-window)
+
+(def ^:private minibuf-prompt (atom nil))
+
 (defun minibuffer-depth ()
   "Return current depth of activations of minibuffer, a nonnegative integer."
-  0)
+  (if (active-minibuffer-window) 1 0))
 
-(declare filter-completions)
+(defn ^:private minibuffer [prompt & [default]]
+  (let [minibuffer (buffer/get-buffer-create " *Minibuf-1*")]
+    (binding [buffer/*current-buffer* minibuffer]
+      (buffer/erase-buffer)
+      (when (seq prompt)
+        (editfns/insert prompt))
+      (when default
+        (editfns/insert (if (data/listp default) (data/car default) default))))
+    (reset! minibuf-prompt prompt)
+    (window/set-window-buffer (window/minibuffer-window) minibuffer)
+    (window/select-window (window/minibuffer-window))))
+
 
 (defun test-completion (string collection &optional predicate)
   "Return non-nil if STRING is a valid completion.
@@ -211,7 +229,7 @@
     `completion-ignore-case' is non-nil.
 
   See also `completing-read-function'."
-  )
+  (minibuffer prompt))
 
 (defun read-from-minibuffer (prompt &optional initial-contents keymap read hist default-value inherit-input-method)
   "Read a string from the minibuffer, prompting with string PROMPT.
@@ -295,13 +313,13 @@
 (defun minibuffer-prompt ()
   "Return the prompt string of the currently-active minibuffer.
   If no minibuffer is active, return nil."
-  )
+  @minibuf-prompt)
 
 (defun read-command (prompt &optional default-value)
   "Read the name of a command and return as a symbol.
   Prompt with PROMPT.  By default, return DEFAULT-VALUE or its first element
   if it is a list."
-  )
+  (minibuffer prompt default-value))
 
 (defn ^:private filter-completions [collection predicate]
   (map #(if (data/consp %) (car %) %)
@@ -379,7 +397,9 @@
 (defun minibuffer-prompt-end ()
   "Return the buffer position of the end of the minibuffer prompt.
   Return (point-min) if current buffer is not a minibuffer."
-  )
+  (if (active-minibuffer-window)
+    (inc (count @minibuf-prompt))
+    (editfns/point-min)))
 
 (defun set-minibuffer-window (window)
   "Specify which minibuffer window to use for the minibuffer.
@@ -391,7 +411,8 @@
   "Return t if BUFFER is a minibuffer.
   No argument or nil as argument means use current buffer as BUFFER.
   BUFFER can be a buffer or a buffer name."
-  )
+  (when (re-find #" *Minibuf-\d+" (buffer/buffer-name buffer))
+    true))
 
 (defun internal-complete-buffer (string predicate flag)
   "Perform completion on buffer names.
@@ -464,12 +485,12 @@
 (defun minibuffer-contents-no-properties ()
   "Return the user input in a minibuffer as a string, without text-properties.
   If the current buffer is not a minibuffer, return its entire contents."
-  )
+  (editfns/buffer-string))
 
 (defun minibuffer-contents ()
   "Return the user input in a minibuffer as a string.
   If the current buffer is not a minibuffer, return its entire contents."
-  )
+  (subs (editfns/buffer-string) (count @minibuf-prompt)))
 
 (defun read-variable (prompt &optional default-value)
   "Read the name of a user variable and return it as a symbol.
@@ -480,4 +501,5 @@
 
 (defun active-minibuffer-window ()
   "Return the currently active minibuffer window, or nil if none."
-  )
+  (when (= (window/selected-window) (window/minibuffer-window))
+    (window/minibuffer-window)))
