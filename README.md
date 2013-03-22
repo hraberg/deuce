@@ -27,7 +27,7 @@ This is roughly the order the remaining bits has to be solved in:
   * Once we have the minibuffer, we need to support [Interactive Calls](http://www.gnu.org/software/emacs/manual/html_node/elisp/Interactive-Call.html) at least to some extent. See [Using `interactive`](http://www.gnu.org/software/emacs/manual/html_node/elisp/Using-Interactive.html) for more.
   * The minibuffer obviously also has [Completion](http://www.gnu.org/software/emacs/manual/html_node/elisp/Completion.html). We have some of the rudimentary backend support for this, but will have to be refined once we reach this point.
 * [Windows](http://www.gnu.org/software/emacs/manual/html_node/elisp/Windows.html) - we have parts of this, and will ignore some others, but we need to support [splitting](http://www.gnu.org/software/emacs/manual/html_node/elisp/Splitting-Windows.html) to at least to at one level, as many Emacs commands will throw up an extra window at you. We also want at least part of the logic for selecting windows and switching buffers (the primitives are there, but lacks all the fancy logic to figure out what to switch to).
-* Tutorial / [Basic Editing Commands](http://www.gnu.org/software/emacs/manual/html_node/emacs/Basic.html) I want it to be possible to complete the Emacs Tutorial (the non-frame parts), the is basically the acceptance criteria for 0.1.0.
+* Tutorial / [Basic Editing Commands](http://www.gnu.org/software/emacs/manual/html_node/emacs/Basic.html) I want it to be possible to complete the Emacs Tutorial (the non-frame parts), this is basically the acceptance criteria for 0.1.0.
 
 Notable things that won't be supported in 0.1.0:
 
