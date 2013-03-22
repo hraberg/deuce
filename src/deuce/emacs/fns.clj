@@ -9,6 +9,7 @@
             [deuce.emacs-lisp.globals :as globals])
   (import [clojure.lang IPersistentCollection PersistentVector]
           [deuce.emacs.data CharTable]
+          [java.lang.management ManagementFactory]
           [java.util List Map HashMap Collections Objects Arrays]
           [java.nio CharBuffer]
           [java.nio.charset Charset]
@@ -458,7 +459,8 @@
   cases making it work would require Emacs being installed setuid or
   setgid so that it can read kernel information, and that usually isn't
   advisable."
-  )
+  (let [last-minute (.getSystemLoadAverage (ManagementFactory/getOperatingSystemMXBean))]
+    (list (if use-floats last-minute (long (* 100 last-minute))))))
 
 (defun base64-encode-region (beg end &optional no-line-break)
   "Base64-encode the region between BEG and END.
