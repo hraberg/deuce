@@ -11,6 +11,41 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors)
 
+**2013-03-22 What needs to be done for 0.1.0?**
+
+0.1.0 is in my mind a version of Deuce running in a terminal which can open `*scratch*`, visit files and do normal text editing in a few buffers, and allows executing some simple commands via the minibuffer. Nothing more than this.
+
+This is roughly the order the remaining bits has to be solved in:
+
+* [Command Loop](http://www.gnu.org/software/emacs/manual/html_node/elisp/Command-Loop.html)
+  * Emacs command loop is pretty complicated, so I won't aim to support recursive edits etc, but we want the basic feel of it.
+  * This obviously implies [Keyboard Events](http://www.gnu.org/software/emacs/manual/html_node/elisp/Keyboard-Events.html).
+*  What to do with this is determined  by the ["Active Keymaps"](http://www.gnu.org/software/emacs/manual/html_node/elisp/Active-Keymaps.html). [Keymaps](http://www.gnu.org/software/emacs/manual/html_node/elisp/Keymaps.html) are almost there in Deuce, but needs overhaul now when actually about to be used.
+  * There are ways of suppressing keymaps, have keymaps for just part of a buffer etc. and not everything will work.
+* [Minibuffers](http://www.gnu.org/software/emacs/manual/html_node/elisp/Minibuffers.html)
+  * You can't claim its Emacs without the minibuffer. Again, there are many subtle ways Emacs can throw a minibuffer at you, and won't deal with them all at first.
+  * Once we have the minibuffer, we need to support [Interactive Calls](http://www.gnu.org/software/emacs/manual/html_node/elisp/Interactive-Call.html) at least to some extent. See [Using `interactive`](http://www.gnu.org/software/emacs/manual/html_node/elisp/Using-Interactive.html) for more.
+  * The minibuffer obviously also has [Completion](http://www.gnu.org/software/emacs/manual/html_node/elisp/Completion.html). We have some of the rudimentary backend support for this, but will have to be refined once we reach this point.
+* [Windows](http://www.gnu.org/software/emacs/manual/html_node/elisp/Windows.html) - we have parts of this, and will ignore some others, but we need to support [splitting](http://www.gnu.org/software/emacs/manual/html_node/elisp/Splitting-Windows.html) to at least to at one level, as many Emacs commands will throw up an extra window at you. We also want at least part of the logic for selecting windows and switching buffers (the primitives are there, but lacks all the fancy logic to figure out what to switch to).
+
+Notable things that won't be supported in 0.1.0:
+
+* [Lisp Interaction Mode](http://www.gnu.org/software/emacs/manual/html_node/emacs/Lisp-Interaction.html).
+  * Deuce can obviously evaluate (most) Emacs Lisp, but to make this actual mode really work, you need to support the (Syntax)[http://www.gnu.org/software/emacs/manual/html_node/elisp/Syntax-Basics.html] subsystem.
+* [Loading](http://www.gnu.org/software/emacs/manual/html_node/elisp/How-Programs-Do-Loading.html) of arbrirarty Emacs Lisp outside of `deuce-loadup.el`
+  * Doing so may or may not work, but very likely this will attempt to call some native (C)lojure part of Deuce that doesn't exist or won't work for this particular case.
+  * While [Autload](http://www.gnu.org/software/emacs/manual/html_node/elisp/Autoload.html) works, whatever that gets loaded probably won't
+* When running out of the standalone jar, Deuce still compiles newly loaded files to `target/classes`, which isn't on the classpath.
+* All the exciting bits when Clojure actually takes the front seat. Web UI.
+  * First Deuce needs to work for Emacs Lisp in "legacy mode" before we can shift focus to Clojure and modernize things. I expect this to stay as the focus for the this year.
+* Anything else you can think of!
+
+
+It's hard to estimate how long this will take, sometimes you accidentally implement a subsystem of Emacs in a handful of lines of Clojure, but more often you get stuck in subtle details (writing almost no code) reading the Emacs C source desperately trying to figure out how the heck something is supposed to be working. Often you also get into a state where you're married to your 80% solution for a problem, but in your heart of heart knows you'll have to ditch and rewrite it to do the "proper" thing.
+
+Anyway, I will continue to work full time on Deuce until April 25, so hopefully - 0.1.0 before then!
+
+
 **2013-03-19 Mode Lines and Menu Bar**
 
 We're getting there, now with [Lanterna](https://code.google.com/p/lanterna/):
