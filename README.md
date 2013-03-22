@@ -13,7 +13,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 **2013-03-22 What needs to be done for 0.1.0?**
 
-0.1.0 is in my mind a version of Deuce running in a terminal which can open `*scratch*`, visit files and do normal text editing in a few buffers, and allows executing some simple commands via the minibuffer. Nothing more than this.
+0.1.0 is in my mind a version of Deuce running in a terminal which can open `*scratch*`, visit files and do normal text editing in a few buffers, and allows executing some simple commands via the minibuffer and complete Emacs learn-by-doing tutorial. Nothing more than this.
 
 This is roughly the order the remaining bits has to be solved in:
 
