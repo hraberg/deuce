@@ -1,6 +1,7 @@
 (ns deuce.emacs.process
-  (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:use [deuce.emacs-lisp :only (defun defvar) :as el])
+  (:require [clojure.core :as c]
+            [clojure.java.shell :as sh])
   (:refer-clojure :exclude []))
 
 (defvar delete-exited-processes nil
@@ -721,7 +722,9 @@
   If you want to separate standard output from standard error, invoke
   the command through a shell and redirect one of them using the shell
   syntax."
-  )
+  ;; Just fire and forget to let things like browse-url work, not supporting the entire Process sub-system.
+  (let [command (cons program program-args)]
+    (future (apply sh/sh command))))
 
 (defun set-process-plist (process plist)
   "Replace the plist of PROCESS with PLIST.  Returns PLIST."

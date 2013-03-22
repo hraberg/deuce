@@ -172,6 +172,8 @@
 
     (sc/redraw screen)))
 
+;; See  faces/tty-run-terminal-initialization which is called from startup, it should in theory call back here.
+;; We might be able to specify a terminal-init-lanterna fn and see what happens..
 (defn launch-terminal []
   (def screen (terminal/frame-terminal))
   ((ns-resolve 'deuce.emacs.terminal 'init-initial-terminal))

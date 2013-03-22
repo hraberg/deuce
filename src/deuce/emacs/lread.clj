@@ -17,6 +17,7 @@
             [deuce.emacs.data :as data]
             [deuce.emacs.editfns :as editfns]
             [deuce.emacs.eval :as eval]
+            [deuce.emacs.fileio :as fileio]
             [deuce.emacs.terminal :as terminal]
             [deuce.emacs.window :as window]
             [deuce.emacs-lisp.parser :as parser])
@@ -408,8 +409,14 @@
           (.write w "\n")))
       (finally (timbre/set-level! level)))))
 
+(def ^:private access {0 fileio/file-exists-p
+                       1 fileio/file-readable-p
+                       2 fileio/file-writable-p
+                       3 fileio/file-executable-p})
+
 (defn ^:private locate-file [filename path suffixes predicate]
-  (let [predicate (or predicate (el/fun 'file-readable-p))]
+  (let [predicate (or predicate (el/fun 'file-readable-p))
+        predicate (access predicate predicate)]
     (->> (for [l path
                :let [file (str l "/" filename)
                      find-resource #(let [url (str (s/replace file  #"^/*" "") %)]

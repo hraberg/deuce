@@ -1,9 +1,16 @@
 (ns deuce.emacs.callproc
-  (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:use [deuce.emacs-lisp :only (defun defvar) :as el])
+  (:require [clojure.core :as c]
+            [clojure.string :as s]
+            [clojure.java.io :as io]
+            [clojure.java.shell :as sh]
+            [deuce.emacs.buffer :as buffer]
+            [deuce.emacs.data :as data]
+            [deuce.emacs.editfns :as editfns])
+  (:import [java.io File])
   (:refer-clojure :exclude []))
 
-(defvar doc-directory nil
+(defvar doc-directory "etc/"
   "Directory containing the DOC file that comes with GNU Emacs.
   This is usually the same as `data-directory'.")
 
@@ -11,18 +18,18 @@
   "Directory of score files for games which come with GNU Emacs.
   If this variable is nil, then Emacs is unable to use a shared directory.")
 
-(defvar exec-suffixes nil
+(defvar exec-suffixes '("")
   "*List of suffixes to try to find executable file names.
   Each element is a string.")
 
-(defvar shell-file-name nil
+(defvar shell-file-name (System/getenv "SHELL")
   "*File name to load inferior shells from.
   Initialized from the SHELL environment variable, or to a system-dependent
   default if SHELL is not set.
 
   You can customize this variable.")
 
-(defvar exec-path nil
+(defvar exec-path (apply list (.split (System/getenv "PATH") File/pathSeparator))
   "*List of directories to search programs to run in subprocesses.
   Each element is a string (directory name) or nil (try default directory).
 
@@ -37,7 +44,7 @@
   "Directory of machine-independent files that come with GNU Emacs.
   These are files intended for Emacs to use while it runs.")
 
-(defvar process-environment nil
+(defvar process-environment (apply list (map (partial s/join "=") (into {} (System/getenv))))
   "List of overridden environment variables for subprocesses to inherit.
   Each element should be a string of the form ENVVARNAME=VALUE.
 
@@ -133,4 +140,24 @@
   Otherwise it waits for PROGRAM to terminate
   and returns a numeric exit status or a signal description string.
   If you quit, the process is killed with SIGINT, or SIGKILL if you quit again."
-  )
+  (let [opts (if infile [:in (io/file infile)] [])
+        no-wait? (= 0 buffer)
+        buffer (or no-wait?
+                   (and (data/consp buffer) (= :file (data/car buffer)) (data/cdr buffer))
+                   (and (true? buffer) (buffer/current-buffer))
+                   (el/check-type 'bufferp (or (when (data/consp buffer) (data/car buffer))
+                                               buffer (buffer/current-buffer))))
+        stderr (when (data/consp buffer) (data/cdr buffer))
+        runner (if no-wait? #(do (future-call %) nil) #(%))]
+    (runner #(let [{:keys [exit out err]}
+                   (apply sh/sh (concat (cons program args) opts))]
+               (when (data/bufferp buffer)
+                 (binding [buffer/*current-buffer* buffer]
+                   (editfns/insert out)
+                   (when (true? stderr)
+                     (editfns/insert err))))
+               (when (string? buffer)
+                 (spit (io/file buffer) out))
+               (when (string? stderr)
+                 (spit (io/file stderr) err))
+               exit))))
