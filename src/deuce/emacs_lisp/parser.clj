@@ -24,7 +24,6 @@
                                meta 0x8000000})
 
 ;; In theory escape characters in strings should be escaped inside Emacs strings somewhat like this:
-;; This is not used right now, but is a potential start of a new string and character parser.
 (defn ^:private parse-control-char [maybe-control & [for-string?]]
   (cond
    (> maybe-control 127) (when for-string?
@@ -83,21 +82,23 @@
 ;; Looks like edmacro/edmacro-parse-keys actually contains a lot of the logic.
 
 ;; Here's an attempt at doing something more correct, see deuce.emacs.keyboard/event-convert-list:
-(defn event-convert-list-internal [mods base & [no-modifier-conversion]]   ;; no-modifiers-conversion is used when parsing chars.
+(defn event-convert-list-internal [mods base & [no-modifier-conversion]]    ;; no-modifiers-conversion is used when parsing chars.
   (let [[mods base] [(set mods) (int base)]
-        [mods base] (if-let [control-char (and (mods 'control)             ;; This turns '(control \space) into 0: "\^@"
-                                               (parse-control-char base))] ;; It is a valid 5 bit or 127 control char
-                      [(disj (if (and (not no-modifier-conversion)
-                                      (Character/isUpperCase (char base))) ;; Remove control modifier as its baked in.
-                               (conj mods 'shift)                          ;; If original was upper case, add shift modifier
+        [mods base] (if-let [control-char (and (mods 'control)              ;; This turns '(control \space) into 0: "\^@"
+                                               (and (not (<= (int base) (int \space)))
+                                                    no-modifier-conversion) ;; Don't reparse actual lower control characters.
+                                               (parse-control-char base))]
+                      [(disj (if (and (not no-modifier-conversion)          ;; It is a valid 5 bit or 127 control char
+                                      (Character/isUpperCase (char base)))  ;; Remove control modifier as its baked in.
+                               (conj mods 'shift)                           ;; If original was upper case, add shift modifier
                                mods) 'control) (int control-char)]
                       [mods base])
-        [mods base] (if (and (mods 'shift) (not no-modifier-conversion)    ;; Turns '(shift \a) into \A
-                             (Character/isLowerCase (char base))           ;; If and only if a 7 bit ASCII char, upper case it
+        [mods base] (if (and (mods 'shift) (not no-modifier-conversion)     ;; Turns '(shift \a) into \A
+                             (Character/isLowerCase (char base))            ;; If and only if a 7 bit ASCII char, upper case it
                              (< base 128))
-                      [(disj mods 'shift) (casefiddle/upcase base)]        ;; Remove shift modified as its baked in.
-                      [mods base])]                                        ;; (But upper case characters can have 'shift as well.)
-    (reduce bit-xor base (replace character-modifier-bits mods))))         ;; XOR in the modifiers.
+                      [(disj mods 'shift) (casefiddle/upcase base)]         ;; Remove shift modifier as its baked in.
+                      [mods base])]                                         ;; (But upper case characters can have 'shift as well.)
+    (reduce bit-xor base (replace character-modifier-bits mods))))          ;; XOR in the modifiers.
 
 ;; Takes an Emacs-style charcter specifier without the leading ?
 ;; Turns "C-a" into \
@@ -120,7 +121,7 @@
                    (replace character-modifier-symbols mods) c :no-modifier-conversion)]
             (if (<= c (int (Character/MAX_VALUE)))
               (char c)
-              (int c)))))))
+              (long c)))))))
 
 (defn ^:private strip-comments [form]
   (remove (every-pred seq? (comp `#{comment} first)) form))
