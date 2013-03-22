@@ -534,7 +534,7 @@ Larger than the technical challenges - which are mainly about scale - is the fac
 
 ### Building
 
-`lein uberjar` will bundle together Deuce, Clojure and the Emacs Lisp from GNU Emacs into an executable jar. See the **2013-03-14 [`deuce-loadup.el`]** update above for details.
+`lein uberjar` will bundle together Deuce, Clojure and the Emacs Lisp from GNU Emacs into an executable jar. See the **2013-03-14 `deuce-loadup.el`** update above for details.
 
 
 ### The Road Map
