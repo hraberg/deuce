@@ -6,6 +6,7 @@
             [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs-lisp.parser :as parser]
             [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data]
             [deuce.emacs.chartab :as chartab]
             [deuce.emacs.fns :as fns])
@@ -51,6 +52,8 @@
   "Default keymap to use when reading from the minibuffer.")
 
 (fns/put 'key-map 'char-table-extra-slots 0)
+
+(def ^:private current-global-map (atom nil))
 
 (defun make-sparse-keymap (&optional string)
   "Construct and return a new sparse keymap.
@@ -149,7 +152,8 @@
 (defun current-local-map ()
   "Return current buffer's local keymap, or nil if it has none.
   Normally the local keymap is set by the major mode with `use-local-map'."
-  )
+  (when (data/boundp 'keymap)
+    (buffer/buffer-local-value 'keymap (buffer/current-buffer))))
 
 (defun where-is-internal (definition &optional keymap firstonly noindirect no-remap)
   "Return list of keys that invoke DEFINITION.
@@ -252,7 +256,7 @@
   "Return the prompt-string of a keymap MAP.
   If non-nil, the prompt is shown in the echo-area
   when reading a key-sequence to be looked-up in this keymap."
-  )
+  (first (filter string? (take-while (complement '#{keymap}) (rest map)))))
 
 (defun apropos-internal (regexp &optional predicate)
   "Show all symbols whose names contain match for REGEXP.
@@ -264,7 +268,13 @@
 (defun set-keymap-parent (keymap parent)
   "Modify KEYMAP to set its parent map to PARENT.
   Return PARENT.  PARENT should be nil or another keymap."
-  )
+  (loop [x keymap]
+    (when x
+      (if (keymapp (data/cdr x))
+        (data/setcdr x nil)
+        (recur (data/cdr x)))))
+  (fns/nconc keymap parent)
+  parent)
 
 (defun current-minor-mode-maps ()
   "Return a list of keymaps for the minor modes of the current buffer."
@@ -281,7 +291,7 @@
   The optional arg STRING supplies a menu name for the keymap
   in case you use it as a menu with `x-popup-menu'."
   (fns/nconc (alloc/list 'keymap (chartab/make-char-table 'keymap))
-             (if string (alloc/list string) (alloc/list nil))))
+             (when string (alloc/list string))))
 
 (defun describe-buffer-bindings (buffer &optional prefix menus)
   "Insert the list of all defined keys and their definitions.
@@ -318,6 +328,7 @@
   usable as a general function for probing keymaps.  However, if the
   third optional argument ACCEPT-DEFAULT is non-nil, `lookup-key' will
   recognize the default bindings, just as `read-key-sequence' does."
+  ;; Also searches parents.
   )
 
 (defun key-description (keys &optional prefix)
@@ -338,7 +349,9 @@
 (defun use-local-map (keymap)
   "Select KEYMAP as the local keymap.
   If KEYMAP is nil, that means no local keymap."
-  )
+  ;; This is not strictly correct, as these are some form of private buffer locals in Emacs.
+  (data/make-local-variable 'keymap)
+  (data/set 'keymap keymap))
 
 (defun local-key-binding (keys &optional accept-default)
   "Return the binding for command KEYS in current local keymap only.
@@ -347,7 +360,8 @@
 
   If optional argument ACCEPT-DEFAULT is non-nil, recognize default
   bindings; see the description of `lookup-key' for more details about this."
-  )
+  (when (current-local-map)
+    (lookup-key (current-local-map) keys accept-default)))
 
 (defun define-prefix-command (command &optional mapvar name)
   "Define COMMAND as a prefix command.  COMMAND should be a symbol.
@@ -363,7 +377,11 @@
 (defun keymap-parent (keymap)
   "Return the parent keymap of KEYMAP.
   If KEYMAP has no parent, return nil."
-  )
+  (loop [x (data/cdr keymap)]
+    (when x
+      (if (keymapp x)
+        x
+        (recur (data/cdr x))))))
 
 (defun global-key-binding (keys &optional accept-default)
   "Return the binding for command KEYS in current global keymap only.
@@ -374,11 +392,12 @@
 
   If optional argument ACCEPT-DEFAULT is non-nil, recognize default
   bindings; see the description of `lookup-key' for more details about this."
-  )
+  (when (current-global-map)
+    (lookup-key (current-global-map) keys accept-default)))
 
 (defun current-global-map ()
   "Return the current global keymap."
-  (data/symbol-value 'global-map))
+  @current-global-map)
 
 (defun command-remapping (command &optional position keymaps)
   "Return the remapping for command COMMAND.
@@ -418,5 +437,5 @@
 
 (defun use-global-map (keymap)
   "Select KEYMAP as the global keymap."
-  (data/set 'global-map keymap)
+  (reset! current-global-map keymap)
   nil)

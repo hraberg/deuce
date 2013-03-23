@@ -676,7 +676,7 @@
 (defun boundp (symbol)
   "Return t if SYMBOL's value is not void."
   (or (nil? symbol)
-      (when-let [v (el/global symbol)]
+      (when-let [v (el/el-var symbol)]
         (bound? v))))
 
 (defun default-value (symbol)
