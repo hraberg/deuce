@@ -1,6 +1,7 @@
 (ns deuce.emacs.category
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [deuce.emacs.fns :as fns])
   (:refer-clojure :exclude []))
 
 (defvar word-separating-categories nil

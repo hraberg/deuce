@@ -269,10 +269,8 @@
 
   The optional arg STRING supplies a menu name for the keymap
   in case you use it as a menu with `x-popup-menu'."
-;  (make-sparse-keymap string)
   (fns/nconc (alloc/list 'keymap (chartab/make-char-table 'keymap))
-             (if string (alloc/list string nil) (alloc/list nil)))
-  )
+             (if string (alloc/list string) (alloc/list nil))))
 
 (defun describe-buffer-bindings (buffer &optional prefix menus)
   "Insert the list of all defined keys and their definitions.
