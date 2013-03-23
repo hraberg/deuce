@@ -52,9 +52,6 @@
     ((resolve 'clojure.tools.nrepl.server/start-server) :port port))
   (println "nrepl server listening on" port))
 
-(defn render-mode-line
-  [] (xdisp/format-mode-line (buffer/buffer-local-value 'mode-line-format (buffer/current-buffer))))
-
 ;; The way this does this is probably utterly wrong, written by data inspection, not reading Emacs source.
 ;; But produces the expected result:
 (defn render-menu-bar []
@@ -225,7 +222,6 @@
   (try
     ((ns-resolve 'deuce.emacs.terminal 'init-initial-terminal))
     (def screen (terminal/frame-terminal))
-    ;; Doesn't set up the screen properly yet
     (start-render-loop)
     (catch Exception e
       (when screen
@@ -236,51 +232,6 @@
 (defn command-loop []
   ;; M-x awesomeness
   )
-
-;; Doesn't take window size and scrolling into account.
-(defn display-visible-state-of-emacs []
-  (println (render-menu-bar))
-  (doseq [window (window/window-list nil true)
-          :let [buffer (window/window-buffer window)]]
-    (when-let [header-line (buffer/buffer-local-value 'header-line-format buffer)]
-      (println (xdisp/format-mode-line header-line nil window buffer)))
-    (let [s (str (.beg (.own-text buffer)))
-          point (dec @(.pt buffer))]
-      (if (= window (window/selected-window))
-        (println (str (subs s 0 point) \u258b (let [after-point (if (= (editfns/char-after) \newline)
-                                                                  point
-                                                                  (inc point))]
-                                                (when (< after-point (count s))
-                                                  (subs s after-point (count s))))))
-        (println s)))
-    (when-let [mode-line (and (not (re-find #" \*" (buffer/buffer-name buffer)))
-                              (buffer/buffer-local-value 'mode-line-format buffer))]
-      (println (xdisp/format-mode-line mode-line nil window buffer)))))
-
-(defn display-state-of-emacs []
-  (doseq [frame (frame/frame-list)]
-    (println "---------------" frame
-             (if (= frame (frame/selected-frame)) "--- [selected frame]" ""))
-    (println (render-menu-bar)))
-  (doseq [window (window/window-list nil true)
-          :let [buffer (window/window-buffer window)]]
-    (println "---------------" window
-             (if (= window (window/selected-window)) "--- [selected window]" ""))
-    (when-let [header-line (buffer/buffer-local-value 'header-line-format buffer)]
-      (println (xdisp/format-mode-line header-line nil window buffer)))
-    (when-let [mode-line (and (not (re-find #" \*" (buffer/buffer-name buffer)))
-                              (buffer/buffer-local-value 'mode-line-format buffer))]
-      (println (xdisp/format-mode-line mode-line nil window buffer))))
-  (doseq [buffer (buffer/buffer-list)
-          :let [name (buffer/buffer-name buffer)
-                messages? (= name "*Messages*")]]
-    (println "---------------" buffer
-             (cond
-              (= name (buffer/buffer-name)) "--- [current buffer]"
-              messages? "--- [see stdout above]"
-              :else ""))
-    (when-not messages?
-      (println (str (.beg (.own-text buffer)))))))
 
 ;; We want to support emacs -q initially. -q is --no-init-file
 (defn -main [& args]
