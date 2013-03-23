@@ -1,0 +1,10 @@
+#!/bin/sh -e
+
+test -e emacs/src/Makefile || ./configure-emacs
+test -e emacs/lisp/loaddefs.el || make -C emacs
+
+rm -rf target/*
+
+lein run -q --batch
+lein uberjar
+lein difftest

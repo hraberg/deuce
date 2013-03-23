@@ -3,7 +3,7 @@
 # Move to 24.3 at your earliest convenience.
 EMACS_TAG=emacs-24.2
 
-test -z `ls emacs` && git submodule update --init emacs
+test -z "`ls emacs`" && git submodule update --init emacs
 cd emacs
 git checkout $EMACS_TAG
 

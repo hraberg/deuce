@@ -499,14 +499,17 @@
                   (load-raw-clj)
                   (c/require clj-name))
                 (catch FileNotFoundException _
-                  (with-open [in (io/input-stream url)]
-                    (let [el (parser/parse in)
-                          clj-file (io/file *compile-path* clj-file)]
-                      (write-clojure (map el/el->clj el) clj-file)
-                      (if el-extension?
-                        (load-raw-clj)
-                        (binding [*compile-files* true]
-                          (require clj-name)))))))
+                  (binding [*compile-path* (or (when-let [path (resolve 'deuce.main/*emacs-compile-path*)]
+                                                 @path)
+                                             *compile-path*)]
+                    (with-open [in (io/input-stream url)]
+                      (let [el (parser/parse in)
+                            clj-file (io/file *compile-path* clj-file)]
+                        (write-clojure (map el/el->clj el) clj-file)
+                        (if el-extension?
+                          (load-raw-clj)
+                          (binding [*compile-files* true]
+                            (require clj-name))))))))
               true)))
         (catch Exception e
           (when-not noerror

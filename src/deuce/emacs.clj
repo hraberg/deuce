@@ -83,6 +83,7 @@
 
 ;; Callback run by faces/tty-run-terminal-initialization based on deuce.emacs.term/tty-type returning "lanterna"
 (defun terminal-init-lanterna ()
+  (c/require 'deuce.main)
   ((c/ns-resolve 'deuce.main 'terminal-init-lanterna)))
 
 ;; *scratch* is created by buffer.c

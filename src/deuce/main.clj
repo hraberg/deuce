@@ -1,5 +1,6 @@
 (ns deuce.main
   (:require [clojure.string :as s]
+            [clojure.java.io :as io]
             [lanterna.screen :as sc]
             [lanterna.terminal :as te]
             [deuce.emacs]
@@ -15,7 +16,9 @@
             [deuce.emacs.terminal :as terminal]
             [deuce.emacs.window :as window]
             [deuce.emacs.xdisp :as xdisp]
-            [taoensso.timbre :as timbre])
+            [taoensso.timbre :as timbre]
+            [dynapath.util :as dp])
+  (:import [java.io FileNotFoundException])
   (:gen-class))
 
 ;; Start Deuce like this: lein trampoline run -q --swank-clojure
@@ -214,7 +217,7 @@
   :async?    true
   :fn (fn [{:keys [ap-config level prefix message more] :as args}]
         (binding [buffer/*current-buffer* (buffer/get-buffer-create "*Deuce*")]
-          (editfns/insert (println-str prefix message more))))})
+          (editfns/insert (str (s/join " " (concat [prefix "-" message] more)) \newline))))})
 
 ;; Callback run by faces/tty-run-terminal-initialization based on deuce.emacs.term/tty-type returning "lanterna"
 ;; Has Emacs Lisp proxy in deuce.emacs.
@@ -227,6 +230,22 @@
       (when screen
         (sc/stop screen)
         (throw e)))))
+
+(def deuce-dot-d (str (io/file (System/getProperty "user.home") ".deuce.d")))
+(def ^:dynamic *emacs-compile-path* *compile-path*)
+
+(defn init-user-classpath []
+  (.mkdirs (io/file deuce-dot-d))
+  (dp/add-classpath-url (.getContextClassLoader (Thread/currentThread)) (.toURL (io/file deuce-dot-d)))
+  (alter-var-root #'*emacs-compile-path* (constantly deuce-dot-d)))
+
+(defn load-user-init-file []
+  (let [init-file (io/file deuce-dot-d "init.clj")]
+    (try
+      (when (.exists init-file)
+        (load-file (str init-file)))
+      (catch Exception e
+        (timbre/error e (format "An error occurred while loading `%s':" (str init-file)))))))
 
 ;; Still to come...
 (defn command-loop []
@@ -258,4 +277,6 @@
     (el/setq command-line-args (alloc/cons "src/bootstrap-emacs" (apply alloc/list (remove nil? args))))
 
     (lread/load "deuce-loadup.el")
+    (init-user-classpath)
+    (load-user-init-file)
     (command-loop)))

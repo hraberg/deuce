@@ -254,7 +254,8 @@
 
 ;; Defined in eval.clj
 (defn eval [body & [lexical]]
-  (binding [*ns* (the-ns 'deuce.emacs)]
+  (binding [*ns* (the-ns 'deuce.emacs)
+            *compile-files* false]
     (with-bindings (if lexical {(global 'lexical-binding) true} {})
       (maybe-sym (compile (el->clj body))))))
 
