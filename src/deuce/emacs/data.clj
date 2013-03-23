@@ -377,7 +377,7 @@
 
 (defun integerp (object)
   "Return t if OBJECT is an integer."
-  (integer? object))
+  ((some-fn integer? char?) object))
 
 (defun fboundp (symbol)
   "Return t if SYMBOL's function definition is not void."
@@ -492,7 +492,7 @@
 
 (defun numberp (object)
   "Return t if OBJECT is a number (floating point or integer)."
-  ((some-fn number? char?) object))
+  ((some-fn number? integerp) object))
 
 (defun logand (&rest ints-or-markers)
   "Return bitwise-and of all the arguments.
@@ -513,7 +513,7 @@
   ARRAY may be a vector, a string, a char-table, a bool-vector,
   or a byte-code object.  IDX starts at 0."
   (if (instance? CharTable array)
-    (aref (.contents ^CharTable array) idx)
+    (aref (.contents ^CharTable array) (int idx))
     (get array idx)))
 
 (defun wholenump (object)
@@ -535,11 +535,11 @@
         (c/aset (.get string-chars array) idx (char newelt)))
       (c/aset array idx newelt))))
 
-(declare vectorp)
+(declare vectorp char-table-p)
 
 (defun arrayp (object)
   "Return t if OBJECT is an array (string or vector)."
-  ((some-fn vectorp stringp) object))
+  ((some-fn vectorp stringp char-table-p) object))
 
 (defun vectorp (object)
   "Return t if OBJECT is a vector."
@@ -629,8 +629,6 @@
 (defun char-or-string-p (object)
   "Return t if OBJECT is a character or a string."
   ((some-fn char? integer? string?) object))
-
-(declare char-table-p)
 
 (defun vector-or-char-table-p (object)
   "Return t if OBJECT is a char-table or vector."

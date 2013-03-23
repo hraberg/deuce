@@ -630,6 +630,9 @@
   To get the number of bytes, use `string-bytes'."
   (el/check-type 'sequencep sequence)
   (cond
+   (instance? CharTable sequence)
+   (count (.contents ^CharTable sequence))
+
    (data/listp sequence)
    (loop [cons sequence
           length 0]
@@ -638,9 +641,6 @@
        (do
          (el/check-type 'listp cons)
          length)))
-
-   (instance? CharTable sequence)
-   (length (.contents sequence))
 
    :else (count sequence)))
 

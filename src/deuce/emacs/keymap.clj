@@ -1,6 +1,7 @@
 (ns deuce.emacs.keymap
   (:use [deuce.emacs-lisp :only (defun defvar setq) :as el])
   (:require [clojure.core :as c]
+            [clojure.string :as s]
             [clojure.walk :as w]
             [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs-lisp.parser :as parser]
@@ -103,20 +104,30 @@
                         (data/car (data/setcdr keymap (alloc/cons (alloc/cons submap-name (make-sparse-keymap)) alist)))))]
         (define-key submap (data/aref key 1) def))) ;; DEF is apparently an XEmacs-style keyboard macro.)
     (let [keymap (if (symbol? keymap) (data/symbol-value keymap) keymap)
-          alist (data/cdr keymap)
+          char-table (fns/nth 1 keymap)
+          alist (if (data/char-table-p char-table) (fns/nthcdr 2 keymap) (data/cdr keymap))
           keydef (if (string? key)
-                   (if (= \\ (first key))
-                     (alloc/cons (int (data/car (parser/parse (str "?" key))))
-                                 def)
-                     (loop [[k & ks] (reverse (butlast key))
-                            acc (alloc/cons (int (last key)) def)]
+                   (let [keys (parser/parse-characters key)]
+                     ;; This must lookup the actual submap instead of nuking it if it exists
+                     ;; So we need to refactor this beast and actually implement lookup-key
+
+                     ;; This check is to ensure the key isn't actually bound to a normal event.
+                     ;; (when-not (data/listp (lookup-key ...))
+                     ;;    (el/throw* 'error (format "Key sequence %s starts with non-prefix key %s"
+                     ;;                       key (apply str (butlast key)))))
+                     (loop [[k & ks] (reverse (butlast keys))
+                            acc (alloc/cons (int (last keys)) def)]
                        (if k
                          (recur ks (alloc/list (int k) 'keymap acc))
                          acc)))
                    (alloc/cons key def))]
-      (if-let [existing (fns/assoc (data/car keydef) alist)]
-        (data/setcdr existing (data/cdr keydef))
-        (data/setcdr keymap (alloc/cons keydef alist)))
+      (if (and (data/char-table-p char-table)
+               (data/numberp (data/car keydef))
+               (< (data/car keydef) (fns/length char-table)))
+        (data/aset char-table (data/car keydef) (data/cdr keydef))
+        (if-let [existing (fns/assoc (data/car keydef) alist)]
+          (data/setcdr existing (data/cdr keydef))
+          (data/setcdr keymap (alloc/cons keydef alist))))
       def)))
 
 (defun copy-keymap (keymap)

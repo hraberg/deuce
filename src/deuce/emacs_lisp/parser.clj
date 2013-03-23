@@ -132,6 +132,21 @@
 (def ^:private ^Pattern re-str #"(?s)([^\"\\]*(?:\\.[^\"\\]*)*)\"")
 (def ^:private ^Pattern re-char #"(?s)((\\[CSMAHs]-)*(\\x?\p{XDigit}+|(\\\^?)?.))")
 
+(defn parse-characters [s]
+  (seq (map (comp parse-character first) (re-seq re-char s))))
+
+(def ^:private unmodifiers (zipmap (vals character-modifier-bits) (keys character-modifier-bits)))
+
+;; Turns #el/vec [67108911] into '(control \/), not sure how to read them from keyboard using lanterna.
+(defn unmodify-key [k]
+  (let [keys (reduce
+              (fn [[key & modifiers :as k] modifier]
+                (if (> (bit-and key modifier) 0)
+                  (cons (bit-and-not key modifier)
+                        (cons (unmodifiers modifier) modifiers))
+                  k)) k (keys unmodifiers))]
+    (reverse (cons (char (first keys)) (rest keys)))))
+
 (defn ^:private tokenize-all [^Scanner sc]
   (strip-comments (take-while (complement #{`end}) (repeatedly (partial tokenize sc)))))
 
