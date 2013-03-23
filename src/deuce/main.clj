@@ -278,5 +278,6 @@
 
     (lread/load "deuce-loadup.el")
     (init-user-classpath)
-    (load-user-init-file)
+    (when (data/symbol-value 'init-file-user)
+      (load-user-init-file))
     (command-loop)))
