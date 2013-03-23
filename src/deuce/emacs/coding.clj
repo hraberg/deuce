@@ -252,6 +252,8 @@
 
 (declare check-coding-system)
 
+(fns/put 'translation-table 'char-table-extra-slots 2)
+
 (defun coding-system-base (coding-system)
   "Return the base of CODING-SYSTEM.
   Any alias or subsidiary coding system is not a base coding system."

@@ -8,12 +8,12 @@
 
 (fns/put 'case-table 'char-table-extra-slots 3)
 
-(def ^:dynamic ^:private *standard-case-table* (atom (chartab/make-char-table 'case-table)))
+(def ^:private ascii-downcase-table (atom (chartab/make-char-table 'case-table)))
 
 (defun set-standard-case-table (table)
   "Select a new standard case table for new buffers.
   See `set-case-table' for more info on case tables."
-  (reset! *standard-case-table* table))
+  (reset! ascii-downcase-table table))
 
 (defun case-table-p (object)
   "Return t if OBJECT is a case table.
@@ -46,4 +46,4 @@
 (defun standard-case-table ()
   "Return the standard case table.
   This is the one used for new buffers."
-  @*standard-case-table*)
+  @ascii-downcase-table)

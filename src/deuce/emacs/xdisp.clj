@@ -7,6 +7,7 @@
             [deuce.emacs.editfns :as editfns]
             [deuce.emacs.eval :as eval]
             [deuce.emacs.fileio :as fileio]
+            [deuce.emacs.fns :as fns]
             [deuce.emacs.frame :as frame]
             [deuce.emacs.keyboard :as keyboard]
             [deuce.emacs.window :as window])
@@ -423,6 +424,8 @@
   "*Non-nil means highlight region even in nonselected windows.
 
   You can customize this variable.")
+
+(fns/put 'glyphless-char-display 'char-table-extra-slots 0)
 
 (defun current-bidi-paragraph-direction (&optional buffer)
   "Return paragraph direction at point in BUFFER.

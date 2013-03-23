@@ -1,6 +1,7 @@
 (ns deuce.emacs.syntax
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [deuce.emacs.fns :as fns])
   (:refer-clojure :exclude []))
 
 (defvar words-include-escapes nil
@@ -41,6 +42,8 @@
   "*Non-nil means an open paren in column 0 denotes the start of a defun.
 
   You can customize this variable.")
+
+(fns/put 'syntax-table 'char-table-extra-slots 0)
 
 (defun standard-syntax-table ()
   "Return the standard syntax table.

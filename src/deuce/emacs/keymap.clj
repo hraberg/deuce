@@ -49,6 +49,8 @@
 (defvar minibuffer-local-map nil
   "Default keymap to use when reading from the minibuffer.")
 
+(fns/put 'key-map 'char-table-extra-slots 0)
+
 (defun make-sparse-keymap (&optional string)
   "Construct and return a new sparse keymap.
   Its car is `keymap' and its cdr is an alist of (CHAR . DEFINITION),

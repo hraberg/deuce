@@ -43,6 +43,8 @@
   and Katakana (both are in the same script `kana'),
   the element `(?H . ?K) should be in this list.")
 
+(fns/put 'category-table 'char-table-extra-slots 2)
+
 (defun standard-category-table ()
   "Return the standard category table.
   This is the one used for new buffers."
