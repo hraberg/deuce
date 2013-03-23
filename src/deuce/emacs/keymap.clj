@@ -53,7 +53,9 @@
 
 (fns/put 'key-map 'char-table-extra-slots 0)
 
-(def ^:private current-global-map (atom nil))
+(def ^:private ^:dynamic *current-global-map* (atom nil))
+
+(declare current-global-map)
 
 (defun make-sparse-keymap (&optional string)
   "Construct and return a new sparse keymap.
@@ -397,7 +399,7 @@
 
 (defun current-global-map ()
   "Return the current global keymap."
-  @current-global-map)
+  @*current-global-map*)
 
 (defun command-remapping (command &optional position keymaps)
   "Return the remapping for command COMMAND.
@@ -437,5 +439,5 @@
 
 (defun use-global-map (keymap)
   "Select KEYMAP as the global keymap."
-  (reset! current-global-map keymap)
+  (reset! *current-global-map* keymap)
   nil)

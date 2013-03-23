@@ -37,6 +37,7 @@
 ;; (forward-line) ;; Select some text.
 ;; (pop-mark) ;; Remove mark / Deselect.
 ;; (find-file "~/.bashrc") ;; Open a file.
+;; (switch-to-buffer "*Deuce*") ;; The debug log
 
 
 (defn swank [port]
@@ -208,6 +209,15 @@
         (catch Exception e
           (reset! running nil)
           (throw e))))))
+
+(timbre/set-config!
+ [:appenders :deuce-buffer-appender]
+ {:min-level :debug
+  :enabled?  true
+  :async?    true
+  :fn (fn [{:keys [ap-config level prefix message more] :as args}]
+        (binding [buffer/*current-buffer* (buffer/get-buffer-create "*Deuce*")]
+          (editfns/insert (println-str prefix message more))))})
 
 ;; Callback run by faces/tty-run-terminal-initialization based on deuce.emacs.term/tty-type returning "lanterna"
 ;; Has Emacs Lisp proxy in deuce.emacs.

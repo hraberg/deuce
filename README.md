@@ -11,6 +11,33 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors)
 
+**2013-03-23 Lanterna**
+
+Lanterna is now default, it renders the UI in busy loop until we got something better, you start it like this:
+
+    lein trampoline run -q --swank-clojure
+
+You can then connect via Swank (or nREPL with `--nrepl`) and issue a few commands and see Deuce reflect them in the terminal:
+
+```clj
+user> (in-ns 'deuce.emacs)
+;; We're now in Emacs Lisp
+
+(switch-to-buffer "*Messages*") ;; Shows the boot messages, Loading ...etc.
+(switch-to-buffer "*scratch*") ;; Displays *scratch*
+(insert "Deuce is (not yet) Emacs under Clojure") ;; Insert some text.
+(beginning-of-line) ;; Ctrl-a
+(kill-line) ;; Kill the line.
+(yank) ;; Yank it back.
+```
+
+Here's an example how it looks, I have a buffer appender for the [`timbre`](https://github.com/ptaoussanis/timbre) debug log, you can also see the mark/region being active:
+
+<img width="648" src=https://github.com/hraberg/deuce/raw/master/screenshots/deuce-debug-buffer.png alt="Deuce is (not yet) Emacs under Clojure - *Deuce*" title="Deuce is (not yet) Emacs under Clojure - *Deuce*" />
+
+I'm currently working on the keymaps, so we can start accepting real keyboard input in a simple command loop.
+
+
 **2013-03-22 What needs to be done for 0.1.0?**
 
 0.1.0 is in my mind a version of Deuce running in a terminal which can open `*scratch*`, visit files and do normal text editing in a few buffers, and allows executing some simple commands via the minibuffer and complete the Emacs learn-by-doing tutorial. Nothing more than this.
@@ -60,7 +87,7 @@ Anyway, I will continue to work full time on Deuce until April 25, so hopefully 
 
 We're getting there, now with [Lanterna](https://code.google.com/p/lanterna/):
 
-<img width="648" src=https://github.com/hraberg/deuce/raw/master/deuce-lanterna.png alt="Deuce is (not yet) Emacs under Clojure - *scratch*" title="Deuce is (not yet) Emacs under Clojure - *scratch*" />
+<img width="648" src=https://github.com/hraberg/deuce/raw/master/screenshots/deuce-lanterna.png alt="Deuce is (not yet) Emacs under Clojure - *scratch*" title="Deuce is (not yet) Emacs under Clojure - *scratch*" />
 
 Doesn't take windows sizes, scrolling or splits into account, as none of these are even implemented, but you can now conveniently edit text from the REPL and echo your edits with `deuce.main/display-using-lanterna`. The very opposite of a display editor! The echo area message should also been cleared, but the command loop that deals with that doesn't exist yet either, so the edits are all made via lower level APIs, like `insert`, `goto-char` etc.
 

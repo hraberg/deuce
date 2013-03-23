@@ -33,13 +33,16 @@
   selected frame's terminal)."
   )
 
+(declare frame-terminal)
+
 (defun terminal-live-p (object)
   "Return non-nil if OBJECT is a terminal which has not been deleted.
   Value is nil if OBJECT is not a live display terminal.
   If object is a live display terminal, the return value indicates what
   sort of output terminal it uses.  See the documentation of `framep' for
   possible return values."
-  )
+  (when (frame-terminal)
+    true))
 
 (defun frame-terminal (&optional frame)
   "Return the terminal that FRAME is displayed on.
@@ -57,6 +60,8 @@
   but if the second argument FORCE is non-nil, you may do so."
   (when-let [terminal (or terminal (frame-terminal))]
     (eval/run-hook-with-args 'delete-terminal-functions terminal)
+    (s/clear terminal)
+    (s/redraw terminal)
     (s/stop terminal)
     (when (= terminal (frame-terminal))
       (reset! (.terminal globals/terminal-frame) nil))))

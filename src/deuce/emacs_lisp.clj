@@ -16,7 +16,8 @@
                       (str timestamp " " (-> level name s/upper-case) " [" ns "]")))
 (timbre/set-config! [:timestamp-pattern] "HH:mm:ss,SSS")
 
-(timbre/set-level! :error)
+(timbre/set-level! :debug)
+(timbre/set-config! [:appenders :standard-out :min-level] :error)
 ;; Needs to fix circular reference to deuce.emacs.data.Buffer
 ;; Push all defrecords down into deuce.emacs-lisp.structs or something?
 ;; (set! *warn-on-reflection* true)

@@ -119,6 +119,7 @@
 
 ;; Keymap setup, should in theory be in deuce.emacs.keymap, but cannot for a reason I forgot.
 (setq global-map (make-keymap))
+(use-global-map (symbol-value 'global-map))
 (setq esc-map (make-keymap))
 (setq ctl-x-map (make-keymap))
 ;; var is definied in keyboard.clj
