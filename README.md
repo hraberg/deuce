@@ -24,11 +24,11 @@ user> (in-ns 'deuce.emacs)
 ;; We're now in Emacs Lisp
 
 (switch-to-buffer "*Messages*") ;; Shows the boot messages, Loading ...etc.
-(switch-to-buffer "*scratch*") ;; Displays *scratch*
-(insert "Deuce is (not yet) Emacs under Clojure") ;; Insert some text.
+(switch-to-buffer "*scratch*")
+(insert "Deuce is (not yet) Emacs under Clojure")
 (beginning-of-line) ;; Ctrl-a
-(kill-line) ;; Kill the line.
-(yank) ;; Yank it back.
+(kill-line) ;; Ctrl-k
+(yank) ;; Ctrl-y
 ```
 
 Here's an example how it looks, I have a buffer appender for the [`timbre`](https://github.com/ptaoussanis/timbre) debug log, you can also see the mark/region being active:
