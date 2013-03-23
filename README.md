@@ -33,7 +33,7 @@ user> (in-ns 'deuce.emacs)
 
 Here's an example how it looks, I have a buffer appender for the [`timbre`](https://github.com/ptaoussanis/timbre) debug log, you can also see the mark/region being active:
 
-<img width="648" src=https://github.com/hraberg/deuce/raw/master/screenshots/deuce-debug-buffer.png alt="Deuce is (not yet) Emacs under Clojure - *Deuce*" title="Deuce is (not yet) Emacs under Clojure - *Deuce*" />
+<img width="576" src=https://github.com/hraberg/deuce/raw/master/screenshots/deuce-debug-buffer.png alt="Deuce is (not yet) Emacs under Clojure - *Deuce*" title="Deuce is (not yet) Emacs under Clojure - *Deuce*" />
 
 I'm currently working on the keymaps, so we can start accepting real keyboard input in a simple command loop.
 
