@@ -18,7 +18,9 @@
             [deuce.emacs.xdisp :as xdisp]
             [taoensso.timbre :as timbre]
             [dynapath.util :as dp])
-  (:import [java.io FileNotFoundException])
+  (:import [java.io FileNotFoundException]
+           [java.awt Toolkit]
+           [java.awt.datatransfer DataFlavor StringSelection])
   (:gen-class))
 
 ;; Start Deuce like this: lein trampoline run -q --swank-clojure
@@ -219,12 +221,25 @@
         (binding [buffer/*current-buffer* (buffer/get-buffer-create "*Deuce*")]
           (editfns/insert (str (s/join " " (concat [prefix "-" message] more)) \newline))))})
 
+
+
+(defn init-clipboard []
+  (let [clipboard (.getSystemClipboard (Toolkit/getDefaultToolkit))]
+    (el/setq interprogram-cut-function
+             (fn [text]
+               (let [selection (StringSelection. text)]
+                 (.setContents clipboard selection selection))))
+
+    (el/setq interprogram-paste-function
+             #(.getData clipboard DataFlavor/stringFlavor))))
+
 ;; Callback run by faces/tty-run-terminal-initialization based on deuce.emacs.term/tty-type returning "lanterna"
 ;; Has Emacs Lisp proxy in deuce.emacs.
 (defn terminal-init-lanterna []
   (try
     ((ns-resolve 'deuce.emacs.terminal 'init-initial-terminal))
     (def screen (terminal/frame-terminal))
+    (init-clipboard)
     (start-render-loop)
     (catch Exception e
       (when screen
