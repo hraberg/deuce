@@ -725,6 +725,10 @@
   that tells this function to return.
   Alternatively, `(throw 'exit t)' makes this function signal an error.
   This function is called by the editor initialization to begin editing."
+  ;; Increases command_loop_level, calls the internal C functions:
+  ;;   recursive_edit_1 -> command_loop -> command_loop_2 -> command_loop_1
+  ;; Each adding some layers of condition case and other things (redisplay, buffer).
+  ;; command_loop_1 is the real command loop. Calls read_key_sequence.
   )
 
 (defun this-command-keys-vector ()

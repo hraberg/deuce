@@ -12,6 +12,7 @@
             [deuce.emacs.eval :as eval]
             [deuce.emacs.fns :as fns]
             [deuce.emacs.frame :as frame]
+            [deuce.emacs.keyboard :as keyboard]
             [deuce.emacs.lread :as lread]
             [deuce.emacs.terminal :as terminal]
             [deuce.emacs.window :as window]
@@ -258,11 +259,6 @@
       (catch Exception e
         (timbre/error e (format "An error occurred while loading `%s':" (str init-file)))))))
 
-;; Still to come...
-(defn command-loop []
-  ;; M-x awesomeness
-  )
-
 ;; We want to support emacs -q initially. -q is --no-init-file
 (defn -main [& args]
   (let [option #(hash-set (str "-" %) (str "--" %))
@@ -291,4 +287,6 @@
     (init-user-classpath)
     (when (data/symbol-value 'init-file-user)
       (load-user-init-file))
-    (command-loop)))
+
+    ;; /* Enter editor command loop.  This never returns.  */
+    (keyboard/recursive-edit)))
