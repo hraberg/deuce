@@ -222,8 +222,9 @@
 
 (defn ^:private read-event-internal [prompt inherit-input-method seconds]
   (when prompt (echo prompt))
-  (lanterna.common/block-on #(.readInput (terminal/frame-terminal)) []
-                            (when seconds {:timeout (* 1000 seconds)})))
+  ((ns-resolve 'deuce.emacs.keyboard 'read-char) nil nil nil nil
+   (+ (System/currentTimeMillis)
+      (* 1000 seconds))))
 
 (defn ^:private key-to-integer [^Key k]
   (parser/event-convert-list-internal
@@ -231,6 +232,7 @@
                  (when (.isCtrlPressed k) 'control)])
    (.getCharacter k)))
 
+;; This should maybe use the input-decode-map?
 (def ^:private lanterna-to-emacs-event {:enter "return"
                                         :page-down "next"
                                         :page-up "prior"

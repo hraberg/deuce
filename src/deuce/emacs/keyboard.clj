@@ -2,9 +2,11 @@
   (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
             [clojure.java.shell :as sh]
+            [lanterna.common]
             [deuce.emacs.casefiddle :as casefiddle]
             [deuce.emacs.editfns :as editfns]
             [deuce.emacs.term :as term]
+            [deuce.emacs.terminal :as terminal]
             [deuce.emacs-lisp.parser :as parser])
   (:import [sun.misc Signal SignalHandler])
   (:refer-clojure :exclude []))
@@ -498,6 +500,43 @@
   This keymap works like `function-key-map', but comes after that,
   and its non-prefix bindings override ordinary bindings.
   Another difference is that it is global rather than keyboard-local.")
+
+
+;; DEUCE: For reference, this is the main low level read_char function in Emacs.
+;;        We don't use nmaps (or most arguments yet).
+;;        We use currentTimeMillis for internal times instead of Emacs style time.
+;;        Maybe totally revamped, but let's start with something "similar" to Emacs.
+;;        Is normally called from read_key_sequence (C internal version) from command_loop_1.
+
+;; /* read a character from the keyboard; call the redisplay if needed */
+;; /* commandflag 0 means do not autosave, but do redisplay.
+;;    -1 means do not redisplay, but do autosave.
+;;    1 means do both.  */
+
+;; /* The arguments MAPS and NMAPS are for menu prompting.
+;;    MAPS is an array of keymaps;  NMAPS is the length of MAPS.
+
+;;    PREV_EVENT is the previous input event, or nil if we are reading
+;;    the first event of a key sequence (or not reading a key sequence).
+;;    If PREV_EVENT is t, that is a "magic" value that says
+;;    not to run input methods, but in other respects to act as if
+;;    not reading a key sequence.
+
+;;    If USED_MOUSE_MENU is non-null, then we set *USED_MOUSE_MENU to 1
+;;    if we used a mouse menu to read the input, or zero otherwise.  If
+;;    USED_MOUSE_MENU is null, we don't dereference it.
+
+;;    Value is -2 when we find input on another keyboard.  A second call
+;;    to read_char will read it.
+
+;;    If END_TIME is non-null, it is a pointer to an EMACS_TIME
+;;    specifying the maximum time to wait until.  If no input arrives by
+;;    that time, stop waiting and return nil.
+
+;;    Value is t if we showed a menu and the user rejected it.  */
+(defn ^:private read-char [commandflag maps prev-event used-mouse-menu end-time]
+  (lanterna.common/block-on #(.readInput (terminal/frame-terminal)) []
+                            (when end-time {:timeout (* 1000 (- end-time (System/currentTimeMillis)))}))  )
 
 (defun event-convert-list (event-desc)
   "Convert the event description list EVENT-DESC to an event type.
