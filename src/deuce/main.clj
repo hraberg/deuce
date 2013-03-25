@@ -109,19 +109,18 @@
         [header-line mode-line] (when-not minibuffer?
                                   [(buffer/buffer-local-value 'header-line-format buffer)
                                    (buffer/buffer-local-value 'mode-line-format buffer)])
-        line-indexes (line-indexes (str (.beg (.own-text buffer))))
+        text (binding [buffer/*current-buffer* buffer]
+               (editfns/buffer-string))
+        line-indexes (line-indexes text)
         pos-to-line (partial pos-to-line line-indexes)
         point-coords (partial point-coords line-indexes)
-        pt @(.pt buffer)
-        begv @(.begv buffer) ;; TODO: some offsetting if narrowing is in effect.
+        pt (- @(.pt buffer) (or @(.begv buffer) 0))
         line (pos-to-line pt)
         total-lines (- @(.total-lines window) (or (count (remove nil? [header-line mode-line])) 0))
         scroll (max (inc (- line total-lines)) 0)
         mark-active? (buffer/buffer-local-value 'mark-active buffer)
         selected-window? (= window (window/selected-window))]
-    (let [text (binding [buffer/*current-buffer* buffer]
-                 (editfns/buffer-string))
-          lines (s/split text #"\n")
+    (let [lines (s/split text #"\n")
           cols @(.total-cols window)
           top-line @(.top-line window)
           top-line (if header-line (inc top-line) top-line)
