@@ -121,17 +121,25 @@
 ;; Keymap setup, should in theory be in deuce.emacs.keymap, but cannot for a reason I forgot.
 (setq global-map (make-keymap))
 (use-global-map (symbol-value 'global-map))
+
 (setq esc-map (make-keymap))
+(fset 'ESC-prefix (symbol-value 'esc-map))
 (setq ctl-x-map (make-keymap))
+(fset 'Control-X-prefix (symbol-value 'ctl-x-map))
+
+(define-key globals/global-map \ 'ESC-prefix)
+(define-key globals/global-map \ 'Control-X-prefix)
+
 ;; var is definied in keyboard.clj
 (setq function-key-map (make-sparse-keymap))
 ;; This map has a few low-level (like delete-frame) key defs in keybaoard.c
 (setq special-event-map (make-sparse-keymap))
 (setq local-function-key-map (make-sparse-keymap))
-; (set-keymap-parent globals/local-function-key-map globals/function-key-map)
+(set-keymap-parent globals/local-function-key-map globals/function-key-map)
+
 (setq input-decode-map (make-sparse-keymap))
 (setq key-translation-map (make-sparse-keymap))
 
 (setq minibuffer-local-map (make-sparse-keymap))
 (setq minibuffer-local-ns-map (make-sparse-keymap))
-; (set-keymap-parent globals/minibuffer-local-ns-map globals/minibuffer-local-map)
+(set-keymap-parent globals/minibuffer-local-ns-map globals/minibuffer-local-map)

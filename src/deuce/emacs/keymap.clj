@@ -128,7 +128,7 @@
                    (alloc/cons key def))]
       (if (and (data/char-table-p char-table)
                (data/numberp (data/car keydef))
-               (< (data/car keydef) (fns/length char-table)))
+               (< (int (data/car keydef)) (fns/length char-table)))
         (data/aset char-table (data/car keydef) (data/cdr keydef))
         (if-let [existing (fns/assoc (data/car keydef) alist)]
           (data/setcdr existing (data/cdr keydef))
