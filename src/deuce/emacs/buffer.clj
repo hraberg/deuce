@@ -888,9 +888,11 @@
         text (BufferText. (StringBuilder.) (atom nil) (atom now) (atom nil))
         own-text text
         pt (atom 1)
+        begv (atom nil)
+        zv (atom nil)
         mark (atom (alloc/make-marker))
         buffer-locals (atom {})
-        buffer (Buffer. own-text text pt (atom name) mark buffer-locals)]
+        buffer (Buffer. own-text text pt begv zv (atom name) mark buffer-locals)]
     buffer))
 
 (defun get-buffer-create (buffer-or-name)

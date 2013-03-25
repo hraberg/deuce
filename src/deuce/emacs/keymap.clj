@@ -240,6 +240,7 @@
   occurs in the keymaps associated with it instead of KEY.  It can also
   be a number or marker, in which case the keymap properties at the
   specified buffer position instead of point are used."
+  ;; Uses lookup-key in all current-active-maps
   )
 
 (defun map-keymap (function keymap)

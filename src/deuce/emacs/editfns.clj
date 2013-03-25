@@ -5,6 +5,7 @@
             [clojure.java.shell :as sh]
             [clojure.string :as s]
             [deuce.emacs.buffer :as buffer]
+            [deuce.emacs.casefiddle :as casefiddle]
             [deuce.emacs.data :as data]
             [deuce.emacs.window :as window]
             [deuce.emacs-lisp :as el]
@@ -55,6 +56,9 @@
      (> pos pt)
      (swap! (.charpos marker) + offset)))
   marker)
+
+(defn ^:private casefold [s]
+  ((if (data/symbol-value 'case-fold-search) casefiddle/downcase identity) s))
 
 (defun byte-to-position (bytepos)
   "Return the character position for byte position BYTEPOS.
@@ -246,13 +250,15 @@
   "Return the maximum permissible value of point in the current buffer.
   This is (1+ (buffer-size)), unless narrowing (a buffer restriction)
   is in effect, in which case it is less."
-  (inc (buffer-size)))
+  (if-let [zv @(.zv (buffer/current-buffer))]
+    zv
+    (inc (buffer-size))))
 
 (defun char-equal (c1 c2)
   "Return t if two characters match, optionally ignoring case.
   Both arguments must be characters (i.e. integers).
   Case is ignored if `case-fold-search' is non-nil in the current buffer."
-  (= (s/lower-case c1) (s/lower-case c2)))
+  (= (casefold c1) (casefold c2)))
 
 (defun encode-time (second minute hour day month year &optional zone)
   "Convert SECOND, MINUTE, HOUR, DAY, MONTH, YEAR and ZONE to internal time.
@@ -294,7 +300,7 @@
   BUFFER may be a buffer or a buffer name.
   Arguments START and END are character positions specifying the substring.
   They default to the values of (point-min) and (point-max) in BUFFER."
-  (insert (binding [buffer/current-buffer buffer]
+  (insert (binding [buffer/*current-buffer* buffer]
             (buffer-substring start end))))
 
 (defun point-min-marker ()
@@ -335,7 +341,11 @@
   boundaries bind `inhibit-field-text-motion' to t.
 
   This function does not move point."
-  )
+  ;; This should be defined the other way around.
+  (let [pt (point)]
+    (try
+      ((ns-resolve 'deuce.emacs.cmds 'end-of-line) n)
+      (finally (goto-char pt)))))
 
 (defun narrow-to-region (start end)
   "Restrict editing in this buffer to the current region.
@@ -346,7 +356,9 @@
 
   When calling from a program, pass two arguments; positions (integers
   or markers) bounding the text that should remain visible."
-  )
+  (let [buffer (buffer/current-buffer)]
+    (reset! (.begv buffer) start)
+    (reset! (.zv buffer) end)))
 
 (defun get-internal-run-time ()
   "Return the current run time used by Emacs.
@@ -363,12 +375,16 @@
 (defun point-min ()
   "Return the minimum permissible value of point in the current buffer.
   This is 1, unless narrowing (a buffer restriction) is in effect."
-  1)
+  (if-let [begv @(.zv (buffer/current-buffer))]
+    begv
+    1))
 
 (defun widen ()
   "Remove restrictions (narrowing) from current buffer.
   This allows the buffer's full text to be seen and edited."
-  )
+  (let [buffer (buffer/current-buffer)]
+    (reset! (.begv buffer) nil)
+    (reset! (.zv buffer) nil)))
 
 (defun subst-char-in-region (start end fromchar tochar &optional noundo)
   "From START to END, replace FROMCHAR with TOCHAR each time it occurs.
@@ -389,7 +405,7 @@
 (defun position-bytes (position)
   "Return the byte position for character position POSITION.
   If POSITION is out of range, the value is nil."
-  )
+  (point))
 
 (defun point ()
   "Return value of point, as an integer.
@@ -421,7 +437,11 @@
   boundaries bind `inhibit-field-text-motion' to t.
 
   This function does not move point."
-  )
+  ;; This should be defined the other way around.
+  (let [pt (point)]
+    (try
+      ((ns-resolve 'deuce.emacs.cmds 'beginning-of-line) n)
+      (finally (goto-char pt)))))
 
 (defun following-char ()
   "Return the character following point, as a number.
@@ -437,7 +457,7 @@
   "Return the characters of part of the buffer, without the text properties.
   The two arguments START and END are character positions;
   they can be in either order."
-  )
+  (buffer-substring start end))
 
 (defun user-real-uid ()
   "Return the real uid of Emacs.
@@ -467,7 +487,7 @@
 (defun bobp ()
   "Return t if point is at the beginning of the buffer.
   If the buffer is narrowed, this means the beginning of the narrowed part."
-  (= 1 (point)))
+  (= (point-min) (point)))
 
 (defun message-or-box (format-string &rest args)
   "Display a message in a dialog box or in the echo area.
@@ -539,7 +559,7 @@
   "Return the contents of the current buffer as a string.
   If narrowing is in effect, this function returns only the visible part
   of the buffer."
-  (str (.beg (.text (buffer/current-buffer)))))
+  (buffer-substring (point-min) (point-max)))
 
 (defun current-message ()
   "Return the string currently displayed in the echo area, or nil if none."
@@ -628,7 +648,23 @@
   any markers that happen to be located in the regions.
 
   Transposing beyond buffer boundaries is an error."
-  )
+  (let [r1 (buffer-substring startr1 endr1)
+        r2 (buffer-substring startr2 endr2)
+        pt (point)
+        buffer (buffer/current-buffer)
+        text (.text buffer)
+        mark @(.mark buffer)
+        markers @(.markers text)]
+    (delete-region startr1 endr1)
+    (goto-char startr1)
+    (insert r2)
+    (delete-region startr2 endr2)
+    (goto-char startr2)
+    (insert r1)
+    (when leave-markers
+      (reset! (.mark buffer) mark)
+      (reset! (.markers text) markers))
+    (goto-char pt)))
 
 (defun goto-char (position)
   "Set point to POSITION, a number or marker.
@@ -637,7 +673,7 @@
   The return value is POSITION."
   (el/check-type 'integer-or-marker-p position)
   (let [position (if (data/markerp position) @(.charpos position) position)
-        real-pos (min (max 1 position) (inc (buffer-size)))]
+        real-pos (min (max (point-min) position) (point-max))]
     (reset! (.pt (buffer/current-buffer)) real-pos)
     position))
 
@@ -743,7 +779,11 @@
 
   The value of `case-fold-search' in the current buffer
   determines whether case is significant or ignored."
-  )
+  (let [s1 (binding [buffer/*current-buffer* buffer1]
+             (buffer-substring start1 end1))
+        s2 (binding [buffer/*current-buffer* buffer2]
+             (buffer-substring start2 end2))]
+    (compare (casefold s1) (casefold s2))))
 
 (defun mark-marker ()
   "Return this buffer's mark, as a marker object.
@@ -835,7 +875,7 @@
   This function copies the text properties of that part of the buffer
   into the result string; if you don't want the text properties,
   use `buffer-substring-no-properties' instead."
-  (subs (buffer-string) (dec start) (dec end)))
+  (subs (str (.beg (.text (buffer/current-buffer)))) (dec start) (dec end)))
 
 (defun byte-to-string (byte)
   "Convert arg BYTE to a unibyte string containing that byte."

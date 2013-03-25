@@ -105,6 +105,12 @@
      ;; /* Char position of point in buffer.  */
      pt
 
+     ;; /* Char position of beginning of accessible range.  */
+     begv
+
+     ;; /* Char position of end of accessible range.  */
+     zv
+
      ;; /* The name of this buffer.  */
      name
 

@@ -113,12 +113,14 @@
         pos-to-line (partial pos-to-line line-indexes)
         point-coords (partial point-coords line-indexes)
         pt @(.pt buffer)
+        begv @(.begv buffer) ;; TODO: some offsetting if narrowing is in effect.
         line (pos-to-line pt)
         total-lines (- @(.total-lines window) (or (count (remove nil? [header-line mode-line])) 0))
         scroll (max (inc (- line total-lines)) 0)
         mark-active? (buffer/buffer-local-value 'mark-active buffer)
         selected-window? (= window (window/selected-window))]
-    (let [text (.beg (.own-text buffer))
+    (let [text (binding [buffer/*current-buffer* buffer]
+                 (editfns/buffer-string))
           lines (s/split text #"\n")
           cols @(.total-cols window)
           top-line @(.top-line window)
@@ -214,21 +216,16 @@
 
 (timbre/set-config!
  [:appenders :deuce-buffer-appender]
- {:min-level :debug
-  :enabled?  true
-  :async?    true
+ {:min-level :debug :enabled? true :async? true
   :fn (fn [{:keys [ap-config level prefix message more] :as args}]
         (binding [buffer/*current-buffer* (buffer/get-buffer-create "*Deuce*")]
           (editfns/insert (str (s/join " " (concat [prefix "-" message] more)) \newline))))})
 
-
-
 (defn init-clipboard []
   (let [clipboard (.getSystemClipboard (Toolkit/getDefaultToolkit))]
     (el/setq interprogram-cut-function
-             (fn [text]
-               (let [selection (StringSelection. text)]
-                 (.setContents clipboard selection selection))))
+             #(let [selection (StringSelection. %)]
+                (.setContents clipboard selection selection)))
 
     (el/setq interprogram-paste-function
              #(.getData clipboard DataFlavor/stringFlavor))))
