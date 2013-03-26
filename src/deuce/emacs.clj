@@ -122,6 +122,7 @@
 (setq global-map (make-keymap))
 (use-global-map (symbol-value 'global-map))
 
+;; These use internal-define-key in Emacs, which doesn't define the prefix as symbol, unlike define-prefix-command.
 (setq esc-map (make-keymap))
 (fset 'ESC-prefix (symbol-value 'esc-map))
 (setq ctl-x-map (make-keymap))

@@ -398,7 +398,10 @@
   The third optional argument NAME, if given, supplies a menu name
   string for the map.  This is required to use the keymap as a menu.
   This function returns COMMAND."
-  )
+  (let [keymap (make-sparse-keymap name)]
+    (data/fset command keymap)
+    (data/set (or mapvar command) keymap)
+    command))
 
 (defun keymap-parent (keymap)
   "Return the parent keymap of KEYMAP.
