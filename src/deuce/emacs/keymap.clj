@@ -8,9 +8,11 @@
             [deuce.emacs-lisp.parser :as parser]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.buffer :as buffer]
-            [deuce.emacs.data :as data]
             [deuce.emacs.chartab :as chartab]
-            [deuce.emacs.fns :as fns])
+            [deuce.emacs.data :as data]
+            [deuce.emacs.editfns :as editfns]
+            [deuce.emacs.fns :as fns]
+            [deuce.emacs.textprop :as textprop])
   (:import [deuce.emacs.data CharTable])
   (:refer-clojure :exclude []))
 
@@ -57,7 +59,7 @@
 
 (def ^:private ^:dynamic *current-global-map* (atom nil))
 
-(declare current-global-map keymapp keymap-parent set-keymap-parent)
+(declare current-global-map current-minor-mode-maps keymapp keymap-parent set-keymap-parent lookup-key)
 
 (defun make-sparse-keymap (&optional string)
   "Construct and return a new sparse keymap.
@@ -227,12 +229,34 @@
   See Info node `(elisp)Describing Characters' for examples."
   )
 
+;; http://www.gnu.org/software/emacs/manual/html_node/elisp/Searching-Keymaps.html
+;; "Here is a pseudo-Lisp description of the order and conditions for searching them:"
+;; (or (cond
+;;      (overriding-terminal-local-map
+;;       (find-in overriding-terminal-local-map))
+;;      (overriding-local-map
+;;       (find-in overriding-local-map))
+;;      ((or (find-in (get-char-property (point) 'keymap))
+;;           (find-in temp-map)
+;;           (find-in-any emulation-mode-map-alists)
+;;           (find-in-any minor-mode-overriding-map-alist)
+;;           (find-in-any minor-mode-map-alist)
+;;           (if (get-text-property (point) 'local-map)
+;;               (find-in (get-char-property (point) 'local-map))
+;;             (find-in (current-local-map))))))
+;;     (find-in (current-global-map)))
+;; "The function finally found might also be remapped. See Remapping Commands."
 (defun current-active-maps (&optional olp position)
   "Return a list of the currently active keymaps.
   OLP if non-nil indicates that we should obey `overriding-local-map' and
   `overriding-terminal-local-map'.  POSITION can specify a click position
   like in the respective argument of `key-binding'."
-  )
+  (cons/maybe-seq (remove nil? (concat (when olp [(or (data/symbol-value 'overriding-terminal-local-map)
+                                                      (data/symbol-value 'overriding-local-map))])
+                                       (current-minor-mode-maps)
+                                       [(textprop/get-char-property (or position (editfns/point)) 'local-map)
+                                        (current-local-map)
+                                        (current-global-map)]))))
 
 (defun key-binding (key &optional accept-default no-remap position)
   "Return the binding for command KEY in current keymaps.
@@ -259,8 +283,7 @@
   occurs in the keymaps associated with it instead of KEY.  It can also
   be a number or marker, in which case the keymap properties at the
   specified buffer position instead of point are used."
-  ;; Uses lookup-key in all current-active-maps
-  )
+  (some #(lookup-key % accept-default) (current-active-maps nil position)))
 
 (defun map-keymap (function keymap)
   "Call FUNCTION once for each event binding in KEYMAP.
@@ -303,7 +326,10 @@
 
 (defun current-minor-mode-maps ()
   "Return a list of keymaps for the minor modes of the current buffer."
-  )
+  (cons/maybe-seq (map data/cdr (filter (comp data/symbol-value data/car)
+                                        (concat (data/symbol-value 'emulation-mode-map-alists)
+                                                (data/symbol-value 'minor-mode-overriding-map-alist)
+                                                (data/symbol-value 'minor-mode-map-alist))))))
 
 (defun make-keymap (&optional string)
   "Construct and return a new keymap, of the form (keymap CHARTABLE . ALIST).
@@ -456,7 +482,7 @@
 
   If optional argument ACCEPT-DEFAULT is non-nil, recognize default
   bindings; see the description of `lookup-key' for more details about this."
-  )
+  (some #(lookup-key % accept-default) (current-minor-mode-maps)))
 
 (defun describe-vector (vector &optional describer)
   "Insert a description of contents of VECTOR.
