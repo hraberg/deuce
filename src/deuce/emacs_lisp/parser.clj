@@ -8,7 +8,6 @@
             [deuce.emacs.casefiddle :as casefiddle]
             [deuce.emacs.textprop :as textprop])
   (:import [java.util Scanner]
-           [java.io StringReader StreamTokenizer]
            [java.util.regex Pattern]))
 
 (declare tokenize)
@@ -60,20 +59,15 @@
 
 ;; This takes an actual quoted String. Can easiest be called from the REPL by chaining (pr-str "...")
 (defn ^:private parse-string [s]
-  (.sval (doto (StreamTokenizer. (StringReader.
-                                  (reduce (fn [s [m r]] (s/replace s m r))
-                                          s
-                            ;              (resolve-control-chars s)
-                                          [["\\\n" ""]
-                                           ["\\\r" ""]
-                                           ["\\\\" "\\"]
-                                           ["\\" "\\\\"]
-                                           ["\r" "\\\r"]
-                                           ["\n" "\\\n"]  ;; This is highly dubious
-                                           ])
-                                  ))
-           (.nextToken))))
-
+  (reduce (fn [s [m r]] (s/replace s m r))
+          (subs s 1 (dec (count s)))
+          [["\\\n" ""]
+           ["\\\"" "\""]
+           ["\\\\" "\\"]
+           ["\\n" "\n"]
+           ["\\r" "\r"]
+           ["\\b" "\b"]
+           ["\\t" "\t"]]))
 ;; Like Emacs, certain characters can be read both with single and double backslash. Not necessarily the same ones.
 (def emacs-problem-chars {"\\" \\ "\\s" \space
                           "\\-" \- "-" \- "\"" \"})
@@ -117,7 +111,7 @@
              (character-modifier-symbols c) -1
              (re-find #"\\\d+" c) (Integer/parseInt (subs c 1) 8)
              (re-find #"\\x\p{XDigit}" c) (Integer/parseInt (subs c 2) 16)
-             :else (int (first (resolve-control-chars (parse-string (str \" c \"))))))]
+             :else (int (first (resolve-control-chars (str c)))))]
       (if (= -1 c) c
           (let [c (event-convert-list-internal
                    (replace character-modifier-symbols mods) c :no-modifier-conversion)]
