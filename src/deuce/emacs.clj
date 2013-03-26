@@ -128,8 +128,22 @@
 (setq ctl-x-map (make-keymap))
 (fset 'Control-X-prefix (symbol-value 'ctl-x-map))
 
-(define-key globals/global-map \ 'ESC-prefix)
-(define-key globals/global-map \ 'Control-X-prefix)
+;; Main prefix keymaps setup from keymap.c
+(define-key globals/global-map "\\e" 'ESC-prefix)
+(define-key globals/global-map "\\C-x" 'Control-X-prefix)
+
+;; self-insert-command for standard keys setup in cmds.c
+(define-key globals/global-map "\\C-i" 'self-insert-command)
+(c/doseq [n (c/range 32 (c/inc 127))]
+         (define-key globals/global-map (make-string 1 n) 'self-insert-command))
+(c/doseq [n (c/range 160 (c/inc 256))]
+         (define-key globals/global-map (make-string 1 n) 'self-insert-command))
+
+;; basic movement commands setup in cmds.c
+(define-key globals/global-map "\\C-a" 'beginning-of-line)
+(define-key globals/global-map "\\C-b" 'backward-char)
+(define-key globals/global-map "\\C-e" 'end-of-line)
+(define-key globals/global-map "\\C-f" 'forward-char)
 
 ;; var is definied in keyboard.clj
 (setq function-key-map (make-sparse-keymap))

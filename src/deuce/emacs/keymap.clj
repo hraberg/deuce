@@ -74,6 +74,54 @@
     (alloc/list 'keymap string)
     (alloc/list 'keymap)))
 
+(defn ^:private binding-this-map [keymap key]
+  (let [char-table (second keymap)
+        alist (if (data/char-table-p char-table) (fns/nthcdr 2 keymap) (data/cdr keymap))]
+    (if (and (data/char-table-p (second keymap))
+             (data/numberp key)
+             (< (int key) (fns/length (second keymap))))
+      (data/aref char-table key)
+      (data/cdr (fns/assoc key alist)))))
+
+(defn ^:private define-key-this-map [keymap key def]
+  (let [char-table (second keymap)
+        alist (if (data/char-table-p char-table) (fns/nthcdr 2 keymap) (data/cdr keymap))]
+    (if (and (data/char-table-p char-table)
+             (data/numberp key)
+             (< (int key) (fns/length char-table)))
+      (data/aset char-table key def)
+      (if-let [existing (fns/assoc key alist)]
+        (data/setcdr existing def)
+        (data/setcdr keymap (alloc/cons (alloc/cons key def) alist))))))
+
+(defn ^:private binding-map [keymap key]
+  (let [submap-or-binding (binding-this-map keymap (first key))
+        submap-or-binding (if (and (data/symbolp submap-or-binding) (next key))
+                            (try
+                              (data/symbol-function submap-or-binding)
+                              (catch RuntimeException _))
+                            submap-or-binding)]
+
+    (if-let [key (next key)]
+      (if submap-or-binding
+        (recur submap-or-binding key)
+        (count key))
+      submap-or-binding)))
+
+(defn ^:private define-key-internal [keymap key def]
+  (let [submap-or-binding (binding-this-map keymap (first key))
+        submap-or-binding (if-not submap-or-binding
+                            (let [def (if (next key) (make-sparse-keymap) def)]
+                              (define-key-this-map keymap
+                                (first key) def)
+                              def)
+                            submap-or-binding)]
+    (if-let [key (next key)]
+      (if (keymapp submap-or-binding)
+        (recur submap-or-binding key def)
+        (throw (IllegalArgumentException.)))
+      (define-key-this-map keymap (first key) def))))
+
 (defun define-key (keymap key def)
   "In KEYMAP, define key sequence KEY as DEF.
   KEYMAP is a keymap.
@@ -103,41 +151,20 @@
   If KEYMAP is a sparse keymap with a binding for KEY, the existing
   binding is altered.  If there is no binding for KEY, the new pair
   binding KEY to DEF is added at the front of KEYMAP."
-  (if (data/vectorp key)
-    (if (= 1 (count key))
-      (define-key keymap (data/aref key 0) def)
-      (let [alist (data/cdr keymap)  ;; DEF is apparently an XEmacs-style keyboard macro.)
-            submap-name (data/aref key 0)
-            submap (data/cdr
-                    (or (fns/assoc submap-name alist)
-                        (data/car (data/setcdr keymap (alloc/cons (alloc/cons submap-name (make-sparse-keymap)) alist)))))]
-        (define-key submap (data/aref key 1) def))) ;; DEF is apparently an XEmacs-style keyboard macro.)
-    (let [keymap (if (symbol? keymap) (data/symbol-value keymap) keymap)
-          char-table (fns/nth 1 keymap)
-          alist (if (data/char-table-p char-table) (fns/nthcdr 2 keymap) (data/cdr keymap))
-          keydef (if (string? key)
-                   (let [keys (parser/parse-characters key)]
-                     ;; This must lookup the actual submap instead of nuking it if it exists
-                     ;; So we need to refactor this beast and actually implement lookup-key
-
-                     ;; This check is to ensure the key isn't actually bound to a normal event.
-                     ;; (when-not (data/listp (lookup-key ...))
-                     ;;    (el/throw* 'error (format "Key sequence %s starts with non-prefix key %s"
-                     ;;                       key (apply str (butlast key)))))
-                     (loop [[k & ks] (reverse (butlast keys))
-                            acc (alloc/cons (int (last keys)) def)]
-                       (if k
-                         (recur ks (alloc/list (int k) 'keymap acc))
-                         acc)))
-                   (alloc/cons key def))]
-      (if (and (data/char-table-p char-table)
-               (data/numberp (data/car keydef))
-               (< (int (data/car keydef)) (fns/length char-table)))
-        (data/aset char-table (data/car keydef) (data/cdr keydef))
-        (if-let [existing (fns/assoc (data/car keydef) alist)]
-          (data/setcdr existing (data/cdr keydef))
-          (data/setcdr keymap (alloc/cons keydef alist))))
-      def)))
+  (let [real-key key
+        key (if (string? key) (parser/parse-characters key) (el/check-type 'arrayp key))
+        keymap (if (data/symbolp keymap) (data/symbol-value keymap) keymap)]
+    (try
+      (define-key-internal keymap key def)
+      (catch IllegalArgumentException e
+        (println (format "WARNING: Key sequence %s starts with non-prefix key %s"
+                         (s/join " " key) (s/join " " (butlast key))))
+        (println "Currenty bound as " (lookup-key keymap real-key))
+        (println "Currenty bound as " (lookup-key keymap (apply str (butlast real-key))))
+        ;; (el/throw* 'error (format "Key sequence %s starts with non-prefix key %s"
+        ;;                           (s/join " " key) (s/join " " (butlast key))))
+        ))
+    def))
 
 (defun copy-keymap (keymap)
   "Return a copy of the keymap KEYMAP.
@@ -302,7 +329,7 @@
   "Return the prompt-string of a keymap MAP.
   If non-nil, the prompt is shown in the echo-area
   when reading a key-sequence to be looked-up in this keymap."
-  (first (filter string? (take-while (complement '#{keymap}) (rest map)))))
+  (first (filter string? (take-while (complement '#{keymap}) (next map)))))
 
 (defun apropos-internal (regexp &optional predicate)
   "Show all symbols whose names contain match for REGEXP.
@@ -379,8 +406,18 @@
   usable as a general function for probing keymaps.  However, if the
   third optional argument ACCEPT-DEFAULT is non-nil, `lookup-key' will
   recognize the default bindings, just as `read-key-sequence' does."
-  ;; Also searches parents.
-  )
+  (let [key (if (string? key) (parser/parse-characters key) (el/check-type 'arrayp key))
+        keymap (if (data/symbolp keymap) (data/symbol-value keymap) keymap)]
+    (if-let [def (binding-map keymap key)]
+      (if (data/consp def)
+        (cond
+         (string? (first def)) (data/cdr def)
+         (keymapp (first def)) (lookup-key (data/car def) (data/cdr def)))
+        def)
+      (if-let [default (and accept-default (binding-map keymap #el/vec [t]))]
+        default
+        (when-let [parent (keymap-parent keymap)]
+          (recur parent key accept-default))))))
 
 (defun key-description (keys &optional prefix)
   "Return a pretty description of key-sequence KEYS.

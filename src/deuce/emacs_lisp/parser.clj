@@ -42,12 +42,6 @@
 ;; See http://www.gnu.org/software/emacs/manual/html_node/elisp/Nonprinting-Characters.html
 (defn ^:private resolve-control-chars [s]
   (-> s
-      (s/replace #"\\M-(.)"   ;; "\M-i" converts into "á". This only works for 7-bit ASCII.
-                 (fn [[meta base]]
-                   (let [c (int (first base))]
-                     (if (< c 128)
-                       (str (char (bit-xor 128 c)))
-                       (el/throw* 'error "Invalid modifier in string")))))
       (s/replace #"\\d" "") ;; DEL
       (s/replace #"\\e" "") ;; ESC
       (s/replace #"\\s" " ")
@@ -55,7 +49,13 @@
                  (fn [[control base]]
                    (if (re-find #"^\\\\" control) ;; Can be a quoted control char
                      control
-                     (str (parse-control-char (int (last base)) :for-string)))))))
+                     (str (parse-control-char (int (last base)) :for-string)))))
+      (s/replace #"\\M-(.)"   ;; "\M-i" converts into "á". This only works for 7-bit ASCII.
+                 (fn [[meta base]]
+                   (let [c (int (last base))]
+                     (if (< c 128)
+                       (str (char (bit-xor 128 c)))
+                       (el/throw* 'error "Invalid modifier in string")))))))
 
 ;; This takes an actual quoted String. Can easiest be called from the REPL by chaining (pr-str "...")
 (defn ^:private parse-string [s]

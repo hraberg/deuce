@@ -759,7 +759,7 @@
 (defun symbol-function (symbol)
   "Return SYMBOL's function definition.  Error if that is void."
   (el/check-type 'symbolp symbol)
-  (if-let [f (el/fun symbol)]
+  (if-let [f (el/fun symbol)] ;; This should probably not use el/fun, as you can store keymaps and what not as functions.
     (if (var? f) (el/fun f) f) ;; See binding/mode-specific-command-prefix
     (el/throw 'void-function symbol)))
 

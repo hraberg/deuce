@@ -48,19 +48,21 @@
   (ns-resolve 'deuce.emacs-lisp.globals (sym s)))
 
 (defn fun [s]
-  (c/cond (fn? s) s
-          (var? s) (fun @s)
-          (symbol? s) (c/let [f (ns-resolve 'deuce.emacs (sym s))]
-                             ;; Not sure we want alias handling leaking down to here.
-                             ;; On the other hand, 24.3 uses defalias + lambda as primary macros.
-                             ;; Hack to protect against backquote alias, needs proper fix.
-                             (if-let [alias (c/and (not= '#el/sym "\\`" s)
-                                                   (-> f meta :alias))]
-                               (if (symbol? alias) ;; See binding/mode-specific-command-prefix
+  (condp some [s]
+    fn? s
+    var? (fun @s)
+    symbol? (c/let [f (ns-resolve 'deuce.emacs (sym s))]
+                   ;; Not sure we want alias handling leaking down to here.
+                   ;; On the other hand, 24.3 uses defalias + lambda as primary macros.
+                   ;; Hack to protect against backquote alias, needs proper fix.
+                   (if-let [alias (c/and (not= '#el/sym "\\`" s)
+                                         (-> f meta :alias))]
+                     (if (symbol? alias) ;; See binding/mode-specific-command-prefix
                                  (fun alias)
                                  alias)
-                               f))
-          :else (throw* 'invalid-function (list s))))
+                     f))
+    (every-pred seq? (comp '#{lambda keymap} first)) s ;; symbol-function should really be permissive about this.
+    (throw* 'invalid-function (list s))))
 
 (defn maybe-sym [x]
   (if (symbol? x) (sym x) x))

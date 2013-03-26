@@ -202,7 +202,7 @@
   "Return a newly created string of length LENGTH, with INIT in each element.
   LENGTH must be an integer.
   INIT must be an integer that represents a character."
-  (apply str (repeat length init)))
+  (apply str (repeat length (char init))))
 
 (defun make-list (length init)
   "Return a newly created list of length LENGTH, with each element being INIT."
