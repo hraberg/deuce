@@ -40,17 +40,18 @@
    :else (char (mod maybe-control 32))))
 
 ;; See http://www.gnu.org/software/emacs/manual/html_node/elisp/Nonprinting-Characters.html
-(defn ^:private resolve-control-chars [s]
+(defn resolve-control-chars [s]
   (-> s
       (s/replace #"\\d" "") ;; DEL
       (s/replace #"\\e" "") ;; ESC
       (s/replace #"\\s" " ")
+      (s/replace #"\\t" "\t")
       (s/replace #"(?s)\\+(?:C-|\^)(\\?.)" ;; Optional backslash handling somewhat confusing.
                  (fn [[control base]]
                    (if (re-find #"^\\\\" control) ;; Can be a quoted control char
                      control
                      (str (parse-control-char (int (last base)) :for-string)))))
-      (s/replace #"\\M-(.)"   ;; "\M-i" converts into "á". This only works for 7-bit ASCII.
+      (s/replace #"\\M-(\\?.)"   ;; "\M-i" converts into "á". This only works for 7-bit ASCII.
                  (fn [[meta base]]
                    (let [c (int (last base))]
                      (if (< c 128)
@@ -61,11 +62,12 @@
 (defn ^:private parse-string [s]
   (.sval (doto (StreamTokenizer. (StringReader.
                                   (reduce (fn [s [m r]] (s/replace s m r))
-                                          (resolve-control-chars s)
+                                          s
+                            ;              (resolve-control-chars s)
                                           [["\\\n" ""]
                                            ["\\\r" ""]
-                                           ;; ["\\\\" "\\"]
-                                           ;; ["\\" "\\\\"]
+                                           ["\\\\" "\\"]
+                                           ["\\" "\\\\"]
                                            ["\r" "\\\r"]
                                            ["\n" "\\\n"]  ;; This is highly dubious
                                            ])
@@ -115,7 +117,7 @@
              (character-modifier-symbols c) -1
              (re-find #"\\\d+" c) (Integer/parseInt (subs c 1) 8)
              (re-find #"\\x\p{XDigit}" c) (Integer/parseInt (subs c 2) 16)
-             :else (int (first (parse-string (str \" c \")))))]
+             :else (int (first (resolve-control-chars (parse-string (str \" c \"))))))]
       (if (= -1 c) c
           (let [c (event-convert-list-internal
                    (replace character-modifier-symbols mods) c :no-modifier-conversion)]
@@ -132,8 +134,9 @@
 (def ^:private ^Pattern re-str #"(?s)([^\"\\]*(?:\\.[^\"\\]*)*)\"")
 (def ^:private ^Pattern re-char #"(?s)((\\[CSMAHs]-)*(\\x?\p{XDigit}+|(\\\^?)?.))")
 
-(defn parse-characters [s]
-  (seq (map (comp parse-character first) (re-seq re-char s))))
+(defn parse-characters [s meta-prefix-char]
+  (seq (map (comp parse-character first)
+            (re-seq re-char (resolve-control-chars (s/replace s "\\M-" (str (char meta-prefix-char))))))))
 
 (def ^:private unmodifiers (zipmap (vals character-modifier-bits) (keys character-modifier-bits)))
 

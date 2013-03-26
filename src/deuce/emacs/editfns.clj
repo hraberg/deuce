@@ -375,7 +375,7 @@
 (defun point-min ()
   "Return the minimum permissible value of point in the current buffer.
   This is 1, unless narrowing (a buffer restriction) is in effect."
-  (if-let [begv @(.zv (buffer/current-buffer))]
+  (if-let [begv @(.begv (buffer/current-buffer))]
     begv
     1))
 

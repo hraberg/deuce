@@ -4,7 +4,8 @@
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.data :as data]
             [deuce.emacs.fns :as fns])
-  (:import [deuce.emacs.data CharTable])
+  (:import [deuce.emacs.data CharTable]
+           [java.util Arrays])
   (:refer-clojure :exclude []))
 
 (defvar char-code-property-alist nil
@@ -44,10 +45,10 @@
   RANGE should be t (for all characters), nil (for the default value),
   a cons of character codes (for characters in the range),
   or a character code.  Return VALUE."
-  (doseq [n (if (data/consp range)
-              (c/range (int (data/car range)) (int (data/cdr range)))
-              (c/range (count (.contents char-table))))]
-    (data/aset (.contents char-table) n (if (nil? range) (.defalt char-table) value)))
+  (let [[start end] (if (data/consp range)
+                      [(int (data/car range)) (int (data/cdr range))]
+                      [0 (count (.contents char-table))])]
+    (Arrays/fill (.contents char-table) start end (if (nil? range) (.defalt char-table) value)))
   value)
 
 (defun get-unicode-property-internal (char-table ch)
