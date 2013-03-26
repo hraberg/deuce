@@ -3,6 +3,7 @@
   (:require [clojure.core :as c]
             [clojure.string :as s]
             [clojure.walk :as w]
+            [deuce.emacs-lisp.cons :as cons]
             [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs-lisp.parser :as parser]
             [deuce.emacs.alloc :as alloc]
@@ -10,6 +11,7 @@
             [deuce.emacs.data :as data]
             [deuce.emacs.chartab :as chartab]
             [deuce.emacs.fns :as fns])
+  (:import [deuce.emacs.data CharTable])
   (:refer-clojure :exclude []))
 
 (defvar emulation-mode-map-alists nil
@@ -55,7 +57,7 @@
 
 (def ^:private ^:dynamic *current-global-map* (atom nil))
 
-(declare current-global-map)
+(declare current-global-map keymapp keymap-parent set-keymap-parent)
 
 (defun make-sparse-keymap (&optional string)
   "Construct and return a new sparse keymap.
@@ -142,7 +144,24 @@
   Any key definitions that are subkeymaps are recursively copied.
   However, a key definition which is a symbol whose definition is a keymap
   is not copied."
-  (w/postwalk identity keymap))
+  (el/check-type 'keymapp keymap)
+  (letfn [(copy [x]
+            (condp some [x]
+              keymapp (copy-keymap x)
+              seq? (cons/maybe-seq (map copy x))
+              data/char-table-p (CharTable. (.defalt x)
+                                            (atom @(.parent x))
+                                            (.purpose x)
+                                            (let [contents (object-array (count (.contents x)))]
+                                              (System/arraycopy (.contents x) 0  contents 0 (count (.contents x)))
+                                              contents)
+                                            (object-array (.extras x)))
+              x))]
+    (let [parent (keymap-parent keymap)
+          keymap (apply alloc/list keymap)]
+      (set-keymap-parent keymap nil)
+      (doto (cons/maybe-seq (map copy keymap))
+        (set-keymap-parent parent)))))
 
 (defun map-keymap-internal (function keymap)
   "Call FUNCTION once for each event binding in KEYMAP.
@@ -251,6 +270,7 @@
   If KEYMAP has a parent, the parent's bindings are included as well.
   This works recursively: if the parent has itself a parent, then the
   grandparent's bindings are also included and so on."
+  (el/check-type 'keymapp keymap)
   (apply alloc/list
          (map (fn [x] ((el/fun function) (data/car x) (data/cdr x)))
               (filter data/consp (data/cdr keymap)))))
@@ -271,6 +291,8 @@
 (defun set-keymap-parent (keymap parent)
   "Modify KEYMAP to set its parent map to PARENT.
   Return PARENT.  PARENT should be nil or another keymap."
+  (el/check-type 'keymapp keymap)
+  (el/check-type 'keymapp parent)
   (loop [x keymap]
     (when x
       (if (keymapp (data/cdr x))
@@ -353,6 +375,7 @@
   "Select KEYMAP as the local keymap.
   If KEYMAP is nil, that means no local keymap."
   ;; This is not strictly correct, as these are some form of private buffer locals in Emacs.
+  (el/check-type 'keymapp keymap)
   (data/make-local-variable 'keymap)
   (data/set 'keymap keymap))
 
@@ -440,5 +463,6 @@
 
 (defun use-global-map (keymap)
   "Select KEYMAP as the global keymap."
+  (el/check-type 'keymapp keymap)
   (reset! *current-global-map* keymap)
   nil)
