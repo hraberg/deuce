@@ -141,6 +141,20 @@
 (c/doseq [n (c/range 160 (c/inc 256))]
          (define-key globals/global-map (make-string 1 n) 'self-insert-command))
 
+;; buffer commands from buffer.c
+(define-key globals/ctl-x-map "b" 'switch-to-buffer)
+(define-key globals/ctl-x-map "k" 'kill-buffer)
+
+;; case commands from casefiddle.c
+(define-key globals/ctl-x-map "\\C-u" 'upcase-region)
+(put 'upcase-region 'disabled true)
+(define-key globals/ctl-x-map "\\C-l" 'downcase-region)
+(put 'downcase-region 'disabled true)
+
+(define-key globals/esc-map "u" 'upcase-word)
+(define-key globals/esc-map "l" 'downcase-word)
+(define-key globals/esc-map "c" 'capitalize-word)
+
 ;; basic movement commands setup in cmds.c
 (define-key globals/global-map "\\C-a" 'beginning-of-line)
 (define-key globals/global-map "\\C-b" 'backward-char)
@@ -153,6 +167,15 @@
 (define-key globals/esc-map "\\C-c" 'exit-recursive-edit)
 (define-key globals/global-map "\\C-]" 'abort-recursive-edit)
 (define-key globals/esc-map "x" 'execute-extended-command)
+;; There's also a bunch of initial_define_lispy_key I skip here
+
+;; scolling commands in window.c
+(define-key globals/ctl-x-map, "<" 'scroll-left)
+(define-key globals/ctl-x-map ">" 'scroll-right)
+
+(define-key globals/global-map "\\C-v" 'scroll-up-command)
+(define-key globals/esc-map "\\C-v" 'scroll-other-window)
+(define-key globals/esc-map "v" 'scroll-down-command)
 
 ;; var is definied in keyboard.clj
 (setq function-key-map (make-sparse-keymap))
