@@ -2,6 +2,7 @@
   (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
             [deuce.emacs.buffer :as buffer]
+            [deuce.emacs.data :as data]
             [deuce.emacs.editfns :as editfns]
             [deuce.emacs.indent :as indent])
   (:import [java.util Arrays])
