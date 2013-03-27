@@ -111,7 +111,7 @@
              (character-modifier-symbols c) -1
              (re-find #"\\\d+" c) (Integer/parseInt (subs c 1) 8)
              (re-find #"\\x\p{XDigit}" c) (Integer/parseInt (subs c 2) 16)
-             :else (int (first (resolve-control-chars (str c)))))]
+             :else (int (first (resolve-control-chars (parse-string (str \" c \"))))))]
       (if (= -1 c) c
           (let [c (event-convert-list-internal
                    (replace character-modifier-symbols mods) c :no-modifier-conversion)]

@@ -145,6 +145,13 @@
 (define-key globals/global-map "\\C-e" 'end-of-line)
 (define-key globals/global-map "\\C-f" 'forward-char)
 
+;; basic commands setup in keyboard.c
+(define-key globals/global-map "\\C-z" 'suspend-emacs)
+(define-key globals/ctl-x-map "\\C-z" 'suspend-emacs)
+(define-key globals/esc-map "\\C-c" 'exit-recursive-edit)
+(define-key globals/global-map "\\C-]" 'abort-recursive-edit)
+(define-key globals/esc-map "x" 'execute-extended-command)
+
 ;; var is definied in keyboard.clj
 (setq function-key-map (make-sparse-keymap))
 ;; This map has a few low-level (like delete-frame) key defs in keybaoard.c
