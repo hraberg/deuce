@@ -518,9 +518,14 @@
 ;;         Example:
 ;;         Lanterna:  new BasicCharacterPattern(new Key(Key.Kind.ArrowUp), ESC_CODE, '[', 'A'),
 ;;         Emacs:    (define-key map "\e[A" [up])
-;;                   And the actual ones we need, not sure you can even represent these in Lanterna as
-;;                   Key.Kind is a closed enum:
+;;                   And the actual ones we need:
 ;;                   (define-key map "\e[1;3A" [M-up])
+;;                   This is defined differently in Lanterna:
+;;                   new BasicCharacterPattern(new Key(Key.Kind.ArrowUp, false, true), ESC_CODE, ESC_CODE, '[', 'A'),
+;;                   But we also need shift, and Key.Kind is a closed enum:
+;;                   (define-key map "\eO2A" [S-up])
+;;        The best approach is probably to have a close to empty Lanterna InputProfile and do all this using input-decode-map.
+;;        Normal Ctrl would be control chars, and Meta basically \e + char, which is dealt with via the esc-map in Emacs.
 
 ;; /* read a character from the keyboard; call the redisplay if needed */
 ;; /* commandflag 0 means do not autosave, but do redisplay.
