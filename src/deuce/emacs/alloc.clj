@@ -163,6 +163,7 @@
   However, if there was overflow in pure space, `garbage-collect'
   returns nil, because real GC can't be done.
   See Info node `(elisp)Garbage Collection'."
+  (interactive)
   (System/gc)
   '(()))
 

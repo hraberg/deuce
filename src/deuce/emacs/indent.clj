@@ -82,7 +82,7 @@
   even if that goes past COLUMN; by default, MINIMUM is zero.
 
   The return value is COLUMN."
-  )
+  (interactive "NIndent to column: "))
 
 (defun move-to-column (column &optional force)
   "Move point to column COLUMN in the current line.
@@ -129,4 +129,4 @@
   This is consistent with other cursor motion functions
   and makes it possible to use `vertical-motion' in any buffer,
   whether or not it is currently displayed in some window."
-  )
+  (interactive "p"))

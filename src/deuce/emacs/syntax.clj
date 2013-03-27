@@ -106,7 +106,7 @@
   If an edge of the buffer or a field boundary is reached, point is left there
   and the function returns nil.  Field boundaries are not noticed if
   `inhibit-field-text-motion' is non-nil."
-  )
+  (interactive "^p"))
 
 (defun scan-lists (from count depth)
   "Scan from character number FROM by COUNT lists.
@@ -218,7 +218,7 @@
    p means CHAR is a prefix character for `backward-prefix-chars';
      such characters are treated as whitespace when they occur
      between expressions."
-  )
+  (interactive "cSet syntax for character: \nsSet syntax for %s to: "))
 
 (defun matching-paren (character)
   "Return the matching parenthesis of CHARACTER, or nil if none."

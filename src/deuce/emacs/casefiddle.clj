@@ -8,7 +8,7 @@
   "Convert following word (or ARG words) to upper case, moving over.
   With negative argument, convert previous words but do not move.
   See also `capitalize-word'."
-  )
+  (interactive "p"))
 
 (defun upcase (obj)
   "Convert argument to upper case and return that.
@@ -24,14 +24,14 @@
   This gives the word(s) a first character in upper case
   and the rest lower case.
   With negative argument, capitalize previous words but do not move."
-  )
+  (interactive "p"))
 
 (defun downcase-region (beg end)
   "Convert the region to lower case.  In programs, wants two arguments.
   These arguments specify the starting and ending character numbers of
   the region to operate on.  When used as a command, the text between
   point and the mark is operated on."
-  )
+  (interactive "r"))
 
 (defun capitalize-region (beg end)
   "Convert the region to capitalized form.
@@ -39,7 +39,7 @@
   and the rest of it is lower case.
   In programs, give two arguments, the starting and ending
   character positions to operate on."
-  )
+  (interactive "r"))
 
 (defun upcase-initials (obj)
   "Convert the initial of each word in the argument to upper case.
@@ -51,7 +51,7 @@
 (defun downcase-word (arg)
   "Convert following word (or ARG words) to lower case, moving over.
   With negative argument, convert previous words but do not move."
-  )
+  (interactive "p"))
 
 (defun upcase-region (beg end)
   "Convert the region to upper case.  In programs, wants two arguments.
@@ -59,7 +59,7 @@
   the region to operate on.  When used as a command, the text between
   point and the mark is operated on.
   See also `capitalize-region'."
-  )
+  (interactive "r"))
 
 (defun capitalize (obj)
   "Convert argument to capitalized form and return that.
@@ -74,7 +74,7 @@
   Subsequent letters of each word are not changed.
   In programs, give two arguments, the starting and ending
   character positions to operate on."
-  )
+  (interactive "r"))
 
 (defun downcase (obj)
   "Convert argument to lower case and return that.

@@ -475,7 +475,7 @@
   Return the length of the encoded text.
   Optional third argument NO-LINE-BREAK means do not break long lines
   into shorter lines."
-  )
+  (interactive "r"))
 
 (defun hash-table-weakness (table)
   "Return the weakness of TABLE."
@@ -590,7 +590,7 @@
   "Base64-decode the region between BEG and END.
   Return the length of the decoded text.
   If the region can't be decoded, signal an error and don't modify the buffer."
-  )
+  (interactive "r"))
 
 (defun nth (n list)
   "Return the Nth element of LIST.

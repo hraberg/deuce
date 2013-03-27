@@ -77,7 +77,7 @@
 (defun open-termscript (file)
   "Start writing all terminal output to FILE as well as the terminal.
   FILE = nil means just close any termscript file currently open."
-  )
+  (interactive "FOpen termscript file: "))
 
 (defun ding (&optional arg)
   "Beep, or flash the screen.
@@ -142,7 +142,7 @@
 
 (defun redraw-display ()
   "Clear and redisplay all visible frames."
-  )
+  (interactive))
 
 (defun sleep-for (seconds &optional milliseconds)
   "Pause, without updating display, for SECONDS seconds.

@@ -491,6 +491,7 @@
 
   Do not use `make-local-variable' to make a hook variable buffer-local.
   Instead, use `add-hook' and specify t for the LOCAL argument."
+  (interactive "vMake Local Variable: ")
   (let [buffer-locals (.local-var-alist ((el/fun 'current-buffer)))]
     (when-not (contains? @buffer-locals variable)
       (swap! buffer-locals assoc variable (Var/create)))
@@ -627,6 +628,7 @@
   which makes a variable local in just one buffer.
 
   The function `default-value' gets the default value and `set-default' sets it."
+  (interactive "vMake Variable Buffer Local: ")
   (when-not (default-boundp variable)
     (set-default variable nil))
   (swap! el/buffer-locals conj variable)
@@ -766,6 +768,7 @@
 (defun kill-local-variable (variable)
   "Make VARIABLE no longer have a separate value in the current buffer.
   From now on the default value will apply in this buffer.  Return VARIABLE."
+  (interactive "vKill Local Variable: ")
   (let [buffer-locals (.local-var-alist ((el/fun 'current-buffer)))]
     (swap! buffer-locals dissoc variable)
     variable))
@@ -836,7 +839,7 @@
   Note that since Emacs 23.1, variables cannot be both buffer-local and
   frame-local any more (buffer-local bindings used to take precedence over
   frame-local bindings)."
-  )
+  (interactive "vMake Variable Frame Local: "))
 
 (defun number-to-string (number)
   "Return the decimal representation of NUMBER as a string.

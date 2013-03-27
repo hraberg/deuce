@@ -57,6 +57,7 @@
   `case-fold-search', which see.
 
   See also the functions `match-beginning', `match-end' and `replace-match'."
+  (interactive "MSearch: ")
   (re-search-forward (regexp-quote string) bound noerror count))
 
 (defun re-search-backward (regexp &optional bound noerror count)
@@ -75,6 +76,7 @@
 
   See also the functions `match-beginning', `match-end', `match-string',
   and `replace-match'."
+  (interactive "sRE search backward: ")
   (let [point (editfns/point)
         count (el/check-type 'integerp (or count 1))]
     (cond
@@ -121,6 +123,7 @@
   Relies on the function `word-search-regexp' to convert a sequence
   of words in STRING to a regexp used to search words without regard
   to punctuation."
+  (interactive "sWord search: ")
   (re-search-forward (word-search-regexp string true) bound noerror count))
 
 (defun word-search-backward (string &optional bound noerror count)
@@ -135,6 +138,7 @@
   Relies on the function `word-search-regexp' to convert a sequence
   of words in STRING to a regexp used to search words without regard
   to punctuation."
+  (interactive "sWord search backward: ")
   (re-search-backward (word-search-regexp string) bound noerror count))
 
 (defun posix-search-forward (regexp &optional bound noerror count)
@@ -152,6 +156,7 @@
 
   See also the functions `match-beginning', `match-end', `match-string',
   and `replace-match'."
+  (interactive "sPosix search: ")
   (search-forward regexp bound noerror count))
 
 (defun word-search-forward (string &optional bound noerror count)
@@ -166,6 +171,7 @@
   Relies on the function `word-search-regexp' to convert a sequence
   of words in STRING to a regexp used to search words without regard
   to punctuation."
+  (interactive "sWord search: ")
   (re-search-forward (word-search-regexp string) bound noerror count))
 
 (defun word-search-backward-lax (string &optional bound noerror count)
@@ -184,6 +190,7 @@
   Relies on the function `word-search-regexp' to convert a sequence
   of words in STRING to a regexp used to search words without regard
   to punctuation."
+  (interactive "sWord search backward: ")
   (re-search-backward (word-search-regexp string true) bound noerror count))
 
 (defun looking-at (regexp)
@@ -210,6 +217,7 @@
 
   See also the functions `match-beginning', `match-end', `match-string',
   and `replace-match'."
+  (interactive "sRE search: ")
   (let [point (editfns/point)
         count (el/check-type 'integerp (or count 1))]
     (cond
@@ -376,6 +384,7 @@
   `case-fold-search', which see.
 
   See also the functions `match-beginning', `match-end' and `replace-match'."
+  (interactive "MSearch backward: ")
   (re-search-backward (regexp-quote string) bound noerror count))
 
 (defun match-end (subexp)
@@ -405,6 +414,7 @@
 
   See also the functions `match-beginning', `match-end', `match-string',
   and `replace-match'."
+  (interactive "sPosix search backward: ")
   (search-backward regexp bound noerror count))
 
 (defun regexp-quote (string)

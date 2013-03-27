@@ -31,7 +31,7 @@
   this begins by re-executing that macro as if you typed it again.
   If optional second arg, NO-EXEC, is non-nil, do not re-execute last
   macro before appending to it."
-  )
+  (interactive "P"))
 
 (defun defining-kbd-macro (append &optional no-exec)
   "Record subsequent keyboard input, defining a keyboard macro.
@@ -66,7 +66,7 @@
 
   In Lisp, optional second arg LOOPFUNC may be a function that is called prior to
   each iteration of the macro.  Iteration stops if LOOPFUNC returns nil."
-  )
+  (interactive "p"))
 
 (defun call-last-kbd-macro (&optional prefix loopfunc)
   "Call the last keyboard macro that you defined with M-x start-kbd-macro.
@@ -78,7 +78,7 @@
 
   In Lisp, optional second arg LOOPFUNC may be a function that is called prior to
   each iteration of the macro.  Iteration stops if LOOPFUNC returns nil."
-  )
+  (interactive "p"))
 
 (defun cancel-kbd-macro-events ()
   "Cancel the events added to a keyboard macro for this command."

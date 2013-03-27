@@ -65,6 +65,7 @@
   that is N - number of lines moved; if backward, N + number moved.
   With positive N, a non-empty line at the end counts as one line
   successfully moved (for the return value)."
+  (interactive "^p")
   (move-lines (editfns/buffer-string) (dec (editfns/point))
               (el/check-type 'integerp (or n 1))))
 
@@ -75,6 +76,7 @@
   Depending on the bidirectional context, the movement may be to the
   right or to the left on the screen.  This is in contrast with
   <right>, which see."
+  (interactive "^p")
   (editfns/goto-char (+ (editfns/point) (el/check-type 'integerp (or n 1)))))
 
 (defun forward-point (n)
@@ -92,7 +94,8 @@
   After insertion, the value of `auto-fill-function' is called if the
   `auto-fill-chars' table has a non-nil value for the inserted character.
   At the end, it runs `post-self-insert-hook'."
-  (editfns/insert (char n)))
+  (interactive "p")
+  (editfns/insert (apply str (repeat n (data/symbol-value 'last-command-event)))))
 
 (defun backward-char (&optional n)
   "Move point N characters backward (forward if N is negative).
@@ -101,6 +104,7 @@
   Depending on the bidirectional context, the movement may be to the
   right or to the left on the screen.  This is in contrast with
   <left>, which see."
+  (interactive "^p")
   (editfns/goto-char (- (editfns/point) (el/check-type 'integerp (or n 1)))))
 
 (defun beginning-of-line (&optional n)
@@ -115,6 +119,7 @@
   `inhibit-field-text-motion' to t, or use the `forward-line' function
   instead.  For instance, `(forward-line 0)' does the same thing as
   `(beginning-of-line)', except that it ignores field boundaries."
+  (interactive "^p")
   (when-not (contains? #{nil 1} n)
     (forward-line n))
   (let [bol (.lastIndexOf (editfns/buffer-substring 1 (editfns/point)) (int \newline))]
@@ -127,6 +132,7 @@
   N was explicitly specified.
 
   The command `delete-forward-char' is preferable for interactive use."
+  (interactive "p\nP")
   (apply editfns/delete-region (sort [(editfns/point) (+ (editfns/point) n)])))
 
 (defun end-of-line (&optional n)
@@ -140,6 +146,7 @@
   N is nil or 1, and a rear-sticky field ends at point, the point does
   not move.  To ignore field boundaries bind `inhibit-field-text-motion'
   to t."
+  (interactive "^p")
   (when-not (contains? #{nil 1} n)
     (forward-line n))
   (let [eol (.indexOf (editfns/buffer-string) (int \newline) (dec (editfns/point)))]

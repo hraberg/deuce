@@ -340,7 +340,7 @@
    functions should work normally even if PRINTFLAG is nil.
 
   This function preserves the position of point."
-  )
+  (interactive))
 
 (defun read-from-string (string &optional start end)
   "Read one Lisp expression which is represented as text by STRING.
@@ -369,7 +369,7 @@
   which is the input stream for reading characters.
 
   This function does not move point."
-  )
+  (interactive "r"))
 
 (defun intern (string &optional obarray)
   "Return the canonical symbol whose name is STRING.

@@ -356,6 +356,7 @@
 
   When calling from a program, pass two arguments; positions (integers
   or markers) bounding the text that should remain visible."
+  (interactive)
   (let [buffer (buffer/current-buffer)]
     (reset! (.begv buffer) start)
     (reset! (.zv buffer) end)))
@@ -382,6 +383,7 @@
 (defun widen ()
   "Remove restrictions (narrowing) from current buffer.
   This allows the buffer's full text to be seen and edited."
+  (interactive)
   (let [buffer (buffer/current-buffer)]
     (reset! (.begv buffer) nil)
     (reset! (.zv buffer) nil)))
@@ -628,6 +630,7 @@
   "Delete the text between START and END.
   If called interactively, delete the region between point and mark.
   This command deletes buffer text without modifying the kill ring."
+  (interactive "r")
   (let [buffer (buffer/current-buffer)
         text (.text buffer)]
     (.delete (.beg text) (dec start) (dec end))
@@ -671,6 +674,7 @@
   Beginning of buffer is position (point-min), end is (point-max).
 
   The return value is POSITION."
+  (interactive "NGoto char: ")
   (el/check-type 'integer-or-marker-p position)
   (let [position (if (data/markerp position) @(.charpos position) position)
         real-pos (min (max (point-min) position) (point-max))]

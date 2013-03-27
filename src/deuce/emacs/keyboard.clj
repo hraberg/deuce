@@ -625,6 +625,7 @@
 
   Some operating systems cannot stop the Emacs process and resume it later.
   On such systems, Emacs starts a subshell instead of suspending."
+  (interactive)
   (term/suspend-tty)
   (.invoke
    (doto (.getDeclaredMethod Signal "raise0" (into-array [Integer/TYPE]))
@@ -717,7 +718,7 @@
   "Start writing all keyboard characters to a dribble file called FILE.
   If FILE is nil, close any open dribble file.
   The file will be closed when Emacs exits."
-  )
+  (interactive "FOpen dribble file: "))
 
 (defun recursive-edit ()
   "Invoke the editor command loop recursively.
@@ -729,7 +730,7 @@
   ;;   recursive_edit_1 -> command_loop -> command_loop_2 -> command_loop_1
   ;; Each adding some layers of condition case and other things (redisplay, buffer).
   ;; command_loop_1 is the real command loop. Calls read_key_sequence.
-  )
+  (interactive))
 
 (defun this-command-keys-vector ()
   "Return the key sequence that invoked this command, as a vector.
@@ -742,7 +743,7 @@
 (defun top-level ()
   "Exit all recursive editing levels.
   This also exits all active minibuffers."
-  )
+  (interactive))
 
 (defun execute-extended-command (prefixarg)
   "Read function name, then read its arguments and call it.
@@ -752,7 +753,7 @@
 
   Noninteractively, the argument PREFIXARG is the prefix argument to
   give to the command you invoke, if it asks for an argument."
-  )
+  (interactive "P"))
 
 (defun discard-input ()
   "Discard the contents of the terminal input buffer.
@@ -803,7 +804,7 @@
 
 (defun exit-recursive-edit ()
   "Exit from the innermost recursive edit or minibuffer."
-  )
+  (interactive))
 
 (defun set-quit-char (quit)
   "Specify character used for quitting.
@@ -817,7 +818,7 @@
 
 (defun abort-recursive-edit ()
   "Abort the command that requested this recursive edit or minibuffer input."
-  )
+  (interactive))
 
 (defun set-input-interrupt-mode (interrupt)
   "Set interrupt mode of reading keyboard input.

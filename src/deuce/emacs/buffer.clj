@@ -975,6 +975,7 @@
   "Delete the entire contents of the current buffer.
   Any narrowing restriction in effect (see `narrow-to-region') is removed,
   so the buffer is truly empty after this."
+  (interactive "*")
   (let [text (.text (current-buffer))]
     ((el/fun 'delete-region) 1 (inc (.length (.beg text))))
     nil))
@@ -1029,7 +1030,7 @@
 (defun buffer-enable-undo (&optional buffer)
   "Start keeping undo information for buffer BUFFER.
   No argument or nil as argument means do this for the current buffer."
-  )
+  (interactive ""))
 
 (defun buffer-list (&optional frame)
   "Return a list of all existing live buffers.
@@ -1074,6 +1075,7 @@
 
   Any processes that have this buffer as the `process-buffer' are killed
   with SIGHUP."
+  (interactive "bKill buffer: ")
   (let [buffer (if (instance? Buffer buffer-or-name)
                  buffer-or-name
                  (or (@buffer-alist buffer-or-name (current-buffer))))]

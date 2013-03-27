@@ -40,7 +40,7 @@
   process to signal; in this case, the process need not be a child of
   this Emacs.
   SIGCODE may be an integer, or a symbol whose name is a signal name."
-  )
+  (interactive "sProcess (name or number): \nnSignal code: "))
 
 (defun set-process-sentinel (process sentinel)
   "Give PROCESS the sentinel SENTINEL; nil for none.

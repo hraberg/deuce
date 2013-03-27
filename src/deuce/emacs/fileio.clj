@@ -248,7 +248,7 @@
 
   This calls `write-region-annotate-functions' at the start, and
   `write-region-post-annotation-function' at the end."
-  )
+  (interactive "r\nFWrite region to file: \ni\ni\ni\np"))
 
 (defun file-exists-p (filename)
   "Return t if file FILENAME exists (whether or not you can read it.)
@@ -277,7 +277,7 @@
 
   A non-nil NO-MESSAGE argument means do not print any message if successful.
   A non-nil CURRENT-ONLY argument means save only current buffer."
-  )
+  (interactive))
 
 (defun file-selinux-context (filename)
   "Return SELinux context of file named FILENAME.
@@ -312,7 +312,7 @@
   unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
   A number as third arg means request confirmation if NEWNAME already exists.
   This is what happens in interactive use with M-x."
-  )
+  (interactive "fRename file: \nGRename %s to file: \np"))
 
 (defun make-symbolic-link (filename linkname &optional ok-if-already-exists)
   "Make a symbolic link to FILENAME, named LINKNAME.
@@ -321,7 +321,7 @@
   unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
   A number as third arg means request confirmation if LINKNAME already exists.
   This happens for interactive use with M-x."
-  )
+  (interactive "FMake symbolic link to file: \nGMake symbolic link to file %s: \np"))
 
 (defun default-file-modes ()
   "Return the default file protection for created files.
@@ -344,7 +344,7 @@
 
 (defun unix-sync ()
   "Tell Unix to finish all pending disk updates."
-  )
+  (interactive))
 
 (defun verify-visited-file-modtime (&optional buf)
   "Return t if last mod time of BUF's visited file matches what BUF records.
@@ -428,7 +428,7 @@
   unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
   A number as third arg means request confirmation if NEWNAME already exists.
   This is what happens in interactive use with M-x."
-  )
+  (interactive "fAdd name to file: \nGName to add to %s: \np"))
 
 (defun recent-auto-save-p ()
   "Return t if current buffer has been auto-saved recently.
@@ -582,7 +582,7 @@
 
   If PRESERVE-SELINUX-CONTEXT is non-nil and SELinux is enabled
   on the system, we copy the SELinux context of FILE to NEWNAME."
-  )
+  (interactive "fCopy file: \nGCopy %s to file: \np\nP"))
 
 (defun file-regular-p (filename)
   "Return t if FILENAME names a regular file.

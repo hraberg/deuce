@@ -296,7 +296,7 @@
 (defun backtrace ()
   "Print a trace of Lisp function calls currently active.
   Output stream used is value of `standard-output'."
-  )
+  (interactive))
 
 (defun run-hook-with-args-until-failure (hook &rest args)
   "Run HOOK with the specified arguments ARGS.
@@ -376,7 +376,11 @@
 
   If the optional argument FOR-CALL-INTERACTIVELY is non-nil,
   then strings and vectors are not accepted."
-  )
+  (if (or (data/stringp function) (data/vectorp function))
+    (when-not for-call-interactively true)
+    (when-let [f (el/fun function)]
+      (when (contains? (meta f) :interactive)
+        true))))
 
 (defun macroexpand (form &optional environment)
   "Return result of expanding macros at top level of FORM.

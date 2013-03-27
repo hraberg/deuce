@@ -141,14 +141,14 @@
   This function runs `delete-frame-functions' before actually
   deleting the frame, unless the frame is a tooltip.
   The functions are run with one argument, the frame to be deleted."
-  )
+  (interactive))
 
 (defun lower-frame (&optional frame)
   "Send FRAME to the back, so it is occluded by any frames that overlap it.
   If you don't specify a frame, the selected frame is used.
   If Emacs is displaying on an ordinary terminal or some other device which
   doesn't support multiple overlapping frames, this function does nothing."
-  )
+  (interactive))
 
 (defun raise-frame (&optional frame)
   "Bring FRAME to the front, so it occludes any frames it overlaps.
@@ -156,7 +156,7 @@
   If you don't specify a frame, the selected frame is used.
   If Emacs is displaying on an ordinary terminal or some other device which
   doesn't support multiple overlapping frames, this function selects FRAME."
-  )
+  (interactive))
 
 (defun frame-parameters (&optional frame)
   "Return the parameters-alist of frame FRAME.
@@ -239,12 +239,12 @@
 
   If EVENT is frame object, handle it as if it were a switch-frame event
   to that frame."
-  )
+  (interactive "e"))
 
 (defun make-frame-visible (&optional frame)
   "Make the frame FRAME visible (assuming it is an X window).
   If omitted, FRAME defaults to the currently selected frame."
-  )
+  (interactive))
 
 (defun frame-list ()
   "Return a list of all live frames."
@@ -345,7 +345,7 @@
   next redisplay will display FRAME.
 
   This function returns FRAME, or nil if FRAME has been deleted."
-  )
+  (interactive "e"))
 
 (defun next-frame (&optional frame miniframe)
   "Return the next frame in the frame list after FRAME.
@@ -396,7 +396,7 @@
 (defun iconify-frame (&optional frame)
   "Make the frame FRAME into an icon.
   If omitted, FRAME defaults to the currently selected frame."
-  )
+  (interactive))
 
 (defun make-frame-invisible (&optional frame force)
   "Make the frame FRAME invisible.
@@ -410,7 +410,7 @@
   This function has no effect on text-only terminal frames.  Such frames
   are always considered visible, whether or not they are currently being
   displayed in the terminal."
-  )
+  (interactive))
 
 (defun frame-char-width (&optional frame)
   "Width in pixels of characters in the font in frame FRAME.

@@ -321,7 +321,7 @@
   This function sets `last-coding-system-used' to the precise coding system
   used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
   not fully specified.)"
-  )
+  (interactive "r\nzCoding system: "))
 
 (defun detect-coding-string (string &optional highest)
   "Detect coding system of the text in STRING.
@@ -354,7 +354,7 @@
   This function sets `last-coding-system-used' to the precise coding system
   used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
   not fully specified.)"
-  )
+  (interactive "r\nzCoding system: "))
 
 (defun decode-sjis-char (code)
   "Decode a Japanese character which has CODE in shift_jis encoding.

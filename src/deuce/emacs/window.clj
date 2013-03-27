@@ -186,7 +186,7 @@
   If in the minibuffer, `minibuffer-scroll-window' if non-nil
   specifies the window to scroll.  This takes precedence over
   `other-window-scroll-buffer'."
-  )
+  (interactive "P"))
 
 (defun window-inside-absolute-pixel-edges (&optional window)
   "Return a list of the edge pixel coordinates of WINDOW's text area.
@@ -223,7 +223,7 @@
 
   Just C-u as prefix means put point in the center of the window
   and redisplay normally--don't erase and redraw the frame."
-  )
+  (interactive "P"))
 
 (defun scroll-down (&optional arg)
   "Scroll text of selected window down ARG lines.
@@ -232,7 +232,7 @@
   Negative ARG means scroll upward.
   If ARG is the atom `-', scroll upward by nearly full screen.
   When calling from a program, supply as argument a number, nil, or `-'."
-  )
+  (interactive "^P"))
 
 (defun window-configuration-p (object)
   "Return t if OBJECT is a window-configuration object."
@@ -250,7 +250,7 @@
   Negative ARG means scroll downward.
   If ARG is the atom `-', scroll downward by nearly full screen.
   When calling from a program, supply as argument a number, nil, or `-'."
-  )
+  (interactive "^P"))
 
 (defun other-window-for-scrolling ()
   "Return the other window for \"other window scroll\" commands.
@@ -502,7 +502,7 @@
   depends on the value of (window-start WINDOW), so if calling this
   function in a program gives strange scrolling, make sure the
   window-start value is reasonable when this function is called."
-  )
+  (interactive ""))
 
 (defun window-inside-pixel-edges (&optional window)
   "Return a list of the edge pixel coordinates of WINDOW's text area.
@@ -730,7 +730,7 @@
   ARG nil means position point at center of window.
   Else, ARG specifies vertical position within the window;
   zero means top of window, negative means relative to bottom of window."
-  )
+  (interactive "P"))
 
 (defun set-window-vscroll (window vscroll &optional pixels-p)
   "Set amount by which WINDOW should be scrolled vertically to VSCROLL.
@@ -1070,7 +1070,7 @@
   lower bound for automatic scrolling, i.e. automatic scrolling
   will not scroll a window to a column less than the value returned
   by this function.  This happens in an interactive call."
-  )
+  (interactive "^P\np"))
 
 (defun set-window-start (window pos &optional noforce)
   "Make display in WINDOW start at position POS in WINDOW's buffer.
@@ -1105,7 +1105,7 @@
   lower bound for automatic scrolling, i.e. automatic scrolling
   will not scroll a window to a column less than the value returned
   by this function.  This happens in an interactive call."
-  )
+  (interactive "^P\np"))
 
 (defun window-left-child (window)
   "Return the leftmost child window of window WINDOW.
