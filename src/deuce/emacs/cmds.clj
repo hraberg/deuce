@@ -4,6 +4,7 @@
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data]
             [deuce.emacs.editfns :as editfns]
+            [deuce.emacs.eval :as eval]
             [deuce.emacs.indent :as indent])
   (:import [java.util Arrays])
   (:refer-clojure :exclude []))
@@ -96,7 +97,8 @@
   `auto-fill-chars' table has a non-nil value for the inserted character.
   At the end, it runs `post-self-insert-hook'."
   (interactive "p")
-  (editfns/insert (apply str (repeat n (data/symbol-value 'last-command-event)))))
+  (editfns/insert (apply str (repeat n (char (data/symbol-value 'last-command-event)))))
+  (eval/run-hooks 'post-self-insert-hook))
 
 (defun backward-char (&optional n)
   "Move point N characters backward (forward if N is negative).
@@ -151,5 +153,6 @@
   (when-not (contains? #{nil 1} n)
     (forward-line n))
   (let [eol (.indexOf (editfns/buffer-string) (int \newline) (dec (editfns/point)))]
-    (when-not (= -1 eol)
+    (if (= -1 eol)
+      (editfns/goto-char (editfns/point-max))
       (editfns/goto-char (inc eol)))))

@@ -2,6 +2,7 @@
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
             [lanterna.screen :as s]
+            [deuce.emacs.data :as data]
             [deuce.emacs.eval :as eval]
             [deuce.emacs.terminal :as terminal])
   (:refer-clojure :exclude []))
@@ -34,7 +35,7 @@
   TERMINAL can be a terminal object, a frame, or nil (meaning the
   selected frame's terminal).  This function always returns nil if
   TERMINAL is not on a tty device."
-  )
+  true)
 
 (defun tty-display-color-p (&optional terminal)
   "Return non-nil if the tty device TERMINAL can display colors.
@@ -42,7 +43,7 @@
   TERMINAL can be a terminal object, a frame, or nil (meaning the
   selected frame's terminal).  This function always returns nil if
   TERMINAL does not refer to a text-only terminal."
-  nil)
+  true)
 
 (defun tty-no-underline (&optional terminal)
   "Declare that the tty used by TERMINAL does not handle underlining.
@@ -69,7 +70,7 @@
   TERMINAL can be a terminal object, a frame, or nil (meaning the
   selected frame's terminal).  This function always returns 0 if
   TERMINAL does not refer to a text-only terminal."
-  16)
+  ({"xterm-256color" 256} (System/getenv "TERM") 16))
 
 (defun resume-tty (&optional tty)
   "Resume the previously suspended terminal device TTY.

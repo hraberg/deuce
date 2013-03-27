@@ -92,7 +92,8 @@
       (data/aset char-table key def)
       (if-let [existing (fns/assoc key alist)]
         (data/setcdr existing def)
-        (data/setcdr keymap (alloc/cons (alloc/cons key def) alist))))))
+        (data/setcdr (if (data/char-table-p char-table) (data/cdr keymap) keymap)
+                     (alloc/cons (alloc/cons key def) alist))))))
 
 (defn ^:private resolve-def [def]
   (cond (data/symbolp def)
@@ -117,7 +118,7 @@
 (defn ^:private binding-map [keymap key]
   (let [submap-or-binding (resolve-def (binding-this-map keymap (first key)))]
     (if-let [key (next key)]
-      (if submap-or-binding
+      (if (keymapp submap-or-binding)
         (recur submap-or-binding key)
         (count key))
       submap-or-binding)))
@@ -173,8 +174,6 @@
     (try
       (define-key-internal keymap key def)
       (catch IllegalArgumentException e
-        (println (format "WARNING: Key sequence %s starts with non-prefix key %s"
-                         (s/join " " key) (s/join " " (butlast key))) def)
         (el/throw* 'error (format "Key sequence %s starts with non-prefix key %s"
                                   (s/join " " key) (s/join " " (butlast key))))))
     def))
@@ -323,7 +322,7 @@
   occurs in the keymaps associated with it instead of KEY.  It can also
   be a number or marker, in which case the keymap properties at the
   specified buffer position instead of point are used."
-  (some #(lookup-key % key accept-default) (current-active-maps nil position)))
+  (some identity (remove number? (map #(lookup-key % key accept-default) (current-active-maps nil position)))))
 
 (defun map-keymap (function keymap)
   "Call FUNCTION once for each event binding in KEYMAP.
@@ -355,7 +354,7 @@
   "Modify KEYMAP to set its parent map to PARENT.
   Return PARENT.  PARENT should be nil or another keymap."
   (el/check-type 'keymapp keymap)
-  (el/check-type 'keymapp parent)
+  (when parent (el/check-type 'keymapp parent))
   (loop [x keymap]
     (when x
       (if (keymapp (data/cdr x))

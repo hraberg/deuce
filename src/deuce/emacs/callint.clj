@@ -1,6 +1,7 @@
 (ns deuce.emacs.callint
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [deuce.emacs.data :as data])
   (::refer-clojure :exclude []))
 
 (defvar prefix-arg nil
@@ -73,6 +74,6 @@
   "Return numeric meaning of raw prefix argument RAW.
   A raw prefix argument is what you get from `(interactive \"P\")'.
   Its numeric meaning is what you would get from `(interactive \"p\")'."
-  (if (number? raw)
-    raw
+  (if (data/numberp raw)
+    (int raw)
     1))

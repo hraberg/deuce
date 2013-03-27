@@ -5,6 +5,7 @@
             [lanterna.terminal :as te]
             [deuce.emacs]
             [deuce.emacs-lisp :as el]
+            [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data]
@@ -12,6 +13,7 @@
             [deuce.emacs.eval :as eval]
             [deuce.emacs.fns :as fns]
             [deuce.emacs.frame :as frame]
+            [deuce.emacs.keymap :as keymap]
             [deuce.emacs.keyboard :as keyboard]
             [deuce.emacs.lread :as lread]
             [deuce.emacs.terminal :as terminal]
@@ -19,10 +21,13 @@
             [deuce.emacs.xdisp :as xdisp]
             [taoensso.timbre :as timbre]
             [dynapath.util :as dp])
-  (:import [java.io FileNotFoundException]
+  (:import [java.io FileNotFoundException InputStreamReader]
            [java.awt Toolkit]
            [java.awt.datatransfer DataFlavor StringSelection])
   (:gen-class))
+
+;; 2013-03-27: To monitor keyboard events, call start-input-loop, then type keys in the Deuce window.
+;;             They won't do anything, but will log out what it thinks it should be doing to the REPL.
 
 ;; Start Deuce like this: lein trampoline run -q --swank-clojure
 
@@ -44,7 +49,6 @@
 ;; (pop-mark) ;; Remove mark / Deselect.
 ;; (find-file "~/.bashrc") ;; Open a file.
 ;; (switch-to-buffer "*Deuce*") ;; The debug log
-
 
 (defn swank [port]
   (require 'swank.swank)
@@ -99,6 +103,7 @@
   ([] (apply blank (sc/get-size screen)))
   ([width height]
      (sc/clear screen)
+     (te/clear (.getTerminal screen))
      (sc/redraw screen)))
 
 (doseq [f '[line-indexes pos-to-line point-coords]]
@@ -197,6 +202,7 @@
     (sc/redraw screen)))
 
 (def running (atom nil))
+(def in (InputStreamReader. System/in))
 
 (defn stop-render-loop []
   (reset! running nil))
@@ -212,6 +218,49 @@
         (Thread/sleep 50)
         (catch Exception e
           (reset! running nil)
+          (throw e))))))
+
+(def char-buffer (atom []))
+(def event-buffer (atom []))
+
+;; We bypass Lanterna with System/in but utilize their setup of private mode, see deuce.emacs.keyboard
+;; We report our TERM as "lanterna" to allow terminal-init-lanterna to be run first, then init the real one.
+;; All this has only been tested on TERM=xterm
+;; input-decode-map is setup in term/xterm. We should also look in local-function-key-map
+;; This interfers badly with Lanterna's get-size, occasionally locks up, needs fix.
+(defn read-key []
+  (let [c (.read in)]
+    (println c (char c))
+    (swap! char-buffer conj (char c))
+    (let [maybe-event (object-array @char-buffer)
+          decoded (keymap/lookup-key (data/symbol-value 'input-decode-map) maybe-event)]
+      (if (keymap/keymapp decoded)
+        (println "potential input-decode prefix" maybe-event)
+        (let [event  (when (data/vectorp decoded)
+                       (reset! char-buffer [])
+                       decoded)
+              event (if event event maybe-event)
+              _ (swap! event-buffer (comp vec concat) event)
+              def (keymap/key-binding (object-array @event-buffer))]
+          (println maybe-event decoded event @char-buffer @event-buffer (if (keymap/keymapp def) "(keymap)" def))
+          (if (and def (not (keymap/keymapp def)))
+            (do
+              (reset! char-buffer [])
+              (reset! event-buffer [])
+              (println "COMMAND" def))
+            (when-not (keymap/keymapp def)
+              (reset! char-buffer [])
+              (reset! event-buffer []))))))))
+
+(defn start-input-loop []
+  (reset! running true)
+  (future
+    (while @running
+      (try
+        (read-key)
+        (catch Exception e
+          (reset! running nil)
+          (println e)
           (throw e))))))
 
 (timbre/set-config!

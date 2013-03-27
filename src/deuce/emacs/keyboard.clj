@@ -777,7 +777,8 @@
 
   Noninteractively, the argument PREFIXARG is the prefix argument to
   give to the command you invoke, if it asks for an argument."
-  (interactive "P"))
+  (interactive "P")
+  ((el/fun 'read-extended-command)))
 
 (defun discard-input ()
   "Discard the contents of the terminal input buffer.

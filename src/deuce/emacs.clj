@@ -84,7 +84,9 @@
 ;; Callback run by faces/tty-run-terminal-initialization based on deuce.emacs.term/tty-type returning "lanterna"
 (defun terminal-init-lanterna ()
   (c/require 'deuce.main)
-  ((c/ns-resolve 'deuce.main 'terminal-init-lanterna)))
+  ((c/ns-resolve 'deuce.main 'terminal-init-lanterna))
+  ;; Initialize the real TERM, may setup input-decode-map and local-function-key-map
+  (tty-run-terminal-initialization (selected-frame) (System/getenv "TERM")))
 
 ;; *scratch* is created by buffer.c
 (set-window-buffer (selected-window)

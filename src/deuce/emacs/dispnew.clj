@@ -1,6 +1,7 @@
 (ns deuce.emacs.dispnew
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [deuce.emacs-lisp.parser :as parser])
   (:refer-clojure :exclude []))
 
 (defvar no-redraw-on-reenter nil
@@ -138,7 +139,8 @@
   It may be a terminal object, a frame, or nil for the terminal used by
   the currently selected frame.  In batch mode, STRING is sent to stdout
   when TERMINAL is nil."
-  )
+  (.print System/out (parser/resolve-control-chars string))
+  (.flush System/out))
 
 (defun redraw-display ()
   "Clear and redisplay all visible frames."
@@ -151,4 +153,4 @@
   additional wait period, in milliseconds; this may be useful if your
   Emacs was built without floating point support.
   (Not all operating systems support waiting for a fraction of a second.)"
-  )
+  (Thread/sleep (+ (* 1000 seconds) (or milliseconds) 0)))
