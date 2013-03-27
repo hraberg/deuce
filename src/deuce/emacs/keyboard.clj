@@ -526,6 +526,11 @@
 ;;                   (define-key map "\eO2A" [S-up])
 ;;        The best approach is probably to have a close to empty Lanterna InputProfile and do all this using input-decode-map.
 ;;        Normal Ctrl would be control chars, and Meta basically \e + char, which is dealt with via the esc-map in Emacs.
+;;        Lanterna enters the mode where it can read all chars roughly like this (see UnixTerminal/enterPrivateMode):
+;;        (do (require '[clojure.java.shell :as sh])
+;;          (sh/sh "/bin/sh" "-c" "/bin/stty -echo < /dev/tty") ;; Disables echo, leave this out for manual testing.
+;;          (sh/sh "/bin/sh" "-c" "/bin/stty -icanon < /dev/tty") ;; Enable all chars for reading.
+;;          (sh/sh "/bin/sh" "-c" "/bin/stty min 1 < /dev/tty")) ;; Read single chars.
 
 ;; /* read a character from the keyboard; call the redisplay if needed */
 ;; /* commandflag 0 means do not autosave, but do redisplay.
