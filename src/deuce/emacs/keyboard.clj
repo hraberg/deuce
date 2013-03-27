@@ -508,6 +508,20 @@
 ;;        Maybe totally revamped, but let's start with something "similar" to Emacs.
 ;;        Is normally called from read_key_sequence (C internal version) from command_loop_1.
 
+;;         To identify non-default function keys we can either use:
+;;         com.googlecode.lanterna.input.BasicCharacterPattern in our own KeyMappingProfile,
+;;         and add it to the terminal using addInputProfile.
+;;         Or we can do what Emacs does, and use term/xterm.el and friends (or do something similar), which
+;;         registers a parent to input-decode-map which read-key-sequence uses to translate things on a low level.
+;;         (These two methods are essentially the same.)
+;;         The Emacs one would be best, but xterm.el does more stuff as well, like actually trying to talk to the terminal.
+;;         Example:
+;;         Lanterna:  new BasicCharacterPattern(new Key(Key.Kind.ArrowUp), ESC_CODE, '[', 'A'),
+;;         Emacs:    (define-key map "\e[A" [up])
+;;                   And the actual ones we need, not sure you can even represent these in Lanterna as
+;;                   Key.Kind is a closed enum:
+;;                   (define-key map "\e[1;3A" [M-up])
+
 ;; /* read a character from the keyboard; call the redisplay if needed */
 ;; /* commandflag 0 means do not autosave, but do redisplay.
 ;;    -1 means do not redisplay, but do autosave.
