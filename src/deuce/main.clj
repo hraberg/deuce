@@ -240,7 +240,7 @@
               event (if (data/vectorp decoded) decoded maybe-event)
               _ (swap! event-buffer (comp vec concat) event)
               def (keymap/key-binding (object-array @event-buffer))]
-          (println maybe-event decoded event @char-buffer @event-buffer (if (keymap/keymapp def) "(keymap)" def))
+          (println maybe-event decoded event @event-buffer (if (keymap/keymapp def) "(keymap)" def))
           (if (and def (not (keymap/keymapp def)))
             (do
               (reset! char-buffer [])
