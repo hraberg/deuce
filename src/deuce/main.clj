@@ -236,10 +236,8 @@
           decoded (keymap/lookup-key (data/symbol-value 'input-decode-map) maybe-event)]
       (if (keymap/keymapp decoded)
         (println "potential input-decode prefix" maybe-event)
-        (let [event  (when (data/vectorp decoded)
-                       (reset! char-buffer [])
-                       decoded)
-              event (if event event maybe-event)
+        (let [_ (reset! char-buffer [])
+              event (if (data/vectorp decoded) decoded maybe-event)
               _ (swap! event-buffer (comp vec concat) event)
               def (keymap/key-binding (object-array @event-buffer))]
           (println maybe-event decoded event @char-buffer @event-buffer (if (keymap/keymapp def) "(keymap)" def))
