@@ -1030,7 +1030,7 @@
 (defun buffer-enable-undo (&optional buffer)
   "Start keeping undo information for buffer BUFFER.
   No argument or nil as argument means do this for the current buffer."
-  (interactive ""))
+  (interactive))
 
 (defun buffer-list (&optional frame)
   "Return a list of all existing live buffers.

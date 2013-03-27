@@ -502,7 +502,7 @@
   depends on the value of (window-start WINDOW), so if calling this
   function in a program gives strange scrolling, make sure the
   window-start value is reasonable when this function is called."
-  (interactive ""))
+  (interactive))
 
 (defun window-inside-pixel-edges (&optional window)
   "Return a list of the edge pixel coordinates of WINDOW's text area.
