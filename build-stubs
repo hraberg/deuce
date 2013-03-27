@@ -5,4 +5,6 @@
 #   ./build-stubs src-24.3-stubs/deuce/emacs
 # Its possible if somewhat tedious to diff and merge signature and doc changes by hand.
 
+echo "NOTE: this doesn't take the interactive directivies on the DEFUN into account. It probably should."
+
 lein run -m deuce.scaffold "$@"
