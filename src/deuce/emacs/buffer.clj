@@ -956,6 +956,7 @@
   Interactively, you can set UNIQUE with a prefix argument.
   We return the name we actually gave the buffer.
   This does not change the name of the visited file (if any)."
+  (interactive "(list (read-string \"Rename buffer (to new name): \"  nil 'buffer-name-history (buffer-name (current-buffer))) current-prefix-arg)")
   (let [buffer-exists? (contains? @buffer-alist newname)]
     (if (= newname (buffer-name))
       newname

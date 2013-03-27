@@ -390,7 +390,7 @@
 
   When called interactively, TRASH is t if no prefix argument is given.
   With a prefix argument, TRASH is nil."
-  )
+  (interactive "(list (read-file-name (if (and delete-by-moving-to-trash (null current-prefix-arg)) \"Move file to trash: \" \"Delete file: \") nil default-directory (confirm-nonexistent-file-or-buffer)) (null current-prefix-arg))"))
 
 (defun file-executable-p (filename)
   "Return t if FILENAME can be executed by you.
@@ -532,7 +532,7 @@
 
   Interactively, mode bits are read by `read-file-modes', which accepts
   symbolic notation, like the `chmod' command from GNU Coreutils."
-  )
+  (interactive "(let ((file (read-file-name \"File: \"))) (list file (read-file-modes nil file)))"))
 
 (defun file-accessible-directory-p (filename)
   "Return t if file FILENAME names a directory you can open.

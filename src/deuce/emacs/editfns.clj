@@ -356,7 +356,7 @@
 
   When calling from a program, pass two arguments; positions (integers
   or markers) bounding the text that should remain visible."
-  (interactive)
+  (interactive "r")
   (let [buffer (buffer/current-buffer)]
     (reset! (.begv buffer) start)
     (reset! (.zv buffer) end)))
