@@ -252,6 +252,7 @@
 (defn ^:private emacs-regex-to-java [regexp]
   (-> regexp
       (s/replace #"^\\\`" "^")
+      (s/replace #"\\\|" "|")
       (s/replace #"\[(]?.*?)]"
                  (fn [x]
                    (str "[" (s/replace
