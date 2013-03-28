@@ -1,7 +1,15 @@
 (ns deuce.emacs.callint
-  (:use [deuce.emacs-lisp :only (defun defvar)])
+  (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
-            [deuce.emacs.data :as data])
+            [clojure.string :as s]
+            [deuce.emacs.alloc :as alloc]
+            [deuce.emacs.buffer :as buffer]
+            [deuce.emacs.data :as data]
+            [deuce.emacs.editfns :as editfns]
+            [deuce.emacs.eval :as eval]
+            [deuce.emacs.lread :as lread]
+            [deuce.emacs.marker :as marker]
+            [taoensso.timbre :as timbre])
   (::refer-clojure :exclude []))
 
 (defvar prefix-arg nil
@@ -52,6 +60,25 @@
   Its purpose is to give temporary modes such as Isearch mode
   a way to turn themselves off when a mouse command switches windows.")
 
+(declare prefix-numeric-value)
+
+;; See callint.c for the full set, many enter recursive edit and read the arguments from the minibuffer.
+(defn ^:private parse-interactive [arg]
+  (let [[[_ mods [code & prompt]]] (re-seq #"([@*^]*)(.+)" arg)
+        prompt (apply str prompt)]
+    (doseq [m (distinct mods)]
+      (case m
+        \* (buffer/barf-if-buffer-read-only)
+        \^ (timbre/warn "should handle shift translation for " arg "shift-select-mode:"
+                        (data/symbol-value 'shift-select-mode))
+        \@ (timbre/debug "should select window if mouse event for " arg)))
+    (case code
+      \b [(buffer/buffer-name)]
+      \m [(marker/marker-position (editfns/mark-marker))]
+      \r [(editfns/region-beginning) (editfns/region-end)]
+      \P [(data/symbol-value 'current-prefix-arg)]
+      \p [(prefix-numeric-value (data/symbol-value 'current-prefix-arg))])))
+
 (defun call-interactively (function &optional record-flag keys)
   "Call FUNCTION, providing args according to its interactive calling specs.
   Return the value FUNCTION returns.
@@ -68,7 +95,18 @@
   supply, as a vector, if the command inquires which events were used to
   invoke it.  If KEYS is omitted or nil, the return value of
   `this-command-keys-vector' is used."
-  )
+  (el/check-type 'commandp function)
+  (let [keys (or keys (eval/funcall 'this-command-keys-vector))
+        f (data/symbol-function function)
+        interactive (:interactive (meta f))
+        args (cond
+              (= \( (first interactive)) (eval/eval (lread/read interactive))
+              (seq? interactive) (eval/eval interactive)
+              :else (mapcat parse-interactive (s/split interactive #"\n")))]
+    (when record-flag
+      (el/setq command-history (alloc/cons (alloc/cons f args) (data/symbol-value 'command-history))))
+    (println args)
+    (apply eval/funcall f args)))
 
 (defun prefix-numeric-value (raw)
   "Return numeric meaning of raw prefix argument RAW.

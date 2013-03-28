@@ -26,6 +26,7 @@
            [java.awt.datatransfer DataFlavor StringSelection])
   (:gen-class))
 
+;; 2013-03-28: There's simple command loop now, via start-input-loop, but it doesn't work at all yet.
 ;; 2013-03-27: To monitor keyboard events, call start-input-loop, then type keys in the Deuce window.
 ;;             They won't do anything, but will log out what it thinks it should be doing to the REPL.
 
@@ -64,6 +65,8 @@
 
 ;; The way this does this is probably utterly wrong, written by data inspection, not reading Emacs source.
 ;; But produces the expected result:
+;; 2013-03-28: This has been a bit broken since key-binding and lookup-key actually been imlemented, revisit and probably simplify.
+;;             Help shows up twice, and an extra tmm-menubar-mouse is in there.
 (defn render-menu-bar []
   (when (data/symbol-value 'menu-bar-mode)
     (let [map-for-mode #(let [map (symbol (str % "-map"))]
@@ -242,10 +245,26 @@
               def (keymap/key-binding (object-array @event-buffer))]
           (println maybe-event decoded event @event-buffer (if (keymap/keymapp def) "(keymap)" def))
           (if (and def (not (keymap/keymapp def)))
-            (do
+            (try
+              ;; There are many more things that can happen here
+              (el/setq last-event-frame (frame/selected-frame))
+              (el/setq last-command-event (last @event-buffer))
+              (el/setq last-nonmenu-event (last @event-buffer))
+              (el/setq this-command def)
+              (el/setq this-original-command def) ;; Need to handle remap
+              (el/setq deactivate-mark nil)
               (reset! char-buffer [])
               (reset! event-buffer [])
-              (println "COMMAND" def))
+              (println "COMMAND" def (:interactive (meta def)))
+              (keyboard/command-execute def)
+              (finally
+               (when (data/symbol-value 'deactivate-mark)
+                 (eval/funcall 'deactivate-mark))
+               (el/setq this-command nil)
+               (el/setq this-original-command nil)
+               (el/setq last-prefix-arg (data/symbol-value 'current-prefix-arg))
+               (el/setq last-command (data/symbol-value 'this-command))
+               (el/setq real-last-command (data/symbol-value 'this-command))))
             (when-not (keymap/keymapp def)
               (reset! char-buffer [])
               (reset! event-buffer []))))))))

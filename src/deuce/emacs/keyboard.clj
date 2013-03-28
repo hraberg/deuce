@@ -3,8 +3,11 @@
   (:require [clojure.core :as c]
             [clojure.java.shell :as sh]
             [lanterna.common]
+            [deuce.emacs.callint :as callint]
             [deuce.emacs.casefiddle :as casefiddle]
+            [deuce.emacs.data :as data]
             [deuce.emacs.editfns :as editfns]
+            [deuce.emacs.macros :as macros]
             [deuce.emacs.term :as term]
             [deuce.emacs.terminal :as terminal]
             [deuce.emacs-lisp.parser :as parser])
@@ -630,7 +633,13 @@
   when reading the arguments; if it is nil, (this-command-keys) is used.
   The argument SPECIAL, if non-nil, means that this command is executing
   a special event, so ignore the prefix argument and don't clear it."
-  )
+  (el/check-type 'commandp cmd)
+  (when-not special
+    (el/setq current-prefix-arg (data/symbol-value 'prefix-arg))
+    (el/setq prefix-arg nil))
+  (if (or (data/stringp cmd) (data/vectorp cmd))
+    (macros/execute-kbd-macro cmd (when-not special (data/symbol-value 'current-prefix-arg)))
+    (callint/call-interactively cmd record-flag keys)))
 
 (Signal/handle (Signal. "CONT")
                (proxy [SignalHandler] []

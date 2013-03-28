@@ -798,7 +798,8 @@
 
 (defun barf-if-buffer-read-only ()
   "Signal a `buffer-read-only' error if the current buffer is read-only."
-  )
+  (when (buffer-local-value 'buffer-read-only (current-buffer))
+    (el/throw* 'buffer-read-only (buffer-name))))
 
 (defun overlayp (object)
   "Return t if OBJECT is an overlay."
