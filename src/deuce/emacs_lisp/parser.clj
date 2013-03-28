@@ -64,10 +64,15 @@
           [["\\\n" ""]
            ["\\\"" "\""]
            ["\\\\" "\\"]
+           [#"\\(\d+)" (fn [[_ n]]
+                         (str (char (Integer/parseInt n 8))))]
+           [#"\\x(\p{XDigit}+)" (fn [[_ n]]
+                                  (str (char (Integer/parseInt n 16))))]
            ["\\n" "\n"]
            ["\\r" "\r"]
            ["\\b" "\b"]
            ["\\t" "\t"]]))
+
 ;; Like Emacs, certain characters can be read both with single and double backslash. Not necessarily the same ones.
 (def emacs-problem-chars {"\\" \\ "\\s" \space
                           "\\-" \- "-" \- "\"" \"})
@@ -110,7 +115,7 @@
           c (cond
              (character-modifier-symbols c) -1
              (re-find #"\\\d+" c) (Integer/parseInt (subs c 1) 8)
-             (re-find #"\\x\p{XDigit}" c) (Integer/parseInt (subs c 2) 16)
+             (re-find #"\\x\p{XDigit}+" c) (Integer/parseInt (subs c 2) 16)
              :else (int (first (resolve-control-chars (parse-string (str \" c \"))))))]
       (if (= -1 c) c
           (let [c (event-convert-list-internal
