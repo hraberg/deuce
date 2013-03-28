@@ -18,9 +18,7 @@
 
 (timbre/set-level! :debug)
 (timbre/set-config! [:appenders :standard-out :min-level] :error)
-;; Needs to fix circular reference to deuce.emacs.data.Buffer
-;; Push all defrecords down into deuce.emacs-lisp.structs or something?
-;; (set! *warn-on-reflection* true)
+(set! *warn-on-reflection* true)
 
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
@@ -93,12 +91,12 @@
 
 (defn el-var-buffer-local [needs-to-exist? name]
   (when-let [buffer ((fun 'current-buffer))]
-    (c/let [buffer-local (@(.local-var-alist buffer) name)]
+    (c/let [buffer-local (@(:local-var-alist buffer) name)]
            (if-not needs-to-exist?
              (c/or buffer-local
                    (when (contains? @buffer-locals name)
                      (c/let [v (Var/create)]
-                            (swap! (.local-var-alist buffer) assoc name v)
+                            (swap! (:local-var-alist buffer) assoc name v)
                             v)))
              (when (c/and buffer-local (bound? buffer-local)) buffer-local)))))
 
