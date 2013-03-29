@@ -436,7 +436,7 @@
                      find-file #(let [f (io/file (str file %))]
                                   (and (.exists f) (predicate (.getAbsolutePath f))
                                        (.toURL f)))]]
-           [l (some identity (mapcat (juxt find-file find-resource) (or suffixes '(""))))])
+           [l (some identity (map (some-fn find-resource find-file) (or suffixes [""])))])
          (filter (comp identity second))
          (remove #(when (= "file" (.getProtocol (second %)))
                     (.isDirectory (io/file (second %)))))
