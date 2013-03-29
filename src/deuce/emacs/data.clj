@@ -575,7 +575,7 @@
   (el/check-type 'symbolp symbol)
   (if (c/= symbol (c/symbol ""))
     nil ;; Hack for anonymous symbol used by abbrev.el, needs proper fix.
-    ((eval `(fn set [v#] (setq ~symbol v#))) newval)))
+    (el/el-var-set* symbol newval)))
 
 (defun < (num1 num2)
   "Return t if first arg is less than second arg.  Both must be numbers or markers."
@@ -756,7 +756,7 @@
   The default value is seen in buffers that do not have their own values
   for this variable."
   (el/check-type 'symbolp symbol)
-  ((eval `(fn set-default [v#] (setq-default ~symbol v#))) value))
+  (el/el-var-set-default* symbol value))
 
 (defun symbol-function (symbol)
   "Return SYMBOL's function definition.  Error if that is void."

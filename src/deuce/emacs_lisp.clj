@@ -23,7 +23,7 @@
 (create-ns 'deuce.emacs)
 (create-ns 'deuce.emacs-lisp.globals)
 
-(declare clojure-special-forms throw throw* defvar el->clj eval emacs-lisp-backquote)
+(declare clojure-special-forms throw throw* defvar el->clj eval emacs-lisp-backquote defvar-helper*)
 
 (defn vector-reader [v]
   (object-array (vec v)))
@@ -113,28 +113,34 @@
   (c/let [name (sym name)]
          (if (c/and (symbol? name) (name &env))
            `(if (var? ~name)
-              (if (bound? ~name)@~name
+              (if (bound? ~name) @~name
                   (throw* '~'void-variable (list '~name)))
               ~name)
            `(el-var-get* '~name))))
 
-;; split these out into el-var-set-** and get rid of eval in deuce.emacs.data/set(-default)
+(defn el-var-set-default* [name value]
+  (if-let [v (global name)]
+    (alter-var-root v (constantly value))
+    @(global (defvar-helper* 'deuce.emacs-lisp.globals name value))))
+
 (c/defmacro el-var-set-default [name value]
   (c/let [name (sym name)]
-         `(c/let [value# ~value]
-                 (if-let [v# (global '~name)]
-                   (alter-var-root v# (constantly ~value))
-                   @(global (defvar ~name ~value))))))
+         `(el-var-set-default* '~name ~value)))
+
+(defn el-var-set* [name-or-var value]
+  (if-let [^Var v (c/or (c/and (var? name-or-var) name-or-var)
+                        ((some-fn *dynamic-vars* (partial el-var-buffer-local false)) name-or-var))]
+    (if (c/or (c/and (.hasRoot v) (not (.getThreadBinding v))) (not (bound? v)))
+      (alter-var-root v (constantly value))
+      (var-set v value))
+    (el-var-set-default* name-or-var value)))
 
 (c/defmacro el-var-set [name value]
   (c/let [name (sym name)]
-         `(c/let [value# ~value]
-                 (if-let [^Var v# (c/or ~(c/and (symbol? name) (name &env) name)
-                                        ((some-fn *dynamic-vars* (partial el-var-buffer-local false)) '~name))]
-                   (if (c/or (c/and (.hasRoot v#) (not (.getThreadBinding v#))) (not (bound? v#)))
-                     (alter-var-root v# (constantly value#))
-                     (var-set v# value#))
-                   (el-var-set-default ~name value#)))))
+         `(el-var-set* ~(if (c/and (symbol? name) (name &env))
+                          `~name
+                          `'~name)
+                       ~value)))
 
 (defn dynamic-binding? []
   (not (el-var-get lexical-binding)))
