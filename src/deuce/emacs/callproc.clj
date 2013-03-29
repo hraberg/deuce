@@ -35,7 +35,7 @@
 
   You can customize this variable.")
 
-(defvar initial-environment (map str (System/getenv))
+(defvar initial-environment (apply list (map str (System/getenv)))
   "List of environment variables inherited from the parent process.
   Each element should be a string of the form ENVVARNAME=VALUE.
   The elements must normally be decoded (using `locale-coding-system') for use.")
