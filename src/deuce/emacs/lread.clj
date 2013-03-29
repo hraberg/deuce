@@ -501,7 +501,7 @@
                                        (s/replace file  #".el$" "")) #"^/*" "")
                   clj-file (str (s/replace file "-" "_") ".clj")
                   clj-name (symbol (s/replace file "/" "."))
-                  last-modified #(if % (with-open [c (.openConnection ^URL %)] (.getLastModified c)) -1)
+                  last-modified #(if % (.getLastModified (.openConnection ^URL %)) -1)
                   load-raw-clj #(with-open [r (io/reader (io/resource clj-file))]
                                   (Compiler/load r clj-file (.getName (io/file clj-file))))]
               (try
