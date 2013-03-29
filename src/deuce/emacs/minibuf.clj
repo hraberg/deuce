@@ -326,10 +326,10 @@
        (filter (if predicate (el/fun predicate) identity) collection)))
 
 (defn ^:private try-completion-internal [string collection]
-  (when-let [completions (seq (filter #(.startsWith (str %) string) collection))]
+  (when-let [completions (seq (filter #(.startsWith (str %) ^String string) collection))]
     (reduce #(loop [n (count %1)]
                (let [prefix (subs %1 0 n)]
-                 (if (.startsWith %2 prefix) prefix (recur (dec n)))))
+                 (if (.startsWith ^String %2 prefix) prefix (recur (dec n)))))
             (sort completions))))
 
 (defun try-completion (string collection &optional predicate)

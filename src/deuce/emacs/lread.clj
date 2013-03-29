@@ -23,6 +23,7 @@
             [deuce.emacs-lisp.parser :as parser])
   (:refer-clojure :exclude [read intern load])
   (:import [java.io FileNotFoundException]
+           [java.net URL]
            [com.googlecode.lanterna.input Key]
            [clojure.lang Symbol Compiler]))
 
@@ -399,16 +400,24 @@
 (defmethod pp/simple-dispatch Symbol [s]
   (print-dup s *out*))
 
+(def ^:private ^:dynamic *pretty-clojure* false)
+
 (defn ^:private write-clojure [el clj]
   (io/make-parents clj)
   (let [level (:current-level @timbre/config)]
     (try
       (timbre/set-level! :fatal)
-      (with-open [w (io/writer clj)]
-        (doseq [form  (concat '[(ns deuce.emacs (:refer-clojure :only []))]
-                              el)]
-          (pp/pprint form w)
-          (.write w "\n")))
+
+      (binding [*print-dup* true
+                *print-meta* false]
+        (spit clj
+              (with-out-str
+                (doseq [form (concat '[(ns deuce.emacs (:refer-clojure :only []))]
+                                       el)]
+                  (if *pretty-clojure*
+                    (pp/pprint form)
+                    (pr form))
+                  (println)))))
       (finally (timbre/set-level! level)))))
 
 (def ^:private access {0 fileio/file-exists-p
@@ -492,8 +501,9 @@
                                        (s/replace file  #".el$" "")) #"^/*" "")
                   clj-file (str (s/replace file "-" "_") ".clj")
                   clj-name (symbol (s/replace file "/" "."))
-                  last-modified #(if % (.getLastModified (.openConnection %)) -1)
-                  load-raw-clj #(Compiler/load (io/reader (io/resource clj-file)) clj-file (.getName (io/file clj-file)))]
+                  last-modified #(if % (with-open [c (.openConnection ^URL %)] (.getLastModified c)) -1)
+                  load-raw-clj #(with-open [r (io/reader (io/resource clj-file))]
+                                  (Compiler/load r clj-file (.getName (io/file clj-file))))]
               (try
                 (when (> (last-modified url) (last-modified (io/resource clj-file)))
                   (throw (FileNotFoundException. "out of date")))
