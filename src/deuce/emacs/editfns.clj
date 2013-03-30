@@ -7,6 +7,7 @@
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.casefiddle :as casefiddle]
             [deuce.emacs.data :as data]
+            [deuce.emacs.terminal :as terminal]
             [deuce.emacs.window :as window]
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals])
@@ -555,7 +556,17 @@
   a non-nil property of that name, then any field boundaries are ignored.
 
   Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil."
-  )
+  ;; Don't think this works as intended, gets called in the middle of lots of other line-move stuff.
+  (let [constrain #(if only-in-line
+                     (let [line-indexes ((ns-resolve 'deuce.emacs.cmds 'line-indexes) (buffer-string))]
+                       (if-not (= ((ns-resolve 'deuce.emacs.cmds 'pos-to-line) line-indexes %)
+                                  ((ns-resolve 'deuce.emacs.cmds 'pos-to-line) line-indexes old-pos))
+                         old-pos
+                         %))
+                     %)]
+    (if new-pos
+      (constrain new-pos)
+      (goto-char (constrain (point))))))
 
 (defun buffer-string ()
   "Return the contents of the current buffer as a string.
@@ -837,7 +848,8 @@
           (insert message))
         (window/set-window-buffer (window/minibuffer-window) echo-area)
         ;; This will go away
-        (println message))
+        (when-not (terminal/frame-terminal)
+          (println message)))
       (do
         (binding [buffer/*current-buffer* echo-area]
           (buffer/erase-buffer))

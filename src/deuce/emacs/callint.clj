@@ -99,13 +99,13 @@
   (let [keys (or keys (eval/funcall 'this-command-keys-vector))
         f (data/symbol-function function)
         interactive (:interactive (meta f))
-        args (cond
-              (= \( (first interactive)) (eval/eval (lread/read interactive))
-              (seq? interactive) (eval/eval interactive)
-              :else (mapcat parse-interactive (s/split interactive #"\n")))]
+        args (condp some [interactive]
+              (comp #{\)} first) (eval/eval (lread/read interactive))
+              seq? (eval/eval interactive)
+              nil? nil
+              (mapcat parse-interactive (s/split interactive #"\n")))]
     (when record-flag
       (el/setq command-history (alloc/cons (alloc/cons f args) (data/symbol-value 'command-history))))
-    (println args)
     (apply eval/funcall f args)))
 
 (defun prefix-numeric-value (raw)

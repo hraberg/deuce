@@ -65,24 +65,23 @@
 
 ;; The way this does this is probably utterly wrong, written by data inspection, not reading Emacs source.
 ;; But produces the expected result:
-;; 2013-03-28: This has been a bit broken since key-binding and lookup-key actually been imlemented, revisit and probably simplify.
-;;             Help shows up twice, and an extra tmm-menubar-mouse is in there.
 (defn render-menu-bar []
   (when (data/symbol-value 'menu-bar-mode)
     (let [map-for-mode #(let [map (symbol (str % "-map"))]
                           (when (data/boundp map)
                             (data/symbol-value map)))
-          menu-name #(last %)
           ;; The consp check here is suspicious.
           ;; There's a "menu-bar" string in there which probably shouldn't be.
-          menus-for-map #(map menu-name (filter data/consp (fns/nthcdr 2 (fns/assq 'menu-bar %))))
+          menus-for-map #(map keymap/keymap-prompt (filter data/consp (fns/nthcdr 2 (fns/assq 'menu-bar %))))
           menu-bar-by-name #(data/symbol-value (symbol (str "menu-bar-" %)))
-          global-map (data/symbol-value 'global-map)
-          major-mode-map (map-for-mode (data/symbol-value 'major-mode))
-          minor-mode-maps (map map-for-mode (data/symbol-value 'minor-mode-list))
           final-items (map menu-bar-by-name (data/symbol-value 'menu-bar-final-items))
-          menu-bar (concat (mapcat menus-for-map (concat [global-map major-mode-map] minor-mode-maps))
-                           (map menu-name final-items))]
+          final-menus (map keymap/keymap-prompt final-items)
+          ;; Hack to create the same display order as Emacs.
+          menu-bar (concat (remove (some-fn nil? symbol?) ;; This is to get rid of tmm-menu-bar-mouse
+                                   (remove (set final-menus) ;; Remove Help that goes on the end.
+                                           (mapcat menus-for-map [(keymap/current-global-map)
+                                                                  (keymap/current-local-map)])))
+                           final-menus)]
       (s/join " " menu-bar))))
 
 ;; Renders a single window using Lanterna. Scrolling is not properly taken care of.
@@ -102,12 +101,10 @@
   (format (str "%-" cols "s") s))
 
 ;; If the screen gets messed up by other output like a stack trace you need to call this.
-(defn blank
-  ([] (apply blank (sc/get-size screen)))
-  ([width height]
-     (sc/clear screen)
-     (te/clear (.getTerminal screen))
-     (sc/redraw screen)))
+(defn blank []
+  (sc/clear screen)
+  (te/clear (.getTerminal screen))
+  (sc/redraw screen))
 
 (doseq [f '[line-indexes pos-to-line point-coords]]
   (eval `(def ~f (ns-resolve 'deuce.emacs.cmds '~f))))
@@ -187,8 +184,10 @@
     window/window-top-child (throw (UnsupportedOperationException.))
     window/window-left-child (throw (UnsupportedOperationException.))))
 
+(declare size)
+
 (defn display-using-lanterna []
-  (let [[width height] (te/get-size (.getTerminal screen))
+  (let [[width height] size
         mini-buffer-window (window/minibuffer-window)
         mini-buffer (- height (window/window-total-height mini-buffer-window))
         menu-bar-mode (data/symbol-value 'menu-bar-mode)
@@ -218,9 +217,10 @@
     (while @running
       (try
         (display-using-lanterna)
-        (Thread/sleep 50)
+        (Thread/sleep 15)
         (catch Exception e
           (reset! running nil)
+          (.printStackTrace e *out*)
           (throw e))))))
 
 (def char-buffer (atom []))
@@ -233,31 +233,37 @@
 ;; This interfers badly with Lanterna's get-size, occasionally locks up, needs fix.
 (defn read-key []
   (let [c (.read in)]
-    (println c (char c))
+;    (println c (char c))
     (swap! char-buffer conj (char c))
     (let [maybe-event (object-array @char-buffer)
           decoded (keymap/lookup-key (data/symbol-value 'input-decode-map) maybe-event)]
       (if (keymap/keymapp decoded)
-        (println "potential input-decode prefix" maybe-event)
+        nil
+;        (println "potential input-decode prefix" maybe-event)
         (let [_ (reset! char-buffer [])
               event (if (data/vectorp decoded) decoded maybe-event)
               _ (swap! event-buffer (comp vec concat) event)
               def (keymap/key-binding (object-array @event-buffer))]
-          (println maybe-event decoded event @event-buffer (if (keymap/keymapp def) "(keymap)" def))
+;          (println maybe-event decoded event @event-buffer (if (keymap/keymapp def) "(keymap)" def))
           (if (and def (not (keymap/keymapp def)))
             (try
               ;; There are many more things that can happen here
               (el/setq last-event-frame (frame/selected-frame))
               (el/setq last-command-event (last @event-buffer))
               (el/setq last-nonmenu-event (last @event-buffer))
+              ;; this-command-keys and this-command-keys-vector return the entire event-buffer as string or vector.
+              ;; They are backed by one variable in C, this_command_keys.
               (el/setq this-command def)
               (el/setq this-original-command def) ;; Need to handle remap
               (el/setq deactivate-mark nil)
+              (buffer/set-buffer (window/window-buffer (window/selected-window)))
               (reset! char-buffer [])
               (reset! event-buffer [])
-              (println "COMMAND" def (:interactive (meta def)))
+              (eval/run-hooks 'pre-command-hook)
+;              (println "COMMAND" def (:interactive (meta def)))
               (keyboard/command-execute def)
               (finally
+               (eval/run-hooks 'post-command-hook)
                (when (data/symbol-value 'deactivate-mark)
                  (eval/funcall 'deactivate-mark))
                (el/setq this-command nil)
@@ -277,7 +283,7 @@
         (read-key)
         (catch Exception e
           (reset! running nil)
-          (println e)
+          (.printStackTrace e *out*)
           (throw e))))))
 
 (timbre/set-config!
@@ -302,8 +308,13 @@
   (try
     ((ns-resolve 'deuce.emacs.terminal 'init-initial-terminal))
     (def screen (terminal/frame-terminal))
+    ;; We need to deal with resize later, it queries and gets the result on System/in which we have taken over.
+    (def size (te/get-size (.getTerminal screen)))
     (init-clipboard)
     (start-render-loop)
+    (start-input-loop)
+    ;; Something messes this up on the way here, potentially the xterm init or get-size call.
+    ;; current-buffer is ' *Echo Area 1*'.
     (catch Exception e
       (when screen
         (sc/stop screen)

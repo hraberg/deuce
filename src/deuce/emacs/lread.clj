@@ -400,7 +400,7 @@
 (defmethod pp/simple-dispatch Symbol [s]
   (print-dup s *out*))
 
-(def ^:private ^:dynamic *pretty-clojure* false)
+(def ^:private ^:dynamic *pretty-clojure* true)
 
 (defn ^:private write-clojure [el clj]
   (io/make-parents clj)

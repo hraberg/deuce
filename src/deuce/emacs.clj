@@ -88,11 +88,13 @@
   ;; Initialize the real TERM, may setup input-decode-map and local-function-key-map
   (tty-run-terminal-initialization (selected-frame) (System/getenv "TERM")))
 
+;; Create *Deuce* log buffer first so it won't get selected.
+(get-buffer-create "*Deuce*")
+;; *Messages* is created by xdisp.c
+(get-buffer-create "*Messages*")
 ;; *scratch* is created by buffer.c
 (set-window-buffer (selected-window)
                    (get-buffer-create "*scratch*"))
-;; *Messages* is created by xdisp.c
-(get-buffer-create "*Messages*")
 ;; Minibuffer 0 is the empty one, this is either created by frame.c or minibuffer.c
 ;; Not the leading space for buffers in the minibuffer window. *Minibuf-1* etc. gets created once it gets activated.
 ;; You can switch to these buffers in a normal window in Emacs and see them change as they're used.

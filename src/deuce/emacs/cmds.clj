@@ -126,7 +126,9 @@
   (when-not (contains? #{nil 1} n)
     (forward-line n))
   (let [bol (.lastIndexOf (editfns/buffer-substring 1 (editfns/point)) (int \newline))]
-    (editfns/goto-char (+ bol 2))))
+    (if (= -1 bol)
+      (editfns/goto-char 1)
+      (editfns/goto-char (+ bol 2)))))
 
 (defun delete-char (n &optional killflag)
   "Delete the following N characters (previous if N is negative).
@@ -136,7 +138,7 @@
 
   The command `delete-forward-char' is preferable for interactive use."
   (interactive "p\nP")
-  (apply editfns/delete-region (sort [(editfns/point) (+ (editfns/point) n)])))
+  (apply editfns/delete-region (sort [(editfns/point) (min (+ (editfns/point) n) 1)])))
 
 (defun end-of-line (&optional n)
   "Move point to end of current line (in the logical order).

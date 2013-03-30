@@ -378,7 +378,8 @@
 
   Under a windowing system a dialog box will be used if `last-nonmenu-event'
   is nil, and `use-dialog-box' is non-nil."
-  )
+  ;; This doesn't work as minibuffer's doesn't, but we want to see if it happens.
+  ((ns-resolve 'deuce.emacs.minibuf 'minibuffer) prompt))
 
 (defun hash-table-count (table)
   "Return the number of elements in TABLE."

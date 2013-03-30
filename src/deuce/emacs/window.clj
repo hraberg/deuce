@@ -206,7 +206,7 @@
 
   Note that if `automatic-hscrolling' is non-nil, you cannot scroll the
   window so that the location of point moves off-window."
-  )
+  ncol)
 
 (defun recenter (&optional arg)
   "Center point in selected window and maybe redisplay frame.
@@ -741,7 +741,7 @@
   corresponds to an integral number of pixels.  The return value is the
   result of this rounding.
   If PIXELS-P is non-nil, the return value is VSCROLL."
-  )
+  vscroll)
 
 (defun window-new-normal (&optional window)
   "Return new normal size of window WINDOW.
@@ -753,7 +753,7 @@
   If WINDOW is omitted or nil, it defaults to the selected window.
   Normally, value is a multiple of the canonical character height of WINDOW;
   optional second arg PIXELS-P means value is measured in pixels."
-  )
+  0)
 
 (defun get-buffer-window (&optional buffer-or-name all-frames)
   "Return a window currently displaying BUFFER-OR-NAME, or nil if none.
@@ -904,7 +904,7 @@
 (defun window-hscroll (&optional window)
   "Return the number of columns by which WINDOW is scrolled from left margin.
   WINDOW must be a live window and defaults to the selected one."
-  )
+  0)
 
 (defun window-prev-sibling (&optional window)
   "Return the previous sibling window of window WINDOW.

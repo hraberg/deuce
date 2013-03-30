@@ -2,6 +2,7 @@
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
             [deuce.emacs.buffer :as buffer]
+            [deuce.emacs.data :as data]
             [deuce.emacs.editfns :as editfns])
   (:refer-clojure :exclude []))
 
@@ -129,4 +130,5 @@
   This is consistent with other cursor motion functions
   and makes it possible to use `vertical-motion' in any buffer,
   whether or not it is currently displayed in some window."
-  (interactive "p"))
+  (interactive "p")
+  ((ns-resolve 'deuce.emacs.cmds 'forward-line) (if (data/consp lines) (data/cdr lines) lines)))

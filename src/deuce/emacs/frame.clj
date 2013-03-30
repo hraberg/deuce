@@ -417,7 +417,7 @@
   If FRAME is omitted, the selected frame is used.
   On a graphical screen, the width is the standard width of the default font.
   For a terminal screen, the value is always 1."
-  )
+  1)
 
 (defun mouse-position ()
   "Return a list (FRAME X . Y) giving the current mouse frame and position.
@@ -493,7 +493,7 @@
   "Height in pixels of a line in the font in frame FRAME.
   If FRAME is omitted, the selected frame is used.
   For a terminal frame, the value is always 1."
-  )
+  1)
 
 (defun mouse-pixel-position ()
   "Return a list (FRAME X . Y) giving the current mouse frame and position.
