@@ -11,6 +11,11 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors)
 
+**2013-04-01 CED**
+
+[CED](https://github.com/hraberg/ced) is an effort to bring the power of Ed - the REPL of champions - to Clojure.
+
+
 **2013-03-23 Lanterna**
 
 Lanterna is now default, it renders the UI in busy loop until we got something better, you start it like this:
