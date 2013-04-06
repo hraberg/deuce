@@ -302,17 +302,22 @@
     (el/setq interprogram-paste-function
              #(.getData clipboard DataFlavor/stringFlavor))))
 
+(defn inside-emacs? []
+  (= "dumb" (System/getenv "TERM")))
+
 ;; Callback run by faces/tty-run-terminal-initialization based on deuce.emacs.term/tty-type returning "lanterna"
 ;; Has Emacs Lisp proxy in deuce.emacs.
 (defn terminal-init-lanterna []
   (try
-    ((ns-resolve 'deuce.emacs.terminal 'init-initial-terminal))
-    (def screen (terminal/frame-terminal))
-    ;; We need to deal with resize later, it queries and gets the result on System/in which we have taken over.
-    (def size (te/get-size (.getTerminal screen)))
-    (init-clipboard)
-    (start-render-loop)
-    (start-input-loop)
+    (when-not (inside-emacs?)
+      ((ns-resolve 'deuce.emacs.terminal 'init-initial-terminal))
+      (def screen (terminal/frame-terminal))
+      ;; We need to deal with resize later, it queries and gets the result on System/in which we have taken over.
+      (def size (te/get-size (.getTerminal screen)))
+      (blank)
+      (init-clipboard)
+      (start-render-loop)
+      (start-input-loop))
     ;; Something messes this up on the way here, potentially the xterm init or get-size call.
     ;; current-buffer is ' *Echo Area 1*'.
     (catch Exception e

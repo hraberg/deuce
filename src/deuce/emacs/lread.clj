@@ -444,6 +444,9 @@
 
 (def ^:private ^:dynamic loads-in-progress #{})
 
+(defn ^:private internal-path [path file]
+  (s/replace (str (when (seq path) (str path "/")) file) #"^/*" ""))
+
 (defun load (file &optional noerror nomessage nosuffix must-suffix)
   "Execute a file of Lisp code named FILE.
   First try FILE with `.elc' appended, then try with `.el',
@@ -497,8 +500,7 @@
             (editfns/message "Loading %s%s..." file (if el-extension? " (source)" "")))
           (binding [globals/load-file-name (.getFile url)
                     globals/load-in-progress true]
-            (let [file (s/replace (str (when (seq path) (str path "/"))
-                                       (s/replace file  #".el$" "")) #"^/*" "")
+            (let [file (internal-path path (s/replace file  #".el$" ""))
                   clj-file (str (s/replace file "-" "_") ".clj")
                   clj-name (symbol (s/replace file "/" "."))
                   last-modified #(if % (.getLastModified (.openConnection ^URL %)) -1)
@@ -543,7 +545,9 @@
   This function will normally skip directories, so if you want it to find
   directories, make sure the PREDICATE function returns `dir-ok' for them."
   (let [[dir file] (locate-file filename path suffixes predicate)]
-    (when file (.getPath file))))
+    (when file
+      (internal-path dir (str (io/file (.getParent (io/file filename))
+                                       (.getName (io/file (.getFile file)))))))))
 
 (defun unintern (name obarray)
   "Delete the symbol named NAME, if any, from OBARRAY.

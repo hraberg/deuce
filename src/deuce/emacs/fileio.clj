@@ -600,7 +600,9 @@
   (el/check-type 'stringp filename)
   (if (re-find #"/$" filename)
     filename
-    (when-let [parent (.getParent (io/file filename))]
+    (when-let [parent (.getParent (if-let [resource (io/resource filename)]
+                                    (io/file (.getFile resource)) ;; Terrible hack, reason is lread/locate-file-internal
+                                    (io/file filename)))]
       (file-name-as-directory parent))))
 
 (defun file-symlink-p (filename)
