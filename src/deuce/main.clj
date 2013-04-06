@@ -314,12 +314,10 @@
       (def screen (terminal/frame-terminal))
       ;; We need to deal with resize later, it queries and gets the result on System/in which we have taken over.
       (def size (te/get-size (.getTerminal screen)))
-      (blank)
       (init-clipboard)
       (start-render-loop)
       (start-input-loop))
     ;; Something messes this up on the way here, potentially the xterm init or get-size call.
-    ;; current-buffer is ' *Echo Area 1*'.
     (catch Exception e
       (when screen
         (sc/stop screen)
