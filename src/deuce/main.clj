@@ -184,10 +184,14 @@
     window/window-top-child (throw (UnsupportedOperationException.))
     window/window-left-child (throw (UnsupportedOperationException.))))
 
-(declare size)
+
+(def size (atom nil))
+
+(defn update-terminal-size []
+  (reset! size (te/get-size (.getTerminal screen))))
 
 (defn display-using-lanterna []
-  (let [[width height] size
+  (let [[width height] @size
         mini-buffer-window (window/minibuffer-window)
         mini-buffer (- height (window/window-total-height mini-buffer-window))
         menu-bar-mode (data/symbol-value 'menu-bar-mode)
@@ -232,6 +236,9 @@
 ;; input-decode-map is setup in term/xterm. We should also look in local-function-key-map
 ;; This interfers badly with Lanterna's get-size, occasionally locks up, needs fix.
 (defn read-key []
+  ;; Somewhere here we could maybe update the screen size, doesn't work.
+  ;; (when-not (.ready in)
+  ;;   (update-terminal-size))
   (let [c (.read in)]
 ;    (println c (char c))
     (swap! char-buffer conj (char c))
@@ -282,9 +289,7 @@
       (try
         (read-key)
         (catch Exception e
-          (reset! running nil)
-          (.printStackTrace e *out*)
-          (throw e))))))
+          (.printStackTrace e *out*))))))
 
 (timbre/set-config!
  [:appenders :deuce-buffer-appender]
@@ -313,7 +318,7 @@
       ((ns-resolve 'deuce.emacs.terminal 'init-initial-terminal))
       (def screen (terminal/frame-terminal))
       ;; We need to deal with resize later, it queries and gets the result on System/in which we have taken over.
-      (def size (te/get-size (.getTerminal screen)))
+      (update-terminal-size)
       (init-clipboard)
       (start-render-loop)
       (start-input-loop))
