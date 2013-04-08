@@ -1198,5 +1198,5 @@
                     (data/symbol-value 'initial-major-mode)
                     (or (data/default-value 'major-mode)
                         (data/symbol-value 'major-mode)))]
-    (binding [current-buffer buffer]
+    (binding [*current-buffer* buffer]
       (eval/funcall mode))))
