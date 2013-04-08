@@ -289,8 +289,8 @@
   POS is an integer or a marker and defaults to point.
   If POS is out of range, the value is nil."
   (let [pos (dec (or pos (point)))]
-      (when  (< -1 pos (buffer-size))
-        (.charAt (buffer-string) pos))))
+    (when  (< -1 pos (buffer-size))
+      (.charAt (buffer-string) pos))))
 
 (defun gap-size ()
   "Return the size of the current buffer's gap.
@@ -557,17 +557,10 @@
   a non-nil property of that name, then any field boundaries are ignored.
 
   Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil."
-  ;; Don't think this works as intended, gets called in the middle of lots of other line-move stuff.
-  (let [constrain #(if only-in-line
-                     (let [line-indexes ((ns-resolve 'deuce.emacs.cmds 'line-indexes) (buffer-string))]
-                       (if-not (= ((ns-resolve 'deuce.emacs.cmds 'pos-to-line) line-indexes %)
-                                  ((ns-resolve 'deuce.emacs.cmds 'pos-to-line) line-indexes old-pos))
-                         old-pos
-                         %))
-                     %)]
-    (if new-pos
-      (constrain new-pos)
-      (goto-char (constrain (point))))))
+  ;; This a vast simplification
+  (if new-pos
+    (constrain new-pos)
+    (goto-char (point))))
 
 (defun buffer-string ()
   "Return the contents of the current buffer as a string.
