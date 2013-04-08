@@ -326,7 +326,7 @@
       (throw e))))
 
 (def deuce-dot-d (str (doto (io/file (System/getProperty "user.home") ".deuce.d")
-                        (.mkdirs))))
+                        .mkdirs)))
 (def ^:dynamic *emacs-compile-path* *compile-path*)
 
 (defn init-user-classpath []

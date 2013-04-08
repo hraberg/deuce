@@ -3,8 +3,8 @@
   (:require [clojure.core :as c]
             [clojure.java.io :as io]
             [clojure.string :as s]
-            [clojure.pprint :as pp]
             [clojure.walk :as w]
+            [bbloom.fipp.edn :as fipp]
             [lanterna.screen :as sc]
             [lanterna.common]
             [lanterna.constants]
@@ -384,41 +384,22 @@
   This uses the variables `load-suffixes' and `load-file-rep-suffixes'."
   (apply alloc/list (remove empty? (concat globals/load-file-rep-suffixes globals/load-suffixes))))
 
-(def ^:private default-reader-macros ((ns-map 'clojure.pprint) 'reader-macros))
-
-;; Move this to a try/finally style to not mess up the real Clojure map.
-;; Also: Explore blacklist of files (ie. minibuffer.clj) that actually needs the full Emacs Lisp syntax quote forms available.
-;;       Print normal Clojure for the rest.
-(let [reader-macros default-reader-macros]
-  (alter-var-root reader-macros
-                  merge `{el/syntax-quote "`" unquote-splicing "~@" clojure.core/quote "'"})
-  (alter-var-root reader-macros dissoc 'var))
-
-(defmethod pp/simple-dispatch (type (object-array 0)) [arr]
-  (print-dup arr *out*))
-
-(defmethod pp/simple-dispatch Symbol [s]
-  (print-dup s *out*))
-
 (def ^:private ^:dynamic *pretty-clojure* true)
+
+(defmethod fipp/pretty :default [x]
+  (binding [*print-dup* true]
+    [:text (pr-str x)]))
 
 (defn ^:private write-clojure [el clj]
   (io/make-parents clj)
-  (let [level (:current-level @timbre/config)]
-    (try
-      (timbre/set-level! :fatal)
-
-      (binding [*print-dup* true
-                *print-meta* false]
-        (spit clj
-              (with-out-str
-                (doseq [form (concat '[(ns deuce.emacs (:refer-clojure :only []))]
-                                       el)]
-                  (if *pretty-clojure*
-                    (pp/pprint form)
-                    (pr form))
-                  (println)))))
-      (finally (timbre/set-level! level)))))
+  (spit clj
+        (with-out-str
+          (doseq [form (concat '[(ns deuce.emacs (:refer-clojure :only []))]
+                               el)]
+            (if *pretty-clojure*
+              (fipp/pprint form)
+              (pr form))
+            (println)))))
 
 (def ^:private access {0 fileio/file-exists-p
                        1 fileio/file-readable-p
