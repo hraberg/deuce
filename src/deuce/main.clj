@@ -224,9 +224,8 @@
         (Thread/sleep 15)
         (catch Exception e
           (reset! running nil)
-          (.printStackTrace e *out*)
-          ;; Something is wrong here, calling this just dies without any feedback, may lead to a more fundamental issue.
-          ;; (timbre/error e "An error occured during the render loop")
+          (binding [*ns* (the-ns 'clojure.core)]
+            (timbre/error e "An error occured during the render loop"))
           (throw e))))))
 
 (def char-buffer (atom []))
@@ -269,7 +268,7 @@
               (reset! char-buffer [])
               (reset! event-buffer [])
               (eval/run-hooks 'pre-command-hook)
-;              (println "COMMAND" def (:interactive (meta def)))
+              (timbre/debug (format "Command: %s" def))
               (keyboard/command-execute def)
               (finally
                (eval/run-hooks 'post-command-hook)
@@ -291,8 +290,8 @@
       (try
         (read-key)
         (catch Exception e
-          ;; (timbre/error e "An error occured during the input loop")
-          (.printStackTrace e *out*))))))
+          (binding [*ns* (the-ns 'clojure.core)]
+            (timbre/error e "An error occured during the input loop")))))))
 
 (defn init-clipboard []
   (let [clipboard (.getSystemClipboard (Toolkit/getDefaultToolkit))]
@@ -319,10 +318,10 @@
       (init-clipboard)
       (start-render-loop)
       (start-input-loop))
-    ;; Something messes this up on the way here, potentially the xterm init or get-size call.
     (catch Exception e
       (when screen
         (sc/stop screen))
+      (timbre/error e "An error occured during Lanterna init")
       (throw e))))
 
 (def deuce-dot-d (str (doto (io/file (System/getProperty "user.home") ".deuce.d")
@@ -349,7 +348,13 @@
           (editfns/insert (str (s/join " " (concat [prefix "-" message] more)) \newline))))})
 
 (timbre/set-config! [:shared-appender-config :spit-filename] (str (io/file deuce-dot-d "deuce.log")))
+(timbre/set-config! [:appenders :standard-out :enabled?] (inside-emacs?))
 (timbre/merge-config! {:appenders {:spit {:min-level :debug :enabled? true}}})
+
+(Thread/setDefaultUncaughtExceptionHandler
+ (proxy [Thread$UncaughtExceptionHandler] []
+   (uncaughtException [^Thread t ^Throwable e]
+     (timbre/error e "Uncaught Exception"))))
 
 ;; We want to support emacs -q initially. -q is --no-init-file
 (defn -main [& args]
