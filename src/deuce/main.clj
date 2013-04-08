@@ -225,6 +225,8 @@
         (catch Exception e
           (reset! running nil)
           (.printStackTrace e *out*)
+          ;; Something is wrong here, calling this just dies without any feedback, may lead to a more fundamental issue.
+          ;; (timbre/error e "An error occured during the render loop")
           (throw e))))))
 
 (def char-buffer (atom []))
@@ -289,14 +291,8 @@
       (try
         (read-key)
         (catch Exception e
+          ;; (timbre/error e "An error occured during the input loop")
           (.printStackTrace e *out*))))))
-
-(timbre/set-config!
- [:appenders :deuce-buffer-appender]
- {:min-level :debug :enabled? true :async? true
-  :fn (fn [{:keys [ap-config level prefix message more] :as args}]
-        (binding [buffer/*current-buffer* (buffer/get-buffer-create "*Deuce*")]
-          (editfns/insert (str (s/join " " (concat [prefix "-" message] more)) \newline))))})
 
 (defn init-clipboard []
   (let [clipboard (.getSystemClipboard (Toolkit/getDefaultToolkit))]
@@ -318,6 +314,7 @@
       ((ns-resolve 'deuce.emacs.terminal 'init-initial-terminal))
       (def screen (terminal/frame-terminal))
       ;; We need to deal with resize later, it queries and gets the result on System/in which we have taken over.
+      ;; Some other call, probably to getTerminalSize, still messes up *scratch*
       (update-terminal-size)
       (init-clipboard)
       (start-render-loop)
@@ -325,14 +322,14 @@
     ;; Something messes this up on the way here, potentially the xterm init or get-size call.
     (catch Exception e
       (when screen
-        (sc/stop screen)
-        (throw e)))))
+        (sc/stop screen))
+      (throw e))))
 
-(def deuce-dot-d (str (io/file (System/getProperty "user.home") ".deuce.d")))
+(def deuce-dot-d (str (doto (io/file (System/getProperty "user.home") ".deuce.d")
+                        (.mkdirs))))
 (def ^:dynamic *emacs-compile-path* *compile-path*)
 
 (defn init-user-classpath []
-  (.mkdirs (io/file deuce-dot-d))
   (dp/add-classpath-url (.getContextClassLoader (Thread/currentThread)) (.toURL (io/file deuce-dot-d)))
   (alter-var-root #'*emacs-compile-path* (constantly deuce-dot-d)))
 
@@ -344,8 +341,19 @@
       (catch Exception e
         (timbre/error e (format "An error occurred while loading `%s':" (str init-file)))))))
 
+(timbre/set-config!
+ [:appenders :deuce-buffer-appender]
+ {:min-level :debug :enabled? true :async? true
+  :fn (fn [{:keys [ap-config level prefix message more] :as args}]
+        (binding [buffer/*current-buffer* (buffer/get-buffer-create "*Deuce*")]
+          (editfns/insert (str (s/join " " (concat [prefix "-" message] more)) \newline))))})
+
+(timbre/set-config! [:shared-appender-config :spit-filename] (str (io/file deuce-dot-d "deuce.log")))
+(timbre/merge-config! {:appenders {:spit {:min-level :debug :enabled? true}}})
+
 ;; We want to support emacs -q initially. -q is --no-init-file
 (defn -main [& args]
+  (timbre/debug "Starting Deuce")
   (let [option #(hash-set (str "-" %) (str "--" %))
         inhibit-window-system (atom nil)
         args (map

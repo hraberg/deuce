@@ -10,7 +10,8 @@
             [deuce.emacs.terminal :as terminal]
             [deuce.emacs.window :as window]
             [deuce.emacs-lisp :as el]
-            [deuce.emacs-lisp.globals :as globals])
+            [deuce.emacs-lisp.globals :as globals]
+            [taoensso.timbre :as timbre])
   (:import [java.net InetAddress]
            [java.text SimpleDateFormat]
            [java.util Date Calendar TimeZone List]
@@ -841,6 +842,7 @@
         minibuffer (buffer/get-buffer-create " *Minibuf-0*")]
     (if (seq message)
       (do
+        (timbre/info message)
         (binding [buffer/*current-buffer* (buffer/get-buffer-create "*Messages*")]
           (insert (str message \newline))) ;; Emacs has logic to figure out if newline is needed.
         (binding [buffer/*current-buffer* echo-area]
