@@ -11,16 +11,16 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors)
 
-**2013-04-08**
+**2013-04-08 C-x C-c**
 
-After a break I'm now revisting the command loop. You can start Deuce with `lein run -Q`  to get into `*scratch*` and type away, most things won't work - you can tail `~/deuce.d/deuce.log` to see what's happening (or not).
+After a break I'm now revisting the command loop. You can start Deuce with `lein trampoline run -Q`  to get into `*scratch*` and type away, most things won't work - you can tail `~/deuce.d/deuce.log` to see what's happening (or not).
 
 Keymaps more or less work, as does using [`term/xterm`](https://github.com/mirrors/emacs/blob/emacs-24/lisp/term/xterm.el) to setup `input-decode-map` whoch translates the escape keys into Emacs events, like this:
 
     (define-key map "\e[1;3C" [M-right]) ;; This is in turn mapped to right-word somewhere else.
 
 This requires us to bypass Lanterna's own input system, so we're only using Lanterna to get into private mode and draw things now.
-Doing `C-x C-c` will print "(No files need saving)" in the echo area, but doesn't actually exit for some reason.
+`C-z` will suspend Deuce, `fg` brings it back. Doing `C-x C-c` will exit Deuce (there are still reasons to do this).
 
 
 **2013-03-23 Lanterna**

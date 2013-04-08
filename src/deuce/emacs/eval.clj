@@ -223,7 +223,7 @@
   Instead, use `add-hook' and specify t for the LOCAL argument."
   (when-let [hook (el/global hook)]
     (let [hook @hook]
-      (dorun (map #(c/apply funcall % args) (if (fn? hook) [hook] hook))))))
+      (doall (map #(c/apply funcall % args) (if (fn? hook) [hook] hook))))))
 
 (defun funcall (function &rest arguments)
   "Call first argument as a function, passing remaining arguments to it.
@@ -291,7 +291,7 @@
 
   Do not use `make-local-variable' to make a hook variable buffer-local.
   Instead, use `add-hook' and specify t for the LOCAL argument."
-  )
+  (some identity (apply run-hook-with-args hook args)))
 
 (defun backtrace ()
   "Print a trace of Lisp function calls currently active.
@@ -310,7 +310,8 @@
 
   Do not use `make-local-variable' to make a hook variable buffer-local.
   Instead, use `add-hook' and specify t for the LOCAL argument."
-  )
+  (or (some (complement identity) (apply run-hook-with-args hook args))
+      true))
 
 (defun apply (function &rest arguments)
   "Call FUNCTION with our remaining args, using our last arg as list of args.

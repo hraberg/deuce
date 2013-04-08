@@ -115,7 +115,5 @@
 
   A suspended tty may be resumed by calling `resume-tty' on it."
   (when-let [terminal (terminal/frame-terminal)]
-    (s/clear terminal)
-    (s/redraw terminal)
     (s/stop terminal)
     (eval/run-hook-with-args 'suspend-tty-functions terminal)))
