@@ -15,7 +15,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 After a break I'm now revisting the command loop. You can start Deuce with `lein run -Q`  to get into `*scratch*` and type away, most things won't work - you can tail `~/deuce.d/deuce.log` to see what's happening (or not).
 
-Keymaps more or less work, as does using `term/xterm` to setup `input-decode-map` whoch translates the escape keys into Emacs events, like this:
+Keymaps more or less work, as does using [`term/xterm`](https://github.com/mirrors/emacs/blob/emacs-24/lisp/term/xterm.el) to setup `input-decode-map` whoch translates the escape keys into Emacs events, like this:
 
     (define-key map "\e[1;3C" [M-right]) ;; This is in turn mapped to right-word somewhere else.
 
@@ -282,7 +282,7 @@ There are a few reasons why I investigate this:
 
 There are several other things on this branch that will be merged back regardless, using [`ex-info`](http://clojure.github.com/clojure/clojure.core-api.html#clojure.core/ex-info) for Emacs Lisp errors and new tests for core functions - and hence more correct implementations. Also: `defalias` and `autoload` that actually works for macros.
 
-Before embarking on this, I was close to have most of the relevant Emacs Lisp required to actually start up Emacs (see below) loaded, but the final mile requires `cl.el` to really shine and let its macros expand like intended. Its currently stuck on [`pcase.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/pcase.el) ("ML-style pattern-matching macro for Elisp"), which is needed for [`minibuffer.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/minibuffer.el) and others. The state of this branch is currently stuck much earlier, but I'm working on it to see if I can get `pcase` (and the full boot) to actually work via this approach.
+Before embarking on this, I was close to have most of the relevant Emacs Lisp required to actually start up Emacs (see below) loaded, but the final mile requires `cl.el` to really shine and let its macros expand like intended. Its currently stuck on [`pcase.el`](https://github.com/mirrors/emacs/blob/emacs-24/lisp/emacs-lisp/pcase.el) ("ML-style pattern-matching macro for Elisp"), which is needed for [`minibuffer.el`](https://github.com/mirrors/emacs/blob/emacs-24/lisp/minibuffer.el) and others. The state of this branch is currently stuck much earlier, but I'm working on it to see if I can get `pcase` (and the full boot) to actually work via this approach.
 
 
 **2013-03-03 Welcome to GNU Emacs**
@@ -382,11 +382,11 @@ I plan to start with a rethink of how the Emacs Lisp evaluation model works - it
 
 **2012-11-08**
 
-After many false starts, [`cl.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/cl.el) now loads. I don't expect much of it to actually work, but some things do. See the [EmacsWiki](http://www.emacswiki.org/emacs/CommonLispForEmacs) [CommonLispForEmacs](http://www.emacswiki.org/emacs/CommonLispForEmacs) page for a discussion about when this file is actually supposed to be loaded.
+After many false starts, [`cl.el`](https://github.com/mirrors/emacs/blob/emacs-24/lisp/emacs-lisp/cl.el) now loads. I don't expect much of it to actually work, but some things do. See the [EmacsWiki](http://www.emacswiki.org/emacs/CommonLispForEmacs) [CommonLispForEmacs](http://www.emacswiki.org/emacs/CommonLispForEmacs) page for a discussion about when this file is actually supposed to be loaded.
 
 > Packages distributed within GNU Emacs don’t use cl at runtime
 
-Instead files like [`env.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/env.el) use
+Instead files like [`env.el`](https://github.com/mirrors/emacs/blob/emacs-24/lisp/env.el) use
 
 ```el
 (eval-when-compile (require 'cl))
@@ -396,9 +396,9 @@ The documentation to `eval-when-compile` says
 
 > In interpreted code, this is entirely equivalent to `progn'
 
-Compiling Emacs Lisp to Clojure counts as interpreting in Deuce - but anything in [`loadup.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/loadup.el) is normally already compiled when starting Emacs. When running Emacs with `-Q` you can see that `(featurep 'cl)` actually is `nil`, so in theory `cl.el` shouldn't be loaded, but this distinction is messy as things can depend on the `cl.el` macros. For obvious reasons it would be nice to avoid it, as we have a situation where Deuce contains an ad hoc, informally-specified, bug-ridden, slow implementation of half of Common Lisp in an ad hoc, informally-specified, bug-ridden, slow implementation of half of Emacs Lisp in Clojure.
+Compiling Emacs Lisp to Clojure counts as interpreting in Deuce - but anything in [`loadup.el`](https://github.com/mirrors/emacs/blob/emacs-24/lisp/loadup.el) is normally already compiled when starting Emacs. When running Emacs with `-Q` you can see that `(featurep 'cl)` actually is `nil`, so in theory `cl.el` shouldn't be loaded, but this distinction is messy as things can depend on the `cl.el` macros. For obvious reasons it would be nice to avoid it, as we have a situation where Deuce contains an ad hoc, informally-specified, bug-ridden, slow implementation of half of Common Lisp in an ad hoc, informally-specified, bug-ridden, slow implementation of half of Emacs Lisp in Clojure.
 
-Next up is [`bindings.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/bindings.el) which is its own area of strangeness, but at least something related to the actual editor.
+Next up is [`bindings.el`](https://github.com/mirrors/emacs/blob/emacs-24/lisp/bindings.el) which is its own area of strangeness, but at least something related to the actual editor.
 
 
 **2012-10-09**
@@ -409,7 +409,7 @@ I'm now back in London, gearing up to tackle the method length issue, see below.
 **2012-09-21**
 
 I've been working on [Shen.java](https://github.com/hraberg/Shen.java) last week, so no progress here.
-Currently [`cl-macs.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/cl-macs.el) fails with `ClassFormatError: Invalid method Code length` in `cl-parse-loop-clause`.
+Currently [`cl-macs.el`](https://github.com/mirrors/emacs/blob/emacs-24/lisp/emacs-lisp/cl-macs.el) fails with `ClassFormatError: Invalid method Code length` in `cl-parse-loop-clause`.
 
 **2012-09-11 Logging**
 
@@ -417,9 +417,9 @@ Using [Timbre, a (sane) logging library for Clojure](https://github.com/ptaoussa
 
 **2012-09-10 Mutable Data**
 
-Somewhat reluctantly now backing Emacs Lisp with [LinkedList](http://docs.oracle.com/javase/7/docs/api/java/util/LinkedList.html) for [lists](http://www.gnu.org/software/emacs/manual/html_node/elisp/Lists.html) and arrays for [vectors](http://www.gnu.org/software/emacs/manual/html_node/elisp/Sequences-Arrays-Vectors.html), so various destructive updates work. Both [`custom.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/custom.el) and [`mule.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/international/mule.el) are using this to build up various state. I've also decided to represent property lists as meta data on the var for now.
+Somewhat reluctantly now backing Emacs Lisp with [LinkedList](http://docs.oracle.com/javase/7/docs/api/java/util/LinkedList.html) for [lists](http://www.gnu.org/software/emacs/manual/html_node/elisp/Lists.html) and arrays for [vectors](http://www.gnu.org/software/emacs/manual/html_node/elisp/Sequences-Arrays-Vectors.html), so various destructive updates work. Both [`custom.el`](https://github.com/mirrors/emacs/blob/emacs-24/lisp/custom.el) and [`mule.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/international/mule.el) are using this to build up various state. I've also decided to represent property lists as meta data on the var for now.
 
-Here's the current state - [`load-path`](http://www.gnu.org/software/emacs/manual/html_node/elisp/Loading.html) entries are classpath relative (from [`emacs/lisp`](https://github.com/emacsmirror/emacs/tree/master/lisp), see [`project.clj`](https://github.com/hraberg/deuce/blob/master/project.clj)):
+Here's the current state - [`load-path`](http://www.gnu.org/software/emacs/manual/html_node/elisp/Loading.html) entries are classpath relative (from [`emacs/lisp`](https://github.com/mirrors/emacs/tree/master/lisp), see [`project.clj`](https://github.com/hraberg/deuce/blob/master/project.clj)):
 
 
     $ lein run --batch --eval "(print (emacs-version))"
@@ -444,10 +444,10 @@ Here's the current state - [`load-path`](http://www.gnu.org/software/emacs/manua
 
 **Tentative Goals for September 2012**
 
-* Getting [`subr.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/subr.el) to load properly (and then continue [`loadup.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/loadup.el)).
+* Getting [`subr.el`](https://github.com/mirrors/emacs/blob/emacs-24/lisp/subr.el) to load properly (and then continue [`loadup.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/loadup.el)).
 * Proper loading of Emacs Lisp in general.
 * Proper handling of lexical vs. dynamic scoping.
-* Getting the [`ert.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/ert.el) [`ert-tests.el`](https://github.com/hraberg/deuce/blob/master/test/ert-tests.el) self tests running. This will require some buffer variable handling. [ERT](http://www.gnu.org/software/emacs/manual/html_node/ert/index.html) also requires a few other files to work (like [`cl.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/cl.el)).
+* Getting the [`ert.el`](https://github.com/mirrors/emacs/blob/emacs-24/lisp/emacs-lisp/ert.el) [`ert-tests.el`](https://github.com/hraberg/deuce/blob/master/test/ert-tests.el) self tests running. This will require some buffer variable handling. [ERT](http://www.gnu.org/software/emacs/manual/html_node/ert/index.html) also requires a few other files to work (like [`cl.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/cl.el)).
 
 **2012-09-04 Deuce-Loadup**
 
@@ -461,7 +461,7 @@ Here's the current state - [`load-path`](http://www.gnu.org/software/emacs/manua
     GNU Emacs 24.2 (jvm-1.8.0-ea_clojure-1.4.0)
      of 2012-09-04 on hraberg-VPCZ21C5E
 
-[`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/src/deuce-loadup.el) represents a small fraction of the real Emacs [`loadup.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/loadup.el). Not all forms loaded are even properly evaluated yet, but we get to [`version.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/version.el).
+[`deuce-loadup.el`](https://github.com/hraberg/deuce/blob/master/src/deuce-loadup.el) represents a small fraction of the real Emacs [`loadup.el`](https://github.com/mirrors/emacs/blob/emacs-24/lisp/loadup.el). Not all forms loaded are even properly evaluated yet, but we get to [`version.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/version.el).
 
 You can also run it like this:
 
@@ -488,7 +488,7 @@ The exact evaluation model haven't been decided, but as Emacs Lisp is a Lisp 2, 
 
 [`dynamic.cjl`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/dynamic.clj), [`lexical.clj`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/lexical.clj) and [`locals.clj`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/locals.clj) is a first stab at evaluating some Emacs Lisp. See [`deuce.test`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/) for more.
 
-A test representing a tiny fraction of [`loadup.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/loadup.el), [`loadup.clj`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/loadup.clj).
+A test representing a tiny fraction of [`loadup.el`](https://github.com/mirrors/emacs/blob/emacs-24/lisp/loadup.el), [`loadup.clj`](https://github.com/hraberg/deuce/blob/master/test/deuce/test/loadup.clj).
 
 
 **2012-04-22 The Emacs Lisp parser**
@@ -555,7 +555,7 @@ While the most of the document below represents speculation about how the port m
 You need Emacs (see above) to have access to the Emacs Lisp, but actually building Emacs is optional (this is the entire point of Deuce).
 I use Emacs to develop Deuce, which has a few recursive advantages - you can constantly verify how things should work in a real Lisp Interaction buffer.
 
-After a few days of hacking, I found that it's easiest to load and switch to the [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs.clj) and use this as your "base" namespace (`clojure.core` is required as `c`). Most actual hard work goes into [`deuce.emacs-lisp`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs_lisp.clj). The various namespaces under [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs) replaces the [C core](https://github.com/emacsmirror/emacs/tree/master/src) of GNU Emacs.
+After a few days of hacking, I found that it's easiest to load and switch to the [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs.clj) and use this as your "base" namespace (`clojure.core` is required as `c`). Most actual hard work goes into [`deuce.emacs-lisp`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs_lisp.clj). The various namespaces under [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs) replaces the [C core](https://github.com/mirrors/emacs/tree/master/src) of GNU Emacs.
 
 Once in [`deuce.emacs`](https://github.com/hraberg/deuce/blob/master/src/deuce/emacs.clj) you can either evaluate Emacs Lisp as raw Clojure or via `eval` - the latter is more realistic as there's (often needed) processing done to the Clojure forms before they are really evaluated as Emacs Lisp. So normally do this:
 
@@ -608,7 +608,7 @@ I don't expect the visual editor to exist for quite a while. Initially, the edit
 
 Larger than the technical challenges - which are mainly about scale - is the fact it doesn't seem to be any large regression suite for Emacs one can use to ensure one is on the right track. There are some tests, and other editors, like Zile, have Emacs compatibility test suites for at least editing that could be reused:
 
-* Emacs is using [`ert.el`](https://github.com/emacsmirror/emacs/blob/emacs-24/lisp/emacs-lisp/ert.el) for regression testing. Stallman's [comments](http://lists.gnu.org/archive/html/emacs-devel/2007-12/msg01339.html).
+* Emacs is using [`ert.el`](https://github.com/mirrors/emacs/blob/emacs-24/lisp/emacs-lisp/ert.el) for regression testing. Stallman's [comments](http://lists.gnu.org/archive/html/emacs-devel/2007-12/msg01339.html).
 * [Zile](http://www.gnu.org/software/zile/) [tests](http://git.savannah.gnu.org/cgit/zile.git/tree/tests) runs against both Zile and Emacs.
 * [Org-mode](http://orgmode.org/worg/org-tests/index.html) [testing/README](http://repo.or.cz/w/org-mode.git/blob/HEAD:/testing/README)
 * [Regression Testing XEmacs](http://www.xemacs.org/Documentation/21.5/html/internals_12.html) may or may not work with GNU Emacs.
