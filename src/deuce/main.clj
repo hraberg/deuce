@@ -364,11 +364,6 @@
 (timbre/set-config! [:appenders :standard-out :enabled?] (inside-emacs?))
 (timbre/merge-config! {:appenders {:spit {:min-level :debug :enabled? true}}})
 
-(Thread/setDefaultUncaughtExceptionHandler
- (proxy [Thread$UncaughtExceptionHandler] []
-   (uncaughtException [^Thread t ^Throwable e]
-     (timbre/error e "Uncaught Exception"))))
-
 ;; We want to support emacs -q initially. -q is --no-init-file
 (defn -main [& args]
   (timbre/debug "Starting Deuce")

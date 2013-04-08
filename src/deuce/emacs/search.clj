@@ -358,9 +358,10 @@
   NEWTEXT in place of subexp N.
   This is useful only after a regular expression search or match,
   since only regular expressions have distinguished subexpressions."
-  (editfns/goto-char (match-beginning))
-  (editfns/delete-region (match-beginning) (match-end))
-  (editfns/insert newtext))
+  (let [group (el/check-type 'integerp (or subexp 0))]
+    (editfns/goto-char (inc (match-beginning group)))
+    (editfns/delete-region (inc (match-beginning group)) (inc (match-end group)))
+    (editfns/insert newtext)))
 
 (defun match-beginning (subexp)
   "Return position of start of text matched by last search.
