@@ -253,6 +253,8 @@
 (defn compile [emacs-lisp]
   (try
     (when emacs-lisp (c/eval (if (meta emacs-lisp) (with-meta emacs-lisp nil) emacs-lisp)))
+    (catch ExceptionInfo e
+      (throw e))
     (catch RuntimeException e
       (do
         (error (-> e cause .getMessage) (with-out-str (pp/pprint emacs-lisp)))

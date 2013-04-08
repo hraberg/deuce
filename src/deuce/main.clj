@@ -23,7 +23,8 @@
             [dynapath.util :as dp])
   (:import [java.io FileNotFoundException InputStreamReader]
            [java.awt Toolkit]
-           [java.awt.datatransfer DataFlavor StringSelection])
+           [java.awt.datatransfer DataFlavor StringSelection]
+           [clojure.lang ExceptionInfo])
   (:gen-class))
 
 ;; 2013-03-28: There's simple command loop now, via start-input-loop, but it doesn't work at all yet.
@@ -272,12 +273,20 @@
               (reset! char-buffer [])
               (reset! event-buffer []))))))))
 
+(defn drain-input-stream [^InputStreamReader in]
+  (while (.ready in)
+    (.read in)))
+
 (defn start-input-loop []
   (reset! running true)
+  (drain-input-stream in)
   (future
     (while @running
       (try
         (read-key)
+        (catch ExceptionInfo e
+          (binding [*ns* (the-ns 'clojure.core)]
+            (timbre/error (.getMessage e))))
         (catch Exception e
           (binding [*ns* (the-ns 'clojure.core)]
             (timbre/error e "An error occured during the input loop")))))))
