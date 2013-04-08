@@ -559,7 +559,7 @@
   Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil."
   ;; This a vast simplification
   (if new-pos
-    (constrain new-pos)
+    new-pos
     (goto-char (point))))
 
 (defun buffer-string ()
