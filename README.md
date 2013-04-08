@@ -15,7 +15,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 After a break I'm now revisiting the command loop. You can start Deuce with `lein trampoline run -Q`  to get into `*scratch*` and type away, most things won't work - you can tail `~/deuce.d/deuce.log` to see what's happening (or not).
 
-Keymaps more or less work, as does using [`term/xterm`](https://github.com/mirrors/emacs/blob/emacs-24/lisp/term/xterm.el) to setup `input-decode-map` which translates the escape keys into Emacs events, like this:
+Keymaps more or less work, as does using [`term/xterm`](https://github.com/mirrors/emacs/blob/emacs-24/lisp/term/xterm.el) to setup `input-decode-map` which translates escape codes into Emacs events, like this:
 
     (define-key map "\e[1;3C" [M-right]) ;; This is in turn mapped to right-word somewhere else.
 
