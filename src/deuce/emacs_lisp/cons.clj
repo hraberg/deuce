@@ -20,9 +20,12 @@
   (car [this] nil)
   (cdr [this] nil))
 
-;; (satisfies? IList object) is slow
+(def ^:private array-class (Class/forName "[Ljava.lang.Object;"))
+
+;; (satisfies? IList object) is slow - not sure if I trust this old comment..
 (defn listp [object]
-  (or (nil? object) (sequential? object)))
+  (or (nil? object) (and (sequential? object)
+                         (not= array-class (type object)))))
 
 (defn consp [object]
   (instance? PersistentList object))

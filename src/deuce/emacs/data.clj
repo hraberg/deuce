@@ -525,7 +525,7 @@
 
 (defun wholenump (object)
   "Return t if OBJECT is a nonnegative integer."
-  ((every-pred pos? integer?) object))
+  ((every-pred integer? pos?) (promote-char object)))
 
 ;; We probably don't want to do this due to interned strings.
 (def ^:private string-chars (doto (.getDeclaredField String "value")

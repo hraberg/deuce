@@ -111,7 +111,7 @@
   Each argument xmay be a list, vector or string.
   The last argument is not copied, just used as the tail of the new list."
   (if (every? data/null (rest sequences))
-    (if (and (next sequences) (data/stringp (first sequences)))
+    (if (and (next sequences) (data/arrayp (first sequences)))
       (apply alloc/list (first sequences))
       (first sequences))
     (let [last (cons/maybe-seq (last sequences))]
@@ -379,7 +379,8 @@
   Under a windowing system a dialog box will be used if `last-nonmenu-event'
   is nil, and `use-dialog-box' is non-nil."
   ;; This doesn't work as minibuffer's doesn't, but we want to see if it happens.
-  ((ns-resolve 'deuce.emacs.minibuf 'minibuffer) prompt))
+  ((ns-resolve 'deuce.emacs.minibuf 'minibuffer) prompt)
+  true)
 
 (defun hash-table-count (table)
   "Return the number of elements in TABLE."

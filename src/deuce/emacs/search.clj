@@ -25,7 +25,7 @@
   A value of nil (which is the normal value) means treat spaces literally.")
 
 (declare string-match re-search-forward regexp-quote
-         match-end match-data set-match-data)
+         match-beginning match-end match-data set-match-data)
 
 (def ^:private current-match-data (atom nil))
 
@@ -224,10 +224,10 @@
      (zero? count) point
      (neg? count) (re-search-backward regexp bound noerror (- count))
      :else
-     (let [bound (el/check-type 'integerp (or bound (editfns/buffer-size)))]
+     (let [bound (el/check-type 'integerp (or bound (inc (editfns/buffer-size))))]
        (loop [count (dec count)]
          (if (string-match (el/check-type 'stringp regexp)
-                           (subs (editfns/buffer-string) 0 bound)
+                           (subs (editfns/buffer-string) 0 (dec bound))
                            (dec (editfns/point)))
            (do (editfns/goto-char (inc (match-end 0)))
                (if (zero? count)
@@ -358,7 +358,9 @@
   NEWTEXT in place of subexp N.
   This is useful only after a regular expression search or match,
   since only regular expressions have distinguished subexpressions."
-  )
+  (editfns/goto-char (match-beginning))
+  (editfns/delete-region (match-beginning) (match-end))
+  (editfns/insert newtext))
 
 (defun match-beginning (subexp)
   "Return position of start of text matched by last search.
@@ -422,6 +424,6 @@
   "Return a regexp string which matches exactly STRING and nothing else."
   (let [slash (str (gensym "SLASH"))]
     (s/replace
-     (reduce #(s/replace %1 (str %2) (str "\\" %2)) (s/replace string "\\" slash)
+     (reduce #(s/replace %1 (str %2) (str "\\" %2)) (s/replace (el/check-type 'stringp string) "\\" slash)
              "[*.?+^$")
      slash "\\\\")))

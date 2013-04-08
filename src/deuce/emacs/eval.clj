@@ -163,7 +163,7 @@
                           (c/apply (el/fun function) args)))] ;; el->clj?
       (ns-unmap 'deuce.emacs function)
       (el/defvar-helper* 'deuce.emacs function definition docstring)
-      (alter-meta! (el/fun function) merge {:autoload true :file file})
+      (alter-meta! (el/fun function) merge {:autoload true :file file} (when interactive {:interactive nil}))
       (when macro? (.setMacro (el/fun function))))
     function))
 

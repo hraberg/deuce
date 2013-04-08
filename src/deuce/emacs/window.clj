@@ -138,7 +138,7 @@
          buffer start pointm] (repeatedly #(atom nil))
          normal-lines (atom 1.0)
          normal-cols (atom 1.0)]
-    (Window. minibuffer? next prev hchild vchild parent
+    (Window. minibuffer? next prev hchild vchild (atom parent)
              (atom leftcol) (atom top-line) (atom total-lines) (atom total-cols)
              normal-lines normal-cols buffer start pointm (swap! sequence-number inc))))
 

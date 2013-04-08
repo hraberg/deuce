@@ -27,19 +27,19 @@
            [clojure.lang ExceptionInfo])
   (:gen-class))
 
-;; 2013-03-28: There's simple command loop now, via start-input-loop, but it doesn't work at all yet.
-;; 2013-03-27: To monitor keyboard events, call start-input-loop, then type keys in the Deuce window.
-;;             They won't do anything, but will log out what it thinks it should be doing to the REPL.
+;; Start Deuce like this:
+;;    lein trampoline run -Q --swank-clojure
 
-;; Start Deuce like this: lein trampoline run -q --swank-clojure
+;; Using -Q will put you in *scratch*, with the keyboard enabled.
+;; There's no minibuffer yet, so you have to switch buffer from the REPL.
+;; Several keyboard commands fail or are a bit off (like move-end-of-line).
 
 ;; Connect to Swank/nREPL from Emacs:
-
 ;; user> (in-ns 'deuce.emacs)  ;; We're now in Emacs Lisp
 
-;; (switch-to-buffer "*Messages*") ;; Shows the boot messages, Loading ...etc.
-;; (switch-to-buffer "*scratch*") ;; Displays *scratch*
-;; (insert "Deuce is (not yet) Emacs under Clojure") ;; Insert some text.
+;; Tail the log at ~/.deuce.d/deuce.log
+;; Errors are also visible in the Echo Area
+
 
 (defn swank [port]
   (require 'swank.swank)
@@ -294,8 +294,10 @@
           (binding [*ns* (the-ns 'clojure.core)]
             (timbre/error (.getMessage e))))
         (catch Exception e
+          ;; This is a simplification, but makes you aware of the error without tailing the log.
+          ((ns-resolve 'deuce.emacs.lread 'echo) (.getMessage e))
           (binding [*ns* (the-ns 'clojure.core)]
-            (timbre/error e "An error occured during the input loop")))))))
+            (timbre/error (el/cause e) "An error occured during the input loop")))))))
 
 (defn init-clipboard []
   (let [clipboard (.getSystemClipboard (Toolkit/getDefaultToolkit))]
@@ -340,7 +342,7 @@
 (def ^:dynamic *emacs-compile-path* *compile-path*)
 
 (defn init-user-classpath []
-  (dp/add-classpath-url (.getContextClassLoader (Thread/currentThread)) (.toURL (io/file deuce-dot-d)))
+  (dp/add-classpath-url (ClassLoader/getSystemClassLoader) (.toURL (io/file deuce-dot-d)))
   (alter-var-root #'*emacs-compile-path* (constantly deuce-dot-d)))
 
 (defn load-user-init-file []
