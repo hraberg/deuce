@@ -200,15 +200,20 @@
 (def running (atom nil))
 (def in (InputStreamReader. System/in))
 
-(defn stop-render-loop []
-  (reset! running nil))
+(defn stop-ui []
+  (reset! running :stop)
+  (while @running
+    (Thread/sleep 20)))
+
+(defn running? []
+  (true? @running))
 
 ;; Not the real thing, but keeps the UI changing while using the REPL before we got a real command loop.
 (defn start-render-loop []
   (reset! running true)
   (blank)
   (future
-    (while @running
+    (while (running?)
       (try
         (display-using-lanterna)
         (Thread/sleep 15)
@@ -216,7 +221,8 @@
           (reset! running nil)
           (binding [*ns* (the-ns 'clojure.core)]
             (timbre/error e "An error occured during the render loop"))
-          (throw e))))))
+          (throw e))))
+    (reset! running nil)))
 
 (def char-buffer (atom []))
 (def event-buffer (atom []))
@@ -281,7 +287,7 @@
   (reset! running true)
   (drain-input-stream in)
   (future
-    (while @running
+    (while (running?)
       (try
         (read-key)
         (catch ExceptionInfo e
@@ -303,6 +309,10 @@
 (defn inside-emacs? []
   (= "dumb" (System/getenv "TERM")))
 
+(defn start-ui []
+  (start-render-loop)
+  (start-input-loop))
+
 ;; Callback run by faces/tty-run-terminal-initialization based on deuce.emacs.term/tty-type returning "lanterna"
 ;; Has Emacs Lisp proxy in deuce.emacs.
 (defn terminal-init-lanterna []
@@ -311,11 +321,14 @@
       ((ns-resolve 'deuce.emacs.terminal 'init-initial-terminal))
       (def screen (terminal/frame-terminal))
       ;; We need to deal with resize later, it queries and gets the result on System/in which we have taken over.
-      ;; Some other call, probably to getTerminalSize, still messes up *scratch*
+
+      ;; Initialize the real TERM, should setup input-decode-map and local-function-key-map
+      (eval/eval '(tty-run-terminal-initialization (selected-frame)
+                                                   (getenv-internal "TERM")))
+
       (update-terminal-size)
       (init-clipboard)
-      (start-render-loop)
-      (start-input-loop))
+      (start-ui))
     (catch Exception e
       (when screen
         (sc/stop screen))

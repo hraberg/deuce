@@ -84,10 +84,7 @@
 ;; Callback run by faces/tty-run-terminal-initialization based on deuce.emacs.term/tty-type returning "lanterna"
 (defun terminal-init-lanterna ()
   (c/require 'deuce.main)
-  ((c/ns-resolve 'deuce.main 'terminal-init-lanterna))
-  ;; Initialize the real TERM, should setup input-decode-map and local-function-key-map
-  (setq xterm-extra-capabilities nil) ;; Don't allow term/xterm to check by sending stuff to the tty.
-  (tty-run-terminal-initialization (selected-frame) (getenv-internal "TERM")))
+  ((c/ns-resolve 'deuce.main 'terminal-init-lanterna)))
 
 ;; Create *Deuce* log buffer first so it won't get selected.
 (get-buffer-create "*Deuce*")

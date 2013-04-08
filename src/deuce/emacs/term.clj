@@ -91,8 +91,7 @@
   frame's terminal)."
   (when-let [terminal (terminal/frame-terminal)]
     (s/start terminal)
-    (s/clear terminal)
-    (s/redraw terminal)
+    ((ns-resolve 'deuce.main 'start-ui))
     (eval/run-hook-with-args 'resume-tty-functions terminal)))
 
 (defun suspend-tty (&optional tty)
@@ -115,5 +114,6 @@
 
   A suspended tty may be resumed by calling `resume-tty' on it."
   (when-let [terminal (terminal/frame-terminal)]
+    ((ns-resolve 'deuce.main 'stop-ui))
     (s/stop terminal)
     (eval/run-hook-with-args 'suspend-tty-functions terminal)))

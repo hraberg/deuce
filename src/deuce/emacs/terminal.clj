@@ -60,7 +60,7 @@
   but if the second argument FORCE is non-nil, you may do so."
   (when-let [terminal (or terminal (frame-terminal))]
     (eval/run-hook-with-args 'delete-terminal-functions terminal)
-    (reset! @(ns-resolve 'deuce.main 'running) false)
+    ((ns-resolve 'deuce.main 'stop-ui))
     (s/stop terminal)
     (when (= terminal (frame-terminal))
       (reset! (.terminal globals/terminal-frame) nil))))
