@@ -1,7 +1,13 @@
 (ns deuce.emacs.syntax
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
-            [deuce.emacs.fns :as fns])
+            [clojure.string :as s]
+            [deuce.emacs.cmds :as cmds]
+            [deuce.emacs.fns :as fns]
+            [deuce.emacs.editfns :as editfns]
+            [deuce.emacs.search :as search]
+            [deuce.emacs-lisp :as el]
+            [taoensso.timbre :as timbre])
   (:refer-clojure :exclude []))
 
 (defvar words-include-escapes nil
@@ -44,6 +50,8 @@
   You can customize this variable.")
 
 (fns/put 'syntax-table 'char-table-extra-slots 0)
+
+(declare skip-chars-forward skip-chars-backward)
 
 (defun standard-syntax-table ()
   "Return the standard syntax table.
@@ -106,7 +114,20 @@
   If an edge of the buffer or a field boundary is reached, point is left there
   and the function returns nil.  Field boundaries are not noticed if
   `inhibit-field-text-motion' is non-nil."
-  (interactive "^p"))
+  (interactive "^p")
+  (let [arg (el/check-type 'numberp (or arg 1))]
+    (if (pos? arg)
+      (do
+        (dotimes [_ arg]
+          (skip-chars-forward "\\W")
+          (skip-chars-forward "\\w"))
+        (when-not (editfns/eobp) true))
+      (do
+        (dotimes [_ (- arg)]
+          (skip-chars-backward "\\W")
+          (skip-chars-backward "\\w"))
+        (when-not (editfns/bobp) true)))))
+
 
 (defun scan-lists (from count depth)
   "Scan from character number FROM by COUNT lists.
@@ -129,11 +150,18 @@
   that point is zero, and signal a error if the depth is nonzero."
   )
 
+(defn ^:private skip-pattern [s]
+  (re-pattern (str "[" (el/check-type 'stringp s) "]")))
+
 (defun skip-chars-backward (string &optional lim)
   "Move point backward, stopping after a char not in STRING, or at pos LIM.
   See `skip-chars-forward' for details.
   Returns the distance traveled, either zero or negative."
-  )
+  (let [lim (el/check-type 'numberp (or lim (editfns/point-min)))]
+    (while (and (not= lim (editfns/point))
+                (re-find (skip-pattern string)
+                         (str (editfns/char-before))))
+      (cmds/backward-char))))
 
 (defun backward-prefix-chars ()
   "Move point backward over any number of chars with prefix syntax.
@@ -234,7 +262,11 @@
   Char classes, e.g. `[:alpha:]', are supported.
 
   Returns the distance traveled, either zero or positive."
-  )
+  (let [lim (el/check-type 'numberp (or lim (editfns/point-max)))]
+    (while  (and (not= lim (editfns/point))
+                 (re-find (skip-pattern string)
+                          (str (editfns/char-after))))
+      (cmds/forward-char))))
 
 (defun char-syntax (character)
   "Return the syntax code of CHARACTER, described by a character.

@@ -39,17 +39,6 @@
 ;; (switch-to-buffer "*Messages*") ;; Shows the boot messages, Loading ...etc.
 ;; (switch-to-buffer "*scratch*") ;; Displays *scratch*
 ;; (insert "Deuce is (not yet) Emacs under Clojure") ;; Insert some text.
-;; (beginning-of-line) ;; Ctrl-a
-;; (kill-line) ;; Kill the line.
-;; (yank) ;; Yank it back.
-;; (forward-line -4) ;; C-u 4 up
-;; (read-extended-command) ;; Activates Minibuffer, but it cannot do anything
-;; (select-window (frame-root-window)) ;; Get out of the minibuffer.
-;; (set-mark-command nil) ;; Activate the mark
-;; (forward-line) ;; Select some text.
-;; (pop-mark) ;; Remove mark / Deselect.
-;; (find-file "~/.bashrc") ;; Open a file.
-;; (switch-to-buffer "*Deuce*") ;; The debug log
 
 (defn swank [port]
   (require 'swank.swank)
