@@ -9,7 +9,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 ### What is there to see?
 
-[Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors)
+[Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors) | [Dependencies](https://github.com/hraberg/deuce#dependencies)
 
 **2013-04-08 C-x C-c**
 
@@ -720,6 +720,23 @@ I'll revisit the name if the Clojure port actually becomes usable and the name c
 ### Contributors
 
 [Navgeet Agrawal](https://github.com/Navgeet), [Ragnar Dahlén](https://github.com/ragnard), [Kevin Downey](https://github.com/hiredman), [Bjarte Johansen](https://github.com/ljos), [Ryan Kelker](https://github.com/runexec) and [Håkan Råberg](https://github.com/hraberg).
+
+### Dependencies
+
+For details, see [`project.clj`](https://github.com/hraberg/deuce/blob/master/project.clj):
+
+
+[Clojure](http://clojure.org/) Rich Hickey, 2008-2013
+
+[clojure-lanterna] Steve Losh, 2012 - "A Clojurey wrapper around the [Lanterna](https://code.google.com/p/lanterna/) terminal output library."
+
+[Lanterna](http://code.google.com/p/lanterna/) Martin Berglund, 2008-2013 - "Lanterna is a Java library allowing you to write easy semi-graphical user interfaces in a text-only environment."
+
+[Timbre](https://github.com/ptaoussanis/timbre) Peter Taoussanis, 2012 - "a (sane) logging library for Clojure"
+
+[dynapath](https://github.com/tobias/dynapath) Tobias Crawley, 2012 - "A Clojure abstraction for modifiable/readable class loaders."
+
+[Fast Idiomatic Pretty-Printer](https://github.com/brandonbloom/fipp) Brandon Bloom, 2013 - "Fipp is a better pretty printer for Clojure."
 
 
 ## References
