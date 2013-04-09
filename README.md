@@ -726,6 +726,8 @@ I'll revisit the name if the Clojure port actually becomes usable and the name c
 For details, see [`project.clj`](https://github.com/hraberg/deuce/blob/master/project.clj):
 
 
+[GNU Emacs](http://www.gnu.org/software/emacs/) Richard Stallman / FSF, 1985 - 2013 - "GNU Emacs is an extensible, customizable text editor—and more."
+
 [Clojure](http://clojure.org/) Rich Hickey, 2008-2013
 
 [clojure-lanterna] Steve Losh, 2012 - "A Clojurey wrapper around the [Lanterna](https://code.google.com/p/lanterna/) terminal output library."
