@@ -730,7 +730,7 @@ For details, see [`project.clj`](https://github.com/hraberg/deuce/blob/master/pr
 
 [Clojure](http://clojure.org/) Rich Hickey, 2008-2013 - "Clojure is a dialect of Lisp, and shares with Lisp the code-as-data philosophy and a powerful macro system."
 
-[clojure-lanterna] Steve Losh, 2012 - "A Clojurey wrapper around the [Lanterna](https://code.google.com/p/lanterna/) terminal output library."
+[clojure-lanterna](https://github.com/sjl/clojure-lanterna) Steve Losh, 2012 - "A Clojurey wrapper around the [Lanterna](https://code.google.com/p/lanterna/) terminal output library."
 
 [Lanterna](http://code.google.com/p/lanterna/) Martin Berglund, 2008-2013 - "Lanterna is a Java library allowing you to write easy semi-graphical user interfaces in a text-only environment."
 
