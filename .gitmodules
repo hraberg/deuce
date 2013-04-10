@@ -3,5 +3,5 @@
 	url = git@github.com:hraberg/deuce.git
 [submodule "emacs"]
 	path = emacs
-	url = git://git.savannah.gnu.org/emacs.git
+	url = https://github.com/mirrors/emacs.git
 	ignore = dirty
