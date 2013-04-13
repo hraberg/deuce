@@ -10,9 +10,9 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 ### What is Deuce?
 
-**Deuce is a re-implementation of Emacs in Clojure.** It's specifically a port of the C core and not the Emacs Lisp. Deuce re-compiles existing Emacs Lisp to Clojure and uses the Lanterna library for text UI. The goal is to reach reasonable compatibility with GNU Emacs during 2013. The longer term goal is to phase out Emacs Lisp in favour for Clojure, to add a Web UI and re-capture Emacs' spirit on a contemporary platform.
+**Deuce is a re-implementation of Emacs in Clojure.** It's a port of the C core and re-compiles existing Emacs Lisp to Clojure. It uses the Lanterna library for text UI. The goal is to reach reasonable compatibility with GNU Emacs during 2013. The longer term goal is to phase out Emacs Lisp in favour for Clojure, to add a Web UI and re-capture Emacs' spirit on a contemporary platform.
 
-Deuce can currently start Emacs and handle limited keyboard input (like C-x C-c). The moving pieces are mainly there but it's far from usable yet. I aim to release a developer preview, 0.1.0, during early summer, followed by an end-user alpha "when it's done" - probably late 2013. 0.1.0 also aims to be a point where other people can start to actively contribute.
+Deuce can currently start Emacs and handle limited keyboard input (like C-x C-c). The moving pieces are mainly there but it's far from usable yet. I aim to release a developer preview, 0.1.0, during early summer, followed by an end-user alpha "when it's done" - probably late 2013.
 
 I work on Deuce on and off and estimate that I've spent about 3-4 months full-time so far in total. I started in April 2012.
 0.1.0 is less than a months work away, reaching alpha would take about another 3-4 months of work.
