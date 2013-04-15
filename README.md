@@ -783,6 +783,8 @@ For details, see [`project.clj`](https://github.com/hraberg/deuce/blob/master/pr
 
 [JEmacs - The Java/Scheme-based Emacs](http://per.bothner.com/papers/Freenix00/Freenix00.html) Per Bothner, 2000
 
+[Lisp Computing Environment (LiCE)](http://texteditors.org/cgi-bin/wiki.pl?LiCE) Shawn Betts, 2005-2007 "LiCE is a GNU Emacs clone written entirely in common lisp." [Shawn](github.com/sabetts) is the creator of [stumpvm](https://github.com/sabetts/stumpwm) [GitHub mirror](https://github.com/spacebat/lice)
+
 [Zile](http://www.gnu.org/software/zile/) "Zile is lossy Emacs"
 
 [uemacs](http://git.kernel.org/?p=editors/uemacs/uemacs.git;a=tree) Linus' micro Emacs.
