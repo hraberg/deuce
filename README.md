@@ -785,6 +785,8 @@ For details, see [`project.clj`](https://github.com/hraberg/deuce/blob/master/pr
 
 [Lisp Computing Environment (LiCE)](http://texteditors.org/cgi-bin/wiki.pl?LiCE) Shawn Betts, 2005-2007 "LiCE is a GNU Emacs clone written entirely in common lisp." [Shawn](github.com/sabetts) is the creator of [stumpvm](https://github.com/sabetts/stumpwm) [GitHub mirror](https://github.com/spacebat/lice)
 
+[Conkeror](http://conkeror.org/) Shawn Betts, 2004-2011 "Conkeror is a keyboard-oriented, highly-customizable, highly-extensible web browser."
+
 [Zile](http://www.gnu.org/software/zile/) "Zile is lossy Emacs"
 
 [uemacs](http://git.kernel.org/?p=editors/uemacs/uemacs.git;a=tree) Linus' micro Emacs.
@@ -794,8 +796,6 @@ For details, see [`project.clj`](https://github.com/hraberg/deuce/blob/master/pr
 [Pymacs](https://github.com/pinard/Pymacs.git) Emacs to Python interface
 
 [el4r](http://www.rubyist.net/~rubikitch/computer/el4r/index.en.html) EmacsRuby engine - EmacsLisp for Ruby
-
-[Conkeror](http://conkeror.org/) "Conkeror is a keyboard-oriented, highly-customizable, highly-extensible web browser."
 
 
 #### This is NOT YET GNU Emacs, one component of the GNU/Linux operating system.
