@@ -21,7 +21,7 @@ I work on Deuce on and off and have spent about 2-3 months full-time so far in t
 
 ### What is there to see?
 
-[Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors) | [Dependencies](https://github.com/hraberg/deuce#dependencies) | <iframe style="border: 0; margin: 0; padding: 0;" src="https://www.gittip.com/hraberg/widget.html" width="48pt" height="22pt"></iframe>
+[Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors) | [Dependencies](https://github.com/hraberg/deuce#dependencies) | [Gittip](https://www.gittip.com/hraberg/)
 
 **2013-04-08 C-x C-c**
 
