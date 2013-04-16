@@ -18,10 +18,12 @@ I work on Deuce on and off and have spent about 2-3 months full-time so far in t
 
 0.1.0 is less than a months work away, reaching alpha would take about another 2-4 months of work.
 
+[Gittip](https://www.gittip.com/hraberg/)
+
 
 ### What is there to see?
 
-[Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors) | [Dependencies](https://github.com/hraberg/deuce#dependencies) | [Gittip](https://www.gittip.com/hraberg/)
+[Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors) | [Dependencies](https://github.com/hraberg/deuce#dependencies)
 
 **2013-04-08 C-x C-c**
 
