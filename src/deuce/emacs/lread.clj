@@ -477,6 +477,8 @@
         (let [[path url] (locate-file file (data/symbol-value 'load-path)
                                       (when-not nosuffix '("" ".el")) nil)
               el-extension? (re-find #".el$" file)]
+          (if-not url
+            (el/throw* 'file-error (list "Cannot open load file" file)))
           (when-not nomessage
             (editfns/message "Loading %s%s..." file (if el-extension? " (source)" "")))
           (binding [globals/load-file-name (.getFile url)

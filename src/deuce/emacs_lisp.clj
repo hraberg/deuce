@@ -479,7 +479,7 @@
                       [(sym s) (if default?
                                  `(el-var-set-default ~s ~(if emacs-lisp? (el->clj v) v))
                                  `(el-var-set ~s ~(if emacs-lisp? (el->clj v) v)))]))
-           ~(last (butlast sym-vals)))))
+           ~(first (last (partition 2 2 nil sym-vals))))))
 
 (c/defmacro setq
   "Set each SYM to the value of its VAL.
