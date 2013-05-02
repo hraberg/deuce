@@ -45,3 +45,8 @@
       one               ⇒ 2
 
       (set '(x y) 'z)   ⇒ Exception)
+
+(repl example-3
+
+      (setq foo 1 bar 2 baz)   ⇒ nil
+      (setq foo 1 bar 2 baz 3) ⇒ 3)
