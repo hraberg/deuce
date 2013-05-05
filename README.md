@@ -3,7 +3,7 @@
 *Because it's there* -- George Mallory
 
 
-**Note: Almost NOTHING works yet. 0.1.0 developer preview ETA: May.**
+**Note: Almost NOTHING works yet. 0.1.0 developer preview ETA: June.**
 
 Also - there's a risk I'll give up, far before reaching the current benchmark of JVM Emacsen: [JEmacs](http://per.bothner.com/papers/Freenix00/Freenix00.html).
 
@@ -17,6 +17,12 @@ Deuce can currently start Emacs and handle limited keyboard input (like C-x C-c)
 I work on Deuce on and off and have spent about 2-3 months full-time so far in total. I started in April 2012.
 
 0.1.0 is less than a months work away, reaching alpha would take about another 2-4 months of work.
+
+To run:
+
+    ./dist
+    ./deuce
+
 
 [Gittip](https://www.gittip.com/hraberg/)
 
