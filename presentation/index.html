@@ -1,0 +1,468 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+	<title>Deuce is (not yet) Emacs under Clojure</title>
+	<meta charset="UTF-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<meta name="viewport" content="width=1274, user-scalable=no">
+	<link rel="stylesheet" href="themes/ribbon/styles/style.css">
+	<link rel="stylesheet" media="print" href="themes/ribbon/styles/print.css">
+        <link type="text/css" rel="stylesheet" href="scripts/highlight/styles/idea.css"/>
+	<style>
+.slide header {
+    bottom: 0;
+    left: 0;
+    margin: 0;
+    text-align: right;
+    position: absolute;
+    padding-right: 20px;
+    width: 1004px;
+    border-top: 1px solid #ddd;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.slide header h2 {
+    letter-spacing: 0.1em;
+    color: #111;
+}
+
+.slide section:before {
+    background:none;
+}
+
+.slide section {
+    letter-spacing: 0.05em;
+    padding:60px 60px 0;
+    width:904px;
+    height:580px;
+    color: #222;
+}
+
+.slide section > h1 {
+    text-align: center;
+    font-weight: bold;
+    font-size: 120%;
+}
+
+.slide pre {
+    font-size: 80%;
+    margin-top: -40px;
+    margin-bottom: -40px;
+}
+
+.slide section {
+    background: white;
+    font-size: 135%;
+}
+
+.slide ul > li:before {
+    content: '';
+}
+
+.slide li > ul {
+    font-size: 75%;
+    color: #888;
+}
+
+.slide a {
+    text-decoration: none;
+    border-bottom: none;
+}
+
+.slide:after {
+    content:'';
+}
+
+.pull-right {
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: 22px;
+    color: #aaa;
+    right: 40px;
+    position: absolute;
+}
+
+sup {
+    font-size: 50%;
+    vertical-align: super;
+}
+	</style>
+</head>
+<body class="list">
+	<header class="caption">
+		<h1>Deuce is (not yet) Emacs under Clojure</h1>
+                <p>Copyright © 2012-2013 <a href="https://github.com/hraberg/">Håkan Råberg</a> | <a href="http://github.com/pepelsbey/shower/">shower</a></p>
+	</header>
+
+	<div class="slide" id="Deuce"><div>
+	    <section>
+	      <header>
+		<h2>DEUCE is (not yet) Emacs under Clojure</h2>
+	      </header>
+	    </section>
+	</div></div>
+	<div class="slide" id="What"><div>
+	    <section>
+	      <header>
+		<h2>What</h2>
+	      </header>
+              <ul>
+                <li>
+                  <strong>Emacs on the JVM</strong>
+                  <ul>
+                    <li>
+                      <pre class="lisp"><code>
+GNU Emacs 24.2 (jvm-1.8.0-ea_clojure-1.5.1)
+ of 2013-05-04 on X202E
+                      </code></pre>
+                    </li>
+                  </ul>
+                </li>
+                <li>C parts of Emacs rewritten in Clojure</li>
+                <li>Emacs Lisp transpiled to Clojure</li>
+              </ul>
+	    </section>
+	</div></div>
+	<div class="slide" id="Why"><div>
+	    <section>
+	      <header>
+		<h2>Why</h2>
+	      </header>
+              <ul>
+                <li><strong>Maintain the spirit of Emacs</strong></li>
+                <li>
+                  Changing core Emacs is hard
+                  <ul>
+                    <li>Merging changes back upstream even harder</li>
+                    <li>30 year old rock solid C codebase with millions of users</li>
+                  </ul>
+                </li>
+                <li>
+                  Deprecate Emacs Lisp in favour of Clojure
+                  <ul>
+                    <li>Industry momentum</li>
+                    <li>JVM and Clojure replaces the Emacs Lisp runtime</li>
+                  </ul>
+                </li>
+                <li>Learn Emacs</li>
+              </ul>
+	    </section>
+	</div></div>
+	<div class="slide" id="How"><div>
+	    <section>
+	      <header>
+		<h2>How</h2>
+	      </header>
+              <ul>
+                <li>
+                  20k LOC Clojure for the Emacs API
+                  <ul>
+                    <li>Emacs contains about 1000 C subrs over 100k LOC</li>
+                    <li>1/5 actually implemented</li>
+                  </ul>
+                </li>
+                <li>
+                  1000 LOC Emacs Lisp compiler
+                  <ul>
+                    <li>The Emacs Lisp special forms as Clojure macros</li>
+                    <li>Additional tree transformation</li>
+                  </ul>
+                </li>
+                <li>
+                  500 LOC Emacs Lisp Reader
+                  <ul>
+                    <li>2/3 to parse Emacs Lisp characters</li>
+                  </ul>
+                </li>
+                <li>Mutable PersistentList</li>
+              </ul>
+	    </section>
+	</div></div>
+	<div class="slide" id="Development"><div>
+	    <section>
+	      <header>
+		<h2>Development</h2>
+	      </header>
+              <ul>
+                <li>Lanterna<sup><a href="http://code.google.com/p/lanterna/">1</a></sup>
+                  <ul>
+                    <li>
+                      Pure Java TUI via clojure-lanterna
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  Emacs as git submodule
+                  <ul>
+                    <li>Deuce depends on the Emacs Lisp</li>
+                  </ul>
+                </li>
+                <li>
+                  loadup.el
+                  <ul>
+                    <li>The actual Emacs boot</li>
+                  </ul>
+                </li>
+                <li>
+                  A/B testing Emacs *scratch* vs Clojure REPL
+                  <ul>
+                    <li>Swank or nREPL running inside Deuce</li>
+                  </ul>
+                </li>
+              </ul>
+	    </section>
+	</div></div>
+	<div class="slide" id="Emacs History"><div>
+	    <section>
+	      <header>
+		<h2>Emacs History<sup><a href="http://www.jwz.org/doc/emacs-timeline.html">1</a></sup></h2>
+	      </header>
+              <ul>
+                <li>
+                  TECO <span class="pull-right">1972</span>
+                  <ul>
+                    <li>Stallman's Editor MACroS <span class="pull-right">1976</span></li>
+                  </ul>
+                </li>
+                <li>MulticsEmacs <span class="pull-right">1978</span></li>
+                <li>GNU Emacs <span class="pull-right">1985</span></li>
+                <li>XEmacs <span class="pull-right">1991</span></li>
+                <li>
+                  Emacs in Lisp
+                  <ul>
+                    <li>Zmacs, Portable Hemlock, Climacs, LiCE</li>
+                  </ul>
+                </li>
+                <li>
+                  Ersatz Emacsen
+                  <ul>
+                    <li>uEmacs, Zile, mg</li>
+                  </ul>
+                </li>
+              </ul>
+	    </section>
+	</div></div>
+	<div class="slide" id="Emacs Like Editors"><div>
+	    <section>
+	      <header>
+		<h2>Emacs Like Editors</h2>
+	      </header>
+              <ul>
+                <li>
+                  JEmacs<sup><a href="http://jemacs.sourceforge.net/">1</a></sup> <span class="pull-right">1999</span>
+                  <ul>
+                    <li>Java / Kawa</li>
+                  </ul>
+                </li>
+                <li>
+                  Eclipse<sup><a href="http://eclipse.org/">2</a></sup> <span class="pull-right">2001</span>
+                  <ul>
+                    <li>Java</li>
+                  </ul>
+                </li>
+                <li>
+                  Yi<sup><a href="http://www.haskell.org/haskellwiki/Yi/">3</a></sup> <span class="pull-right">2005</span>
+                  <ul>
+                    <li>Haskell</li>
+                  </ul>
+                </li>
+                <li>
+                  Ymacs<sup><a href="http://www.ymacs.org/">4</a></sup> <span class="pull-right">2009</span>
+                  <ul>
+                    <li>Javascript</li>
+                  </ul>
+                </li>
+                <li>
+                  Light Table<sup><a href="http://www.lighttable.com/">5</a></sup> <span class="pull-right">2012</span>
+                  <ul>
+                    <li>ClojureScript</li>
+                  </ul>
+                </li>
+              </ul>
+	    </section>
+	</div></div>
+	<div class="slide" id="Dynamic Scope"><div>
+	    <section>
+	      <header>
+		<h2>Dynamic Scope</h2>
+	      </header>
+              <pre class="lisp"><code>
+(defvar x -99) ⇒ x
+
+(defun getx ()
+  x)           ⇒ getx
+
+(let ((x 1))
+  (getx))      ⇒ 1
+
+(getx)         ⇒ -99
+              </code></pre>
+	    </section>
+	</div></div>
+        <div class="slide" id="Macroexpansion"><div>
+	    <section>
+	      <header>
+		<h2>Macroexpansion</h2>
+	      </header>
+               <pre class="lisp"><code>
+<span class="pull-right">Emacs Lisp</span>(let ((x 1))
+  (getx))
+
+  ⇒
+
+<span class="pull-right">Clojure</span>(let* [local__2368 1
+       x local__2368]
+  (deuce.emacs-lisp/with-local-el-vars (x x)
+    (deuce.emacs-lisp/progn
+      (getx))))
+              </code></pre>
+	    </section>
+	</div></div>
+        <div class="slide" id="Macroexpand All"><div>
+	    <section>
+	      <header>
+		<h2>Macroexpand All</h2>
+	      </header>
+              <pre class="lisp"><code>
+<span class="pull-right">Emacs Lisp</span>(defun getx ()
+  x)
+
+  ⇒
+
+<span class="pull-right">Clojure</span><code style="font-size: 33%">
+(do
+  (deuce.emacs-lisp/def-helper-process-var*
+    (def getx (fn*
+               ([] nil
+                  (let* []
+                    (let* [result__645__auto__
+                      (let* [vars__573__auto__ (clojure.core/hash-map)]
+                        (clojure.core/with-bindings*
+                          (clojure.core/zipmap
+                           (clojure.core/map vars__573__auto__ '[])
+                           [])
+                          (fn*
+                           ([]
+                              (let* []
+                                (clojure.core/push-thread-bindings
+                                 (clojure.core/hash-map
+                                  #'deuce.emacs-lisp/*dynamic-vars*
+                                  (if (deuce.emacs-lisp/dynamic-binding?)
+                                    (clojure.core/merge
+                                     deuce.emacs-lisp/*dynamic-vars*
+                                     vars__573__auto__)
+                                    {})))
+                                (try
+                                  (let* [map__2649 vars__573__auto__
+                                         map__2649 (if (clojure.core/seq? map__2649)
+                                                     (. clojure.lang.PersistentHashMap create (clojure.core/seq map__2649))
+                                                     map__2649)]
+                                    (do (deuce.emacs-lisp/el-var-get* 'x)))
+                                  (finally (clojure.core/pop-thread-bindings))))))))]
+                          (if false
+                            (clojure.walk/prewalk
+                             clojure.core/identity
+                             (deuce.emacs-lisp/el->clj result__645__auto__))
+                            result__645__auto__))))))
+    'nil 'getx "" 'nil 'true '())
+ 'getx)
+              </code>
+              </code></pre>
+	    </section>
+	</div></div>
+	<div class="slide" id="Primitives"><div>
+	    <section>
+	      <header>
+		<h2>Primitives</h2>
+	      </header>
+              <pre class="lisp"><code>
+<span class="pull-right">Emacs Lisp defun</span>(defun make-vector (length init)
+  "Return a newly created vector of length LENGTH,
+   with each element being INIT.
+  See also the function `vector'."
+<span class="pull-right">Clojure body</span>  (doto (object-array length)
+<span class="pull-right">Java interop</span>    (Arrays/fill init))
+<hr/>(defun sqrt (arg)
+  "Return the square root of ARG."
+  (Math/sqrt arg))
+              </code></pre>
+	    </section>
+	</div></div>
+	<div class="slide cover w" id="Demo"><div>
+	    <section>
+	      <header>
+		<h2>M-x demo</h2>
+	      </header>
+              <img src="images/deuce-lanterna.png"/>
+	    </section>
+	</div></div>
+	<div class="slide" id="0.1.0"><div>
+	    <section>
+	      <header>
+		<h2>0.1.0 Developer Preview</h2>
+	      </header>
+              <ul>
+                <li><strong>Q2</strong> <span class="pull-right">2013</span></li>
+                <li>Main moving parts connected</li>
+                <li>
+                  Basic editor functionality
+                  <ul>
+                    <li>Possible to complete the Emacs Tutorial</li>
+                    <li>Not yet intended for actual use</li>
+                  </ul>
+                </li>
+                <li>
+                  Conversation starter
+                  <ul>
+                    <li>Is there any interest for this?</li>
+                    <li>Share the workload</li>
+                  </ul>
+                </li>
+              </ul>
+	    </section>
+	</div></div>
+	<div class="slide" id="Future"><div>
+	    <section>
+	      <header>
+		<h2>Future</h2>
+	      </header>
+              <ul>
+                <li>
+                  Further Emacs compatibility <span class="pull-right">2013</span>
+                  <ul>
+                    <li>Legacy support is key</li>
+                    <li>org-mode has large test suite</li>
+                  </ul>
+                </li>
+                <li>
+                  Clojure as first class citizen
+                  <ul>
+                    <li>Ability to write idiomatic Clojure extensions</li>
+                    <li>Reshape the core API and redraw the legacy boundary</li>
+                  </ul>
+                </li>
+                <li>Extensible Web UI <span class="pull-right">2014</span></li>
+                <li>Emacs as library</li>
+              </ul>
+	    </section>
+	</div></div>
+	<div class="slide" id="End"><div>
+	    <section>
+	      <header>
+		<h2><a href="https://github.com/hraberg/deuce">github.com/hraberg/deuce</a></h2>
+	      </header>
+              <em>Wings, the band Beatles could have been<sup><a href="http://www.youtube.com/watch?v=tyZspqjtG2k">1</a></sup></em>
+	    </section>
+	</div></div>
+
+	<script src="scripts/script.js"></script>
+        <script type="text/javascript" src="scripts/highlight/highlight.pack.js"></script>
+
+        <script>
+          hljs.tabReplace = '    ';
+          hljs.initHighlightingOnLoad();
+        </script>
+
+	<!-- Shower Copyright © 2010–2012 Vadim Makeev — pepelsbey.net -->
+</body>
+</html>
