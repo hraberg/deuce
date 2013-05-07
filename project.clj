@@ -20,5 +20,5 @@
   :jar-exclusions [#".*\.elc" #"TUTORIAL\..*"
                    #"ChangeLog.*" #"Makefile.*" #"README" #"\.gitignore"]
   :java-source-paths ["src"]
-  :jvm-opts ["-Xss4m"]
+  :jvm-opts ["-Xss4m" "-XX:MaxPermSize=192m"]
   :main deuce.main)
