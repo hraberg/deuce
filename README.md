@@ -741,7 +741,7 @@ I'll revisit the name if the Clojure port actually becomes usable and the name c
 
 ### Contributors
 
-[Navgeet Agrawal](https://github.com/Navgeet), [Ragnar Dahlén](https://github.com/ragnard), [Kevin Downey](https://github.com/hiredman), [Bjarte Johansen](https://github.com/ljos), [Ryan Kelker](https://github.com/runexec) and [Håkan Råberg](https://github.com/hraberg).
+[Navgeet Agrawal](https://github.com/Navgeet), [Ragnar Dahlén](https://github.com/ragnard), [Kevin Downey](https://github.com/hiredman), [Bjarte Johansen](https://github.com/ljos), [Ryan Kelker](https://github.com/runexec), [Håkan Råberg](https://github.com/hraberg) and [Martin Trojer](https://github.com/martintrojer).
 
 ### Dependencies
 
