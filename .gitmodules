@@ -1,6 +1,6 @@
 [submodule "docs"]
 	path = docs
-	url = git@github.com:hraberg/deuce.git
+	url = https://github.com/hraberg/deuce.git
 [submodule "emacs"]
 	path = emacs
 	url = https://github.com/mirrors/emacs.git
