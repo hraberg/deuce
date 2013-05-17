@@ -26,9 +26,6 @@ To run:
     ./deuce
 
 
-[Gittip](https://www.gittip.com/hraberg/)
-
-
 ### What is there to see?
 
 [Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors) | [Dependencies](https://github.com/hraberg/deuce#dependencies)
