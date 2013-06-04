@@ -94,6 +94,11 @@ sup {
   -moz-column-count: 2;
   -moz-column-gap: 20px;
 }
+
+.quote {
+  font-size: 75%;
+  font-style: italic;
+}
 	</style>
 </head>
 <body class="list">
@@ -107,6 +112,22 @@ sup {
 	      <header>
 		<h2>DEUCE is (not yet) Emacs under Clojure</h2>
 	      </header>
+	    </section>
+	</div></div>
+	<div class="slide" id="Mark Tarver's Shen"><div>
+	    <section>
+	      <header>
+		<h2>Mark Tarver's Shen<sup><a href="https://shenlanguage.org">1</a></sup></h2>
+	      </header>
+              <pre class="lisp"><code>
+(define unique
+  {(list A) --> (list A)}
+  [] -> []
+  [X | Y] -> (unique Y) where (element? X Y)
+  [X | Y] -> [X | (unique Y)])
+              </code></pre>
+<br/>
+<p class="quote">Shen runs under a reduced instruction Lisp and is designed for portability. The word ‘Shen’ is Chinese for spirit and our motto reflects our desire to liberate our work to live under many platforms. [..] It currently runs under CLisp and SBCL, Clojure, Scheme, Ruby, Java and Javascript.</p>
 	    </section>
 	</div></div>
 	<div class="slide" id="What"><div>
@@ -321,7 +342,7 @@ GNU Emacs 24.2 (jvm-1.8.0-ea_clojure-1.5.1)
 	<div class="slide cover" id="Craft of Text Editing"><div>
 	    <section>
 	      <header>
-		<h2>100+ implementations<sup><a href="http://www.finseth.com/emacs.html">1</a></sup></h2>
+		<h2>100+ Implementations<sup><a href="http://www.finseth.com/emacs.html">1</a></sup></h2>
 	      </header>
               <img src="images/craft-cover.png"/>
 	    </section>
@@ -359,7 +380,7 @@ xdisp.c
 	      <header>
 		<h2>Primitives - C</h2>
 	      </header>
-              <pre class="prettyprint"><code>
+              <pre><code>
 DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
        doc: /* Return the square root of ARG.  */)
   (register Lisp_Object arg) {
@@ -574,7 +595,7 @@ Window
 </code></pre>
 <br/>
 LISt Processing
-<p style="font-size: 75%; font-style: italic;">[..] the ad-hoc mess of "vectors of length 259 of lists whose first element is the symbol `indirect' and whose tail is an alist of conses whose ..."<sup><a href="http://www.jwz.org/doc/lemacs.html">1</a></sup></p>
+<p class="quote">[..] the ad-hoc mess of "vectors of length 259 of lists whose first element is the symbol `indirect' and whose tail is an alist of conses whose ..."<sup><a href="http://www.jwz.org/doc/lemacs.html">1</a></sup></p>
 <br/>
 	    </section>
 	</div></div>
