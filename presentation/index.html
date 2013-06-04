@@ -7,7 +7,8 @@
 	<meta name="viewport" content="width=1274, user-scalable=no">
 	<link rel="stylesheet" href="themes/ribbon/styles/style.css">
 	<link rel="stylesheet" media="print" href="themes/ribbon/styles/print.css">
-        <link type="text/css" rel="stylesheet" href="scripts/highlight/styles/idea.css"/>
+        <link type="text/css" rel="stylesheet" href="scripts/highlight.js/styles/idea.css"/>
+        <!-- <link type="text/css" rel="stylesheet" href="scripts/google-code-prettify/prettify.css"/> -->
 	<style>
 .slide header {
     bottom: 0;
@@ -18,7 +19,7 @@
     padding-right: 20px;
     width: 1004px;
     border-top: 1px solid #ddd;
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.75);
 }
 
 .slide header h2 {
@@ -85,6 +86,13 @@
 sup {
     font-size: 50%;
     vertical-align: super;
+}
+
+.twocol {
+  -webkit-column-count: 2;
+  -webkit-column-gap: 20px;
+  -moz-column-count: 2;
+  -moz-column-gap: 20px;
 }
 	</style>
 </head>
@@ -247,6 +255,38 @@ GNU Emacs 24.2 (jvm-1.8.0-ea_clojure-1.5.1)
               </ul>
 	    </section>
 	</div></div>
+	<div class="slide w cover" id="THE Emacs Paper"><div>
+	    <section>
+	      <header>
+		<h2>1981<sup><a href="http://dspace.mit.edu/bitstream/handle/1721.1/5736/AIM-519A.pdf">1</a></sup></h2>
+	      </header>
+              <img src="images/emacs-paper.png"/>
+	    </section>
+	</div></div>
+	<div class="slide cover" id="Lucid Emacs / XEmacs"><div>
+	    <section>
+	      <header>
+		<h2>1990s Lucid Emacs / XEmacs<sup><a href="http://www.jwz.org/doc/lemacs.html">1</a></sup></h2>
+	      </header>
+              <img src="images/energize.jpg"/>
+	    </section>
+	</div></div>
+	<div class="slide cover" id="Patterns of Software"><div>
+	    <section>
+	      <header>
+		<h2>1996<sup><a href="http://www.dreamsongs.com/Files/PatternsOfSoftware.pdf">1</a></sup></h2>
+	      </header>
+              <img src="images/patterns-of-software.jpg"/>
+	    </section>
+	</div></div>
+	<div class="slide cover" id="Craft of Text Editing"><div>
+	    <section>
+	      <header>
+		<h2>The Craft of Text Editing<sup><a href="http://www.finseth.com/emacs.html">1</a></sup></h2>
+	      </header>
+              <img src="images/craft-cover.png"/>
+	    </section>
+	</div></div>
 	<div class="slide" id="Emacs Like Editors"><div>
 	    <section>
 	      <header>
@@ -286,13 +326,98 @@ GNU Emacs 24.2 (jvm-1.8.0-ea_clojure-1.5.1)
               </ul>
 	    </section>
 	</div></div>
+	<div class="slide" id="Emacs Source"><div>
+	    <section>
+	      <header>
+		<h2>Emacs Source</h2>
+	      </header>
+<br/>
+<pre><code class="twocol">buffer.c
+coding.c
+data.c
+editfns.c
+eval.c
+fileio.c
+fns.c
+frame.c
+keyboard.c
+keymap.c
+lread.c
+minibuf.c
+process.c
+search.c
+window.c
+xdisp.c
+...
+</code></pre>
+<br/>
+203692 lines of C in 65 files / 1064 DEFUNs
+	    </section>
+	</div></div>
+	<div class="slide" id="Primitives - C"><div>
+	    <section>
+	      <header>
+		<h2>Primitives - C</h2>
+	      </header>
+              <pre class="prettyprint"><code>
+DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
+       doc: /* Return the square root of ARG.  */)
+  (register Lisp_Object arg) {
+  double d = extract_float (arg);
+#ifdef FLOAT_CHECK_DOMAIN
+  if (d < 0.0)
+    domain_error ("sqrt", arg);
+#endif
+  IN_FLOAT (d = sqrt (d), "sqrt", arg);
+  return make_float (d);
+}
+              </code></pre>
+	    </section>
+	</div></div>
+	<div class="slide" id="Primitives - Clojure"><div>
+	    <section>
+	      <header>
+		<h2>Primitives - Clojure</h2>
+	      </header>
+              <pre class="lisp"><code>
+(defun sqrt (arg)
+  "Return the square root of ARG."
+  (Math/sqrt arg))
+<hr/>
+<span class="pull-right">Emacs Lisp defun</span>(defun make-vector (length init)
+  "Return a newly created vector of length LENGTH,
+   with each element being INIT.
+  See also the function `vector'."
+<span class="pull-right">Clojure body</span>  (doto (object-array length)
+<span class="pull-right">Java interop</span>    (Arrays/fill init))
+</code></pre>
+	    </section>
+	</div></div>
+	<div class="slide" id="Variables"><div>
+	    <section>
+	      <header>
+		<h2>Variables</h2>
+	      </header>
+              <strong>Emacs Lisp is a Lisp-2</strong>
+              <pre class="lisp"><code>
+<span class="pull-right">Clojure</span>(defn el-var [name]
+  ((some-fn
+    *dynamic-vars*
+    (partial el-var-buffer-local true)
+    global)
+   name))
+...
+(create-ns 'deuce.emacs-lisp.globals)
+              </code></pre>
+	    </section>
+	</div></div>
 	<div class="slide" id="Dynamic Scope"><div>
 	    <section>
 	      <header>
 		<h2>Dynamic Scope</h2>
 	      </header>
               <pre class="lisp"><code>
-(defvar x -99) ⇒ x
+<span class="pull-right">Emacs Lisp</span>(defvar x -99) ⇒ x
 
 (defun getx ()
   x)           ⇒ getx
@@ -301,6 +426,70 @@ GNU Emacs 24.2 (jvm-1.8.0-ea_clojure-1.5.1)
   (getx))      ⇒ 1
 
 (getx)         ⇒ -99
+              </code></pre>
+	    </section>
+	</div></div>
+        <div class="slide" id="Emacs Lisp Transpiler"><div>
+	    <section>
+	      <header>
+		<h2>Emacs Lisp Transpiler</h2>
+	      </header>
+              Transliper in ~30 macros
+               <pre class="lisp"><code>
+<span class="pull-right">Clojure</span>(c/defmacro ^:clojure-special-form if
+  [cond then & else]
+  `(c/cond (not-null? ~(el->clj cond)) ~(el->clj then)
+           :else (progn ~@else)))
+
+(c/defmacro progn [& body]
+  `(do ~@(map el->clj body)))
+               </code></pre>
+	    </section>
+	</div></div>
+        <div class="slide" id="Emacs Lisp -> Clojure"><div>
+	    <section>
+	      <header>
+		<h2>Emacs Lisp -> Clojure</h2>
+	      </header>
+               <pre class="lisp" style="font-size: 25%;"><code>
+<span class="pull-right">Clojure</span>
+;; Break this up and explain what the different branches are doing and why.
+(defn el->clj [x]
+  (condp some [x]
+    #{()} nil
+    seq? (c/let [[fst & rst] x]
+                (if (c/and (symbol? fst)
+                           (not= 'progn fst)
+                           (-> (fun fst) meta :macro))
+                  (if (c/or (clojure-special-forms fst) ('#{let lambda} fst)) ;; defun defvar ?
+                    (if (= 'quote fst)
+                      (if-let [s (c/and (symbol? (first rst)) (not (next rst)) (first rst))]
+                        (list 'quote (if (= "deuce.emacs" (namespace s)) (sym s) s))
+                        (if (= '(()) rst) () x))
+                      (apply cons/list (c/cons (symbol "deuce.emacs-lisp" (name fst)) rst)))
+                    (apply cons/list x))
+                  (if (#{`el-var-get `el-var-set `el-var-set-default `delayed-eval
+                         '#el/sym "\\," '#el/sym "\\,@"} fst)
+                    x
+                    (if (=  '#el/sym "\\`" fst)
+                      (emacs-lisp-backquote x) ;; See below, we dont want to duplicate this if not necessary.
+                      (if (c/and (symbol? fst)
+                                 (not (namespace fst))
+                                 (not (fun fst)))
+                        (if (*disallow-undefined* fst)
+                          `(throw* '~'void-function '~fst)
+                          (do (debug fst "NOT DEFINED")
+                              (list `delayed-eval x)))
+
+                        (expand-dotted-lists (c/cons
+                                              (if (seq? fst) (el->clj fst) fst)
+                                              (map el->clj rst))))))))
+    symbol? (if (namespace x)
+              (if (-> (resolve x) meta :macro) (resolve x) x)
+              (if (#{'#el/sym "\\," '#el/sym "\\,@" '.} x)
+                x
+                (list `el-var-get x)))
+    x))
               </code></pre>
 	    </section>
 	</div></div>
@@ -323,76 +512,24 @@ GNU Emacs 24.2 (jvm-1.8.0-ea_clojure-1.5.1)
               </code></pre>
 	    </section>
 	</div></div>
-        <div class="slide" id="Macroexpand All"><div>
+	<div class="slide" id="Editor Domain"><div>
 	    <section>
 	      <header>
-		<h2>Macroexpand All</h2>
+		<h2>Editor Domain</h2>
 	      </header>
-              <pre class="lisp"><code>
-<span class="pull-right">Emacs Lisp</span>(defun getx ()
-  x)
-
-  ⇒
-
-<span class="pull-right">Clojure</span><code style="font-size: 33%">
-(do
-  (deuce.emacs-lisp/def-helper-process-var*
-    (def getx (fn*
-               ([] nil
-                  (let* []
-                    (let* [result__645__auto__
-                      (let* [vars__573__auto__ (clojure.core/hash-map)]
-                        (clojure.core/with-bindings*
-                          (clojure.core/zipmap
-                           (clojure.core/map vars__573__auto__ '[])
-                           [])
-                          (fn*
-                           ([]
-                              (let* []
-                                (clojure.core/push-thread-bindings
-                                 (clojure.core/hash-map
-                                  #'deuce.emacs-lisp/*dynamic-vars*
-                                  (if (deuce.emacs-lisp/dynamic-binding?)
-                                    (clojure.core/merge
-                                     deuce.emacs-lisp/*dynamic-vars*
-                                     vars__573__auto__)
-                                    {})))
-                                (try
-                                  (let* [map__2649 vars__573__auto__
-                                         map__2649 (if (clojure.core/seq? map__2649)
-                                                     (. clojure.lang.PersistentHashMap create (clojure.core/seq map__2649))
-                                                     map__2649)]
-                                    (do (deuce.emacs-lisp/el-var-get* 'x)))
-                                  (finally (clojure.core/pop-thread-bindings))))))))]
-                          (if false
-                            (clojure.walk/prewalk
-                             clojure.core/identity
-                             (deuce.emacs-lisp/el->clj result__645__auto__))
-                            result__645__auto__))))))
-    'nil 'getx "" 'nil 'true '())
- 'getx)
-              </code>
-              </code></pre>
+<br/>
+<pre><code class="twocol">CharTable
+BufferText
+Buffer
+Marker
+Frame
+Window
+...
+</code></pre>
+<br/>
 	    </section>
 	</div></div>
-	<div class="slide" id="Primitives"><div>
-	    <section>
-	      <header>
-		<h2>Primitives</h2>
-	      </header>
-              <pre class="lisp"><code>
-<span class="pull-right">Emacs Lisp defun</span>(defun make-vector (length init)
-  "Return a newly created vector of length LENGTH,
-   with each element being INIT.
-  See also the function `vector'."
-<span class="pull-right">Clojure body</span>  (doto (object-array length)
-<span class="pull-right">Java interop</span>    (Arrays/fill init))
-<hr/>(defun sqrt (arg)
-  "Return the square root of ARG."
-  (Math/sqrt arg))
-              </code></pre>
-	    </section>
-	</div></div>
+
 	<div class="slide cover w" id="Demo"><div>
 	    <section>
 	      <header>
@@ -461,6 +598,8 @@ GNU Emacs 24.2 (jvm-1.8.0-ea_clojure-1.5.1)
 	</div></div>
 
 	<script src="scripts/script.js"></script>
+	<!-- <script src="scripts/google-code-prettify/run_prettify.js"></script> -->
+	<!-- <script src="scripts/google-code-prettify/lang-clj.js"></script> -->
         <script type="text/javascript" src="scripts/highlight/highlight.pack.js"></script>
 
         <script>
