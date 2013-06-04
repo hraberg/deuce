@@ -7,8 +7,7 @@
 	<meta name="viewport" content="width=1274, user-scalable=no">
 	<link rel="stylesheet" href="themes/ribbon/styles/style.css">
 	<link rel="stylesheet" media="print" href="themes/ribbon/styles/print.css">
-        <link type="text/css" rel="stylesheet" href="scripts/highlight/styles/idea.css"/>
-        <!-- <link type="text/css" rel="stylesheet" href="scripts/google-code-prettify/prettify.css"/> -->
+        <!-- <link type="text/css" rel="stylesheet" href="scripts/highlight/styles/idea.css"/> -->
 	<style>
 .slide header {
     bottom: 0;
@@ -425,6 +424,69 @@ DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
 </code></pre>
 	    </section>
 	</div></div>
+	<div class="slide" id="Dynamic Scope"><div>
+	    <section>
+	      <header>
+		<h2>Dynamic Scope</h2>
+	      </header>
+              <pre class="lisp"><code>
+<span class="pull-right">Emacs Lisp</span>(defvar x -99) ⇒ x
+
+(defun getx ()
+  x)           ⇒ getx
+
+(let ((x 1))
+  (getx))      ⇒ 1
+
+(getx)         ⇒ -99
+              </code></pre>
+              "Down with Emacs Lisp"<sup><a href="http://www-pu.informatik.uni-tuebingen.de/users/sperber/papers/dynamic-scope-analysis.pdf">1</a></sup>
+	    </section>
+	</div></div>
+	<div class="slide" id="Destructive Updates"><div>
+	    <section>
+	      <header>
+		<h2>Destructive Updates</h2>
+	      </header>
+              <pre class="lisp"><code>
+<span class="pull-right">Emacs Lisp</span>(defun delete-dups (list)
+  "Destructively remove `equal' duplicates from LIST.
+Store the result in LIST and return it."
+  (let ((tail list))
+    (while tail
+      (setcdr tail (delete (car tail) (cdr tail)))
+      (setq tail (cdr tail))))
+  list)
+              </code></pre>
+	    </section>
+	</div></div>
+        <div class="slide" id="Syntax Quote"><div>
+	    <section>
+	      <header>
+		<h2>Syntax Quote</h2>
+	      </header>
+               <pre class="lisp" style="font-size: 50%;"><code>
+<span class="pull-right">Emacs Lisp</span>(defun completion-at-point ()
+  "Perform completion on the text around point.
+The completion method is determined by `completion-at-point-functions'."
+  (interactive)
+  (let ((res (run-hook-wrapped 'completion-at-point-functions
+                               #'completion--capf-wrapper 'all)))
+    (pcase res
+     (`(,_ . ,(and (pred functionp) f)) (funcall f))
+     (`(,hookfun . (,start ,end ,collection . ,plist))
+      (let* ((completion-extra-properties plist)
+             (completion-in-region-mode-predicate
+              (lambda ()
+                ;; We're still in the same completion field.
+                (eq (car-safe (funcall hookfun)) start))))
+        (completion-in-region start end collection
+                              (plist-get plist :predicate))))
+     ;; Maybe completion already happened and the function returned t.
+     (_ (cdr res)))))
+              </code></pre>
+	    </section>
+	</div></div>
 	<div class="slide" id="Variables"><div>
 	    <section>
 	      <header>
@@ -443,30 +505,12 @@ DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
               </code></pre>
 	    </section>
 	</div></div>
-	<div class="slide" id="Dynamic Scope"><div>
-	    <section>
-	      <header>
-		<h2>Dynamic Scope</h2>
-	      </header>
-              <pre class="lisp"><code>
-<span class="pull-right">Emacs Lisp</span>(defvar x -99) ⇒ x
-
-(defun getx ()
-  x)           ⇒ getx
-
-(let ((x 1))
-  (getx))      ⇒ 1
-
-(getx)         ⇒ -99
-              </code></pre>
-	    </section>
-	</div></div>
         <div class="slide" id="Emacs Lisp Transpiler"><div>
 	    <section>
 	      <header>
 		<h2>Emacs Lisp Transpiler</h2>
 	      </header>
-              Transliper in ~30 macros
+              <strong>~30 macros / 916 LOC</strong>
                <pre class="lisp"><code>
 <span class="pull-right">Clojure</span>(c/defmacro ^:clojure-special-form if
   [cond then & else]
@@ -522,31 +566,6 @@ DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
                 x
                 (list `el-var-get x)))
     x))
-              </code></pre>
-	    </section>
-	</div></div>
-        <div class="slide" id="Emacs Lisp Syntax Quote"><div>
-	    <section>
-	      <header>
-		<h2>Emacs Lisp Syntax Quote</h2>
-	      </header>
-               <pre class="lisp" style="font-size: 50%;"><code>
-<span class="pull-right">Clojure</span>
-(defn emacs-lisp-backquote [form]
-  (w/postwalk
-   #(c/cond
-     (c/and (seq? %) (seq? (last %)) (= `unquote-splicing (first (last %))))
-     (if (butlast %)
-       (concat (butlast %) `((unquote-splicing (maybe-splice-dotted-list
-                                                 ~(second (last %))))))
-       (second (last %)))
-
-     (c/and (seq? %) (= '#el/sym "\\`" (first %)))
-     (el->clj (syntax-quote* (second %)))
-
-     (= '#el/sym "\\," %) `unquote
-     (= '#el/sym "\\,@" %) `unquote-splicing
-     :else %) form))
               </code></pre>
 	    </section>
 	</div></div>
