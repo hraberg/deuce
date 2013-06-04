@@ -518,6 +518,24 @@ DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
               </code></pre>
 	    </section>
 	</div></div>
+        <div class="slide" id="Mutability"><div>
+	    <section>
+	      <header>
+		<h2>Mutability</h2>
+	      </header>
+              <strong>setcar / setcdr for clojure.lang.PersistentList</strong>
+              <pre class="lisp"><code>
+<span class="pull-right">Clojure</span>(defn field-accessor [prefix field class]
+  (eval `(def ^{:private true :tag `Field}
+           ~(symbol (str prefix (name field)))
+           (doto (.getDeclaredField ~class ~(name field))
+             (.setAccessible true)))))
+
+(doseq [field '[_first _rest _count]]
+  (field-accessor "l" field PersistentList))
+              </code></pre>
+	    </section>
+	</div></div>
         <div class="slide" id="Macroexpansion"><div>
 	    <section>
 	      <header>
