@@ -411,7 +411,7 @@ DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
 		<h2>Primitives - Clojure</h2>
 	      </header>
               <pre class="lisp"><code>
-(defun sqrt (arg)
+<span class="pull-right">Clojure</span>(defun sqrt (arg)
   "Return the square root of ARG."
   (Math/sqrt arg))
 <hr/>
@@ -422,6 +422,24 @@ DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
 <span class="pull-right">Clojure body</span>  (doto (object-array length)
 <span class="pull-right">Java interop</span>    (Arrays/fill init))
 </code></pre>
+	    </section>
+	</div></div>
+	<div class="slide" id="Variables"><div>
+	    <section>
+	      <header>
+		<h2>Variables</h2>
+	      </header>
+              <strong>Emacs Lisp is a Lisp-2</strong>
+              <pre class="lisp"><code>
+<span class="pull-right">Clojure</span>(defn el-var [name]
+  ((some-fn
+    *dynamic-vars*
+    (partial el-var-buffer-local true)
+    global)
+   name))
+...
+(create-ns 'deuce.emacs-lisp.globals)
+              </code></pre>
 	    </section>
 	</div></div>
 	<div class="slide" id="Dynamic Scope"><div>
@@ -460,48 +478,45 @@ Store the result in LIST and return it."
               </code></pre>
 	    </section>
 	</div></div>
+        <div class="slide" id="Mutable PersistentList"><div>
+	    <section>
+	      <header>
+		<h2>Mutable PersistentList</h2>
+	      </header>
+              <pre class="lisp" style="font-size: 70%;"><code>
+<span class="pull-right">Clojure</span>(defn field-accessor [prefix field class]
+  (eval `(def ^{:private true :tag `Field}
+           ~(symbol (str prefix (name field)))
+           (doto (.getDeclaredField ~class ~(name field))
+             (.setAccessible true)))))
+
+(doseq [field '[_first _rest _count]]
+  (field-accessor "l" field PersistentList))
+
+ICons
+(setcar [^PersistentList this val]
+  (do (.set l_first this val) val))
+              </code></pre>
+	    </section>
+	</div></div>
         <div class="slide" id="Syntax Quote"><div>
 	    <section>
 	      <header>
 		<h2>Syntax Quote</h2>
 	      </header>
-               <pre class="lisp" style="font-size: 50%;"><code>
-<span class="pull-right">Emacs Lisp</span>(defun completion-at-point ()
-  "Perform completion on the text around point.
-The completion method is determined by `completion-at-point-functions'."
-  (interactive)
-  (let ((res (run-hook-wrapped 'completion-at-point-functions
-                               #'completion--capf-wrapper 'all)))
-    (pcase res
-     (`(,_ . ,(and (pred functionp) f)) (funcall f))
-     (`(,hookfun . (,start ,end ,collection . ,plist))
-      (let* ((completion-extra-properties plist)
-             (completion-in-region-mode-predicate
-              (lambda ()
-                ;; We're still in the same completion field.
-                (eq (car-safe (funcall hookfun)) start))))
-        (completion-in-region start end collection
-                              (plist-get plist :predicate))))
-     ;; Maybe completion already happened and the function returned t.
-     (_ (cdr res)))))
-              </code></pre>
-	    </section>
-	</div></div>
-	<div class="slide" id="Variables"><div>
-	    <section>
-	      <header>
-		<h2>Variables</h2>
-	      </header>
-              <strong>Emacs Lisp is a Lisp-2</strong>
-              <pre class="lisp"><code>
-<span class="pull-right">Clojure</span>(defn el-var [name]
-  ((some-fn
-    *dynamic-vars*
-    (partial el-var-buffer-local true)
-    global)
-   name))
-...
-(create-ns 'deuce.emacs-lisp.globals)
+               <pre class="lisp" style="font-size: 70%;"><code>
+<span class="pull-right">Emacs Lisp</span>(pcase res
+ (`(,_ . ,(and (pred functionp) f)) (funcall f))
+ (`(,hookfun . (,start ,end ,collection . ,plist))
+  (let* ((completion-extra-properties plist)
+         (completion-in-region-mode-predicate
+          (lambda ()
+            ;; We're still in the same completion field.
+            (eq (car-safe (funcall hookfun)) start))))
+    (completion-in-region start end collection
+                          (plist-get plist :predicate))))
+ ;; Maybe completion already happened
+ (_ (cdr res)))))
               </code></pre>
 	    </section>
 	</div></div>
@@ -529,7 +544,6 @@ The completion method is determined by `completion-at-point-functions'."
 	      </header>
                <pre class="lisp" style="font-size: 25%;"><code>
 <span class="pull-right">Clojure</span>
-;; Break this up and explain what the different branches are doing and why.
 (defn el->clj [x]
   (condp some [x]
     #{()} nil
@@ -569,27 +583,6 @@ The completion method is determined by `completion-at-point-functions'."
               </code></pre>
 	    </section>
 	</div></div>
-        <div class="slide" id="Mutability"><div>
-	    <section>
-	      <header>
-		<h2>Mutability</h2>
-	      </header>
-              <strong>setcar / setcdr for clojure.lang.PersistentList</strong>
-              <pre class="lisp" style="font-size: 70%;"><code>
-<span class="pull-right">Clojure</span>(defn field-accessor [prefix field class]
-  (eval `(def ^{:private true :tag `Field}
-           ~(symbol (str prefix (name field)))
-           (doto (.getDeclaredField ~class ~(name field))
-             (.setAccessible true)))))
-
-(doseq [field '[_first _rest _count]]
-  (field-accessor "l" field PersistentList))
-
-(setcar [^PersistentList this val]
-  (do (.set l_first this val) val))
-              </code></pre>
-	    </section>
-	</div></div>
         <div class="slide" id="Macroexpansion"><div>
 	    <section>
 	      <header>
@@ -606,6 +599,48 @@ The completion method is determined by `completion-at-point-functions'."
   (deuce.emacs-lisp/with-local-el-vars (x x)
     (deuce.emacs-lisp/progn
       (getx))))
+              </code></pre>
+	    </section>
+	</div></div>
+	<div class="slide" id="Autoload Support"><div>
+	    <section>
+	      <header>
+		<h2>Autoload Support</h2>
+	      </header>
+              <br/>
+              <pre><code style="font-size: 70%;"><span class="pull-right">Emacs Lisp</span>;;;***
+
+;;;### (autoloads (doctor) "doctor" "play/doctor.el" (20800 51483))
+;;; Generated autoloads from play/doctor.el
+
+(autoload 'doctor "doctor" "\
+Switch to *doctor* buffer and start giving psychotherapy.
+
+\(fn)" t nil)
+              </code></pre>
+	    </section>
+	</div></div>
+	<div class="slide" id="Autoload"><div>
+	    <section>
+	      <header>
+		<h2>Autoload</h2>
+	      </header>
+              <br/>
+              <pre><code style="font-size: 70%;"><span class="pull-right">Clojure</span>(defun autoload (function file &optional docstring interactive type)
+  (when (or (not (el/fun function)) (-> (el/fun function) meta :autoload))
+    (let [autoload-symbol (fn autoload-symbol [function]
+                            (let [f (el/fun function)]
+                              (when (-> f meta :autoload)
+                                (ns-unmap 'deuce.emacs (el/sym function))
+                                ((el/fun 'load) (-> f meta :file) nil true))))
+          definition  (fn autoload [& args]
+                        (autoload-symbol function)
+                        (c/apply (el/fun function) args))] ;; el->clj?
+      (ns-unmap 'deuce.emacs function)
+      (el/defvar-helper* 'deuce.emacs function definition docstring)
+      (alter-meta! (el/fun function) merge {:autoload true :file file}
+                   (when interactive {:interactive nil}))
+    function))
               </code></pre>
 	    </section>
 	</div></div>
