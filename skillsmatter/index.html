@@ -499,27 +499,6 @@ ICons
               </code></pre>
 	    </section>
 	</div></div>
-        <div class="slide" id="Syntax Quote"><div>
-	    <section>
-	      <header>
-		<h2>Syntax Quote</h2>
-	      </header>
-               <pre class="lisp" style="font-size: 70%;"><code>
-<span class="pull-right">Emacs Lisp</span>(pcase res
- (`(,_ . ,(and (pred functionp) f)) (funcall f))
- (`(,hookfun . (,start ,end ,collection . ,plist))
-  (let* ((completion-extra-properties plist)
-         (completion-in-region-mode-predicate
-          (lambda ()
-            ;; We're still in the same completion field.
-            (eq (car-safe (funcall hookfun)) start))))
-    (completion-in-region start end collection
-                          (plist-get plist :predicate))))
- ;; Maybe completion already happened
- (_ (cdr res)))))
-              </code></pre>
-	    </section>
-	</div></div>
         <div class="slide" id="Emacs Lisp Transpiler"><div>
 	    <section>
 	      <header>
@@ -599,6 +578,54 @@ ICons
   (deuce.emacs-lisp/with-local-el-vars (x x)
     (deuce.emacs-lisp/progn
       (getx))))
+              </code></pre>
+	    </section>
+	</div></div>
+        <div class="slide" id="Syntax Quote"><div>
+	    <section>
+	      <header>
+		<h2>Syntax Quote</h2>
+	      </header>
+               <pre class="lisp" style="font-size: 70%;"><code>
+<span class="pull-right">Emacs Lisp</span>(pcase res
+ (`(,_ . ,(and (pred functionp) f)) (funcall f))
+ (`(,hookfun . (,start ,end ,collection . ,plist))
+  (let* ((completion-extra-properties plist)
+         (completion-in-region-mode-predicate
+          (lambda ()
+            ;; We're still in the same completion field.
+            (eq (car-safe (funcall hookfun)) start))))
+    (completion-in-region start end collection
+                          (plist-get plist :predicate))))
+ ;; Maybe completion already happened
+ (_ (cdr res)))))
+              </code></pre>
+	    </section>
+	</div></div>
+        <div class="slide" id="Generated Clojure"><div>
+	    <section>
+	      <header>
+		<h2>Generated Clojure</h2>
+	      </header>
+               <pre class="lisp" style="font-size: 50%;"><code>
+<span class="pull-right">Clojure</span>(pcase res
+   ((#el/sym "\\`"
+     ((#el/sym "\\," _) . (#el/sym "\\," (and (pred functionp) f))))
+    (funcall f))
+   ((#el/sym "\\`"
+     ((#el/sym "\\," hookfun)
+      .
+      ((#el/sym "\\," start)
+       (#el/sym "\\," end)
+       (#el/sym "\\," collection)
+       .
+       (#el/sym "\\," plist))))
+    (let* ((completion-extra-properties plist)
+           (completion-in-region-mode-predicate
+            (lambda () (eq (car-safe (funcall hookfun)) start))))
+     (completion-in-region start end collection
+                           (plist-get plist :predicate))))
+   (_ (cdr res)))
               </code></pre>
 	    </section>
 	</div></div>
