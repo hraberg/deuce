@@ -305,7 +305,7 @@ GNU Emacs 24.2 (jvm-1.8.0-ea_clojure-1.5.1)
 	<div class="slide cover" id="Patterns of Software"><div>
 	    <section>
 	      <header>
-		<h2>1996 Richard Gabriel<sup><a href="http://www.dreamsongs.com/Files/PatternsOfSoftware.pdf">1</a></sup></h2>
+		<h2>1996 Richard P. Gabriel<sup><a href="http://www.dreamsongs.com/Files/PatternsOfSoftware.pdf">1</a></sup></h2>
 	      </header>
               <img src="images/patterns-of-software.jpg"/>
 	    </section>
@@ -385,13 +385,13 @@ xdisp.c
 203692 lines of C in 65 files / 1064 DEFUNs
 	    </section>
 	</div></div>
-	<div class="slide" id="Primitives - C"><div>
+	<div class="slide" id="Primitives - Emacs"><div>
 	    <section>
 	      <header>
-		<h2>Primitives - C</h2>
+		<h2>Primitives - Emacs</h2>
 	      </header>
               <pre><code>
-DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
+<span class="pull-right">C</span>DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
        doc: /* Return the square root of ARG.  */)
   (register Lisp_Object arg) {
   double d = extract_float (arg);
@@ -405,10 +405,10 @@ DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
               </code></pre>
 	    </section>
 	</div></div>
-	<div class="slide" id="Primitives - Clojure"><div>
+	<div class="slide" id="Primitives - Deuce"><div>
 	    <section>
 	      <header>
-		<h2>Primitives - Clojure</h2>
+		<h2>Primitives - Deuce</h2>
 	      </header>
               <pre class="lisp"><code>
 <span class="pull-right">Clojure</span>(defun sqrt (arg)
