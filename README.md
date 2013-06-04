@@ -3,7 +3,7 @@
 *Because it's there* -- George Mallory
 
 
-**Note: Almost NOTHING works yet. 0.1.0 developer preview ETA: June.**
+**Note: Almost NOTHING works yet. 0.1.0 developer preview ETA: Q3 2013**
 
 Also - there's a risk I'll give up, far before reaching the current benchmark of JVM Emacsen: [JEmacs](http://per.bothner.com/papers/Freenix00/Freenix00.html).
 
