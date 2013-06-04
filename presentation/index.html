@@ -524,7 +524,7 @@ DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
 		<h2>Mutability</h2>
 	      </header>
               <strong>setcar / setcdr for clojure.lang.PersistentList</strong>
-              <pre class="lisp"><code>
+              <pre class="lisp" style="font-size: 70%;"><code>
 <span class="pull-right">Clojure</span>(defn field-accessor [prefix field class]
   (eval `(def ^{:private true :tag `Field}
            ~(symbol (str prefix (name field)))
@@ -533,6 +533,9 @@ DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
 
 (doseq [field '[_first _rest _count]]
   (field-accessor "l" field PersistentList))
+
+(setcar [^PersistentList this val]
+  (do (.set l_first this val) val))
               </code></pre>
 	    </section>
 	</div></div>
