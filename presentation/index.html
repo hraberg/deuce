@@ -7,7 +7,7 @@
 	<meta name="viewport" content="width=1274, user-scalable=no">
 	<link rel="stylesheet" href="themes/ribbon/styles/style.css">
 	<link rel="stylesheet" media="print" href="themes/ribbon/styles/print.css">
-        <link type="text/css" rel="stylesheet" href="scripts/highlight.js/styles/idea.css"/>
+        <link type="text/css" rel="stylesheet" href="scripts/highlight/styles/idea.css"/>
         <!-- <link type="text/css" rel="stylesheet" href="scripts/google-code-prettify/prettify.css"/> -->
 	<style>
 .slide header {
@@ -493,6 +493,31 @@ DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
               </code></pre>
 	    </section>
 	</div></div>
+        <div class="slide" id="Emacs Lisp Syntax Quote"><div>
+	    <section>
+	      <header>
+		<h2>Emacs Lisp Syntax Quote</h2>
+	      </header>
+               <pre class="lisp" style="font-size: 50%;"><code>
+<span class="pull-right">Clojure</span>
+(defn emacs-lisp-backquote [form]
+  (w/postwalk
+   #(c/cond
+     (c/and (seq? %) (seq? (last %)) (= `unquote-splicing (first (last %))))
+     (if (butlast %)
+       (concat (butlast %) `((unquote-splicing (maybe-splice-dotted-list
+                                                 ~(second (last %))))))
+       (second (last %)))
+
+     (c/and (seq? %) (= '#el/sym "\\`" (first %)))
+     (el->clj (syntax-quote* (second %)))
+
+     (= '#el/sym "\\," %) `unquote
+     (= '#el/sym "\\,@" %) `unquote-splicing
+     :else %) form))
+              </code></pre>
+	    </section>
+	</div></div>
         <div class="slide" id="Macroexpansion"><div>
 	    <section>
 	      <header>
@@ -518,7 +543,7 @@ DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
 		<h2>Editor Domain</h2>
 	      </header>
 <br/>
-<pre><code class="twocol">CharTable
+<pre><code>CharTable
 BufferText
 Buffer
 Marker
@@ -526,6 +551,9 @@ Frame
 Window
 ...
 </code></pre>
+<br/>
+LISt Processing
+<p style="font-size: 75%; font-style: italic;">[..] the ad-hoc mess of "vectors of length 259 of lists whose first element is the symbol `indirect' and whose tail is an alist of conses whose ..."<sup><a href="http://www.jwz.org/doc/lemacs.html">1</a></sup></p>
 <br/>
 	    </section>
 	</div></div>
