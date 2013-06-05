@@ -745,19 +745,19 @@ I'll revisit the name if the Clojure port actually becomes usable and the name c
 For details, see [`project.clj`](https://github.com/hraberg/deuce/blob/master/project.clj):
 
 
-[GNU Emacs](http://www.gnu.org/software/emacs/) Richard Stallman / FSF, 1985 - 2013 - "GNU Emacs is an extensible, customizable text editor—and more."
+[GNU Emacs](http://www.gnu.org/software/emacs/) Richard Stallman / FSF, 1985 - 2013 - "GNU Emacs is an extensible, customizable text editor—and more." GPL
 
-[Clojure](http://clojure.org/) Rich Hickey, 2008-2013 - "Clojure is a dialect of Lisp, and shares with Lisp the code-as-data philosophy and a powerful macro system."
+[Clojure](http://clojure.org/) Rich Hickey, 2008-2013 - "Clojure is a dialect of Lisp, and shares with Lisp the code-as-data philosophy and a powerful macro system." EPL
 
-[clojure-lanterna](https://github.com/sjl/clojure-lanterna) Steve Losh, 2012 - "A Clojurey wrapper around the [Lanterna](https://code.google.com/p/lanterna/) terminal output library."
+[clojure-lanterna](https://github.com/sjl/clojure-lanterna) Steve Losh, 2012 - "A Clojurey wrapper around the [Lanterna](https://code.google.com/p/lanterna/) terminal output library." LGPL
 
-[Lanterna](http://code.google.com/p/lanterna/) Martin Berglund, 2008-2013 - "Lanterna is a Java library allowing you to write easy semi-graphical user interfaces in a text-only environment."
+[Lanterna](http://code.google.com/p/lanterna/) Martin Berglund, 2008-2013 - "Lanterna is a Java library allowing you to write easy semi-graphical user interfaces in a text-only environment." LGPL
 
-[Timbre](https://github.com/ptaoussanis/timbre) Peter Taoussanis, 2012 - "a (sane) logging library for Clojure"
+[Timbre](https://github.com/ptaoussanis/timbre) Peter Taoussanis, 2012 - "a (sane) logging library for Clojure" EPL
 
-[dynapath](https://github.com/tobias/dynapath) Tobias Crawley, 2012 - "A Clojure abstraction for modifiable/readable class loaders."
+[dynapath](https://github.com/tobias/dynapath) Tobias Crawley, 2012 - "A Clojure abstraction for modifiable/readable class loaders." EPL
 
-[Fast Idiomatic Pretty-Printer](https://github.com/brandonbloom/fipp) Brandon Bloom, 2013 - "Fipp is a better pretty printer for Clojure."
+[Fast Idiomatic Pretty-Printer](https://github.com/brandonbloom/fipp) Brandon Bloom, 2013 - "Fipp is a better pretty printer for Clojure." EPL
 
 
 ## References
@@ -809,6 +809,11 @@ For details, see [`project.clj`](https://github.com/hraberg/deuce/blob/master/pr
 
 
 ## License
+
+**Note: There are some issues distributing EPL and GPL code together, will investigate the implications when and if we get to a real release.**
+
+* [EPL/GPL Commentary](http://mmilinkov.wordpress.com/2010/04/06/epl-gpl-commentary/) from the Eclipse Foundation.
+* [Using the GPL for Eclipse Plug-Ins](http://www.fsf.org/blogs/licensing/using-the-gpl-for-eclipse-plug-ins) from FSF.
 
 [GNU General Public License Version 3](http://www.gnu.org/licenses/gpl-3.0.html)
 
