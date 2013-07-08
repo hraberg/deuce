@@ -38,7 +38,7 @@ I'm currently exploring the entire problem from a different angle. This project 
 
 <img width="683" src="https://github.com/hraberg/deuce/raw/master/screenshots/dg-ido-mode-with-codemirror.png" alt="D&G" title="D&G" />
 
-*Ceci n'est pas une Emacs?*
+*Ceci n'est pas une Emacs.*
 
 
 **2013-04-08 C-x C-c**
