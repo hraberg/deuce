@@ -34,7 +34,7 @@ To run:
 
 I gave [a talk about Deuce](http://skillsmatter.com/podcast/scala/deuce-is-not-yet-emacs-under-clojure) last month here in London to explain to people, including myself, what this project is about. My current plan is to dedicate August to get it to a releasable state. The acceptance criteria is still to be able to run the Emacs tutorial (see 2013-03-22 below).
 
-I'm currently exploring the entire problem from a different angle. This project is called D&G (`dg`), which is browser-first, written in JavaScript. Emacs-like, no clone, no legacy, no features:
+I'm currently exploring the entire problem from a different angle. This project is called `dg`, which is browser-first, written in JavaScript. Emacs-like, no clone, no legacy, no features:
 
 <img width="683" src="https://github.com/hraberg/deuce/raw/master/screenshots/dg-ido-mode-with-codemirror.png" alt="D&G" title="D&G" />
 
