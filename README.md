@@ -32,7 +32,7 @@ To run:
 
 **2013-07-08 Deuce will be back**
 
-I gave [a talk about Deuce](http://skillsmatter.com/podcast/scala/deuce-is-not-yet-emacs-under-clojure) last month here in London to explain to people, including myself, what this project is about. My current plan is to dedicate August to get it to a releasable state. The acceptance criteria is still to be able to run the Emacs tutorial (see 2013-03-12 below).
+I gave [a talk about Deuce](http://skillsmatter.com/podcast/scala/deuce-is-not-yet-emacs-under-clojure) last month here in London to explain to people, including myself, what this project is about. My current plan is to dedicate August to get it to a releasable state. The acceptance criteria is still to be able to run the Emacs tutorial (see 2013-03-22 below).
 
 
 **2013-04-08 C-x C-c**
