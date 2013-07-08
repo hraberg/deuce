@@ -14,7 +14,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 [Talk](http://skillsmatter.com/podcast/scala/deuce-is-not-yet-emacs-under-clojure) at [Skills Matter](http://skillsmatter.com/) London on June 4 | [Slides](http://ghettojedi.org/deuce/skillsmatter/?full)
 
-Deuce can currently start Emacs and handle limited keyboard input (like C-x C-c). The main moving pieces are there but it's far from usable yet. I aim to release a developer preview, 0.1.0, during early summer, followed by an end-user alpha "when it's done" - probably late 2013.
+Deuce can currently start Emacs and handle limited keyboard input (like C-x C-c). The main moving pieces are there but it's far from usable yet. I aim to release a developer preview, 0.1.0 around September, followed by an end-user alpha "when it's done" - probably late 2013.
 
 I work on Deuce on and off and have spent about 2-3 months full-time so far in total. I started in April 2012.
 
@@ -36,7 +36,7 @@ I gave [a talk about Deuce](http://skillsmatter.com/podcast/scala/deuce-is-not-y
 
 I'm currently exploring the entire problem from a different angle. This project is called `dg`, which is browser-first, written in JavaScript. Emacs-like, no clone, no legacy, no features:
 
-<img width="683" src="https://github.com/hraberg/deuce/raw/master/screenshots/dg-ido-mode-with-codemirror.png" alt="D&G" title="D&G" />
+<img width="683" src="https://github.com/hraberg/deuce/raw/master/screenshots/dg-ido-mode-with-codemirror.png" alt="D&G isn't Deuce" title="D&G isn't Deuce" />
 
 *Ceci n'est pas une Emacs.*
 
