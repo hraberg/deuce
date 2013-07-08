@@ -38,7 +38,7 @@ I gave [a talk about Deuce](http://skillsmatter.com/podcast/scala/deuce-is-not-y
 
 I'm currently explore the entire problem from a different angle. This project is called D&G (`dg`), which is browser-first, written JavaScript. Emacs-like, no clone, no legacy, no features:
 
-<img width="683" src=https://github.com/hraberg/deuce/raw/master/screenshots/dg-ido-mode-with-codemirror.png" alt="D&G" title="D&G" />
+<img width="683" src="https://github.com/hraberg/deuce/raw/master/screenshots/dg-ido-mode-with-codemirror.png" alt="D&G" title="D&G" />
 
 *Ceci n'est pas une Emacs?*
 
