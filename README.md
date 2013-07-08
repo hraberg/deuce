@@ -12,7 +12,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 **Deuce is a re-implementation of Emacs in Clojure.** It's a port of the C core and re-compiles existing Emacs Lisp to Clojure. It uses the Lanterna library for text UI. The goal is to reach reasonable compatibility with GNU Emacs during 2013. The longer term goal is to phase out Emacs Lisp in favour for Clojure, to add a Web UI and re-capture Emacs' spirit on a contemporary platform.
 
-[Talk](http://skillsmatter.com/event/scala/deuce-is-not-yet-emacs-under-clojure) at [Skills Matter](http://skillsmatter.com/) London on June 4 | [Slides](http://ghettojedi.org/deuce/skillsmatter/?full)
+[Talk](http://skillsmatter.com/podcast/scala/deuce-is-not-yet-emacs-under-clojure) at [Skills Matter](http://skillsmatter.com/) London on June 4 | [Slides](http://ghettojedi.org/deuce/skillsmatter/?full)
 
 Deuce can currently start Emacs and handle limited keyboard input (like C-x C-c). The main moving pieces are there but it's far from usable yet. I aim to release a developer preview, 0.1.0, during early summer, followed by an end-user alpha "when it's done" - probably late 2013.
 
@@ -29,6 +29,11 @@ To run:
 ### What is there to see?
 
 [Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors) | [Dependencies](https://github.com/hraberg/deuce#dependencies)
+
+**2013-07-08 Deuce will be back**
+
+I gave [a talk about Deuce](http://skillsmatter.com/podcast/scala/deuce-is-not-yet-emacs-under-clojure) last month here in London to explain to people, including myself, what this project is about. My current plan is to dedicate August to get it to a releasable state. The acceptance criteria is still to be able to run the Emacs tutorial (see 2013-03-12 below).
+
 
 **2013-04-08 C-x C-c**
 
