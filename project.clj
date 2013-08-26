@@ -8,7 +8,10 @@
                  [clojure-lanterna "0.9.3"]
                  [com.taoensso/timbre "1.5.2"]
                  [org.tcrawley/dynapath "0.2.3"]
-                 [fipp "0.1.0-20130324.205952-4"]]
+                 [fipp "0.1.0-20130324.205952-4"]
+                 [org.clojure/core.async "0.1.0-SNAPSHOT"]]
+  :repositories {"sonatype-staging"
+                 "https://oss.sonatype.org/content/groups/staging/"}
   :plugins [[lein-swank "1.4.5"]
             [lein-difftest "2.0.0"]
             [lein-marginalia "0.7.1"]]
