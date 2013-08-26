@@ -4,7 +4,7 @@
             [clojure.java.io :as io]
             [clojure.string :as s]
             [clojure.walk :as w]
-            [bbloom.fipp.edn :as fipp]
+            [fipp.edn :as fipp]
             [lanterna.screen :as sc]
             [lanterna.common]
             [lanterna.constants]
@@ -386,9 +386,11 @@
 
 (def ^:private ^:dynamic *pretty-clojure* true)
 
-(defmethod fipp/pretty :default [x]
-  (binding [*print-dup* true]
-    [:text (pr-str x)]))
+(extend-protocol fipp/IPretty
+  java.lang.Object
+  (-pretty [x]
+    (binding [*print-dup* true]
+      [:text (pr-str x)])))
 
 (defn ^:private write-clojure [el clj]
   (io/make-parents clj)

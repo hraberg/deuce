@@ -6,9 +6,9 @@
   :url "http://www.gnu.org/software/emacs/"
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [clojure-lanterna "0.9.3"]
-                 [com.taoensso/timbre "2.6.1"]
+                 [com.taoensso/timbre "2.6.1" :exclusions [expectations/expectations]]
                  [org.tcrawley/dynapath "0.2.3"]
-                 [fipp "0.1.0-20130324.205952-4"]
+                 [fipp "0.4.0"]
                  [org.clojure/core.async "0.1.0-SNAPSHOT"]]
   :repositories {"sonatype-staging"
                  "https://oss.sonatype.org/content/groups/staging/"}
