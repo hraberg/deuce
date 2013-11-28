@@ -3,7 +3,7 @@
 *Because it's there* -- George Mallory
 
 
-**Note: Almost NOTHING works yet. 0.1.0 developer preview ETA: Q3 2013**
+**Note: Almost NOTHING works yet. 0.1.0 developer preview ETA: when it's done.**
 
 Also - there's a risk I'll give up, far before reaching the current benchmark of JVM Emacsen: [JEmacs](http://per.bothner.com/papers/Freenix00/Freenix00.html).
 
@@ -29,6 +29,11 @@ To run:
 ### What is there to see?
 
 [Marginalia](http://ghettojedi.org/deuce/) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors) | [Dependencies](https://github.com/hraberg/deuce#dependencies)
+
+**2013-11-28 At work**
+
+I'm currently working on another Clojure project (paid, "real" work), which will last into next year, hence the inactivity here. The good news is that it should support time for open source hacking afterwards.
+
 
 **2013-07-08 Deuce will be back**
 
