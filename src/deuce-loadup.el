@@ -261,7 +261,8 @@
 (load "textmodes/fill")
 
 (load "replace")
-(load "buff-menu")
+;; DEUCE: Hack to not compile buff-menu for now, its buffer-menu-other-window and Buffer-menu-other-window clashes on Mac.
+(load "buff-menu.el")
 
 (if (fboundp 'x-create-frame)
     (progn

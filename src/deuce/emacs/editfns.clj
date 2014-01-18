@@ -38,7 +38,7 @@
 (defvar user-login-name (System/getProperty "user.name")
   "The user's name, taken from environment variables if possible.")
 
-(defvar system-name (.getHostName (InetAddress/getLocalHost))
+(defvar system-name (-> (sh/sh "hostname") :out s/trim)
   "The host name of the machine Emacs is running on.")
 
 (defvar inhibit-field-text-motion nil

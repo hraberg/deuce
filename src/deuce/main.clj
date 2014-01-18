@@ -24,28 +24,23 @@
   (:import [java.io FileNotFoundException InputStreamReader]
            [java.awt Toolkit]
            [java.awt.datatransfer DataFlavor StringSelection]
-           [clojure.lang ExceptionInfo])
+           [clojure.lang ExceptionInfo]
+           [deuce.emacs.data Buffer Window]
+           [com.googlecode.lanterna.screen Screen])
   (:gen-class))
 
 ;; Start Deuce like this:
-;;    lein trampoline run -Q --swank-clojure
+;;    lein trampoline run -Q --nrepl
 
 ;; Using -Q will put you in *scratch*, with the keyboard enabled.
 ;; There's no minibuffer yet, so you have to switch buffer from the REPL.
 ;; Several keyboard commands fail or are a bit off (like move-end-of-line).
 
-;; Connect to Swank/nREPL from Emacs:
+;; Connect to nREPL from Emacs:
 ;; user> (in-ns 'deuce.emacs)  ;; We're now in Emacs Lisp
 
 ;; Tail the log at ~/.deuce.d/deuce.log
 ;; Errors are also visible in the Echo Area
-
-
-(defn swank [port]
-  (require 'swank.swank)
-  (with-out-str
-    ((resolve 'swank.swank/start-repl) port))
-  (println "Swank connection opened on" port))
 
 (defn nrepl [port]
   (require 'clojure.tools.nrepl.server)
@@ -75,9 +70,9 @@
       (s/join " " menu-bar))))
 
 ;; Renders a single window using Lanterna. Scrolling is not properly taken care of.
-;; Hard to bootstrap, requires fiddling when connected to Swank inside Deuce atm.
+;; Hard to bootstrap, requires fiddling when connected to nREPL inside Deuce atm.
 ;; Consider moving all this into deuce.emacs.dispnew
-(declare screen)
+(declare ^Screen screen)
 
 (def colors {:bg :default :fg :default})
 (def reverse-video {:styles #{:reverse}})
@@ -99,8 +94,8 @@
 (doseq [f '[line-indexes pos-to-line point-coords]]
   (eval `(def ~f (ns-resolve 'deuce.emacs.cmds '~f))))
 
-(defn render-live-window [window]
-  (let [buffer (window/window-buffer window)
+(defn render-live-window [^Window window]
+  (let [^Buffer buffer (window/window-buffer window)
         minibuffer? (window/window-minibuffer-p window)
         [header-line mode-line] (when-not minibuffer?
                                   [(buffer/buffer-local-value 'header-line-format buffer)
@@ -159,7 +154,7 @@
       (when mode-line
         (puts 0 (+ top-line total-lines) (pad (xdisp/format-mode-line mode-line nil window buffer) cols) {:bg :white})))))
 
-(defn render-window [window x y width height]
+(defn render-window [^Window window x y width height]
   ;; We should walk the tree, splitting windows as we go.
   ;; top or left children in turn have next siblings all sharing this area.
   ;; A live window is a normal window with buffer.
@@ -198,7 +193,7 @@
     (sc/redraw screen)))
 
 (def running (atom nil))
-(def in (InputStreamReader. System/in))
+(def ^InputStreamReader in (InputStreamReader. System/in))
 
 (defn stop-ui []
   (reset! running :stop)
@@ -315,11 +310,14 @@
   (start-render-loop)
   (start-input-loop))
 
+(declare init-user-classpath)
+
 ;; Callback run by faces/tty-run-terminal-initialization based on deuce.emacs.term/tty-type returning "lanterna"
 ;; Has Emacs Lisp proxy in deuce.emacs.
 (defn terminal-init-lanterna []
   (try
     (when-not (inside-emacs?)
+      (init-user-classpath)
       ((ns-resolve 'deuce.emacs.terminal 'init-initial-terminal))
       (def screen (terminal/frame-terminal))
       ;; We need to deal with resize later, it queries and gets the result on System/in which we have taken over.
@@ -382,7 +380,6 @@
                                         (flush)
                                         (System/exit 0))
                  (option "batch") (do (el/setq noninteractive true) nil)
-                 (option "swank-clojure") (swank 4005)
                  (option "nrepl") (nrepl 7888)
                  #{"-nw" "--no-window-system,"} (do (reset! inhibit-window-system true))
                  %) args)]
@@ -390,7 +387,6 @@
     (el/setq command-line-args (alloc/cons "src/bootstrap-emacs" (apply alloc/list (remove nil? args))))
 
     (lread/load "deuce-loadup.el")
-    (init-user-classpath)
     (when (data/symbol-value 'init-file-user)
       (load-user-init-file))
 

@@ -6,19 +6,17 @@
   :url "http://www.gnu.org/software/emacs/"
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [clojure-lanterna "0.9.3"]
-                 [com.taoensso/timbre "2.6.1" :exclusions [expectations/expectations]]
+                 [com.taoensso/timbre "2.7.1"]
                  [org.tcrawley/dynapath "0.2.3"]
-                 [fipp "0.4.0"]
-                 [org.clojure/core.async "0.1.0-SNAPSHOT"]]
+                 [fipp "0.4.1"]
+                 [org.clojure/core.async "0.1.267.0-0d7780-alpha"]]
   :repositories {"sonatype-staging"
                  "https://oss.sonatype.org/content/groups/staging/"}
-  :plugins [[lein-swank "1.4.5"]
-            [lein-difftest "2.0.0"]
+  :plugins [[lein-difftest "2.0.0"]
             [lein-marginalia "0.7.1"]]
-  :profiles {:dev {:dependencies [[org.clojure/tools.trace "0.7.5"]
-                                  [swank-clojure "1.4.3"]
-                                  [org.clojure/tools.nrepl "0.2.2"]
-                                  [clojure-complete "0.2.2"]]}}
+  :profiles {:dev {:dependencies [[org.clojure/tools.trace "0.7.6"]
+                                  [org.clojure/tools.nrepl "0.2.3"]]}
+             :uberjar {:aot [deuce.main]}}
   :resource-paths ["emacs/lisp" "resources"]
   :jar-exclusions [#".*\.elc" #"TUTORIAL\..*"
                    #"ChangeLog.*" #"Makefile.*" #"README" #"\.gitignore"]
