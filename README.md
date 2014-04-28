@@ -798,6 +798,8 @@ For details, see [`project.clj`](https://github.com/hraberg/deuce/blob/master/pr
 
 [Internal Reprogrammability](http://martinfowler.com/bliki/InternalReprogrammability.html) Martin Fowler, 2013
 
+[The Text Editor sam](http://plan9.bell-labs.com/sys/doc/sam/sam.html) Rob Pike, 1987
+
 [Tour de Babel](https://sites.google.com/site/steveyegge2/tour-de-babel) Steve Yegge, 2004 - "Emacs is the 100-year editor."
 
 [The Emacs Problem](https://sites.google.com/site/steveyegge2/the-emacs-problem) Steve Yegge, 2005
