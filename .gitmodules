@@ -1,7 +1,6 @@
 [submodule "docs"]
 	path = docs
 	url = https://github.com/hraberg/deuce.git
-[submodule "emacs"]
+[submodule "emacs-official-savannah"]
 	path = emacs
-	url = https://github.com/mirrors/emacs.git
-	ignore = dirty
+	url = git://git.sv.gnu.org/emacs.git
