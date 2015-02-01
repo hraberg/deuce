@@ -4,3 +4,4 @@
 [submodule "emacs-official-savannah"]
 	path = emacs
 	url = git://git.sv.gnu.org/emacs.git
+	ignore = dirty

@@ -253,13 +253,13 @@
   specifying the maximum number of seconds to wait for input.  If no
   input arrives in that time, return nil.  SECONDS may be a
   floating-point value."
-  (let [^Key k (read-event-internal prompt inherit-input-method seconds)]
-    (let [kind (lanterna.constants/key-codes (.getKind k))]
-      (if (= kind :normal)
-        (key-to-integer k)
-        (symbol (str (when (.isCtrlPressed k) "C-")
-                     (when (.isAltPressed k) "M-")
-                     (lanterna-to-emacs-event kind (name kind))))))))
+  (let [^Key k (read-event-internal prompt inherit-input-method seconds)
+        kind (lanterna.constants/key-codes (.getKind k))]
+    (if (= kind :normal)
+      (key-to-integer k)
+      (symbol (str (when (.isCtrlPressed k) "C-")
+                   (when (.isAltPressed k) "M-")
+                   (lanterna-to-emacs-event kind (name kind)))))))
 
 (defun read-char-exclusive (&optional prompt inherit-input-method seconds)
   "Read a character from the command input (keyboard or macro).
@@ -388,7 +388,7 @@
 
 (extend-protocol fipp/IPretty
   java.lang.Object
-  (-pretty [x]
+  (-pretty [x ctx]
     (binding [*print-dup* true]
       [:text (pr-str x)])))
 
@@ -489,8 +489,10 @@
                   clj-file (str (s/replace file "-" "_") ".clj")
                   clj-name (symbol (s/replace file "/" "."))
                   last-modified #(if % (.getLastModified (.openConnection ^URL %)) -1)
-                  load-raw-clj #(with-open [r (io/reader (io/resource clj-file))]
-                                  (Compiler/load r clj-file (.getName (io/file clj-file))))]
+                  load-raw-clj #(if-let [r (io/resource clj-file)]
+                                  (with-open [r (io/reader r)]
+                                    (Compiler/load r clj-file (.getName (io/file clj-file))))
+                                  (throw (FileNotFoundException. "no clj file")))]
               (try
                 (when (> (last-modified url) (last-modified (io/resource clj-file)))
                   (throw (FileNotFoundException. "out of date")))
@@ -498,9 +500,8 @@
                   (load-raw-clj)
                   (c/require clj-name))
                 (catch FileNotFoundException _
-                  (binding [*compile-path* (or (when-let [path (resolve 'deuce.main/*emacs-compile-path*)]
-                                                 @path)
-                                             *compile-path*)]
+                  (binding [*compile-path* (or (some-> 'deuce.main/*emacs-compile-path* resolve deref)
+                                               *compile-path*)]
                     (with-open [in (io/input-stream url)]
                       (let [el (parser/parse in)
                             clj-file (io/file *compile-path* clj-file)]

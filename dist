@@ -12,7 +12,8 @@ lein difftest
 cat > target/deuce << EOF
 #!/bin/sh
 
-exec java -client -noverify -Xbootclasspath/a:"\$0" deuce.main -q "\$@"
+exec java -client -noverify -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -jar "\$0" -q "\$@"
+exit
 EOF
 
 cat `find target/deuce-*standalone.jar` >> target/deuce

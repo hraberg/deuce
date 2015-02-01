@@ -1,3 +1,4 @@
 #!/bin/sh -e
 
-java -client -noverify -Xbootclasspath/a:`find -L . -iname deuce-*-standalone.jar | tail -n1` deuce.main -q "$@"
+jar=`find -L . -iname deuce-*-standalone.jar | tail -n1`
+java -client -noverify -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -jar $jar -q "$@"
