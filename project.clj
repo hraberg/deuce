@@ -16,7 +16,8 @@
   :plugins [[lein-difftest "2.0.0"]
             [lein-marginalia "0.8.0"]]
   :profiles {:dev {:dependencies [[org.clojure/tools.trace "0.7.8"]
-                                  [org.clojure/tools.nrepl "0.2.7"]]}
+                                  [org.clojure/tools.nrepl "0.2.7"]
+                                  [org.clojure/tools.namespace "0.2.9"]]}
              :uberjar {:aot :all
                        :auto-clean false}}
   :resource-paths ["emacs/lisp" "resources"]
