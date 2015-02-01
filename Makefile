@@ -56,7 +56,7 @@ run: target/deuce
 	target/deuce
 
 run-dev: emacs/lisp/loaddefs.el
-	lein run -q -Q --nrepl || reset
+	lein run -Q --nrepl || reset
 
 emacs/src/TAGS: emacs/Makefile
 	make -C emacs/src tags
