@@ -545,7 +545,7 @@ For a minimal [Emacs build](http://www.gnu.org/software/emacs/manual/html_node/e
                       # Might complain about missing `libtool`.
     make -C emacs # takes a few minutes, only needs to be run once, then you can use ./make-emacs.
 
-    ./emacs/src/temacs -Q --batch --eval "(print (emacs-version))" # ./smoke
+    ./emacs/src/temacs -Q --batch --eval "(print (emacs-version))"
 
 `temacs` is "bare impure Emacs", the raw C version of Emacs, without any Emacs Lisp preloaded.
 The Emacs Lisp lives under `emacs/lisp`. `-Q` is `-q --no-site-file --no-splash`, it basically suppresses all customizations. `--batch` won't open the display editor.
