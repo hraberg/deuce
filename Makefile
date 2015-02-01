@@ -23,13 +23,13 @@ emacs/src/bootstrap-emacs: emacs/Makefile
 emacs/src/temacs: emacs/src/bootstrap-emacs
 	make -C emacs/src temacs
 
-emacs/lisp/loaddefs.el: emacs/src/temacs
+emacs/lisp/loaddefs.el: emacs/src/bootstrap-emacs
 	make -C emacs/lisp autoloads
 
 smoke: emacs/src/temacs
 	./emacs/src/temacs -Q --batch --eval "(print (emacs-version))"
 
-$(deuce_uberjar): emacs/src/temacs emacs/lisp/loaddefs.el src
+$(deuce_uberjar): emacs/lisp/loaddefs.el src
 	lein do run -q --batch, uberjar
 
 test:
@@ -55,6 +55,9 @@ dist: clean $(deuce_uberjar) test target/deuce
 run: target/deuce
 	target/deuce
 
+run-dev: emacs/lisp/loaddefs.el
+	lein run -q -Q --nrepl || reset
+
 emacs/src/TAGS: emacs/Makefile
 	make -C emacs/src tags
 
@@ -74,4 +77,4 @@ $(deuce_stubs): emacs/src/TAGS-TEMACS
 
 stubs: $(deuce_stubs)
 
-.PHONY: test smoke clean stubs dist run all
+.PHONY: test smoke clean stubs dist run run-dev all

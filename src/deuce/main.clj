@@ -45,7 +45,13 @@
 (defn nrepl [port]
   (require 'clojure.tools.nrepl.server)
   (with-out-str
-    ((resolve 'clojure.tools.nrepl.server/start-server) :port port))
+    ((resolve 'clojure.tools.nrepl.server/start-server)
+     :port port
+     :handler (try
+                (require 'cider.nrepl)
+                (resolve 'cider.nrepl/cider-nrepl-handler)
+                (catch Exception _
+                  (resolve 'clojure.tools.nrepl.server/default-handler)))))
   (println "nrepl server listening on" port))
 
 ;; The way this does this is probably utterly wrong, written by data inspection, not reading Emacs source.
@@ -350,6 +356,13 @@
         (load-file (str init-file)))
       (catch Exception e
         (timbre/error e (format "An error occurred while loading `%s':" (str init-file)))))))
+
+(defn restart []
+  (let [args (next (data/symbol-value 'command-line-args))]
+    (terminal/delete-terminal)
+    (some-> 'deuce.main/-main resolve (apply args))
+    (terminal-init-lanterna)
+    :ok))
 
 (timbre/set-config!
  [:appenders :deuce-buffer-appender]
