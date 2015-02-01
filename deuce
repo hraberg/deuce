@@ -1,4 +1,0 @@
-#!/bin/sh -e
-
-jar=`find -L . -iname deuce-*-standalone.jar | tail -n1`
-java -client -noverify -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -jar $jar -q "$@"

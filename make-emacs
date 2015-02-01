@@ -1,6 +1,0 @@
-#!/bin/sh
-
-target=${@:-temacs}
-
-test -e emacs/src/Makefile || ./configure-emacs
-make -C emacs/src $target
