@@ -21,16 +21,16 @@ emacs/Makefile:
 	git submodule update --init emacs
 	(cd emacs && git checkout $(emacs_tag) && ./autogen.sh && ./configure $(emacs_configure_flags))
 
-emacs/src/bootstrap-emacs: emacs/Makefile
+emacs/src/emacs: emacs/Makefile
 	make -C emacs CONFIGURE_FLAGS="$(emacs_configure_flags)" bootstrap
 
-emacs/src/temacs: emacs/src/bootstrap-emacs
+emacs/src/temacs: emacs/src/emacs
 	make -C emacs/src temacs
 
-emacs/lisp/loaddefs.el: emacs/src/bootstrap-emacs
+emacs/lisp/loaddefs.el: emacs/src/emacs
 	make -C emacs/lisp autoloads
 
-emacs-tests: emacs/src/bootstrap-emacs
+emacs-tests: emacs/src/emacs
 	(cd emacs/test/automated && make check)
 
 smoke: emacs/src/temacs
@@ -43,8 +43,8 @@ zile/Makefile:
 zile/src/zile: zile/Makefile
 	(cd zile && make)
 
-zile-tests: zile/src/zile
-	(cd zile && make check)
+zile-tests: zile/src/zile emacs/src/emacs
+	(cd zile && make check EMACSPROG=../emacs/src/emacs)
 
 $(deuce_uberjar): emacs/lisp/loaddefs.el $(emacs_lisp_files) $(deuce_source_files)
 	lein do run -q --batch, uberjar
