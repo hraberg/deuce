@@ -5,3 +5,7 @@
 	path = emacs
 	url = git://git.sv.gnu.org/emacs.git
 	ignore = dirty
+[submodule "zile"]
+	path = zile
+	url = git://git.sv.gnu.org/zile.git
+	ignore = dirty
