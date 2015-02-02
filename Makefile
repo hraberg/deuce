@@ -15,6 +15,8 @@ deuce_uberjar=target/deuce-$(deuce_version)-standalone.jar
 deuce_stubs=src-$(emacs_version)-stubs
 deuce_source_files=$(shell find src -iname "*.clj")
 
+smoke_test_args=-Q --batch --eval "(print (emacs-version))"
+
 all: target/deuce test
 
 emacs/Makefile:
@@ -33,8 +35,8 @@ emacs/lisp/loaddefs.el: emacs/src/emacs
 emacs-tests: emacs/src/emacs
 	(cd emacs/test/automated && make check)
 
-smoke: emacs/src/temacs
-	./emacs/src/temacs -Q --batch --eval "(print (emacs-version))"
+emacs-smoke: emacs/src/temacs
+	./emacs/src/temacs $(smoke_test_args)
 
 zile/Makefile:
 	git submodule update --init zile
@@ -49,12 +51,6 @@ zile-tests: zile/src/zile emacs/src/emacs
 $(deuce_uberjar): emacs/lisp/loaddefs.el $(emacs_lisp_files) $(deuce_source_files)
 	lein do run -q --batch, uberjar
 
-test:
-	lein difftest
-
-clean:
-	rm -rf target
-
 define deuce_header
 #!/bin/sh
 exec java -client -noverify -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -jar "$$0" -q "$$@"
@@ -67,7 +63,16 @@ target/deuce: $(deuce_uberjar)
 	cat $(deuce_uberjar) >> target/deuce
 	chmod +x target/deuce
 
+clean:
+	rm -rf target
+
 dist: clean all
+
+test:
+	lein difftest
+
+smoke: target/deuce
+	target/deuce $(smoke_test_args)
 
 run: target/deuce
 	target/deuce
@@ -94,4 +99,4 @@ $(deuce_stubs): emacs/src/TAGS-TEMACS
 
 stubs: $(deuce_stubs)
 
-.PHONY: test emacs-tests zile-tests smoke clean stubs dist run run-dev all
+.PHONY: test emacs-tests zile-tests emacs-smoke smoke clean stubs dist run run-dev all
