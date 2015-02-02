@@ -36,7 +36,7 @@ emacs-tests: emacs/src/emacs
 	(cd emacs/test/automated && make check)
 
 emacs-smoke: emacs/src/temacs
-	./emacs/src/temacs $(smoke_test_args)
+	emacs/src/temacs $(smoke_test_args)
 
 zile/Makefile:
 	git submodule update --init zile
