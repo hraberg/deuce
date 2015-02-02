@@ -1,7 +1,7 @@
 (ns deuce.test.common
   (:use [clojure.test])
-  (:require [deuce.emacs-lisp :as el]
-            [deuce.emacs.fns :as fns]
+  (:require [deuce.emacs.fns :as fns]
+            [deuce.emacs.emacs]
             [deuce.emacs]))
 
 (defmacro emacs [& body]
@@ -12,6 +12,15 @@
 
 (defn clear-publics [ns keep]
   (remove-vars ns (remove keep (keys (ns-publics ns)))))
+
+(defn with-loadup []
+  (use-fixtures :once (fn [t]
+                        (with-redefs [deuce.emacs.emacs/kill-emacs (constantly nil)]
+                          (emacs (setq command-line-processed nil)
+                                 (setq command-line-args '("src/bootstrap-emacs"))
+                                 (setq noninteractive true)
+                                 (load "deuce-loadup.el")))
+                        (t))))
 
 (defn with-fresh-emacs []
   (use-fixtures :each (fn [t]

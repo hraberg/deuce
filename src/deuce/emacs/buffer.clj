@@ -398,7 +398,7 @@
   "Default value of `left-margin-width' for buffers that don't override it.
   This is the same as (default-value 'left-margin-width).")
 
-(defvar default-directory (System/getProperty "user.dir")
+(defvar default-directory (some-> (System/getProperty "user.dir") (s/replace #"([^/])$" "$1/"))
   "Name of default directory of current buffer.  Should end with slash.
   To interactively change the default directory, use command `cd'.")
 
@@ -1016,6 +1016,10 @@
   VALUE will be returned."
   )
 
+(defn ^:private get-exisiting-buffer [buffer-or-name]
+  (or (get-buffer buffer-or-name)
+      (el/throw* 'error (format  "No buffer named %s" buffer-or-name))))
+
 (defun set-buffer (buffer-or-name)
   "Make buffer BUFFER-OR-NAME current for editing operations.
   BUFFER-OR-NAME may be a buffer or the name of an existing buffer.  See
@@ -1025,9 +1029,8 @@
   `pop-to-buffer' to switch buffers permanently."
   ;; This is not correct, should only change the binding, but will do for now.
   (alter-var-root #'*current-buffer*
-                  (constantly
-                   (or (get-buffer buffer-or-name)
-                       (el/throw* 'error (format  "No buffer named %s" buffer-or-name))))))
+                  (constantly (when buffer-or-name
+                                (get-exisiting-buffer buffer-or-name)))))
 
 (defun buffer-enable-undo (&optional buffer)
   "Start keeping undo information for buffer BUFFER.
@@ -1078,9 +1081,9 @@
   Any processes that have this buffer as the `process-buffer' are killed
   with SIGHUP."
   (interactive "bKill buffer: ")
-  (let [buffer (if (instance? Buffer buffer-or-name)
-                 buffer-or-name
-                 (or (@buffer-alist buffer-or-name (current-buffer))))]
+  (let [buffer (if buffer-or-name
+                 (get-exisiting-buffer buffer-or-name)
+                 (current-buffer))]
     (if (or (not buffer)
             (and globals/kill-buffer-query-functions
                  (binding [*current-buffer* buffer]

@@ -173,7 +173,7 @@
 
 (defun #el/sym "/=" (num1 num2)
   "Return t if first arg is not equal to second arg.  Both must be numbers or markers."
-  (not (== num1 num2)))
+  (not ((ns-resolve 'deuce.emacs.data '=) num1 num2)))
 
 (defun make-symbol (name)
   "Return a newly allocated uninterned symbol whose name is NAME.

@@ -141,7 +141,7 @@
   each of those additional buffers as well, in addition to the original
   buffer.  The relevant buffer is current during each function call.")
 
-(declare file-name-as-directory)
+(declare expand-file-name file-name-as-directory)
 
 (defun clear-buffer-auto-save-failure ()
   "Clear any record of a recent auto-save failure in the current buffer."
@@ -151,7 +151,8 @@
   "Return t if file FILENAME specifies an absolute file name.
   On Unix, this is a name starting with a `/' or a `~'."
   (el/check-type 'stringp filename)
-  (.isAbsolute (io/file filename)))
+  (when (re-find #"^[/~]" filename)
+    true))
 
 (defun set-visited-file-modtime (&optional time-list)
   "Update buffer's recorded modification time from the visited file's time.
@@ -171,7 +172,7 @@
 (defun file-writable-p (filename)
   "Return t if file FILENAME can be written or created by you."
   (el/check-type 'stringp filename)
-  (Files/isWritable (.toPath (io/file filename))))
+  (Files/isWritable (.toPath (io/file (expand-file-name filename)))))
 
 (defun car-less-than-car (a b)
   "Return t if (car A) is numerically less than (car B)."
@@ -204,7 +205,8 @@
   (let [directory (or default-directory (data/symbol-value 'default-directory))]
     (if-let [resource (io/resource (str (file-name-as-directory directory) name))]
       (.getPath resource)
-      (let [file (io/file (s/replace name #"^~" (System/getProperty "user.home")))
+      (let [home (file-name-as-directory (System/getProperty "user.home"))
+            file (io/file (s/replace name #"^~" home))
             file (if (.isAbsolute file)
                    file
                    (io/file directory name))]
@@ -255,7 +257,7 @@
   See also `file-readable-p' and `file-attributes'.
   This returns nil for a symlink to a nonexistent file.
   Use `file-symlink-p' to test for such links."
-  (.exists (io/file filename)))
+  (.exists (io/file (expand-file-name filename))))
 
 (defun set-file-selinux-context (filename context)
   "Set SELinux context of file named FILENAME to CONTEXT.
@@ -380,7 +382,7 @@
   "Return t if file FILENAME exists and you can read it.
   See also `file-exists-p' and `file-attributes'."
   (el/check-type 'stringp filename)
-  (Files/isReadable (.toPath (io/file filename))))
+  (Files/isReadable (.toPath (io/file (expand-file-name filename)))))
 
 (defun delete-file (filename &optional trash)
   "Delete file named FILENAME.  If it is a symlink, remove the symlink.
@@ -396,7 +398,7 @@
   "Return t if FILENAME can be executed by you.
   For a directory, this means you can access files in that directory."
   (el/check-type 'stringp filename)
-  (Files/isExecutable (.toPath (io/file filename))))
+  (Files/isExecutable (.toPath (io/file (expand-file-name filename)))))
 
 (defun make-temp-name (prefix)
   "Generate temporary file name (string) starting with PREFIX (a string).
@@ -459,7 +461,7 @@
   This function does code conversion according to the value of
   `coding-system-for-read' or `file-coding-system-alist', and sets the
   variable `last-coding-system-used' to the coding system actually used."
-  (let [file (let [file (io/file filename)]
+  (let [file (let [file (io/file (expand-file-name filename))]
                (if (.exists file)
                  (.toURL file)
                  (io/resource filename)))
@@ -488,7 +490,9 @@
   this is everything after the last slash,
   or the entire name if it contains no slash."
   (el/check-type 'stringp filename)
-  (.getName (io/file filename)))
+  (if (re-find #"/$" filename)
+    ""
+    (.getName (io/file filename))))
 
 (defun substitute-in-file-name (filename)
   "Substitute environment variables referred to in FILENAME.
@@ -511,7 +515,7 @@
   Symbolic links to directories count as directories.
   See `file-symlink-p' to distinguish symlinks."
   (el/check-type 'stringp filename)
-  (.isDirectory (io/file filename)))
+  (.isDirectory (io/file (expand-file-name filename))))
 
 (defun set-buffer-auto-saved ()
   "Mark current buffer as auto-saved with its current text.
@@ -590,7 +594,7 @@
   Symbolic links to regular files count as regular files.
   See `file-symlink-p' to distinguish symlinks."
   (el/check-type 'stringp filename)
-  (Files/isRegularFile (.toPath (io/file filename)) (make-array LinkOption 0)))
+  (Files/isRegularFile (.toPath (io/file (expand-file-name filename))) (make-array LinkOption 0)))
 
 (defun file-name-directory (filename)
   "Return the directory component in file name FILENAME.
@@ -600,9 +604,10 @@
   (el/check-type 'stringp filename)
   (if (re-find #"/$" filename)
     filename
-    (when-let [parent (.getParent (if-let [resource (io/resource filename)]
-                                    (io/file (.getFile resource)) ;; Terrible hack, reason is lread/locate-file-internal
-                                    (io/file filename)))]
+    (when-let [parent (and (seq filename)
+                           (.getParent (if-let [resource (io/resource filename)]
+                                         (io/file (.getFile resource)) ;; Terrible hack, reason is lread/locate-file-internal
+                                         (io/file filename))))]
       (file-name-as-directory parent))))
 
 (defun file-symlink-p (filename)
@@ -613,7 +618,7 @@
   This function returns t when given the name of a symlink that
   points to a nonexistent file."
   (el/check-type 'stringp filename)
-  (let [path (.toPath (io/file filename))]
+  (let [path (.toPath (io/file (expand-file-name filename)))]
     (when (Files/isSymbolicLink path)
       (try
         (str (.toRealPath path (make-array LinkOption 0)))

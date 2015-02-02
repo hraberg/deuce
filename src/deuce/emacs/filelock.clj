@@ -1,9 +1,10 @@
 (ns deuce.emacs.filelock
   (:use [deuce.emacs-lisp :only (defun defvar)])
-  (:require [clojure.core :as c])
+  (:require [clojure.core :as c]
+            [deuce.emacs.fileio :as fileio])
   (:refer-clojure :exclude []))
 
-(defvar temporary-file-directory (System/getProperty "java.io.tmpdir")
+(defvar temporary-file-directory (fileio/file-name-as-directory (System/getProperty "java.io.tmpdir"))
   "The directory for writing temporary files.
 
   You can customize this variable.")

@@ -63,6 +63,7 @@
 ;; These keymaps are referenced from menu-bar.
 (setq mule-menu-keymap (make-sparse-keymap))
 (setq describe-language-environment-map (make-sparse-keymap))
+(setq buffer-file-coding-system-explicit nil)
 ;; Used by startup/normal-top-level to set the locale, called with nil.
 (defun set-locale-environment (&optional locale-name frame))
 (setq current-language-environment "English")

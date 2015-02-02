@@ -1,6 +1,7 @@
 (ns deuce.emacs.dispnew
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
+            [deuce.emacs.frame :as frame]
             [deuce.emacs-lisp.parser :as parser])
   (:refer-clojure :exclude []))
 
@@ -129,7 +130,7 @@
 
 (defun last-nonminibuffer-frame ()
   "Value is last nonminibuffer frame."
-  )
+  (frame/selected-frame))
 
 (defun send-string-to-terminal (string &optional terminal)
   "Send STRING to the terminal without alteration.

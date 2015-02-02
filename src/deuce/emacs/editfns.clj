@@ -252,9 +252,9 @@
   "Return the maximum permissible value of point in the current buffer.
   This is (1+ (buffer-size)), unless narrowing (a buffer restriction)
   is in effect, in which case it is less."
-  (if-let [zv @(.zv (buffer/current-buffer))]
-    zv
-    (inc (buffer-size))))
+  (inc (if-let [zv @(.zv (buffer/current-buffer))]
+         zv
+         (buffer-size))))
 
 (defun char-equal (c1 c2)
   "Return t if two characters match, optionally ignoring case.
