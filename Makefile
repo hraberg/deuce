@@ -33,7 +33,7 @@ emacs/lisp/loaddefs.el: emacs/src/emacs
 	make -C emacs/lisp autoloads
 
 emacs-tests: emacs/src/emacs
-	(cd emacs/test/automated && make check)
+	make -C emacs/test/automated check
 
 emacs-smoke: emacs/src/temacs
 	emacs/src/temacs $(smoke_test_args)
@@ -43,10 +43,10 @@ zile/Makefile:
 	(cd zile && git checkout $(zile_tag) && ./bootstrap && ./configure)
 
 zile/src/zile: zile/Makefile
-	(cd zile && make)
+	make -C zile
 
 zile-tests: zile/src/zile emacs/src/emacs
-	(cd zile && make check EMACSPROG=../emacs/src/emacs)
+	make -C zile check EMACSPROG=../emacs/src/emacs
 
 $(deuce_uberjar): emacs/lisp/loaddefs.el $(emacs_lisp_files) $(deuce_source_files)
 	lein do run -q --batch, uberjar
