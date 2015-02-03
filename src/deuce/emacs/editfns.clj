@@ -253,9 +253,9 @@
   "Return the maximum permissible value of point in the current buffer.
   This is (1+ (buffer-size)), unless narrowing (a buffer restriction)
   is in effect, in which case it is less."
-  (inc (if-let [zv @(.zv ^Buffer (buffer/current-buffer))]
-         zv
-         (buffer-size))))
+  (if-let [zv @(.zv ^Buffer (buffer/current-buffer))]
+    zv
+    (inc (buffer-size))))
 
 (defun char-equal (c1 c2)
   "Return t if two characters match, optionally ignoring case.
@@ -347,7 +347,7 @@
   ;; This should be defined the other way around.
   (let [pt (point)]
     (try
-      ((ns-resolve 'deuce.emacs.cmds 'end-of-line) n)
+      ((el/fun 'end-of-line) n)
       (finally (goto-char pt)))))
 
 (defun narrow-to-region (start end)
@@ -445,7 +445,7 @@
   ;; This should be defined the other way around.
   (let [pt (point)]
     (try
-      ((ns-resolve 'deuce.emacs.cmds 'beginning-of-line) n)
+      ((el/fun 'beginning-of-line) n)
       (finally (goto-char pt)))))
 
 (defun following-char ()

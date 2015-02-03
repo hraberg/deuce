@@ -980,6 +980,7 @@
   so the buffer is truly empty after this."
   (interactive "*")
   (let [text ^BufferText (.text ^Buffer (current-buffer))]
+    ((el/fun 'widen))
     ((el/fun 'delete-region) 1 (inc (.length ^StringBuilder (.beg text))))
     nil))
 
@@ -999,6 +1000,8 @@
 
   The first thing this function does is run
   the normal hook `change-major-mode-hook'."
+  ;; (eval/run-hooks 'change-major-mode-hook)
+  ;; (swap! (.local-var-alist ^Buffer (current-buffer)) empty)
   )
 
 (defun overlay-end (overlay)
@@ -1165,7 +1168,7 @@
   The buffer's `buffer-file-name' must match exactly the expansion of FILENAME.
   If there is no such live buffer, return nil.
   See also `find-buffer-visiting'."
-  )
+  (first (filter (comp #{((el/fun 'expand-file-name) filename)} buffer-file-name) (buffer-list))))
 
 (defun overlay-properties (overlay)
   "Return a list of the properties on OVERLAY.

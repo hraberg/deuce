@@ -13,13 +13,16 @@
 (defn clear-publics [ns keep]
   (remove-vars ns (remove keep (keys (ns-publics ns)))))
 
+(defn loadup []
+  (with-redefs [deuce.emacs.emacs/kill-emacs (constantly nil)]
+    (emacs (setq command-line-processed nil)
+           (setq command-line-args '("src/bootstrap-emacs"))
+           (setq noninteractive true)
+           (load "deuce-loadup.el"))))
+
 (defn with-loadup []
   (use-fixtures :once (fn [t]
-                        (with-redefs [deuce.emacs.emacs/kill-emacs (constantly nil)]
-                          (emacs (setq command-line-processed nil)
-                                 (setq command-line-args '("src/bootstrap-emacs"))
-                                 (setq noninteractive true)
-                                 (load "deuce-loadup.el")))
+                        (loadup)
                         (t))))
 
 (defn with-fresh-emacs []

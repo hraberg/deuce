@@ -24,7 +24,7 @@
     (is (= expected actual) f)))
 
 (deftest zile
-  (doseq [:let [passing #{}]
+  (doseq [:let [passing #{}] ;; #{"insert-char.el"}
           f (->> (io/file "zile/tests")
                  .listFiles
                  (filter #(re-find #".el$" (str %)))

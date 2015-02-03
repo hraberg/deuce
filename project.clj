@@ -14,8 +14,8 @@
   :plugins [[lein-difftest "2.0.0"]
             [lein-marginalia "0.8.0"]]
   :profiles {:uberjar {:aot :all
-                       :auto-clean false
-                       :global-vars {*warn-on-reflection* true}}}
+                       :auto-clean false}
+             :test {:global-vars {*warn-on-reflection* true}}}
   :resource-paths ["emacs/lisp" "resources"]
   :jar-exclusions [#".*\.elc" #"TUTORIAL\..*"
                    #"ChangeLog.*" #"Makefile.*" #"README" #"\.gitignore"]

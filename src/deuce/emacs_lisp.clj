@@ -269,9 +269,7 @@
 
 (defn parse-doc-string [[doc & rst :as body]]
   (if (string? doc)
-    [doc (if rst
-           rst
-           body)]
+    [doc rst]
     [nil body]))
 
 (defn def-helper-process-var* [f needs-intern? name doc interactive emacs-lisp? el-arglist]
@@ -308,23 +306,24 @@
           arglist (w/postwalk maybe-sym arglist)
           the-args (remove '#{&} (flatten arglist))
           needs-intern? (when (c/and (re-find #"/" (c/name name)) (not= '/ name))
-                          (sym (s/replace (c/name name) "/" "SLASH")))]
+                          (sym (s/replace (c/name name) "/" "SLASH")))
+          not-implemented? (c/or (= [docstring] body) (empty? body))]
          `(def-helper-process-var*
             (~what ~(if needs-intern? needs-intern? name) ~(vec arglist)
-                             ~(when-not (seq body)
-                                `(binding [*ns* (the-ns 'clojure.core)]
-                                   (warn ~(c/name name) "NOT IMPLEMENTED")))
-                             ~(if emacs-lisp?
-                                `(c/let ~(if rest-arg
-                                           `[~rest-arg (if-let [r# ~rest-arg] (apply cons/list r#) nil)]
-                                           [])
-                                        (c/let [result# (with-local-el-vars ~(vec (mapcat #(c/list % %) the-args))
-                                                          (progn ~@body))]
-                                               ;; There's something wrong with the returned forms, hence the prewalk
-                                               (if ~macro?
-                                                 (w/prewalk identity (el->clj result#))
-                                                 result#)))
-                                `(do ~@body)))
+                   ~(when not-implemented?
+                      `(binding [*ns* (the-ns 'clojure.core)]
+                         (warn ~(c/name name) "NOT IMPLEMENTED")))
+                   ~(if emacs-lisp?
+                      `(c/let ~(if rest-arg
+                                 `[~rest-arg (if-let [r# ~rest-arg] (apply cons/list r#) nil)]
+                                 [])
+                         (c/let [result# (with-local-el-vars ~(vec (mapcat #(c/list % %) the-args))
+                                           (progn ~@body))]
+                           ;; There's something wrong with the returned forms, hence the prewalk
+                           (if ~macro?
+                             (w/prewalk identity (el->clj result#))
+                             result#)))
+                      `(do ~@body)))
             '~needs-intern? '~name ~doc '~interactive '~emacs-lisp? '~el-arglist)))
 
 (def override? '#{apply-partially})
@@ -359,7 +358,7 @@
   {:arglists '([ARGS [DOCSTRING] [INTERACTIVE] BODY])}
   [& cdr]
   (c/let [[args & body] cdr
-          [docstring body] (parse-doc-string body)
+          [docstring _] (parse-doc-string body)
           doc (apply str docstring)
           vars (scope &env)
           vars (vec (remove (c/set args) vars))]
@@ -376,7 +375,7 @@
                      (binding [*dynamic-vars* (if (dynamic-binding?)
                                                 (merge *dynamic-vars* closure#) {})]
                        (c/let [{:syms ~vars} closure#]
-                              (progn ~@body)))) {:doc ~doc}))))
+                         (progn ~@body)))) {:doc ~doc}))))
 
 ;; Defined in subr.el
 (defn apply-partially

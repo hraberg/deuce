@@ -656,6 +656,8 @@
   The value is always a number; markers are converted to numbers."
   (apply c/max number-or-marker numbers-or-markers))
 
+(declare local-variable-p)
+
 (defun local-variable-if-set-p (variable &optional buffer)
   "Non-nil if VARIABLE will be local in buffer BUFFER when set there.
   More precisely, this means that setting the variable (with `set' or`setq'),
@@ -663,7 +665,9 @@
   will produce a buffer local binding.  See Info node
   `(elisp)Creating Buffer-Local'.
   BUFFER defaults to the current buffer."
-  )
+  (when (or (contains? @el/buffer-locals variable)
+            (local-variable-p variable buffer))
+    true))
 
 (defun default-boundp (symbol)
   "Return t if SYMBOL has a non-void default value.
@@ -715,7 +719,9 @@
 (defun local-variable-p (variable &optional buffer)
   "Non-nil if VARIABLE has a local binding in buffer BUFFER.
   BUFFER defaults to the current buffer."
-  (contains? (get-thread-bindings) variable))
+  (let [buffer-locals @(.local-var-alist ^Buffer (el/check-type 'bufferp (or buffer ((el/fun 'current-buffer)))))]
+    (when (contains? buffer-locals variable)
+      true)))
 
 (defun byte-code-function-p (object)
   "Return t if OBJECT is a byte-compiled function object."
