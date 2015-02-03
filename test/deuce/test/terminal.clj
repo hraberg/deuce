@@ -1,6 +1,7 @@
 (ns deuce.test.terminal
   (:require [lanterna.screen :as s])
-  (:import [sun.misc Signal SignalHandler]))
+  (:import [sun.misc Signal SignalHandler]
+           [com.googlecode.lanterna.screen Screen]))
 
 ;; This is a clojure-lanterna[1] UI spike.
 
@@ -65,8 +66,8 @@
   (mode-line y))
 
 (defn cursor-position []
-  [(.getColumn (.getCursorPosition screen))
-   (.getRow (.getCursorPosition screen))])
+  [(.getColumn (.getCursorPosition ^Screen screen))
+   (.getRow (.getCursorPosition ^Screen screen))])
 
 (defn prompt [line fn]
   (mini-buffer line)
@@ -154,7 +155,7 @@
   (char (- (int c) 96)))
 
 (defn ctrl-char? [c]
-  (Character/isISOControl c))
+  (Character/isISOControl (char c)))
 
 (defn from-ctrl-char [c]
   (when (<= (int c) (int \))

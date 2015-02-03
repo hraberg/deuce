@@ -831,7 +831,8 @@
 (defun buffer-modified-p (&optional buffer)
   "Return t if BUFFER was modified since its file was last read or saved.
   No argument or nil as argument means use current buffer as BUFFER."
-  (let [text (.text (or buffer (current-buffer)))
+  (let [buffer ^Buffer (el/check-type 'bufferp (or buffer (current-buffer)))
+        text ^BufferText (.text buffer)
         modiff @(.modiff text)]
     (and modiff (> modiff @(.save-modiff text)))))
 
@@ -966,7 +967,7 @@
         (let [newname (if buffer-exists? (generate-new-buffer-name newname) newname)]
           (swap! buffer-alist dissoc (buffer-name))
           (swap! buffer-alist assoc newname (current-buffer))
-          (reset! (.name (current-buffer)) newname))))))
+          (reset! (.name ^Buffer (current-buffer)) newname))))))
 
 (defun overlay-buffer (overlay)
   "Return the buffer OVERLAY belongs to.
@@ -978,8 +979,8 @@
   Any narrowing restriction in effect (see `narrow-to-region') is removed,
   so the buffer is truly empty after this."
   (interactive "*")
-  (let [text (.text (current-buffer))]
-    ((el/fun 'delete-region) 1 (inc (.length (.beg text))))
+  (let [text ^BufferText (.text ^Buffer (current-buffer))]
+    ((el/fun 'delete-region) 1 (inc (.length ^StringBuilder (.beg text))))
     nil))
 
 (defun kill-all-local-variables ()
@@ -1008,8 +1009,7 @@
   "Return the name of BUFFER, as a string.
   BUFFER defaults to the current buffer.
   Return nil if BUFFER has been killed."
-  @(.name (or (and buffer (el/check-type 'bufferp buffer))
-              (current-buffer))))
+  @(.name ^Buffer (el/check-type 'bufferp (or buffer (current-buffer)))))
 
 (defun overlay-put (overlay prop value)
   "Set one property of overlay OVERLAY: give property PROP value VALUE.
@@ -1060,9 +1060,10 @@
   For a symbol that is locally unbound, just the symbol appears in the value.
   Note that storing new VALUEs in these elements doesn't change the variables.
   No argument or nil as argument means use current buffer as BUFFER."
-  (cons/maybe-seq (map #(alloc/cons (key %) (when-let [v (val %)] @v))
-                       (merge (zipmap @el/buffer-locals (repeat nil))
-                              @(.local-var-alist (or buffer (current-buffer)))))))
+  (let [buffer ^Buffer (el/check-type 'bufferp (or buffer (current-buffer)))]
+    (cons/maybe-seq (map #(alloc/cons (key %) (when-let [v (val %)] @v))
+                         (merge (zipmap @el/buffer-locals (repeat nil))
+                                @(.local-var-alist buffer))))))
 
 (defun kill-buffer (&optional buffer-or-name)
   "Kill buffer BUFFER-OR-NAME.
@@ -1092,7 +1093,7 @@
       (do
         (binding [*current-buffer* buffer]
           (eval/run-hooks 'kill-buffer-hook))
-        (swap! buffer-alist dissoc @(.name buffer))
+        (swap! buffer-alist dissoc @(.name ^Buffer buffer))
         (set-buffer (other-buffer))
         true))))
 
@@ -1131,7 +1132,7 @@
 (defun set-buffer-modified-p (flag)
   "Mark current buffer as modified or unmodified according to FLAG.
   A non-nil FLAG means mark the buffer modified."
-  (reset! (.modiff (.text (current-buffer))) (when flag (System/currentTimeMillis))))
+  (reset! (.modiff ^BufferText (.text ^Buffer (current-buffer))) (when flag (System/currentTimeMillis))))
 
 (defun move-overlay (overlay beg end &optional buffer)
   "Set the endpoints of OVERLAY to BEG and END in BUFFER.
@@ -1183,8 +1184,7 @@
   The buffer is found by scanning the selected or specified frame's buffer
   list first, followed by the list of all buffers.  If no other buffer
   exists, return the buffer `*scratch*' (creating it if necessary)."
-  (or (first (remove #{(or (and buffer (el/check-type 'bufferp buffer))
-                           (current-buffer))} (buffer-list)))
+  (or (first (remove #{(el/check-type 'bufferp (or buffer (current-buffer)))} (buffer-list)))
       (get-buffer-create "*scratch*")))
 
 (defun overlays-at (pos)

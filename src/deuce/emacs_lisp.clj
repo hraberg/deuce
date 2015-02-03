@@ -150,7 +150,7 @@
           vals (vec (take-nth 2 (rest name-vals-vec)))]
          `(c/let [vars# (hash-map ~@(interleave (map #(list 'quote %) vars)
                                                 (map #(do `(c/or (*dynamic-vars* '~%) (global '~%)
-                                                                 (c/doto (Var/create) .setDynamic))) vars)))]
+                                                                 (.setDynamic (Var/create)))) vars)))]
                  (with-bindings (zipmap (map vars# '~vars) ~vals)
                    (binding [*dynamic-vars* (if (dynamic-binding?) (merge *dynamic-vars* vars#) {})]
                      (c/let [{:syms ~vars} vars#]
@@ -269,7 +269,9 @@
 
 (defn parse-doc-string [[doc & rst :as body]]
   (if (string? doc)
-    [doc rst]
+    [doc (if rst
+           rst
+           body)]
     [nil body]))
 
 (defn def-helper-process-var* [f needs-intern? name doc interactive emacs-lisp? el-arglist]
@@ -364,11 +366,10 @@
          ;; This is wrong as it won't share updates between original definition and the lambda var.
          ;; Yet to see if this ends up being a real issue. A few days later: Indeed it is!
          `(c/let [closure# (zipmap '~vars
-                                   (map #(doto
-                                             (if (dynamic-binding?) ;; Temporary hack.
-                                               (if (var? %) % (Var/create %))
-                                               (Var/create (if (var? %) (deref %) %)))
-                                           .setDynamic)
+                                   (map #(c/let [^Var v# (if (dynamic-binding?) ;; Temporary hack.
+                                                          (if (var? %) % (Var/create %))
+                                                          (Var/create (if (var? %) (deref %) %)))]
+                                           (.setDynamic v#))
                                         ~vars))]
                  (with-meta
                    (def-helper* fn lambda ~args
@@ -810,7 +811,7 @@
             (finally
              ((fun 'set-buffer) current-buffer#)
              ((fun 'goto-char) point#)
-             ((fun 'set-marker) mark# @(.charpos mark#) current-buffer#)))))
+             ((fun 'set-marker) mark# @((fun 'marker-position) mark#) current-buffer#)))))
 
 (c/defmacro interactive
   "Specify a way of parsing arguments for interactive use of a function.

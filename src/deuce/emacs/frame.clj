@@ -124,8 +124,8 @@
         selected-window (atom root-window)
         minibuffer-window (allocate-window true nil 0 9 10 1)
         terminal (atom nil)]
-    (reset! (.next root-window) minibuffer-window)
-    (reset! (.prev minibuffer-window) root-window)
+    (reset! (.next ^Window root-window) minibuffer-window)
+    (reset! (.prev ^Window minibuffer-window) root-window)
     (Frame. "F1" root-window selected-window minibuffer-window terminal)))
 
 (declare selected-frame frame-pixel-width frame-pixel-height)
@@ -166,7 +166,7 @@
   (let [frame (el/check-type 'framep (or frame (selected-frame)))]
     (list (cons/pair 'width (frame-pixel-width frame))
           (cons/pair 'height (frame-pixel-height frame))
-          (cons/pair 'name (.name frame)))))
+          (cons/pair 'name (.name ^Frame frame)))))
 
 (defun frame-parameter (frame parameter)
   "Return FRAME's value for parameter PARAMETER.
@@ -312,9 +312,10 @@
   For a text-only terminal, it includes the menu bar.  In this case, the
   result is really in characters rather than pixels (i.e., is identical
   to `frame-height')."
-  (if-let [s  @(.terminal (or frame (selected-frame)))]
-    (second (s/get-size s))
-    0))
+  (let [^Frame frame (el/check-type 'framep (or frame (selected-frame)))]
+    (if-let [s  @(.terminal frame)]
+      (second (s/get-size s))
+      0)))
 
 (defun frame-live-p (object)
   "Return non-nil if OBJECT is a frame which has not been deleted.
@@ -364,9 +365,10 @@
   "Return FRAME's width in pixels.
   For a terminal frame, the result really gives the width in characters.
   If FRAME is omitted, the selected frame is used."
-  (if-let [s  @(.terminal (or frame (selected-frame)))]
-    (first (s/get-size s))
-    0))
+  (let [^Frame frame (el/check-type 'framep (or frame (selected-frame)))]
+    (if-let [s @(.terminal frame)]
+      (first (s/get-size s))
+      0)))
 
 (defun set-frame-height (frame lines &optional pretend)
   "Specify that the frame FRAME has LINES lines.

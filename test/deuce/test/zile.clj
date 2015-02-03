@@ -4,7 +4,8 @@
             [deuce.emacs]
             [deuce.emacs.lread :as lread])
   (:use [clojure.test]
-        [deuce.test.common]))
+        [deuce.test.common])
+  (:import [java.io File]))
 
 (with-loadup)
 (with-fresh-emacs)
@@ -27,7 +28,7 @@
           f (->> (io/file "zile/tests")
                  .listFiles
                  (filter #(re-find #".el$" (str %)))
-                 (filter (comp passing #(.getName %)))
-                 (map #(.getAbsolutePath %))
+                 (filter (comp passing #(.getName ^File %)))
+                 (map #(.getAbsolutePath ^File %))
                  sort)]
     (zile-test f)))

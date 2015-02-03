@@ -8,6 +8,7 @@
             [taoensso.timbre :as timbre])
   (:import [java.nio ByteOrder]
            [java.io Writer]
+           [java.lang.reflect Field]
            [clojure.lang Symbol Var])
   (:refer-clojure :exclude [+ * - / aset set < = > max >= <= mod atom min]))
 
@@ -27,7 +28,7 @@
 (defmethod print-dup array-class [array ^Writer w]
   (.write w "#el/vec [")
   (dotimes [idx (count array)]
-    (print-dup (aget array idx) w)
+    (print-dup (aget ^objects array idx) w)
     (when-not (c/= idx (dec (count array)))
       (.write w " ")))
   (.write w "]"))
@@ -56,7 +57,7 @@
      ;; /* These hold additional data.  It is a vector.  */
      extras])
 
-(defmethod print-method CharTable [char-table w]
+(defmethod print-method CharTable [^CharTable char-table ^Writer w]
   (.write w (str "#^" (vec (cons/ellipsis (concat [(.defalt char-table)
                                                    @(.parent char-table)
                                                    (.purpose char-table)]
@@ -123,7 +124,7 @@
      ;;    symbols, just the symbol appears as the element.  */
      local-var-alist])
 
-(defmethod print-method Buffer [buffer w]
+(defmethod print-method Buffer [^Buffer buffer ^Writer w]
   (.write w (str "#<buffer " @(.name buffer) ">")))
 
 ;; struct in buffer.h. Has many other fields, its also a linked list above. Attempting to use as a value object
@@ -147,9 +148,9 @@
      ;; /* This is the char position where the marker points.  */
      charpos])
 
-(defmethod print-method Marker [marker w]
+(defmethod print-method Marker [^Marker marker ^Writer w]
   (.write w (str "#<marker" (if (and @(.charpos marker) @(.buffer marker))
-                              (str " at " @(.charpos marker) " in " @(.name @(.buffer marker)))
+                              (str " at " @(.charpos marker) " in " @(.name ^Buffer @(.buffer marker)))
                               (str " in no buffer")) ">")))
 
 (defrecord Frame
@@ -178,7 +179,7 @@
      ;;    the frame has been deleted. */
      terminal])
 
-(defmethod print-method Frame [frame w]
+(defmethod print-method Frame [^Frame frame ^Writer w]
   (.write w (str "#<frame " (.name frame) " "
                  (format "0x%x" (System/identityHashCode frame)) ">")))
 
@@ -233,15 +234,15 @@
      ;; /* Unique number of window assigned when it was created.  */
      sequence-number])
 
-(defmethod print-method Window [window w]
+(defmethod print-method Window [^Window window ^Writer w]
   (.write w (str "#<window " (.sequence-number window)
-                 (when-let [buffer @(.buffer window)]
+                 (when-let [buffer ^Buffer @(.buffer window)]
                    (str " on " @(.name buffer))) ">")))
 
 (defn ^:private promote-char [x]
   (cond
    (char? x) (int x)
-   (markerp x) @(.charpos x)
+   (markerp x) @(.charpos ^Marker x)
    :else x))
 
 (defn ^:private promote-chars [xs]
@@ -492,7 +493,7 @@
   Do not use `make-local-variable' to make a hook variable buffer-local.
   Instead, use `add-hook' and specify t for the LOCAL argument."
   (interactive "vMake Local Variable: ")
-  (let [buffer-locals (.local-var-alist ((el/fun 'current-buffer)))]
+  (let [buffer-locals (.local-var-alist ^Buffer ((el/fun 'current-buffer)))]
     (when-not (contains? @buffer-locals variable)
       (swap! buffer-locals assoc variable (Var/create)))
     variable))
@@ -539,8 +540,8 @@
     (aset (.contents ^CharTable array) idx newelt)
     (if (string? array)
       (do (timbre/warn "modifying String" (str "\"" array "\""))
-        (c/aset (.get string-chars array) idx (char newelt)))
-      (c/aset array idx newelt))))
+        (c/aset ^chars (.get ^Field string-chars array) idx (char newelt)))
+      (c/aset ^objects array idx newelt))))
 
 (declare vectorp char-table-p)
 
@@ -669,7 +670,7 @@
   This is the value that is seen in buffers that do not have their own values
   for this variable."
   (or (nil? symbol)
-      (when-let [v (el/global symbol)]
+      (when-let [^Var v (el/global symbol)]
         (.hasRoot v))))
 
 (defun nlistp (object)
@@ -692,7 +693,7 @@
   This is the value that is seen in buffers that do not have their own values
   for this variable.  The default value is meaningful for variables with
   local bindings in certain buffers."
-  (if-let [v (el/global symbol)]
+  (if-let [^Var v (el/global symbol)]
     (.getRawRoot v)
     (el/throw* 'void-variable (list symbol))))
 
@@ -739,7 +740,7 @@
                                                             (-> f meta :doc)
                                                             (-> definition meta :doc))))
       (alter-meta! (el/fun symbol) assoc :alias definition)
-      (when-not lambda? (.setMacro (ns-resolve 'deuce.emacs symbol)))
+      (when-not lambda? (.setMacro ^Var (ns-resolve 'deuce.emacs symbol)))
       ;; We want this, but it currently wrecks havoc due to backquote
       ;; (when (and lambda? (-> definition meta :macro)))
       ;;   (.setMacro (el/fun symbol))))
@@ -769,7 +770,7 @@
   "Make VARIABLE no longer have a separate value in the current buffer.
   From now on the default value will apply in this buffer.  Return VARIABLE."
   (interactive "vKill Local Variable: ")
-  (let [buffer-locals (.local-var-alist ((el/fun 'current-buffer)))]
+  (let [buffer-locals (.local-var-alist ^Buffer ((el/fun 'current-buffer)))]
     (swap! buffer-locals dissoc variable)
     variable))
 
@@ -865,7 +866,7 @@
   present, base 10 is used.  BASE must be between 2 and 16 (inclusive).
   If the base used is not 10, STRING is always parsed as integer."
   (try
-    (long (BigInteger. string (or base 10)))
+    (long (BigInteger. (str string) (int (or base 10))))
     (catch NumberFormatException _
       (Double/parseDouble string))))
 

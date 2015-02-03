@@ -18,12 +18,12 @@
   If CHAR-TABLE holds nil for a given character,
   then the actual applicable value is inherited from the parent char-table
   (or from its parents, if necessary)."
-  @(.parent char-table))
+  @(.parent ^CharTable char-table))
 
-(defun set-char-table-parent (^CharTable char-table parent)
+(defun set-char-table-parent (char-table parent)
   "Set the parent char-table of CHAR-TABLE to PARENT.
   Return PARENT.  PARENT must be either nil or another char-table."
-  (reset! (.parent char-table) parent))
+  (reset! (.parent ^CharTable char-table) parent))
 
 (defun map-char-table (function char-table)
   "Call FUNCTION for each character in CHAR-TABLE that has non-nil value.
@@ -32,23 +32,24 @@
   range of characters that have the same value."
   )
 
-(defun char-table-extra-slot (^CharTable char-table n)
+(defun char-table-extra-slot (char-table n)
   "Return the value of CHAR-TABLE's extra-slot number N."
-  (aget (.extras char-table) n))
+  (aget ^objects (.extras ^CharTable char-table) n))
 
-(defun char-table-subtype (^CharTable char-table)
+(defun char-table-subtype (char-table)
   "Return the subtype of char-table CHAR-TABLE.  The value is a symbol."
-  (.purpose char-table))
+  (.purpose ^CharTable char-table))
 
-(defun set-char-table-range (^CharTable char-table range value)
+(defun set-char-table-range (char-table range value)
   "Set the value in CHAR-TABLE for a range of characters RANGE to VALUE.
   RANGE should be t (for all characters), nil (for the default value),
   a cons of character codes (for characters in the range),
   or a character code.  Return VALUE."
   (let [[start end] (if (data/consp range)
                       [(int (data/car range)) (int (data/cdr range))]
-                      [0 (count (.contents char-table))])]
-    (Arrays/fill (.contents char-table) start end (if (nil? range) (.defalt char-table) value)))
+                      [0 (count (.contents ^CharTable  char-table))])]
+    (Arrays/fill ^objects (.contents ^CharTable char-table) (int start) (int end)
+                 (if (nil? range) (.defalt ^CharTable char-table) value)))
   value)
 
 (defun get-unicode-property-internal (char-table ch)
@@ -58,7 +59,7 @@
 
 (defun set-char-table-extra-slot (char-table n value)
   "Set CHAR-TABLE's extra-slot number N to VALUE."
-  (aset (.extras char-table) n value))
+  (aset ^objects (.extras ^CharTable char-table) n value))
 
 (defun unicode-property-table-internal (prop)
   "Return a char-table for Unicode character property PROP.

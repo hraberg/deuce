@@ -5,7 +5,7 @@
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.frame :as frame]
             [deuce.emacs-lisp.cons :as cons])
-  (:import [deuce.emacs.data Window Marker])
+  (:import [deuce.emacs.data Buffer Frame Window Marker])
   (:refer-clojure :exclude []))
 
 (defvar window-combination-limit nil
@@ -147,7 +147,7 @@
   "Return t if OBJECT is a live window and nil otherwise.
   A live window is a window that displays a buffer.
   Internal windows and deleted windows are not live."
-  (and (windowp object) @(.buffer object)))
+  (and (windowp object) @(.buffer ^Window object)))
 
 (defun window-combination-limit (window)
   "Return combination limit of window WINDOW.
@@ -166,13 +166,13 @@
 
   On a graphical display, this total width is reported as an
   integer multiple of the default character width."
-  @(.total-cols (el/check-type 'windowp (or window (selected-window)))))
+  @(.total-cols ^Window (el/check-type 'windowp (or window (selected-window)))))
 
 (defun window-normal-size (&optional window horizontal)
   "Return the normal height of window WINDOW.
   If WINDOW is omitted or nil, it defaults to the selected window.
   If HORIZONTAL is non-nil, return the normal width of WINDOW."
-  @(.normal-lines (el/check-type 'windowp (or window (selected-window)))))
+  @(.normal-lines ^Window (el/check-type 'windowp (or window (selected-window)))))
 
 (defun scroll-other-window (&optional arg)
   "Scroll next window upward ARG lines; or near full screen if no ARG.
@@ -242,7 +242,8 @@
 (defun minibuffer-window (&optional frame)
   "Return the minibuffer window for frame FRAME.
   If FRAME is omitted or nil, it defaults to the selected frame."
-  (.minibuffer-window (or frame (frame/selected-frame))))
+  (let [^Frame frame (or frame (frame/selected-frame))]
+    (.minibuffer-window frame)))
 
 (defun scroll-up (&optional arg)
   "Scroll text of selected window upward ARG lines.
@@ -270,7 +271,7 @@
   "Return the parent window of window WINDOW.
   If WINDOW is omitted or nil, it defaults to the selected window.
   Return nil for a window with no parent (e.g. a root window)."
-  @(.parent (el/check-type 'windowp (or window (selected-window)))))
+  @(.parent ^Window (el/check-type 'windowp (or window (selected-window)))))
 
 (defun pos-visible-in-window-p (&optional pos window partially)
   "Return non-nil if position POS is currently on the frame in WINDOW.
@@ -320,9 +321,9 @@
   Return POS."
   ;; There's an attempt to track this in set-window-buffer and select-window
   (el/check-type 'integerp pos)
-  (let [window (el/check-type 'windowp (or window (selected-window)))]
+  (let [window ^Window (el/check-type 'windowp (or window (selected-window)))]
     (reset! (.pointm window)  ((ns-resolve 'deuce.emacs.buffer 'allocate-marker) nil (window-buffer window) pos))
-    (reset! (.pt (window-buffer window)) pos)))
+    (reset! (.pt ^Buffer (window-buffer window)) pos)))
 
 (defun window-point (&optional window)
   "Return current value of point in WINDOW.
@@ -338,9 +339,9 @@
   But that is hard to define."
   ;; There's an attempt to track this in set-window-buffer and select-window
   (let [window (el/check-type 'windowp (or window (selected-window)))]
-    (if-let [pointm (and (not= (selected-window) window) @(.pointm window))]
-      (.charpos pointm)
-      @(.pt (window-buffer window)))))
+    (if-let [pointm (and (not= (selected-window) window) @(.pointm ^Window window))]
+      (.charpos ^Marker pointm)
+      @(.pt ^Buffer (window-buffer window)))))
 
 (defun window-pixel-edges (&optional window)
   "Return a list of the edge pixel coordinates of WINDOW.
@@ -361,13 +362,13 @@
   value is 0 if there is no window to the left of WINDOW.
 
   If WINDOW is omitted or nil, it defaults to the selected window."
-  @(.left-col (el/check-type 'windowp (or window (selected-window)))))
+  @(.left-col ^Window (el/check-type 'windowp (or window (selected-window)))))
 
 (defun window-next-sibling (&optional window)
   "Return the next sibling window of window WINDOW.
   If WINDOW is omitted or nil, it defaults to the selected window.
   Return nil if WINDOW has no next sibling."
-  @(.next (el/check-type 'windowp (or window (selected-window)))))
+  @(.next ^Window (el/check-type 'windowp (or window (selected-window)))))
 
 (defun window-next-buffers (&optional window)
   "Return list of buffers recently re-shown in WINDOW.
@@ -443,7 +444,7 @@
   there is no window above WINDOW.
 
   If WINDOW is omitted or nil, it defaults to the selected window."
-  @(.top-line (el/check-type 'windowp (or window (selected-window)))))
+  @(.top-line ^Window (el/check-type 'windowp (or window (selected-window)))))
 
 (defun window-line-height (&optional line window)
   "Return height in pixels of text line LINE in window WINDOW.
@@ -584,7 +585,7 @@
 
   This function runs `window-scroll-functions' before running
   `window-configuration-change-hook'."
-  (reset! (.buffer (el/check-type 'windowp (or window (selected-window))))
+  (reset! (.buffer ^Window (el/check-type 'windowp (or window (selected-window))))
           (el/check-type 'bufferp (buffer/get-buffer buffer-or-name)))
   nil)
 
@@ -616,9 +617,9 @@
   (when (selected-window)
     (set-window-point (selected-window) (window-point (selected-window))))
   (buffer/set-buffer (window-buffer window))
-  (when-not @(.pointm window)
-    (set-window-point window @(.pt (window-buffer window))))
-  (reset! (.selected-window (frame/selected-frame)) window))
+  (when-not @(.pointm ^Window window)
+    (set-window-point window @(.pt ^Buffer (window-buffer window))))
+  (reset! (.selected-window ^Frame (frame/selected-frame)) window))
 
 (defun window-absolute-pixel-edges (&optional window)
   "Return a list of the edge pixel coordinates of WINDOW.
@@ -642,7 +643,7 @@
 
   On a graphical display, this total height is reported as an
   integer multiple of the default character height."
-  (let [window (el/check-type 'windowp (or window (selected-window)))
+  (let [window ^Window (el/check-type 'windowp (or window (selected-window)))
         minibuffer? (window-minibuffer-p window)
         buffer (window-buffer window)
         [header-line mode-line] (when-not minibuffer?
@@ -690,7 +691,7 @@
 (defun window-minibuffer-p (&optional window)
   "Return non-nil if WINDOW is a minibuffer window.
   If WINDOW is omitted or nil, it defaults to the selected window."
-  (.mini-p (el/check-type 'windowp (or window (selected-window)))))
+  (.mini-p ^Window (el/check-type 'windowp (or window (selected-window)))))
 
 (defun frame-first-window (&optional frame-or-window)
   "Return the topmost, leftmost live window on FRAME-OR-WINDOW.
@@ -731,7 +732,7 @@
   "Return the selected window.
   The selected window is the window in which the standard cursor for
   selected windows appears and to which many commands apply."
-  @(.selected-window (frame/selected-frame)))
+  @(.selected-window  ^Frame (frame/selected-frame)))
 
 (defun move-to-window-line (arg)
   "Position point relative to window.
@@ -796,17 +797,18 @@
   MINIBUF nil or omitted means include the minibuffer window only
   if it's active.
   MINIBUF neither nil nor t means never include the minibuffer window."
-  (loop [w (el/check-type 'windowp (or window (.root-window (or frame (frame/selected-frame)))))
-         acc []]
-    (if w
-      (recur @(.next w)
-             (concat
-              (when-let [h @(.hchild w)] (window-list frame minibuf h))
-              (when-let [v @(.vchild w)] (window-list frame minibuf v))
-              (if (and (not minibuf) (.mini-p w))
-                acc
-                (conj acc w))))
-      (cons/maybe-seq (reverse acc)))))
+  (let [^Frame frame (or frame (frame/selected-frame))]
+    (loop [w ^Window (el/check-type 'windowp (or window (.root-window frame)))
+           acc []]
+      (if w
+        (recur @(.next w)
+               (concat
+                (when-let [h @(.hchild w)] (window-list frame minibuf h))
+                (when-let [v @(.vchild w)] (window-list frame minibuf v))
+                (if (and (not minibuf) (.mini-p w))
+                  acc
+                  (conj acc w))))
+        (cons/maybe-seq (reverse acc))))))
 
 (defun frame-root-window (&optional frame-or-window)
   "Return the root window of FRAME-OR-WINDOW.
@@ -815,8 +817,9 @@
   With a window argument, return the root window of that window's frame."
   (let [frame (if (frame/framep frame-root-window)
                 frame-root-window
-                (window-frame frame-or-window))]
-    (.root-window (or frame (frame/selected-frame)))))
+                (window-frame frame-or-window))
+        ^Frame frame (or frame (frame/selected-frame))]
+    (.root-window frame)))
 
 (defun window-fringes (&optional window)
   "Get width of fringes of window WINDOW.
@@ -841,7 +844,7 @@
   "Return the buffer displayed in window WINDOW.
   If WINDOW is omitted or nil, it defaults to the selected window.
   Return nil for an internal window or a deleted window."
-  @(.buffer (el/check-type 'windowp (or window (selected-window)))))
+  @(.buffer ^Window (el/check-type 'windowp (or window (selected-window)))))
 
 (defun set-window-configuration (configuration)
   "Set the configuration of windows and buffers as specified by CONFIGURATION.
@@ -921,7 +924,7 @@
   "Return the previous sibling window of window WINDOW.
   If WINDOW is omitted or nil, it defaults to the selected window.
   Return nil if WINDOW has no previous sibling."
-  @(.prev (el/check-type 'windowp (or window (selected-window)))))
+  @(.prev ^Window (el/check-type 'windowp (or window (selected-window)))))
 
 (defun window-body-width (&optional window)
   "Return the width, in columns, of WINDOW's text area.
@@ -931,7 +934,7 @@
   The return value does not include any vertical dividers, fringe or
   marginal areas, or scroll bars.  On a graphical display, the width is
   expressed as an integer multiple of the default character width."
-  @(.total-cols (el/check-type 'windowp (or window (selected-window)))))
+  @(.total-cols ^Window (el/check-type 'windowp (or window (selected-window)))))
 
 (defun set-window-prev-buffers (window prev-buffers)
   "Set WINDOW's previous buffers to PREV-BUFFERS.
@@ -1027,7 +1030,7 @@
   of the default character height.  If a line at the bottom of the text
   area is only partially visible, that counts as a whole line; to
   exclude partially-visible lines, use `window-text-height'."
-  @(.total-lines (el/check-type 'windowp (or window (selected-window)))))
+  @(.total-lines ^Window (el/check-type 'windowp (or window (selected-window)))))
 
 (defun previous-window (&optional window minibuf all-frames)
   "Return live window before WINDOW in the cyclic ordering of windows.
@@ -1095,7 +1098,7 @@
   Return nil if WINDOW is a live window (live windows have no children).
   Return nil if WINDOW is an internal window whose children form a
   horizontal combination."
-  @(.vchild (el/check-type 'windowp window)))
+  @(.vchild ^Window (el/check-type 'windowp window)))
 
 (defun window-new-total (&optional window)
   "Return the new total size of window WINDOW.
@@ -1123,7 +1126,7 @@
   Return nil if WINDOW is a live window (live windows have no children).
   Return nil if WINDOW is an internal window whose children form a
   vertical combination."
-  @(.hchild (el/check-type 'windowp window)))
+  @(.hchild ^Window (el/check-type 'windowp window)))
 
 (defun window-edges (&optional window)
   "Return a list of the edge coordinates of WINDOW.

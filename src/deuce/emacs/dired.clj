@@ -3,6 +3,7 @@
   (:require [clojure.core :as c]
             [clojure.java.io :as io]
             [deuce.emacs-lisp.cons :as cons])
+  (:import [java.io File])
   (:refer-clojure :exclude []))
 
 (defvar completion-ignored-extensions nil
@@ -74,9 +75,10 @@
                          ((ns-resolve 'deuce.emacs.search
                                       'emacs-regex-to-java) match)) %)
               identity)
-            (map #(if full
-                    (.getCanonicalPath %)
-                    (.getName %))
+            (map (fn [^File f]
+                   (if full
+                     (.getCanonicalPath f)
+                     (.getName f)))
                  (.listFiles (io/file directory)))))))
 
 (defun file-name-completion (file directory &optional predicate)

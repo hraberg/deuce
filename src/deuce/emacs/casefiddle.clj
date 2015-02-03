@@ -16,7 +16,7 @@
   The argument object is not altered--the value is a copy.
   See also `capitalize', `downcase' and `upcase-initials'."
   (if ((some-fn char? integer?) obj)
-    (int (Character/toUpperCase obj))
+    (int (Character/toUpperCase (int obj)))
     (s/upper-case obj)))
 
 (defun capitalize-word (arg)
@@ -81,5 +81,5 @@
   The argument may be a character or string.  The result has the same type.
   The argument object is not altered--the value is a copy."
   (if ((some-fn char? integer?) obj)
-    (int (Character/toLowerCase obj))
+    (int (Character/toLowerCase (int obj)))
     (s/lower-case obj)))

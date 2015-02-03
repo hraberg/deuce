@@ -4,7 +4,7 @@
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data])
-  (:import [deuce.emacs.data Marker])
+  (:import [deuce.emacs.data Buffer BufferText Marker])
   (:refer-clojure :exclude []))
 
 (defvar byte-debug-flag nil
@@ -13,7 +13,7 @@
 (defun marker-position (marker)
   "Return the position MARKER points at, as a character number.
   Returns nil if MARKER points nowhere."
-  @(.charpos marker))
+  @(.charpos ^Marker marker))
 
 (defun buffer-has-markers-at (position)
   "Return t if there are markers pointing at POSITION in the current buffer."
@@ -28,24 +28,24 @@
   see `marker-insertion-type'."
   ((ns-resolve 'deuce.emacs.buffer 'allocate-marker) type
    (buffer/current-buffer) (if (data/markerp marker)
-                             @(.charpos marker)
+                             @(.charpos ^Marker marker)
                              (el/check-type 'integerp marker))))
 
 (defun marker-insertion-type (marker)
   "Return insertion type of MARKER: t if it stays after inserted text.
   The value nil means the marker stays before text inserted there."
-  @(.insertion-type marker))
+  @(.insertion-type ^Marker marker))
 
 (defun set-marker-insertion-type (marker type)
   "Set the insertion-type of MARKER to TYPE.
   If TYPE is t, it means the marker advances when you insert text at it.
   If TYPE is nil, it means the marker stays behind when you insert text at it."
-  (reset! (.insertion-type marker) type))
+  (reset! (.insertion-type ^Marker marker) type))
 
 (defun marker-buffer (marker)
   "Return the buffer that MARKER points into, or nil if none.
   Returns nil if MARKER points into a dead buffer."
-  @(.buffer marker))
+  @(.buffer ^Marker marker))
 
 (defun set-marker (marker position &optional buffer)
   "Position MARKER before character number POSITION in BUFFER.
@@ -53,10 +53,11 @@
   If POSITION is nil, makes marker point nowhere.
   Then it no longer slows down editing in any buffer.
   Returns MARKER."
-  (let [buffer (el/check-type 'bufferp (or buffer (buffer/current-buffer)))]
-    (when-let [old-buffer @(.buffer marker)]
-      (swap! (.markers (.text old-buffer)) #(seq (remove #{marker} %))))
+  (let [^Buffer buffer (el/check-type 'bufferp (or buffer (buffer/current-buffer)))
+        ^Marker marker marker]
+    (when-let [^Buffer old-buffer @(.buffer marker)]
+      (swap! (.markers ^BufferText (.text old-buffer)) #(seq (remove #{marker} %))))
     (reset! (.buffer marker) buffer)
     (reset! (.charpos marker) position)
-    (swap! (.markers (.text buffer)) conj marker)
+    (swap! (.markers ^BufferText (.text buffer)) conj marker)
     marker))

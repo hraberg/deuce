@@ -16,7 +16,7 @@
            [java.text SimpleDateFormat]
            [java.util Date Calendar TimeZone List]
            [java.lang.management ManagementFactory]
-           [deuce.emacs.data Marker])
+           [deuce.emacs.data Buffer BufferText Marker])
   (:refer-clojure :exclude [format]))
 
 (defvar buffer-access-fontified-property nil
@@ -50,14 +50,15 @@
   You can customize this variable.")
 
 (defn ^:private move-marker [marker pt offset]
-  (when-let [pos @(.charpos marker)]
-    (cond
-     (and @(.insertion-type marker) (>= pos pt))
-     (swap! (.charpos marker) + offset)
+  (let [marker ^Marker marker]
+    (when-let [pos @(.charpos marker)]
+      (cond
+        (and @(.insertion-type marker) (>= pos pt))
+        (swap! (.charpos marker) + offset)
 
-     (> pos pt)
-     (swap! (.charpos marker) + offset)))
-  marker)
+        (> pos pt)
+        (swap! (.charpos marker) + offset)))
+    marker))
 
 (defn ^:private casefold [s]
   ((if (data/symbol-value 'case-fold-search) casefiddle/downcase identity) s))
@@ -74,9 +75,9 @@
   )
 
 (defn ^:private emacs-time-to-date [[high low usec]]
-  (Date. (+ (* (+ (bit-shift-left high 16) low) 1000) (/ usec 1000))))
+  (Date. (long (+ (* (+ (bit-shift-left high 16) low) 1000) (/ usec 1000)))))
 
-(defn ^:private date-to-emacs-time [date]
+(defn ^:private date-to-emacs-time [^Date date]
   (let [now (.getTime date)
         seconds (int (/ now 1000))]
     (list (bit-shift-right seconds 16) (bit-and 0xffff seconds) (* 1000 (mod now 1000)))))
@@ -252,7 +253,7 @@
   "Return the maximum permissible value of point in the current buffer.
   This is (1+ (buffer-size)), unless narrowing (a buffer restriction)
   is in effect, in which case it is less."
-  (inc (if-let [zv @(.zv (buffer/current-buffer))]
+  (inc (if-let [zv @(.zv ^Buffer (buffer/current-buffer))]
          zv
          (buffer-size))))
 
@@ -290,7 +291,7 @@
   If POS is out of range, the value is nil."
   (let [pos (dec (or pos (point)))]
     (when  (< -1 pos (buffer-size))
-      (.charAt (buffer-string) pos))))
+      (.charAt (str (buffer-string)) pos))))
 
 (defun gap-size ()
   "Return the size of the current buffer's gap.
@@ -359,7 +360,7 @@
   When calling from a program, pass two arguments; positions (integers
   or markers) bounding the text that should remain visible."
   (interactive "r")
-  (let [buffer (buffer/current-buffer)]
+  (let [buffer ^Buffer (buffer/current-buffer)]
     (reset! (.begv buffer) start)
     (reset! (.zv buffer) end)))
 
@@ -378,7 +379,7 @@
 (defun point-min ()
   "Return the minimum permissible value of point in the current buffer.
   This is 1, unless narrowing (a buffer restriction) is in effect."
-  (if-let [begv @(.begv (buffer/current-buffer))]
+  (if-let [begv @(.begv ^Buffer (buffer/current-buffer))]
     begv
     1))
 
@@ -386,7 +387,7 @@
   "Remove restrictions (narrowing) from current buffer.
   This allows the buffer's full text to be seen and edited."
   (interactive)
-  (let [buffer (buffer/current-buffer)]
+  (let [buffer ^Buffer (buffer/current-buffer)]
     (reset! (.begv buffer) nil)
     (reset! (.zv buffer) nil)))
 
@@ -395,9 +396,9 @@
   If optional arg NOUNDO is non-nil, don't record this change for undo
   and don't mark the buffer as really changed.
   Both characters must have the same length of multi-byte form."
-  (let [text (.text (buffer/current-buffer))]
-    (.replace (.beg text)
-              start end
+  (let [text ^BufferText (.text ^Buffer (buffer/current-buffer))]
+    (.replace ^StringBuilder (.beg text)
+              (int start) (int end)
               (s/replace (buffer-substring start end) fromchar tochar))
     (reset! (.modiff text) (System/currentTimeMillis))
     nil))
@@ -414,7 +415,7 @@
 (defun point ()
   "Return value of point, as an integer.
   Beginning of buffer is position (point-min)."
-  @(.pt (buffer/current-buffer)))
+  @(.pt ^Buffer (buffer/current-buffer)))
 
 (defun field-string (&optional pos)
   "Return the contents of the field surrounding POS as a string.
@@ -424,7 +425,7 @@
 
 (defun region-beginning ()
   "Return the integer value of point or mark, whichever is smaller."
-  (min @(.charpos (mark-marker)) (point)))
+  (min @(.charpos ^Marker (mark-marker)) (point)))
 
 (defun line-beginning-position (&optional n)
   "Return the character position of the first character on the current line.
@@ -601,9 +602,9 @@
   Some operating systems cannot provide all this information to Emacs;
   in this case, `current-time-zone' returns a list containing nil for
   the data it can't find."
-  (let [specified-time (if specified-time
-                         (emacs-time-to-date specified-time)
-                         (Date.))
+  (let [^Date specified-time (if specified-time
+                               (emacs-time-to-date specified-time)
+                               (Date.))
         timezone (.getTimeZone (doto (Calendar/getInstance)
                                  (.setTime specified-time)))]
     (list (/ (.getOffset timezone (.getTime specified-time)) 1000)
@@ -624,8 +625,8 @@
   POS is an integer or a marker and defaults to point.
   If POS is out of range, the value is nil."
   (let [pos (- (or pos (point)) 2)]
-    (when  (< -1 pos (buffer-size))
-      (.charAt (buffer-string) pos))))
+    (when (< -1 pos (buffer-size))
+      (.charAt (str (buffer-string)) pos))))
 
 (defun char-to-string (char)
   "Convert arg CHAR to a string containing that character."
@@ -636,9 +637,9 @@
   If called interactively, delete the region between point and mark.
   This command deletes buffer text without modifying the kill ring."
   (interactive "r")
-  (let [buffer (buffer/current-buffer)
-        text (.text buffer)]
-    (.delete (.beg text) (dec start) (dec end))
+  (let [buffer ^Buffer (buffer/current-buffer)
+        text ^BufferText (.text buffer)]
+    (.delete ^StringBuilder (.beg text) (int (dec start)) (int (dec end)))
     (reset! (.modiff text) (System/currentTimeMillis))
     (when-not (some #{@(.mark buffer)} @(.markers text))
       (swap! (.mark buffer) #(move-marker % start (- start end))))
@@ -659,8 +660,8 @@
   (let [r1 (buffer-substring startr1 endr1)
         r2 (buffer-substring startr2 endr2)
         pt (point)
-        buffer (buffer/current-buffer)
-        text (.text buffer)
+        buffer ^Buffer (buffer/current-buffer)
+        text ^BufferText (.text buffer)
         mark @(.mark buffer)
         markers @(.markers text)]
     (delete-region startr1 endr1)
@@ -681,9 +682,9 @@
   The return value is POSITION."
   (interactive "NGoto char: ")
   (el/check-type 'integer-or-marker-p position)
-  (let [position (if (data/markerp position) @(.charpos position) position)
+  (let [position (if (data/markerp position) @(.charpos ^Marker position) position)
         real-pos (min (max (point-min) position) (point-max))]
-    (reset! (.pt (buffer/current-buffer)) real-pos)
+    (reset! (.pt ^Buffer (buffer/current-buffer)) real-pos)
     position))
 
 (defun insert-char (character count &optional inherit)
@@ -700,12 +701,11 @@
 (defun buffer-size (&optional buffer)
   "Return the number of characters in the current buffer.
   If BUFFER, return the number of characters in that buffer instead."
-  (count (.beg (.text (or (and buffer (el/check-type 'bufferp buffer))
-                          (buffer/current-buffer))))))
+  (count (.beg ^BufferText (.text ^Buffer (el/check-type 'bufferp (or buffer (buffer/current-buffer)))))))
 
 (defun region-end ()
   "Return the integer value of point or mark, whichever is larger."
-  (max @(.charpos (mark-marker)) (point)))
+  (max @(.charpos ^Marker (mark-marker)) (point)))
 
 (defun format-time-string (format-string &optional time universal)
   "Use FORMAT-STRING to format the time TIME, or now if omitted.
@@ -760,7 +760,7 @@
 
   For example, to produce full ISO 8601 format, use \"%Y-%m-%dT%T%z\"."
   (let [[hi low] (or time (current-time))
-        time (* (+ (bit-shift-left hi 16) low) 1000)]
+        time (long (* (+ (bit-shift-left hi 16) low) 1000))]
     (.format (SimpleDateFormat. (reduce #(apply s/replace %1 %2) format-string
                                         {"%Y" "Y"
                                          "%m" "MM"
@@ -798,7 +798,7 @@
   "Return this buffer's mark, as a marker object.
   Watch out!  Moving this marker changes the mark position.
   If you set the marker not to point anywhere, the buffer will have no mark."
-  @(.mark (buffer/current-buffer)))
+  @(.mark ^Buffer (buffer/current-buffer)))
 
 (defun user-full-name (&optional uid)
   "Return the full name of the user logged in, as a string.
@@ -865,11 +865,11 @@
   original bytes of a unibyte string when inserting it into a multibyte
   buffer; to accomplish this, apply `string-as-multibyte' to the string
   and insert the result."
-  (let [string (apply str args)
-        buffer (buffer/current-buffer)
+  (let [string (str (apply str args))
+        buffer ^Buffer (buffer/current-buffer)
         pt @(.pt buffer)
-        text (.text buffer)]
-    (.insert (.beg text) (dec pt) string)
+        text ^BufferText (.text buffer)]
+    (.insert ^StringBuilder (.beg text) (int (dec pt)) string)
     (reset! (.modiff text) (System/currentTimeMillis))
     (when-not (some #{@(.mark buffer)} @(.markers text))
       (swap! (.mark buffer) #(move-marker % pt (count string))))
@@ -886,7 +886,7 @@
   This function copies the text properties of that part of the buffer
   into the result string; if you don't want the text properties,
   use `buffer-substring-no-properties' instead."
-  (subs (str (.beg (.text (buffer/current-buffer)))) (dec start) (dec end)))
+  (subs (str (.beg ^BufferText (.text ^Buffer (buffer/current-buffer)))) (dec start) (dec end)))
 
 (defun byte-to-string (byte)
   "Convert arg BYTE to a unibyte string containing that byte."
@@ -903,9 +903,9 @@
   WARNING: Since the result is floating point, it may not be exact.
   If precise time stamps are required, use either `current-time',
   or (if you need time as a string) `format-time-string'."
-  (let [specified-time (if specified-time
-                         (emacs-time-to-date specified-time)
-                         (Date.))]
+  (let [^Date specified-time (if specified-time
+                               (emacs-time-to-date specified-time)
+                               (Date.))]
     (/ (.getTime specified-time) 1000.0)))
 
 (defun message-box (format-string &rest args)

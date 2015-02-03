@@ -279,9 +279,9 @@
   ;; comes as a string of escape codes probably not dealt with by Lanterna.
   ;; See com.googlecode.lanterna.input.CommonProfile
   ;; We might want to write a specific EmacsProfile.
-  (let [k (read-event-internal prompt inherit-input-method seconds)
+  (let [^Key k (read-event-internal prompt inherit-input-method seconds)
         kind (lanterna.constants/key-codes (.getKind k))
-        k (lanterna-valid-chars kind k)
+        ^Key k (lanterna-valid-chars kind k)
         kind (lanterna.constants/key-codes (.getKind k))]
     (if (or (= :normal kind) (Character/isISOControl (.getCharacter k)))
       (key-to-integer k)
@@ -421,7 +421,7 @@
                                        (.toURL f)))]]
            [l (some identity (map (some-fn find-resource find-file) (or suffixes [""])))])
          (filter (comp identity second))
-         (remove #(when (= "file" (.getProtocol (second %)))
+         (remove #(when (= "file" (.getProtocol ^URL (second %)))
                     (.isDirectory (io/file (second %)))))
          first)))
 
@@ -483,7 +483,7 @@
             (el/throw* 'file-error (list "Cannot open load file" file)))
           (when-not nomessage
             (editfns/message "Loading %s%s..." file (if el-extension? " (source)" "")))
-          (binding [globals/load-file-name (.getFile url)
+          (binding [globals/load-file-name (.getFile ^URL url)
                     globals/load-in-progress true]
             (let [file (internal-path path (s/replace file  #".el$" ""))
                   clj-file (str (s/replace file "-" "_") ".clj")
@@ -533,7 +533,7 @@
   (let [[dir file] (locate-file filename path suffixes predicate)]
     (when file
       (internal-path dir (str (io/file (.getParent (io/file filename))
-                                       (.getName (io/file (.getFile file)))))))))
+                                       (.getName (io/file (.getFile ^URL file)))))))))
 
 (defun unintern (name obarray)
   "Delete the symbol named NAME, if any, from OBARRAY.

@@ -11,6 +11,7 @@
             [deuce.emacs.frame :as frame]
             [deuce.emacs.keyboard :as keyboard]
             [deuce.emacs.window :as window])
+  (:import [deuce.emacs.data Buffer BufferText Frame])
   (:refer-clojure :exclude []))
 
 (defvar scroll-step nil
@@ -467,7 +468,7 @@
         window-width (max (window/window-total-width window)
                           (data/symbol-value 'fill-column)) ;; Hack for stdout
         window-height (max (window/window-total-height window) 10)
-        lines (count (filter #{\newline} (str (.beg (.text buffer)))))
+        lines (count (filter #{\newline} (str (.beg ^BufferText (.text ^Buffer buffer)))))
         [column line] (point-coords-for-buffer buffer)
         all-visible? (> window-height lines)
         modified? (buffer/buffer-modified-p buffer)
@@ -524,7 +525,7 @@
                                           (% "I") (pad (humanize (editfns/buffer-size buffer)))
                                           (% "p") (pad (if all-visible?
                                                          "All"
-                                                         (let [percent (long (* 100 (/ @(.pt buffer)
+                                                         (let [percent (long (* 100 (/ @(.pt ^Buffer buffer)
                                                                                        (inc (editfns/buffer-size buffer)))))]
                                                            (case percent
                                                              0 "Top"
@@ -535,7 +536,7 @@
                                           (% "M") (pad (data/symbol-value 'global-mode-string))
                                           (% "b") (pad (buffer/buffer-name buffer))
                                           (% "f") (pad (buffer/buffer-file-name buffer))
-                                          (% "F") (pad (.name (frame/selected-frame)))})
+                                          (% "F") (pad (.name ^Frame (frame/selected-frame)))})
                                  (s/replace %% "%")))
                       symbol? (formatter (data/symbol-value f))
                       seq? (let [fst (first f)]

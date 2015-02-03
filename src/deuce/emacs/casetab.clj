@@ -4,7 +4,8 @@
             [deuce.emacs.chartab :as chartab]
             [deuce.emacs.data :as data]
             [deuce.emacs.fns :as fns])
-  (:refer-clojure :exclude []))
+  (:import [deuce.emacs.data CharTable])
+  (:refer-clojure "exclude" []))
 
 (fns/put 'case-table 'char-table-extra-slots 3)
 
@@ -18,7 +19,7 @@
 (defun case-table-p (object)
   "Return t if OBJECT is a case table.
   See `set-case-table' for more information on these data structures."
-  (and (data/char-table-p object) (= 'case-table (.purpose object))))
+  (and (data/char-table-p object) (= 'case-table (.purpose ^CharTable object))))
 
 (defun current-case-table ()
   "Return the case table of the current buffer."

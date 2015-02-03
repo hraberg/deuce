@@ -33,7 +33,9 @@
 
 (defun abs (arg)
   "Return the absolute value of ARG."
-  (Math/abs arg))
+  (if (float? arg)
+    (Math/abs (double arg))
+    (Math/abs (long arg))))
 
 (defun ldexp (sgnfcand &optional exponent)
   "Construct number X from significand SGNFCAND and exponent EXP.
@@ -69,7 +71,7 @@
   integer closer to zero, or it may prefer an even integer, depending on
   your machine.  For example, (round 2.5) can return 3 on some
   systems, but 2 on others."
-  (Math/round (/ arg (or divisor 1))))
+  (Math/round (/ arg (double (or divisor 1)))))
 
 (defun log10 (arg)
   "Return the logarithm base 10 of ARG."
@@ -103,7 +105,7 @@
 (defun copysign (x1 x2)
   "Copy sign of X2 to value of X1, and return the result.
   Cause an error if X1 or X2 is not a float."
-  (Math/copySign x1 x2))
+  (Math/copySign (double x1) (double x2)))
 
 (defun asin (arg)
   "Return the inverse sine of ARG."

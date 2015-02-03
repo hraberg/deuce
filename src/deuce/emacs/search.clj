@@ -284,7 +284,7 @@
       (if (re-find m)
         (let [m (cons/maybe-seq
                  (map (partial + offset)
-                      (mapcat #(vector (.start m %) (.end m %))
+                      (mapcat #(vector (.start m (int %)) (.end m (int %)))
                               (range (inc (.groupCount m))))))]
           (when-not inhibit?
             (reset! current-match-data m))

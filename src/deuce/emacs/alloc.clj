@@ -7,8 +7,8 @@
             [deuce.emacs-lisp.cons :as cons])
   (:refer-clojure :exclude [vector cons list])
   (:import [java.util Arrays]
-           [java.lang.management ManagementFactory MemoryNotificationInfo MemoryType]
-           [javax.management NotificationListener NotificationEmitter]))
+           [java.lang.management ManagementFactory MemoryNotificationInfo MemoryType MemoryPoolMXBean]
+           [javax.management NotificationListener NotificationEmitter Notification]))
 
 (defvar purify-flag nil
   "Non-nil means loading Lisp code in order to dump an executable.
@@ -86,15 +86,16 @@
   "Number of floats that have been consed so far.")
 
 ;; From http://www.javaspecialists.eu/archive/Issue092.html
-(let [tenured-gen-pool (->> (ManagementFactory/getMemoryPoolMXBeans)
-                            (filter #(and (= (.getType %) MemoryType/HEAP) (.isUsageThresholdSupported %)))
-                            first)
+(let [^MemoryPoolMXBean tenured-gen-pool (->> (ManagementFactory/getMemoryPoolMXBeans)
+                                              (filter (fn [^MemoryPoolMXBean mb]
+                                                        (and (= (.getType mb) MemoryType/HEAP) (.isUsageThresholdSupported mb))))
+                                              first)
       warning-level 0.8]
   (.setUsageThreshold tenured-gen-pool
                       (long (* warning-level (.getMax (.getUsage tenured-gen-pool)))))
-  (.addNotificationListener (ManagementFactory/getMemoryMXBean)
+  (.addNotificationListener ^NotificationEmitter (ManagementFactory/getMemoryMXBean)
                             (proxy [NotificationListener] []
-                              (handleNotification [n hb]
+                              (handleNotification [^Notification n hb]
                                 (when (= (.getType n) MemoryNotificationInfo/MEMORY_THRESHOLD_EXCEEDED)
                                   (el/setq memory-full true)))) nil nil))
 

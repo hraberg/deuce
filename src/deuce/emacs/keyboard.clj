@@ -11,7 +11,8 @@
             [deuce.emacs.term :as term]
             [deuce.emacs.terminal :as terminal]
             [deuce.emacs-lisp.parser :as parser])
-  (:import [sun.misc Signal SignalHandler])
+  (:import [sun.misc Signal SignalHandler]
+           [com.googlecode.lanterna.terminal Terminal])
   (:refer-clojure :exclude []))
 
 (defvar last-command-event nil
@@ -562,7 +563,7 @@
 
 ;;    Value is t if we showed a menu and the user rejected it.  */
 (defn ^:private read-char [commandflag maps prev-event used-mouse-menu end-time]
-  (lanterna.common/block-on #(.readInput (terminal/frame-terminal)) []
+  (lanterna.common/block-on #(.readInput ^Terminal (terminal/frame-terminal)) []
                             (when end-time {:timeout (* 1000 (- end-time (System/currentTimeMillis)))}))  )
 
 (defun event-convert-list (event-desc)

@@ -69,7 +69,7 @@
   If you're not sure, whether to use `string-as-multibyte' or
   `string-to-multibyte', use `string-to-multibyte'."
   (let [utf-8 (.newEncoder (Charset/forName "UTF-8"))]
-    (String. (.array (.encode utf-8 (CharBuffer/wrap string))) (.charset utf-8))))
+    (String. (.array (.encode utf-8 (CharBuffer/wrap (str string)))) (.charset utf-8))))
 
 (declare plist-put)
 
@@ -103,7 +103,7 @@
 
 (defun copy-hash-table (table)
   "Return a copy of hash table TABLE."
-  (HashMap. table))
+  (HashMap. ^Map table))
 
 (defun append (&rest sequences)
   "Concatenate all the arguments and make the result a list.
@@ -177,10 +177,11 @@
   The elements of a list or vector are not copied; they are shared
   with the original."
   (condp some [arg]
-    data/char-table-p (CharTable. (.defalt arg) (atom @(.parent arg)) (.purpose arg)
-                                  (apply alloc/vector (.contents arg))
-                                  (when (.extras arg)
-                                    (apply alloc/vector (.extras arg))))
+    data/char-table-p (let [^CharTable arg arg]
+                        (CharTable. (.defalt arg) (atom @(.parent arg)) (.purpose arg)
+                                    (apply alloc/vector (.contents arg))
+                                    (when (.extras arg)
+                                      (apply alloc/vector (.extras arg)))))
     data/listp (apply alloc/list arg)
     data/vectorp (apply alloc/vector arg)
     data/stringp (apply alloc/string arg)))
@@ -192,7 +193,7 @@
   If STRING is multibyte and contains a character of charset
   `eight-bit', it is converted to the corresponding single byte."
   (let [ascii (.newEncoder (Charset/forName "US-ASCII"))]
-    (String. (.array (.encode ascii (CharBuffer/wrap string))) (.charset ascii))))
+    (String. (.array (.encode ascii (CharBuffer/wrap (str string)))) (.charset ascii))))
 
 (defun sxhash (obj)
   "Compute a hash code for OBJ and return it as integer."
@@ -312,7 +313,7 @@
   "Base64-encode STRING and return the result.
   Optional second argument NO-LINE-BREAK means do not break long lines
   into shorter lines."
-  (DatatypeConverter/printBase64Binary (.getBytes string "UTF-8")))
+  (DatatypeConverter/printBase64Binary (.getBytes (str string) "UTF-8")))
 
 (defun equal-including-properties (o1 o2)
   "Return t if two Lisp objects have similar structure and contents.
@@ -330,7 +331,7 @@
   With one argument, just copy STRING without its properties."
   (subs string (or from 0) (or to (count string))))
 
-(def ^:private rnd (Random.))
+(def ^:private ^Random rnd (Random.))
 
 (defun random (&optional limit)
   "Return a pseudo-random number.
@@ -344,7 +345,7 @@
       (.setSeed rnd (System/currentTimeMillis))
       (random))
     (if ((every-pred integer? pos?) limit)
-      (.nextLong rnd limit)
+      (min (.nextLong rnd) (long limit))
       (.nextLong rnd))))
 
 (defun concat (&rest sequences)
@@ -356,7 +357,7 @@
 (defun string-bytes (string)
   "Return the number of bytes in STRING.
   If STRING is multibyte, this may be greater than the length of STRING."
-  (count (.getBytes string)))
+  (count (.getBytes (str string))))
 
 (defun assoc (key list)
   "Return non-nil if KEY is `equal' to the car of an element of LIST.
@@ -365,7 +366,7 @@
 
 (defun remhash (key table)
   "Remove KEY from TABLE."
-  (.remove table key)
+  (.remove ^Map table key)
   nil)
 
 (defun yes-or-no-p (prompt)
@@ -788,11 +789,11 @@
         plist)
     (nconc plist (alloc/list prop val))))
 
-(defun puthash (key value ^Map table)
+(defun puthash (key value table)
   "Associate KEY with VALUE in hash table TABLE.
   If KEY is already present in table, replace its current value with
   VALUE.  In any case, return VALUE."
-  (.put table key value)
+  (.put ^Map table key value)
   value)
 
 (defun hash-table-test (table)

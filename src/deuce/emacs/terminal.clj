@@ -6,6 +6,7 @@
             [deuce.emacs.frame :as frame]
             [deuce.emacs-lisp.cons :as cons]
             [deuce.emacs-lisp.globals :as globals])
+  (:import [deuce.emacs.data Frame])
   (:refer-clojure :exclude []))
 
 (defvar delete-terminal-functions nil
@@ -20,12 +21,12 @@
 
 (defn ^:private init-initial-terminal []
   (let [terminal (s/get-screen :text)]
-    (reset! (.terminal globals/terminal-frame) terminal)
+    (reset! (.terminal ^Frame globals/terminal-frame) terminal)
     (s/start terminal)))
 
 (defun terminal-list ()
   "Return a list of all terminal devices."
-  (cons/maybe-seq (remove nil? (map #(deref (.terminal %)) (frame/frame-list)))))
+  (cons/maybe-seq (remove nil? (map #(deref (.terminal ^Frame %)) (frame/frame-list)))))
 
 (defun terminal-parameter (terminal parameter)
   "Return TERMINAL's value for parameter PARAMETER.
@@ -49,7 +50,8 @@
   If FRAME is nil, the selected frame is used.
 
   The terminal device is represented by its integer identifier."
-  @(.terminal (or frame (frame/selected-frame))))
+  (let [^Frame frame (or frame (frame/selected-frame))]
+    @(.terminal frame)))
 
 (defun delete-terminal (&optional terminal force)
   "Delete TERMINAL by deleting all frames on it and closing the terminal.
@@ -63,7 +65,7 @@
     ((ns-resolve 'deuce.main 'stop-ui))
     (s/stop terminal)
     (when (= terminal (frame-terminal))
-      (reset! (.terminal globals/terminal-frame) nil))))
+      (reset! (.terminal ^Frame globals/terminal-frame) nil))))
 
 (defun set-terminal-parameter (terminal parameter value)
   "Set TERMINAL's value for parameter PARAMETER to VALUE.

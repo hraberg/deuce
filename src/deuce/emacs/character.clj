@@ -60,7 +60,7 @@
   only the base leading-code is considered; the validity of
   the following bytes is not checked.  Tabs in STRING are always
   taken to occupy `tab-width' columns."
-  (count (.getBytes string)))
+  (count (.getBytes (str string))))
 
 (defun char-width (char)
   "Return width of CHAR when displayed in the current buffer.

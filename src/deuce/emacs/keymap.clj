@@ -190,13 +190,14 @@
             (condp some [x]
               keymapp (copy-keymap x)
               seq? (cons/maybe-seq (map copy x))
-              data/char-table-p (CharTable. (.defalt x)
-                                            (atom @(.parent x))
-                                            (.purpose x)
-                                            (let [contents (object-array (count (.contents x)))]
-                                              (System/arraycopy (.contents x) 0  contents 0 (count (.contents x)))
-                                              contents)
-                                            (object-array (.extras x)))
+              data/char-table-p (let [x ^CharTable x]
+                                  (CharTable. (.defalt x)
+                                              (atom @(.parent x))
+                                              (.purpose x)
+                                              (let [contents (object-array (count (.contents x)))]
+                                                (System/arraycopy (.contents x) 0  contents 0 (count (.contents x)))
+                                                contents)
+                                              (object-array (.extras x))))
               x))]
     (let [parent (keymap-parent keymap)
           keymap (apply alloc/list keymap)]

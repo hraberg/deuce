@@ -6,7 +6,8 @@
             [deuce.emacs.editfns :as editfns]
             [deuce.emacs.eval :as eval]
             [deuce.emacs.indent :as indent])
-  (:import [java.util Arrays])
+  (:import [java.util Arrays]
+           [deuce.emacs.data Buffer BufferText])
   (:refer-clojure :exclude []))
 
 (defvar post-self-insert-hook nil
@@ -15,21 +16,21 @@
 
 (defn ^:private line-indexes [s]
   (loop [idx 0 acc [0]]
-    (let [idx (.indexOf s (int \newline) idx)]
+    (let [idx (.indexOf (str s) (int \newline) idx)]
       (if (>= idx 0)
         (recur (inc idx) (conj acc (inc idx)))
         (int-array acc)))))
 
 (defn ^:private pos-to-line [line-indexes pos]
-  (let [pos (Arrays/binarySearch line-indexes pos)]
+  (let [pos (Arrays/binarySearch ^ints line-indexes (int pos))]
     (if (neg? pos) (- (- pos) 2) pos)))
 
 (defn ^:private point-coords
-  ([buffer] (point-coords (line-indexes (str (.beg (.text buffer)))) (dec @(.pt buffer))))
+  ([^Buffer buffer] (point-coords (line-indexes (str (.beg ^BufferText (.text buffer)))) (dec @(.pt buffer))))
   ([line-indexes offset]
       (let [pos-to-line (partial pos-to-line line-indexes)
             line (max (pos-to-line offset) 0)
-            col (- offset (aget line-indexes line))]
+            col (- offset (aget ^ints line-indexes line))]
         [col line])))
 
 ;; Now I've seen some convoluted Clojure in my days...
@@ -41,7 +42,7 @@
         offset-of-line #(cond
                          (>= % (count line-indexes)) (count s)
                          (neg? %) 0
-                         :else (aget line-indexes %))
+                         :else (aget ^ints line-indexes %))
         new-line (+ line lines)
         line-offset (offset-of-line new-line)
         empty-line? (zero? (- (offset-of-line (inc new-line)) line-offset))
@@ -125,7 +126,7 @@
   (interactive "^p")
   (when-not (contains? #{nil 1} n)
     (forward-line n))
-  (let [bol (.lastIndexOf (editfns/buffer-substring 1 (editfns/point)) (int \newline))]
+  (let [bol (.lastIndexOf (str (editfns/buffer-substring 1 (editfns/point))) (int \newline))]
     (if (= -1 bol)
       (editfns/goto-char 1)
       (editfns/goto-char (+ bol 2)))))
@@ -154,7 +155,7 @@
   (interactive "^p")
   (when-not (contains? #{nil 1} n)
     (forward-line n))
-  (let [eol (.indexOf (editfns/buffer-string) (int \newline) (dec (editfns/point)))]
+  (let [eol (.indexOf (str (editfns/buffer-string)) (int \newline) (int (dec (editfns/point))))]
     (if (= -1 eol)
       (editfns/goto-char (editfns/point-max))
       (editfns/goto-char (inc eol)))))
