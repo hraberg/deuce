@@ -4,7 +4,8 @@
             [clojure.java.io :as io]
             [clojure.string :as s]
             [clojure.walk :as w]
-            [fipp.edn :as fipp]
+            [fipp.edn :as fp-edn]
+            [fipp.clojure :as fp]
             [lanterna.screen :as sc]
             [lanterna.common]
             [lanterna.constants]
@@ -384,13 +385,77 @@
   This uses the variables `load-suffixes' and `load-file-rep-suffixes'."
   (apply alloc/list (remove empty? (concat globals/load-file-rep-suffixes globals/load-suffixes))))
 
-(def ^:private ^:dynamic *pretty-clojure* true)
+(def ^:private ^:dynamic *pretty-style* :edn)
 
-(extend-protocol fipp/IPretty
+(extend-protocol fp/IPretty
   java.lang.Object
   (-pretty [x ctx]
     (binding [*print-dup* true]
       [:text (pr-str x)])))
+
+(extend-protocol fp-edn/IPretty
+  java.lang.Object
+  (-pretty [x ctx]
+    (binding [*print-dup* true]
+      [:text (pr-str x)])))
+
+(defn pretty-docstring [docstring ctx]
+  (if (string? docstring)
+    [:group (concat  ["\""] (interpose :line (map #(let [[t s] (fp/-pretty % ctx)]
+                                                     [:text (subs s 1 (dec (count s)))])
+                                                  (s/split docstring #"\n"))) ["\""])]
+    [(fp/pretty docstring ctx)]))
+
+(defn pretty-defun [[head fn-name params & more] ctx]
+  (let [[docstring body] (fp/maybe-a string? more)]
+    (fp/list-group
+      (concat [(fp/-pretty head ctx) " " (fp/pretty fn-name ctx)]
+              [" " (fp/-pretty params ctx)])
+      (when-not docstring :line)
+      (fp/block (concat (when docstring (pretty-docstring docstring ctx))
+                        (map #(fp/pretty % ctx) body))))))
+
+(defn pretty-defvar [[head symbol & [initvalue docstring]] ctx]
+  (fp/list-group
+   (concat [(fp/-pretty head ctx) " " (fp/pretty symbol ctx)]
+           [" " (fp/-pretty initvalue ctx)])
+   (fp/block (when docstring (pretty-docstring docstring ctx)))))
+
+(defn pretty-let [[head varlist & body] ctx]
+  (fp/list-group
+   (fp/-pretty head ctx) " "
+   (apply fp/list-group (interpose :line (map #(conj %2 (fp/pretty % ctx))
+                                              varlist (cons [:nest 0] (repeat [:nest (count (str "(" head " ("))])))))
+   :line
+   (fp/block (map #(fp/pretty % ctx) body))))
+
+(defn pretty-cond [[head & clauses] ctx]
+  (fp/list-group
+   (fp/-pretty head ctx) " "
+   (interpose :line (map #(conj %2 (fp/pretty % ctx))
+                         clauses (cons [:nest 0] (repeat [:nest (count (str "(" head " "))]))))))
+
+(defn pretty-if [[head cond then & else] ctx]
+  (fp/list-group
+   (fp/-pretty head ctx) " " (fp/pretty cond ctx) :line
+   (fp/block [(fp/pretty then ctx)]) (when (seq else) :line)
+   (fp/block (map #(fp/pretty % ctx) else))))
+
+(defn pretty-block [[head stmnt & block] ctx]
+  (fp/list-group
+   (fp/-pretty head ctx) " " (fp/pretty stmnt ctx) (when (seq block) :line)
+   (fp/block (map #(fp/pretty % ctx) block))))
+
+(def el-symbols
+  (fp/build-symbol-map
+   {pretty-defun '[defmacro defun lambda closure]
+    pretty-defvar '[defvar defconst]
+    pretty-let '[let let*]
+    pretty-if '[deuce.emacs-lisp/if if]
+    pretty-block '[while when unless setq set dotimes dolist and or not]
+    pretty-cond '[cond]
+    fp/pretty-ns '[ns]
+    fp/pretty-quote '[quote]}))
 
 (defn ^:private write-clojure [el clj]
   (io/make-parents clj)
@@ -398,8 +463,9 @@
         (with-out-str
           (doseq [form (concat '[(ns deuce.emacs (:refer-clojure :only []))]
                                el)]
-            (if *pretty-clojure*
-              (fipp/pprint form)
+            (case *pretty-style*
+              :edn (fp-edn/pprint form {:width 120})
+              :el (fp/pprint form {:symbols el-symbols :width 120})
               (pr form))
             (println)))))
 
