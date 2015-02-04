@@ -795,7 +795,13 @@
       (save-excursion (save-restriction ...))"
   {:arglists '([&rest BODY])}
   [& body]
-  `(progn ~@body))
+  `(c/let [current-buffer# ~(with-meta `((fun 'current-buffer)) {:tag 'deuce.emacs.data.Buffer})
+           begv# @(.begv current-buffer#)
+           zv# @(.zv current-buffer#)]
+     (try
+       (progn ~@body)
+       (finally
+         ((fun 'narrow-to-region) begv# zv#)))))
 
 (c/defmacro save-excursion
   "Save point, mark, and current buffer; execute BODY; restore those things.
@@ -820,7 +826,7 @@
        (finally
          ((fun 'set-buffer) current-buffer#)
          ((fun 'goto-char) point#)
-         ((fun 'set-marker) mark# @((fun 'marker-position) mark#) current-buffer#)))))
+         ((fun 'set-marker) mark# ((fun 'marker-position) mark#) current-buffer#)))))
 
 (c/defmacro interactive
   "Specify a way of parsing arguments for interactive use of a function.
