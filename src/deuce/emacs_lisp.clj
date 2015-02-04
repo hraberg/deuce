@@ -6,7 +6,7 @@
             [deuce.emacs-lisp.cons :as cons])
   (:use [taoensso.timbre :as timbre
          :only (trace debug info warn error fatal spy)])
-  (:import [clojure.lang Var ExceptionInfo]
+  (:import [clojure.lang Var ExceptionInfo IMeta]
            [java.io Writer]
            [java.lang.reflect Method])
   (:refer-clojure :exclude [defmacro and or cond let while eval set compile]))
@@ -33,11 +33,11 @@
 
 (defn sym [s]
   (c/cond
-   (true? s)'#el/sym "true"
-   (nil? s) '#el/sym "nil"
-   :else (symbol nil (name s))))
+    (true? s)'#el/sym "true"
+    (nil? s) '#el/sym "nil"
+    :else (symbol nil (name s))))
 
-; "reused" from data.clj
+                                        ; "reused" from data.clj
 (defn not-null? [object]
   (when-not (c/or (nil? object) (c/= () object) (false? object))
     object))
@@ -50,15 +50,15 @@
     fn? s
     var? (fun @s)
     symbol? (c/let [f (ns-resolve 'deuce.emacs (sym s))]
-                   ;; Not sure we want alias handling leaking down to here.
-                   ;; On the other hand, 24.3 uses defalias + lambda as primary macros.
-                   ;; Hack to protect against backquote alias, needs proper fix.
-                   (if-let [alias (c/and (not= '#el/sym "\\`" s)
-                                         (-> f meta :alias))]
-                     (if (symbol? alias) ;; See binding/mode-specific-command-prefix
-                                 (fun alias)
-                                 alias)
-                     f))
+              ;; Not sure we want alias handling leaking down to here.
+              ;; On the other hand, 24.3 uses defalias + lambda as primary macros.
+              ;; Hack to protect against backquote alias, needs proper fix.
+              (if-let [alias (c/and (not= '#el/sym "\\`" s)
+                                    (-> f meta :alias))]
+                (if (symbol? alias) ;; See binding/mode-specific-command-prefix
+                  (fun alias)
+                  alias)
+                f))
     (every-pred seq? (comp '#{lambda keymap} first)) s ;; symbol-function should really be permissive about this.
     (throw* 'invalid-function (list s))))
 
@@ -71,7 +71,7 @@
     (toString []
       (str (cons (:tag (.data ^ExceptionInfo this))
                  (c/let [d (:value (.-data ^ExceptionInfo this))]
-                        (if (seq? d) d [d])))))))
+                   (if (seq? d) d [d])))))))
 
 (defn throw* [tag value]
   (throw (emacs-lisp-error tag value)))
@@ -92,31 +92,31 @@
 (defn el-var-buffer-local [needs-to-exist? name]
   (when-let [buffer ((fun 'current-buffer))]
     (c/let [buffer-local (@(:local-var-alist buffer) name)]
-           (if-not needs-to-exist?
-             (c/or buffer-local
-                   (when (contains? @buffer-locals name)
-                     (c/let [v (Var/create)]
-                            (swap! (:local-var-alist buffer) assoc name v)
-                            v)))
-             (when (c/and buffer-local (bound? buffer-local)) buffer-local)))))
+      (if-not needs-to-exist?
+        (c/or buffer-local
+              (when (contains? @buffer-locals name)
+                (c/let [v (Var/create)]
+                  (swap! (:local-var-alist buffer) assoc name v)
+                  v)))
+        (when (c/and buffer-local (bound? buffer-local)) buffer-local)))))
 
 (defn el-var [name]
   ((some-fn *dynamic-vars* (partial el-var-buffer-local true) global) name))
 
 (defn el-var-get* [name]
   (c/let [name (sym name)]
-         (if-let [v (el-var name)]
-           @v
-           (throw* 'void-variable (list name)))))
+    (if-let [v (el-var name)]
+      @v
+      (throw* 'void-variable (list name)))))
 
 (c/defmacro el-var-get [name]
   (c/let [name (sym name)]
-         (if (c/and (symbol? name) (name &env))
-           `(if (var? ~name)
-              (if (bound? ~name) @~name
-                  (throw* '~'void-variable (list '~name)))
-              ~name)
-           `(el-var-get* '~name))))
+    (if (c/and (symbol? name) (name &env))
+      `(if (var? ~name)
+         (if (bound? ~name) @~name
+             (throw* '~'void-variable (list '~name)))
+         ~name)
+      `(el-var-get* '~name))))
 
 (defn el-var-set-default* [name value]
   (if-let [v (global name)]
@@ -125,7 +125,7 @@
 
 (c/defmacro el-var-set-default [name value]
   (c/let [name (sym name)]
-         `(el-var-set-default* '~name ~value)))
+    `(el-var-set-default* '~name ~value)))
 
 (defn el-var-set* [name-or-var value]
   (if-let [^Var v (c/or (c/and (var? name-or-var) name-or-var)
@@ -137,10 +137,10 @@
 
 (c/defmacro el-var-set [name value]
   (c/let [name (sym name)]
-         `(el-var-set* ~(if (c/and (symbol? name) (name &env))
-                          `~name
-                          `'~name)
-                       ~value)))
+    `(el-var-set* ~(if (c/and (symbol? name) (name &env))
+                     `~name
+                     `'~name)
+                  ~value)))
 
 (defn dynamic-binding? []
   (not (el-var-get lexical-binding)))
@@ -148,13 +148,13 @@
 (c/defmacro with-local-el-vars [name-vals-vec & body]
   (c/let [vars (vec (map sym (take-nth 2 name-vals-vec)))
           vals (vec (take-nth 2 (rest name-vals-vec)))]
-         `(c/let [vars# (hash-map ~@(interleave (map #(list 'quote %) vars)
-                                                (map #(do `(c/or (*dynamic-vars* '~%) (global '~%)
-                                                                 (.setDynamic (Var/create)))) vars)))]
-                 (with-bindings (zipmap (map vars# '~vars) ~vals)
-                   (binding [*dynamic-vars* (if (dynamic-binding?) (merge *dynamic-vars* vars#) {})]
-                     (c/let [{:syms ~vars} vars#]
-                            ~@body))))))
+    `(c/let [vars# (hash-map ~@(interleave (map #(list 'quote %) vars)
+                                           (map #(do `(c/or (*dynamic-vars* '~%) (global '~%)
+                                                            (.setDynamic (Var/create)))) vars)))]
+       (with-bindings (zipmap (map vars# '~vars) ~vals)
+         (binding [*dynamic-vars* (if (dynamic-binding?) (merge *dynamic-vars* vars#) {})]
+           (c/let [{:syms ~vars} vars#]
+             ~@body))))))
 
 (def ^:dynamic *disallow-undefined* #{})
 
@@ -168,46 +168,47 @@
 
 (defn expand-dotted-lists [x]
   (if (c/or (cons/dotted-list? x) (cons/dotted-pair? x))
-     (apply cons/list x)
-     x))
+    (apply cons/list x)
+    x))
 
 ;; Break this up and explain what the different branches are doing and why.
 (defn el->clj [x]
-  (condp some [x]
-    #{()} nil
-    seq? (c/let [[fst & rst] x]
-                (if (c/and (symbol? fst)
-                           (not= 'progn fst)
-                           (-> (fun fst) meta :macro))
-                  (if (c/or (clojure-special-forms fst) ('#{let lambda} fst)) ;; defun defvar ?
-                    (if (= 'quote fst)
-                      (if-let [s (c/and (symbol? (first rst)) (not (next rst)) (first rst))]
-                        (list 'quote (if (= "deuce.emacs" (namespace s)) (sym s) s))
-                        (if (= '(()) rst) () x))
-                      (apply cons/list (c/cons (symbol "deuce.emacs-lisp" (name fst)) rst)))
-                    (apply cons/list x))
-                  (if (#{`el-var-get `el-var-set `el-var-set-default `delayed-eval
-                         '#el/sym "\\," '#el/sym "\\,@"} fst)
-                    x
-                    (if (=  '#el/sym "\\`" fst)
-                      (emacs-lisp-backquote x) ;; See below, we dont want to duplicate this if not necessary.
-                      (if (c/and (symbol? fst)
-                                 (not (namespace fst))
-                                 (not (fun fst)))
-                        (if (*disallow-undefined* fst)
-                          `(throw* '~'void-function '~fst)
-                          (do (debug fst "NOT DEFINED")
-                              (list `delayed-eval x)))
+  (cond-> (condp some [x]
+            #{()} nil
+            seq? (c/let [[fst & rst] x]
+                   (if (c/and (symbol? fst)
+                              (not= 'progn fst)
+                              (-> (fun fst) meta :macro))
+                     (if (c/or (clojure-special-forms fst) ('#{let lambda} fst)) ;; defun defvar ?
+                       (if (= 'quote fst)
+                         (if-let [s (c/and (symbol? (first rst)) (not (next rst)) (first rst))]
+                           (list 'quote (if (= "deuce.emacs" (namespace s)) (sym s) s))
+                           (if (= '(()) rst) () x))
+                         (apply cons/list (c/cons (symbol "deuce.emacs-lisp" (name fst)) rst)))
+                       (apply cons/list x))
+                     (if (#{`el-var-get `el-var-set `el-var-set-default `delayed-eval
+                            '#el/sym "\\," '#el/sym "\\,@"} fst)
+                       x
+                       (if (=  '#el/sym "\\`" fst)
+                         (emacs-lisp-backquote x) ;; See below, we dont want to duplicate this if not necessary.
+                         (if (c/and (symbol? fst)
+                                    (not (namespace fst))
+                                    (not (fun fst)))
+                           (if (*disallow-undefined* fst)
+                             `(throw* '~'void-function '~fst)
+                             (do (debug fst "NOT DEFINED")
+                                 (list `delayed-eval x)))
 
-                        (expand-dotted-lists (c/cons
-                                              (if (seq? fst) (el->clj fst) fst)
-                                              (map el->clj rst))))))))
-    symbol? (if (namespace x)
-              (if (-> (resolve x) meta :macro) (resolve x) x)
-              (if (#{'#el/sym "\\," '#el/sym "\\,@" '.} x)
-                x
-                (list `el-var-get x)))
-    x))
+                           (expand-dotted-lists (c/cons
+                                                 (if (seq? fst) (el->clj fst) fst)
+                                                 (map el->clj rst))))))))
+            symbol? (if (namespace x)
+                      (if (-> (resolve x) meta :macro) (resolve x) x)
+                      (if (#{'#el/sym "\\," '#el/sym "\\,@" '.} x)
+                        x
+                        (list `el-var-get x)))
+            x)
+    (instance? IMeta x) (some-> (with-meta (meta x)))))
 
 (defn ^Throwable cause [^Throwable e]
   (if-let [e (.getCause e)]
@@ -238,17 +239,17 @@
 (defn emacs-lisp-backquote [form]
   (w/postwalk
    #(c/cond
-     (c/and (seq? %) (seq? (last %)) (= `unquote-splicing (first (last %))))
-     (if (butlast %)
-       (concat (butlast %) `((unquote-splicing (maybe-splice-dotted-list ~(second (last %))))))
-       (second (last %)))
+      (c/and (seq? %) (seq? (last %)) (= `unquote-splicing (first (last %))))
+      (if (butlast %)
+        (concat (butlast %) `((unquote-splicing (maybe-splice-dotted-list ~(second (last %))))))
+        (second (last %)))
 
-     (c/and (seq? %) (= '#el/sym "\\`" (first %)))
-     (el->clj (syntax-quote* (second %)))
+      (c/and (seq? %) (= '#el/sym "\\`" (first %)))
+      (el->clj (syntax-quote* (second %)))
 
-     (= '#el/sym "\\," %) `unquote
-     (= '#el/sym "\\,@" %) `unquote-splicing
-     :else %) form))
+      (= '#el/sym "\\," %) `unquote
+      (= '#el/sym "\\,@" %) `unquote-splicing
+      :else %) form))
 
 (defn compile [emacs-lisp]
   (try
@@ -272,6 +273,15 @@
     [doc rst]
     [nil body]))
 
+(defn meta-walk [inner outer form]
+  (cond-> (w/walk inner outer form)
+    (instance? IMeta form) (with-meta (meta form))))
+
+(defn normalize-form-for-macro
+  ([form] (normalize-form-for-macro identity form))
+  ([f form]
+   (meta-walk (partial normalize-form-for-macro f) identity (f form))))
+
 (defn def-helper-process-var* [f needs-intern? name doc interactive emacs-lisp? el-arglist]
   (c/let [m (merge {:doc doc}
                    (when interactive {:interactive (second interactive)})
@@ -279,14 +289,14 @@
                      {:el-arglist el-arglist
                       :el-file (when-let [file (el-var 'load-file-name)]
                                  @file)}))]
-         (if (var? f)
-           (do
-             (alter-meta! f merge m)
-             (alter-var-root f (constantly (with-meta @f (meta f))))
-             (when needs-intern?
-               (intern 'deuce.emacs (with-meta name (dissoc (meta f) :name)) @f)
-               (ns-unmap 'deuce.emacs needs-intern?)))
-           (with-meta f m))))
+    (if (var? f)
+      (do
+        (alter-meta! f merge m)
+        (alter-var-root f (constantly (with-meta @f (meta f))))
+        (when needs-intern?
+          (intern 'deuce.emacs (with-meta name (dissoc (meta f) :name)) @f)
+          (ns-unmap 'deuce.emacs needs-intern?)))
+      (with-meta f m))))
 
 (c/defmacro def-helper* [what name arglist & body]
   (c/let [[docstring body] (parse-doc-string body)
@@ -308,23 +318,23 @@
           needs-intern? (when (c/and (re-find #"/" (c/name name)) (not= '/ name))
                           (sym (s/replace (c/name name) "/" "SLASH")))
           not-implemented? (c/or (= [docstring] body) (empty? body))]
-         `(def-helper-process-var*
-            (~what ~(if needs-intern? needs-intern? name) ~(vec arglist)
-                   ~(when not-implemented?
-                      `(binding [*ns* (the-ns 'clojure.core)]
-                         (warn ~(c/name name) "NOT IMPLEMENTED")))
-                   ~(if emacs-lisp?
-                      `(c/let ~(if rest-arg
-                                 `[~rest-arg (if-let [r# ~rest-arg] (apply cons/list r#) nil)]
-                                 [])
-                         (c/let [result# (with-local-el-vars ~(vec (mapcat #(c/list % %) the-args))
-                                           (progn ~@body))]
-                           ;; There's something wrong with the returned forms, hence the prewalk
-                           (if ~macro?
-                             (w/prewalk identity (el->clj result#))
-                             result#)))
-                      `(do ~@body)))
-            '~needs-intern? '~name ~doc '~interactive '~emacs-lisp? '~el-arglist)))
+    `(def-helper-process-var*
+       (~what ~(if needs-intern? needs-intern? name) ~(vec arglist)
+              ~(when not-implemented?
+                 `(binding [*ns* (the-ns 'clojure.core)]
+                    (warn ~(c/name name) "NOT IMPLEMENTED")))
+              ~(if emacs-lisp?
+                 `(c/let ~(if rest-arg
+                            `[~rest-arg (if-let [r# ~rest-arg] (apply cons/list r#) nil)]
+                            [])
+                    (c/let [result# (with-local-el-vars ~(vec (mapcat #(c/list % %) the-args))
+                                      (progn ~@body))]
+                      ;; There's something wrong with the returned forms, hence the prewalk
+                      (if ~macro?
+                        (normalize-form-for-macro (el->clj result#))
+                        result#)))
+                 `(do ~@body)))
+       '~needs-intern? '~name ~doc '~interactive '~emacs-lisp? '~el-arglist)))
 
 (def override? '#{apply-partially})
 
@@ -335,9 +345,9 @@
   {:arglists '([NAME ARGLIST [DOCSTRING] BODY...])}
   [name arglist & body]
   (c/let [name (sym name)]
-         `(do ~(when-not (override? name)
-                 `(def-helper* defn ~name ~arglist ~@body))
-              '~name)))
+    `(do ~(when-not (override? name)
+            `(def-helper* defn ~name ~arglist ~@body))
+         '~name)))
 
 ;; Defined in subr.el
 (c/defmacro lambda
@@ -362,20 +372,20 @@
           doc (apply str docstring)
           vars (scope &env)
           vars (vec (remove (c/set args) vars))]
-         ;; This is wrong as it won't share updates between original definition and the lambda var.
-         ;; Yet to see if this ends up being a real issue. A few days later: Indeed it is!
-         `(c/let [closure# (zipmap '~vars
-                                   (map #(c/let [^Var v# (if (dynamic-binding?) ;; Temporary hack.
-                                                          (if (var? %) % (Var/create %))
-                                                          (Var/create (if (var? %) (deref %) %)))]
-                                           (.setDynamic v#))
-                                        ~vars))]
-                 (with-meta
-                   (def-helper* fn lambda ~args
-                     (binding [*dynamic-vars* (if (dynamic-binding?)
-                                                (merge *dynamic-vars* closure#) {})]
-                       (c/let [{:syms ~vars} closure#]
-                         (progn ~@body)))) {:doc ~doc}))))
+    ;; This is wrong as it won't share updates between original definition and the lambda var.
+    ;; Yet to see if this ends up being a real issue. A few days later: Indeed it is!
+    `(c/let [closure# (zipmap '~vars
+                              (map #(c/let [^Var v# (if (dynamic-binding?) ;; Temporary hack.
+                                                      (if (var? %) % (Var/create %))
+                                                      (Var/create (if (var? %) (deref %) %)))]
+                                      (.setDynamic v#))
+                                   ~vars))]
+       (with-meta
+         (def-helper* fn lambda ~args
+           (binding [*dynamic-vars* (if (dynamic-binding?)
+                                      (merge *dynamic-vars* closure#) {})]
+             (c/let [{:syms ~vars} closure#]
+               (progn ~@body)))) {:doc ~doc}))))
 
 ;; Defined in subr.el
 (defn apply-partially
@@ -390,7 +400,7 @@
 
 ;; Defined in cl-macs.el. Optimizes existing fns which complicates things a lot.
 (c/defmacro define-compiler-macro
- "Define a compiler-only macro.
+  "Define a compiler-only macro.
   This is like `defmacro', but macro expansion occurs only if the call to
   FUNC is compiled (i.e., not interpreted).  Compiler macros should be used
   for optimizing the way calls to FUNC are compiled; the form returned by
@@ -442,16 +452,16 @@
   {:arglists '([VAR BODYFORM &rest HANDLERS])}
   [var bodyform & handlers]
   (c/let [var (if (= () var) nil var)]
-         `(try
-            ~(el->clj bodyform)
-            (catch ExceptionInfo e#
-              (c/let [~(if var var (gensym "_")) (cons/pair (:tag (ex-data e#))
-                                                            (:value (ex-data e#)))]
-                     (case (:tag (ex-data e#))
-                       ~@(apply concat (for [[c & h] handlers
-                                             :let [c (if (seq? c) c [c])]]
-                                         (apply concat (for [c c] `[~(sym c) (progn ~@h)]))))
-                       (throw e#)))))))
+    `(try
+       ~(el->clj bodyform)
+       (catch ExceptionInfo e#
+         (c/let [~(if var var (gensym "_")) (cons/pair (:tag (ex-data e#))
+                                                       (:value (ex-data e#)))]
+           (case (:tag (ex-data e#))
+             ~@(apply concat (for [[c & h] handlers
+                                   :let [c (if (seq? c) c [c])]]
+                               (apply concat (for [c c] `[~(sym c) (progn ~@h)]))))
+             (throw e#)))))))
 
 (c/defmacro cond
   "Try each clause until one succeeds.
@@ -472,14 +482,14 @@
 
 (c/defmacro setq-helper* [default? sym-vals]
   (c/let [emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)]
-         `(c/let
-           ~(reduce into []
-                    (for [[s v] (partition 2 2 nil sym-vals)
-                          :let [s (sym s)]]
-                      [(sym s) (if default?
-                                 `(el-var-set-default ~s ~(if emacs-lisp? (el->clj v) v))
-                                 `(el-var-set ~s ~(if emacs-lisp? (el->clj v) v)))]))
-           ~(first (last (partition 2 2 nil sym-vals))))))
+    `(c/let
+         ~(reduce into []
+                  (for [[s v] (partition 2 2 nil sym-vals)
+                        :let [s (sym s)]]
+                    [(sym s) (if default?
+                               `(el-var-set-default ~s ~(if emacs-lisp? (el->clj v) v))
+                               `(el-var-set ~s ~(if emacs-lisp? (el->clj v) v)))]))
+       ~(first (last (partition 2 2 nil sym-vals))))))
 
 (c/defmacro setq
   "Set each SYM to the value of its VAL.
@@ -517,18 +527,18 @@
 (c/defmacro let-helper* [can-refer? varlist & body]
   (c/let [varlist (map #(if (symbol? %) [% nil] %) varlist)
           illegal-symbols (into {} (map #(c/let [v (name (first %))]
-                                                (when (re-find #"\." v)
-                                                  [(first %)
-                                                   (sym (s/replace v "." "_dot_"))]))
+                                           (when (re-find #"\." v)
+                                             [(first %)
+                                              (sym (s/replace v "." "_dot_"))]))
                                         varlist))
           all-vars (map (comp sym first) (w/postwalk-replace illegal-symbols varlist))
           temps (zipmap all-vars (repeatedly #(gensym "local__")))]
-         `(c/let ~(vec (concat
-                        (interleave (map (if can-refer? identity temps) all-vars)
-                                    (map (comp el->clj second) varlist))
-                        (when-not can-refer? (interleave all-vars (map temps all-vars)))))
-                 (with-local-el-vars ~(interleave all-vars all-vars)
-                   (progn ~@(if (seq illegal-symbols) (w/postwalk-replace illegal-symbols body) body))))))
+    `(c/let ~(vec (concat
+                   (interleave (map (if can-refer? identity temps) all-vars)
+                               (map (comp el->clj second) varlist))
+                   (when-not can-refer? (interleave all-vars (map temps all-vars)))))
+       (with-local-el-vars ~(interleave all-vars all-vars)
+         (progn ~@(if (seq illegal-symbols) (w/postwalk-replace illegal-symbols body) body))))))
 
 (c/defmacro let
   "Bind variables according to VARLIST then eval BODY.
@@ -572,8 +582,8 @@
   {:arglists '([FIRST BODY...])}
   [first & body]
   `(c/let [result# ~(el->clj first)]
-          (progn ~@body)
-          result#))
+     (progn ~@body)
+     result#))
 
 (c/defmacro prog2
   "Eval FORM1, FORM2 and BODY sequentially; return value from FORM2.
@@ -643,10 +653,10 @@
   {:arglists '([NAME ARGLIST [DOCSTRING] [DECL] BODY...])}
   [name arglist & body]
   (c/let [name (sym name)]
-         `(do
-            ~(when-not ((ns-interns 'deuce.emacs-lisp) name)
-               `(def-helper* c/defmacro ~name ~arglist ~@body))
-            '~name)))
+    `(do
+       ~(when-not ((ns-interns 'deuce.emacs-lisp) name)
+          `(def-helper* c/defmacro ~name ~arglist ~@body))
+       '~name)))
 
 (c/defmacro function
   "Like `quote', but preferred for objects which are functions.
@@ -725,8 +735,8 @@
   {:arglists '([SYMBOL &optional INITVALUE DOCSTRING])}
   [symbol & [initvalue docstring]]
   (c/let [emacs-lisp? (= (the-ns 'deuce.emacs) *ns*)]
-         `(defvar-helper* 'deuce.emacs-lisp.globals '~(sym symbol)
-            ~(if emacs-lisp? (el->clj initvalue) initvalue) ~docstring)))
+    `(defvar-helper* 'deuce.emacs-lisp.globals '~(sym symbol)
+       ~(if emacs-lisp? (el->clj initvalue) initvalue) ~docstring)))
 
 ;; defined as fn in eval.clj
 (c/defmacro ^:clojure-special-form throw
@@ -754,9 +764,9 @@
          (throw e#)))
      (catch Exception e#
        (c/let [tag# (resolve ~tag)]
-              (if (c/and tag# (instance? tag# (cause e#)))
-                e#
-                (throw e#))))))
+         (if (c/and tag# (instance? tag# (cause e#)))
+           e#
+           (throw e#))))))
 
 (c/defmacro ^:clojure-special-form if
   "If COND yields non-nil, do THEN, else do ELSE...
@@ -805,12 +815,12 @@
   `(c/let [current-buffer# ((fun 'current-buffer))
            point# ((fun 'point))
            mark# ((fun 'mark-marker))]
-          (try
-            (progn ~@body)
-            (finally
-             ((fun 'set-buffer) current-buffer#)
-             ((fun 'goto-char) point#)
-             ((fun 'set-marker) mark# @((fun 'marker-position) mark#) current-buffer#)))))
+     (try
+       (progn ~@body)
+       (finally
+         ((fun 'set-buffer) current-buffer#)
+         ((fun 'goto-char) point#)
+         ((fun 'set-marker) mark# @((fun 'marker-position) mark#) current-buffer#)))))
 
 (c/defmacro interactive
   "Specify a way of parsing arguments for interactive use of a function.
@@ -885,10 +895,10 @@
   {:arglists '([&rest BODY])}
   [& body]
   `(c/let [current-buffer# ((fun 'current-buffer))]
-          (try
-            (progn ~@body)
-            (finally
-             ((fun 'set-buffer) current-buffer#)))))
+     (try
+       (progn ~@body)
+       (finally
+         ((fun 'set-buffer) current-buffer#)))))
 
 (def clojure-special-forms
   (->> (ns-map 'deuce.emacs-lisp)
@@ -905,12 +915,12 @@
   (c/let [catch-clauses (c/filter #(c/= (first %) 'catch) exprs)
           finally-clause (c/filter #(c/= (first %) 'finally) exprs)
           try-exprs (c/remove #(c/or (c/= (first %) 'finally) (c/= (first %) 'catch)) exprs)]
-         `(try ~@try-exprs
-               ~@(for [expr catch-clauses]
-                   (c/let [[_ tag e & exprs] expr]
-                          `(catch ExceptionInfo e#
-                             (if (= ~tag (:tag (ex-data e#)))
-                               (c/let [~e e#]
-                                      (do ~@exprs))
-                               (throw e#)))))
-               ~@finally-clause)))
+    `(try ~@try-exprs
+          ~@(for [expr catch-clauses]
+              (c/let [[_ tag e & exprs] expr]
+                `(catch ExceptionInfo e#
+                   (if (= ~tag (:tag (ex-data e#)))
+                     (c/let [~e e#]
+                       (do ~@exprs))
+                     (throw e#)))))
+          ~@finally-clause)))
