@@ -195,7 +195,8 @@
                                     (not (namespace fst))
                                     (not (fun fst)))
                            (if (*disallow-undefined* fst)
-                             `(throw* '~'void-function '~fst)
+                             (do (debug fst "RECURSIVE UNDEFINED DISALLOWED")
+                                 `(throw* '~'void-function '~fst))
                              (do (debug fst "NOT DEFINED")
                                  (list `delayed-eval x)))
 

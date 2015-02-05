@@ -410,7 +410,7 @@
   (let [[docstring body] (fp/maybe-a string? more)]
     (fp/list-group
       (concat [(fp/-pretty head ctx) " " (fp/pretty fn-name ctx)]
-              [" " (fp/-pretty params ctx)])
+              [" " (fp/-pretty params (dissoc ctx :symbols))])
       (when-not docstring :line)
       (fp/block (concat (when docstring (pretty-docstring docstring ctx))
                         (map #(fp/pretty % ctx) body))))))
@@ -422,18 +422,24 @@
    (fp/block (when docstring (pretty-docstring docstring ctx)))))
 
 (defn pretty-let [[head varlist & body] ctx]
-  (fp/list-group
-   (fp/-pretty head ctx) " "
-   (apply fp/list-group (interpose :line (map #(conj %2 (fp/pretty % ctx))
-                                              varlist (cons [:nest 0] (repeat [:nest (count (str "(" head " ("))])))))
-   :line
-   (fp/block (map #(fp/pretty % ctx) body))))
+  (let [varlist (for [kv varlist]
+                  (if-let [[k v] (and (seq? kv) kv)]
+                    [:span "(" (fp/-pretty k (dissoc ctx :symbols)) " " [:align (fp/pretty v ctx)] ")"]
+                    [:span (fp/-pretty kv (dissoc ctx :symbols))]))]
+    (fp/list-group
+     (fp/-pretty head ctx) " "
+     [:group "(" [:align (interpose :line varlist)] ")"]
+     (when (seq body) :line)
+     (fp/block (map #(fp/pretty % ctx) body)))))
 
 (defn pretty-cond [[head & clauses] ctx]
-  (fp/list-group
-   (fp/-pretty head ctx) " "
-   (interpose :line (map #(conj %2 (fp/pretty % ctx))
-                         clauses (cons [:nest 0] (repeat [:nest (count (str "(" head " "))]))))))
+  (let [clauses (for [[k v] clauses]
+                   (concat [:span "(" (fp/-pretty k ctx)]
+                           (when v [" " [:align (fp/pretty v ctx)]])
+                           [")"]))]
+    (fp/list-group
+     (fp/-pretty head ctx) " "
+     [:align (interpose :line clauses)])))
 
 (defn pretty-if [[head cond then & else] ctx]
   (fp/list-group
@@ -448,14 +454,15 @@
 
 (def el-symbols
   (fp/build-symbol-map
-   {pretty-defun '[defmacro defun lambda closure]
+   {pretty-defun '[defmacro defun]
     pretty-defvar '[defvar defconst]
     pretty-let '[let let*]
     pretty-if '[deuce.emacs-lisp/if if]
-    pretty-block '[while when unless setq set dotimes dolist and or not]
+    pretty-block '[while when unless setq set dotimes dolist and or not lambda closure]
     pretty-cond '[cond]
+    fp/pretty-quote '[quote]
     fp/pretty-ns '[ns]
-    fp/pretty-quote '[quote]}))
+    fp-edn/pretty '[#el/sym "\\`"]}))
 
 (defn ^:private write-clojure [el clj]
   (io/make-parents clj)
@@ -464,8 +471,8 @@
           (doseq [form (concat '[(ns deuce.emacs (:refer-clojure :only []))]
                                el)]
             (case *pretty-style*
-              :edn (fp-edn/pprint form {:width 120})
-              :el (fp/pprint form {:symbols el-symbols :width 120})
+              :edn (fp-edn/pprint form)
+              :el (fp/pprint form {:symbols el-symbols :width 80})
               (pr form))
             (println)))))
 
