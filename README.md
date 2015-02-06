@@ -24,7 +24,7 @@ To run:
 
     make run
 
-Emacs 24.2 is a submodule which will be cloned out and built the first time, this can take some time.
+Emacs 24.2 is a submodule which will be cloned and built the first time, this can take some time.
 
 To develop:
 
