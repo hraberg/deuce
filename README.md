@@ -763,15 +763,11 @@ For details, see [`project.clj`](https://github.com/hraberg/deuce/blob/master/pr
 
 [Lanterna](http://code.google.com/p/lanterna/) Martin Berglund, 2008-2013 - "Lanterna is a Java library allowing you to write easy semi-graphical user interfaces in a text-only environment." LGPL
 
-[http-kit](http://http-kit.org/) Feng Shen, 2013 - "http-kit is a minimalist, event-driven, high-performance Clojure HTTP server/client library with WebSocket and asynchronous support."
-
 [Timbre](https://github.com/ptaoussanis/timbre) Peter Taoussanis, 2012 - "a (sane) logging library for Clojure" EPL
 
 [dynapath](https://github.com/tobias/dynapath) Tobias Crawley, 2012 - "A Clojure abstraction for modifiable/readable class loaders." EPL
 
 [Fast Idiomatic Pretty-Printer](https://github.com/brandonbloom/fipp) Brandon Bloom, 2013 - "Fipp is a better pretty printer for Clojure." EPL
-
-[core.async](https://github.com/clojure/core.async) Rich Hickey & Timothy Baldridge et al., 2013 - "Facilities for async programming and communication in Clojure."
 
 
 ## References
