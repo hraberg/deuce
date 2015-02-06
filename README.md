@@ -18,9 +18,37 @@ Deuce can currently start Emacs and handle limited keyboard input (like C-x C-c)
 
 I work on Deuce on and off and have spent about 2-3 months full-time so far in total. I started in April 2012.
 
+### Getting Started
+
 To run:
 
     make run
+
+To develop:
+
+    lein repl ;; M-x cider-jack-in
+    deuce.main> (lread/load "deuce-emacs.el")
+    Loading deuce-loadup.el (source)...
+    [...]
+
+To develop with the text UI:
+
+    make run-dev
+    nrepl server listening on 7888
+    Loading deuce-loadup.el (source)...
+    [...]
+    ;; The Deuce text UI opens.
+
+    ;; from Emacs
+    M-x cider
+    Host: localhost
+    Port for localhost: 7888
+    user> (in-ns 'deuce.emacs)
+    deuce.emacs> (eval '(current-buffer))
+    ;=> #<buffer *scratch*>
+
+There's more information about this throughout this document, but some of it might be out of date.
+
 
 ### What is there to see?
 
