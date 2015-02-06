@@ -12,7 +12,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 **Deuce is a re-implementation of Emacs in Clojure.** It's a port of the C core and re-compiles existing Emacs Lisp to Clojure. It uses the Lanterna library for text UI. The goal is to first reach reasonable compatibility with GNU Emacs, while the longer term goal is to phase out Emacs Lisp in favour for Clojure and re-capture Emacs' spirit on a contemporary platform.
 
-[Talk](http://skillsmatter.com/podcast/scala/deuce-is-not-yet-emacs-under-clojure) at [Skills Matter](http://skillsmatter.com/) London on June 4 | [Slides](http://hraberg.github.io/deuce/skillsmatter/?full)
+[Talk](http://skillsmatter.com/podcast/scala/deuce-is-not-yet-emacs-under-clojure) at [Skills Matter](http://skillsmatter.com/) London, 2013-06-04 | [Slides](http://hraberg.github.io/deuce/skillsmatter/?full)
 
 Deuce can currently start Emacs and handle limited keyboard input (like C-x C-c). The main moving pieces are there but it's far from usable yet. Back in 2013 I aimed to release a developer preview, 0.1.0 around September, followed by an end-user alpha "when it's done". Needless to say, this didn't happen. I also thought that 0.1.0 was less than a months work away, and that reaching alpha would take about another 2-4 months of work. While that still somewhat holds, I feel Deuce needs some new ideas to move forward.
 
