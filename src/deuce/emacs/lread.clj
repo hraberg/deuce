@@ -385,7 +385,7 @@
   This uses the variables `load-suffixes' and `load-file-rep-suffixes'."
   (apply alloc/list (remove empty? (concat globals/load-file-rep-suffixes globals/load-suffixes))))
 
-(def ^:private ^:dynamic *pretty-style* :edn)
+(def ^:private ^:dynamic *pretty-style* :el)
 
 (extend-protocol fp/IPretty
   java.lang.Object
@@ -405,17 +405,17 @@
     (binding [*print-dup* true]
       [:text (pr-str x)])))
 
-(defn pretty-docstring [docstring ctx]
+(defn ^:private pretty-docstring [docstring ctx]
   (if (string? docstring)
     [:group
-     (concat  ["  \""]
-              (interpose :break (map #(let [[t s] (fp/-pretty % ctx)]
-                                        [:text (subs s 1 (dec (count s)))])
-                                     (s/split docstring #"\n")))
-              ["\""])]
+     (concat ["  \""]
+             (interpose :break (map #(let [[t s] (fp/-pretty % ctx)]
+                                       [:text (subs s 1 (dec (count s)))])
+                                    (s/split docstring #"\n")))
+             ["\""])]
     [(fp/pretty docstring ctx)]))
 
-(defn pretty-defun [[head fn-name params & more] ctx]
+(defn ^:private pretty-defun [[head fn-name params & more] ctx]
   (let [[docstring body] (fp/maybe-a string? more)]
     (fp/list-group
      (fp/-pretty head ctx) " " (fp/pretty fn-name ctx) " " (fp/-pretty params (dissoc ctx :symbols))
@@ -423,12 +423,12 @@
      (when (or docstring (seq body)) :break)
      (fp/block (map #(fp/pretty % ctx) body)))))
 
-(defn pretty-defvar [[head symbol & [initvalue docstring]] ctx]
+(defn ^:private pretty-defvar [[head symbol & [initvalue docstring]] ctx]
   (fp/list-group
    (fp/-pretty head ctx) " " (fp/pretty symbol ctx) :line (fp/block [(fp/-pretty initvalue ctx)])
    (when docstring [:group :break (pretty-docstring docstring ctx)])))
 
-(defn pretty-let [[head varlist & body :as form] ctx]
+(defn ^:private pretty-let [[head varlist & body :as form] ctx]
   (let [varlist (for [kv varlist]
                   (if-let [[k v] (and (seq? kv) kv)]
                     [:span "(" (fp/-pretty k (dissoc ctx :symbols)) " " [:align (fp/pretty v ctx)] ")"]
@@ -439,37 +439,53 @@
      (when (seq body) :break)
      (fp/block (map #(fp/pretty % ctx) body)))))
 
-(defn pretty-cond [[head & clauses] ctx]
-  (let [clauses (for [[k v] clauses]
-                   (concat [:span "(" (fp/-pretty k ctx)]
-                           (when v [:span :line [:nest 1 (fp/pretty v ctx)]])
-                           [")"]))]
+(defn ^:private pretty-cond [[head & clauses] ctx]
+  (let [clauses (for [c clauses]
+                  [:group (concat [:span "(" (fp/-pretty (first c) ctx)]
+                                  (when (> (count c) 1)
+                                    [:span :line [:nest 1 (interpose :line (map #(fp/pretty % ctx) (rest c)))]])
+                                  [")"])])]
     (fp/list-group
      (fp/-pretty head ctx) " "
      [:align (interpose :break clauses)])))
 
-(defn pretty-if [[head cond then & else] ctx]
+(defn ^:private pretty-if [[head cond then & else] ctx]
   (fp/list-group
    (fp/-pretty head ctx) " " (fp/pretty cond ctx) :line
    (fp/block [(fp/pretty then ctx)]) (when (seq else) :line)
    (fp/block (map #(fp/pretty % ctx) else))))
 
-(defn pretty-block [[head stmnt & block] ctx]
+(defn ^:private pretty-block [break [head stmnt & block] ctx]
   (fp/list-group
-   (fp/-pretty head ctx) " " (fp/pretty stmnt ctx) (when (seq block) :line)
+   (fp/-pretty head ctx) " " (fp/pretty stmnt ctx) (when (seq block) break)
    (fp/block (map #(fp/pretty % ctx) block))))
 
-(def el-symbols
+(defn ^:private pretty-lambda [[head args & block] ctx]
+  (fp/list-group
+   (fp/-pretty head ctx) " " (fp/pretty args (dissoc ctx :symbols)) (when (seq block) :line)
+   (fp/block (map #(fp/pretty % ctx) block))))
+
+(defn ^:private pretty-quote [[macro arg] ctx]
+  [:span "'" (fp-edn/pretty arg (dissoc ctx :symbols))])
+
+(def ^:private el-symbols
   (fp/build-symbol-map
    {pretty-defun '[defmacro defun]
     pretty-defvar '[defvar defconst]
     pretty-let '[let let*]
     pretty-if '[deuce.emacs-lisp/if if]
-    pretty-block '[while when unless setq set dotimes dolist and or not lambda closure]
+    (partial pretty-block :line) '[setq set and or not]
+    (partial pretty-block :break) '[while when unless dotimes dolist]
+    pretty-lambda '[lambda closure]
     pretty-cond '[cond]
-    fp/pretty-quote '[quote]
+    pretty-quote '[quote]
     fp/pretty-ns '[ns]
     fp-edn/pretty '[#el/sym "\\`"]}))
+
+(defn ^:private pprint-el
+  ([form] (pprint-el form {}))
+  ([form options]
+   (fp/pprint form (merge {:symbols el-symbols :width 100} options))))
 
 (defn ^:private write-clojure [el clj]
   (io/make-parents clj)
@@ -479,7 +495,7 @@
                                el)]
             (case *pretty-style*
               :edn (fp-edn/pprint form)
-              :el (fp/pprint form {:symbols el-symbols :width 100})
+              :el (pprint-el form)
               (pr form))
             (println)))))
 
