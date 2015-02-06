@@ -22,6 +22,7 @@ I work on Deuce on and off and have spent about 2-3 months full-time so far in t
 
 To run:
 
+    ;; Emacs 24.2 is a submodule which will be cloned out and built the first time, this can take some time.
     make run
 
 To develop:
