@@ -12,7 +12,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 **Deuce is a re-implementation of Emacs in Clojure.** It's a port of the C core and re-compiles existing Emacs Lisp to Clojure. It uses the Lanterna library for text UI. The goal is to first reach reasonable compatibility with GNU Emacs, while the longer term goal is to phase out Emacs Lisp in favour for Clojure and re-capture Emacs' spirit on a contemporary platform.
 
-<img width="562" src=https://github.com/hraberg/deuce/raw/master/screenshots/deuce-scratch.png alt="Deuce is (not yet) Emacs under Clojure - *scratch*" title="Deuce is (not yet) Emacs under Clojure - *scratch*" />
+<img width="564" src=https://github.com/hraberg/deuce/raw/master/screenshots/deuce-scratch.png alt="Deuce is (not yet) Emacs under Clojure - *scratch*" title="Deuce is (not yet) Emacs under Clojure - *scratch*" />
 
 [Talk](http://skillsmatter.com/podcast/scala/deuce-is-not-yet-emacs-under-clojure) at [Skills Matter](http://skillsmatter.com/) London, 2013-06-04 | [Slides](http://hraberg.github.io/deuce/skillsmatter/?full)
 
