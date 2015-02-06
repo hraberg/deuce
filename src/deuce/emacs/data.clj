@@ -239,14 +239,15 @@
                  (when-let [buffer ^Buffer @(.buffer window)]
                    (str " on " @(.name buffer))) ">")))
 
-(defn ^:private promote-char [x]
-  (cond
-   (char? x) (int x)
-   (markerp x) @(.charpos ^Marker x)
-   :else x))
+(defn ^:private coerce-number [x]
+  (el/check-type 'number-or-marker-p
+   (cond
+     (char? x) (int x)
+     (markerp x) @(.charpos ^Marker x)
+     :else x)))
 
-(defn ^:private promote-chars [xs]
-  (map promote-char xs))
+(defn ^:private coerce-numbers [xs]
+  (map coerce-number xs))
 
 (defun natnump (object)
   "Return t if OBJECT is a nonnegative integer."
@@ -330,7 +331,7 @@
 (defun logior (&rest ints-or-markers)
   "Return bitwise-or of all the arguments.
   Arguments may be integers, or markers converted to integers."
-  (apply bit-or (promote-chars ints-or-markers)))
+  (apply bit-or (coerce-numbers ints-or-markers)))
 
 (declare arrayp listp)
 
@@ -366,7 +367,7 @@
 (defun #el/sym "1+" (number)
   "Return NUMBER plus one.  NUMBER may be a number or a marker.
   Markers are converted to integers."
-  (inc (promote-char number)))
+  (inc (coerce-number number)))
 
 (defun subrp (object)
   "Return t if OBJECT is a built-in function."
@@ -398,7 +399,7 @@
 
 (defun + (&rest numbers-or-markers)
   "Return sum of any number of arguments, which are numbers or markers."
-  (apply c/+ (promote-chars numbers-or-markers)))
+  (apply c/+ (coerce-numbers numbers-or-markers)))
 
 (defun lsh (value count)
   "Return VALUE with its bits shifted left by COUNT.
@@ -416,18 +417,18 @@
    (null obj1) (null obj2)
     ;; Macros can get confused by the exact namespace
    (and (symbol? obj1) (symbol? obj2)) (c/= (name obj1) (name obj2))
-   (or (char? obj1) (char? obj2)) (c/= (promote-char obj1) (promote-char obj2))
+   (and (char? obj1) (char? obj2)) (c/= (coerce-number obj1) (coerce-number obj2))
    :else (identical? obj1 obj2)))
 
 (defun * (&rest numbers-or-markers)
   "Return product of any number of arguments, which are numbers or markers."
-  (apply c/* (promote-chars numbers-or-markers)))
+  (apply c/* (coerce-numbers numbers-or-markers)))
 
 (defun - (&optional number-or-marker &rest more-numbers-or-markers)
   "Negate number or subtract numbers or markers and return the result.
   With one arg, negates it.  With more than one arg,
   subtracts all but the first from the first."
-  (apply c/- (promote-chars (c/cons number-or-marker more-numbers-or-markers))))
+  (apply c/- (coerce-numbers (c/cons number-or-marker more-numbers-or-markers))))
 
 (defun multibyte-string-p (object)
   "Return t if OBJECT is a multibyte string."
@@ -436,7 +437,7 @@
 (defun logxor (&rest ints-or-markers)
   "Return bitwise-exclusive-or of all the arguments.
   Arguments may be integers, or markers converted to integers."
-  (apply c/bit-xor (promote-chars ints-or-markers))  )
+  (apply c/bit-xor (coerce-numbers ints-or-markers))  )
 
 (defun floatp (object)
   "Return t if OBJECT is a floating point number."
@@ -444,7 +445,7 @@
 
 (defun number-or-marker-p (object)
   "Return t if OBJECT is a number or a marker."
-  (number? object))
+  ((some-fn number? markerp) object))
 
 (defun cdr-safe (object)
   "Return the cdr of OBJECT if it is a cons cell, or else nil."
@@ -456,9 +457,9 @@
   The arguments must be numbers or markers."
   (if (zero? divisor)
     (el/throw 'arith-error nil)
-    (c/reduce / (c/let [r (c/apply clojure.core// (promote-chars [dividend divisor]))]
+    (c/reduce / (c/let [r (c/apply clojure.core// (coerce-numbers [dividend divisor]))]
                   (if (ratio? r) (long r) r))
-              (promote-chars divisors))))
+              (coerce-numbers divisors))))
 
 (defun byteorder ()
   "Return the byteorder for the machine.
@@ -505,7 +506,7 @@
 (defun logand (&rest ints-or-markers)
   "Return bitwise-and of all the arguments.
   Arguments may be integers, or markers converted to integers."
-  (apply c/bit-and (promote-chars ints-or-markers)))
+  (apply c/bit-and (coerce-numbers ints-or-markers)))
 
 (defun consp (object)
   "Return t if OBJECT is a cons cell."
@@ -526,7 +527,7 @@
 
 (defun wholenump (object)
   "Return t if OBJECT is a nonnegative integer."
-  ((every-pred integer? pos?) (promote-char object)))
+  ((every-pred integer? pos?) (coerce-number object)))
 
 ;; We probably don't want to do this due to interned strings.
 (def ^:private string-chars (doto (.getDeclaredField String "value")
@@ -562,7 +563,7 @@
 
 (defun lognot (number)
   "Return the bitwise complement of NUMBER.  NUMBER must be an integer."
-  (bit-not (promote-char number)))
+  (bit-not (coerce-number number)))
 
 (declare atom)
 
@@ -580,7 +581,7 @@
 
 (defun < (num1 num2)
   "Return t if first arg is less than second arg.  Both must be numbers or markers."
-  (c/< (promote-char num1) (promote-char num2)))
+  (c/< (coerce-number num1) (coerce-number num2)))
 
 (defun car-safe (object)
   "Return the car of OBJECT if it is a cons cell, or else nil."
@@ -614,7 +615,7 @@
 
 (defun = (num1 num2)
   "Return t if two args, both numbers or markers, are equal."
-  (== (promote-char num1) (promote-char num2)))
+  (== (coerce-number num1) (coerce-number num2)))
 
 (defun make-variable-buffer-local (variable)
   "Make VARIABLE become buffer-local whenever it is set.
@@ -649,7 +650,7 @@
 
 (defun > (num1 num2)
   "Return t if first arg is greater than second arg.  Both must be numbers or markers."
-  (c/> (promote-char num1) (promote-char num2)))
+  (c/> (coerce-number num1) (coerce-number num2)))
 
 (defun max (number-or-marker &rest numbers-or-markers)
   "Return largest of all the arguments (which must be numbers or markers).
@@ -684,7 +685,7 @@
 (defun >= (num1 num2)
   "Return t if first arg is greater than or equal to second arg.
   Both must be numbers or markers."
-  (c/>= (promote-char num1) (promote-char num2)))
+  (c/>= (coerce-number num1) (coerce-number num2)))
 
 (defun boundp (symbol)
   "Return t if SYMBOL's value is not void."
@@ -714,7 +715,7 @@
 (defun <= (num1 num2)
   "Return t if first arg is less than or equal to second arg.
   Both must be numbers or markers."
-  (c/<= (promote-char num1) (promote-char num2)))
+  (c/<= (coerce-number num1) (coerce-number num2)))
 
 (defun local-variable-p (variable &optional buffer)
   "Non-nil if VARIABLE has a local binding in buffer BUFFER.
@@ -810,7 +811,7 @@
 (defun #el/sym "1-" (number)
   "Return NUMBER minus one.  NUMBER may be a number or a marker.
   Markers are converted to integers."
-  (dec (promote-char number)))
+  (dec (coerce-number number)))
 
 (defun atom (object)
   "Return t if OBJECT is not a cons cell.  This includes nil."
