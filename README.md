@@ -27,7 +27,7 @@ To run:
 To develop:
 
     lein repl ;; M-x cider-jack-in
-    deuce.main> (lread/load "deuce-emacs.el")
+    deuce.main> (lread/load "deuce-loadup.el")
     Loading deuce-loadup.el (source)...
     [...]
 
