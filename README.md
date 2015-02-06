@@ -803,6 +803,8 @@ For details, see [`project.clj`](https://github.com/hraberg/deuce/blob/master/pr
 
 [Down with Emacs Lisp: Dynamic Scope Analysis](http://www-pu.informatik.uni-tuebingen.de/users/sperber/papers/dynamic-scope-analysis.pdf) Matthias Neubauer and Michael Sperber, 2001
 
+[Neovim](http://neovim.org/) Thiago de Arruda et al, 2014-2015 "Neovim is a project that seeks to aggressively refactor Vim."
+
 [Internal Reprogrammability](http://martinfowler.com/bliki/InternalReprogrammability.html) Martin Fowler, 2013
 
 [The Text Editor sam](http://plan9.bell-labs.com/sys/doc/sam/sam.html) Rob Pike, 1987
