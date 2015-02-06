@@ -4,29 +4,23 @@
             [clojure.java.io :as io]
             [clojure.string :as s]
             [clojure.walk :as w]
-            [fipp.edn :as fp-edn]
-            [fipp.clojure :as fp]
-            [lanterna.screen :as sc]
-            [lanterna.common]
             [lanterna.constants]
-            [taoensso.timbre :as timbre]
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.cons :refer [car cdr] :as cons]
             [deuce.emacs-lisp.globals :as globals]
+            [deuce.emacs-lisp.printer :as printer]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data]
             [deuce.emacs.editfns :as editfns]
-            [deuce.emacs.eval :as eval]
             [deuce.emacs.fileio :as fileio]
-            [deuce.emacs.terminal :as terminal]
             [deuce.emacs.window :as window]
             [deuce.emacs-lisp.parser :as parser])
   (:refer-clojure :exclude [read intern load])
   (:import [java.io FileNotFoundException]
            [java.net URL]
            [com.googlecode.lanterna.input Key]
-           [clojure.lang Symbol Compiler]))
+           [clojure.lang Compiler]))
 
 (defvar old-style-backquotes nil
   "Set to non-nil when `read' encounters an old-style backquote.")
@@ -385,120 +379,6 @@
   This uses the variables `load-suffixes' and `load-file-rep-suffixes'."
   (apply alloc/list (remove empty? (concat globals/load-file-rep-suffixes globals/load-suffixes))))
 
-(def ^:private ^:dynamic *pretty-style* :el)
-
-(extend-protocol fp/IPretty
-  java.lang.Object
-  (-pretty [x ctx]
-    (binding [*print-dup* true]
-      [:text (pr-str x)]))
-
-  clojure.lang.ISeq
-  (-pretty [s ctx]
-    (if-let [pretty-special (get (:symbols ctx) (first s))]
-      (pretty-special s ctx)
-      (fp/list-group [:align (if (symbol? (first s)) 1 0) (interpose :line (map #(fp/pretty % ctx) s))]))))
-
-(extend-protocol fp-edn/IPretty
-  java.lang.Object
-  (-pretty [x ctx]
-    (binding [*print-dup* true]
-      [:text (pr-str x)])))
-
-(defn ^:private pretty-docstring [docstring ctx]
-  (if (string? docstring)
-    [:group
-     (concat ["  \""]
-             (interpose :break (map #(let [[t s] (fp/-pretty % ctx)]
-                                       [:text (subs s 1 (dec (count s)))])
-                                    (s/split docstring #"\n")))
-             ["\""])]
-    [(fp/pretty docstring ctx)]))
-
-(defn ^:private pretty-defun [[head fn-name params & more] ctx]
-  (let [[docstring body] (fp/maybe-a string? more)]
-    (fp/list-group
-     (fp/-pretty head ctx) " " (fp/pretty fn-name ctx) " " (fp/-pretty params (dissoc ctx :symbols))
-     (when docstring [:group :break (pretty-docstring docstring ctx)])
-     (when (or docstring (seq body)) :break)
-     (fp/block (map #(fp/pretty % ctx) body)))))
-
-(defn ^:private pretty-defvar [[head symbol & [initvalue docstring]] ctx]
-  (fp/list-group
-   (fp/-pretty head ctx) " " (fp/pretty symbol ctx) :line (fp/block [(fp/-pretty initvalue ctx)])
-   (when docstring [:group :break (pretty-docstring docstring ctx)])))
-
-(defn ^:private pretty-let [[head varlist & body :as form] ctx]
-  (let [varlist (for [kv varlist]
-                  (if-let [[k v] (and (seq? kv) kv)]
-                    [:span "(" (fp/-pretty k (dissoc ctx :symbols)) " " [:align (fp/pretty v ctx)] ")"]
-                    [:span (fp/-pretty kv (dissoc ctx :symbols))]))]
-    (fp/list-group
-     (fp/-pretty head ctx) " "
-     [:group "(" [:align (interpose :break varlist)] ")"]
-     (when (seq body) :break)
-     (fp/block (map #(fp/pretty % ctx) body)))))
-
-(defn ^:private pretty-cond [[head & clauses] ctx]
-  (let [clauses (for [c clauses]
-                  [:group (concat [:span "(" (fp/-pretty (first c) ctx)]
-                                  (when (> (count c) 1)
-                                    [:span :line [:nest 1 (interpose :line (map #(fp/pretty % ctx) (rest c)))]])
-                                  [")"])])]
-    (fp/list-group
-     (fp/-pretty head ctx) " "
-     [:align (interpose :break clauses)])))
-
-(defn ^:private pretty-if [[head cond then & else] ctx]
-  (fp/list-group
-   (fp/-pretty head ctx) " " (fp/pretty cond ctx) :line
-   (fp/block [(fp/pretty then ctx)]) (when (seq else) :line)
-   (fp/block (map #(fp/pretty % ctx) else))))
-
-(defn ^:private pretty-block [break [head stmnt & block] ctx]
-  (fp/list-group
-   (fp/-pretty head ctx) " " (fp/pretty stmnt ctx) (when (seq block) break)
-   (fp/block (map #(fp/pretty % ctx) block))))
-
-(defn ^:private pretty-lambda [[head args & block] ctx]
-  (fp/list-group
-   (fp/-pretty head ctx) " " (fp/pretty args (dissoc ctx :symbols)) (when (seq block) :line)
-   (fp/block (map #(fp/pretty % ctx) block))))
-
-(defn ^:private pretty-quote [[macro arg] ctx]
-  [:span "'" (fp-edn/pretty arg (dissoc ctx :symbols))])
-
-(def ^:private el-symbols
-  (fp/build-symbol-map
-   {pretty-defun '[defmacro defun]
-    pretty-defvar '[defvar defconst]
-    pretty-let '[let let*]
-    pretty-if '[deuce.emacs-lisp/if if]
-    (partial pretty-block :line) '[setq set and or not]
-    (partial pretty-block :break) '[while when unless dotimes dolist]
-    pretty-lambda '[lambda closure]
-    pretty-cond '[cond]
-    pretty-quote '[quote]
-    fp/pretty-ns '[ns]
-    fp-edn/pretty '[#el/sym "\\`"]}))
-
-(defn ^:private pprint-el
-  ([form] (pprint-el form {}))
-  ([form options]
-   (fp/pprint form (merge {:symbols el-symbols :width 100} options))))
-
-(defn ^:private write-clojure [el clj]
-  (io/make-parents clj)
-  (spit clj
-        (with-out-str
-          (doseq [form (concat '[(ns deuce.emacs (:refer-clojure :only []))]
-                               el)]
-            (case *pretty-style*
-              :edn (fp-edn/pprint form)
-              :el (pprint-el form)
-              (pr form))
-            (println)))))
-
 (def ^:private access {0 fileio/file-exists-p
                        1 fileio/file-readable-p
                        2 fileio/file-writable-p
@@ -577,7 +457,7 @@
               el-extension? (re-find #".el$" file)]
           (if-not url
             (el/throw* 'file-error (list "Cannot open load file" file)))
-          (when-not nomessage
+          (when (or (not nomessage) (data/symbol-value 'force-load-messages))
             (editfns/message "Loading %s%s..." file (if el-extension? " (source)" "")))
           (binding [globals/load-file-name (.getFile ^URL url)
                     globals/load-in-progress true]
@@ -601,7 +481,7 @@
                     (with-open [in (io/input-stream url)]
                       (let [el (parser/parse in)
                             clj-file (io/file *compile-path* clj-file)]
-                        (write-clojure (map el/el->clj el) clj-file)
+                        (printer/write-clojure el clj-file)
                         (if el-extension?
                           (load-raw-clj)
                           (binding [*compile-files* true]
