@@ -26,6 +26,23 @@ To run:
 
 [Marginalia](http://hraberg.github.io/deuce/) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors) | [Dependencies](https://github.com/hraberg/deuce#dependencies)
 
+**2015-02-06**
+
+I've revisited Deuce and done some house cleaning to make it slightly more attractive to work on:
+
+* Replaced the ad-hoc scripts with a single [`Makefile`](https://github.com/hraberg/deuce/blob/master/Makefile). The most interesting targets are `dist`, `test`, `run` and `run-dev`. The default target incrementally builds the uberjar and run the tests.
+* Replaced the EDN based output of the Clojure generated from Emacs Lisp with a [Fipp](https://github.com/brandonbloom/fipp) based pretty-printer that mimics Emacs Lisp a bit to make the generated Clojure code easier to read and look more similar to the Emacs Lisp it comes from.
+* Fixed a long standing issue where meta data - most importantly line numbers - got lost in the transformation from Emacs Lisp to Clojure, so now errors in the generated code contain proper line.
+* Setup the ability to run [Zile's](http://www.gnu.org/software/zile/) [tests](http://git.savannah.gnu.org/cgit/zile.git/tree/tests) [against Deuce](https://github.com/hraberg/deuce/blob/master/test/deuce/test/zile.clj) to guide the implementation of the basic editor primitives. One test, [`insert-char.el`](http://git.savannah.gnu.org/cgit/zile.git/tree/tests/insert-char.el) is currently active and passing.
+* Upgraded the dependencies to versions relevant for 2015, except for Lanterna where the latest version runs into an issue.
+
+The main issue right now for further development of Deuce is that it takes a long time to re-generate and AOT the Clojure from Emacs Lisp, 5-10 minutes. This is only needed to do when one changes how Emacs Lisp is actually compiled, and not during work on the primitives implemented in Clojure. But even running a fresh REPL with `deuce-loadup.el` can take a few minutes, and it's easy to get into a state where one has to bounce the REPL. My goal is to fix some of these issues, making it swifter and more fun to hack on Deuce. At the end of the day, that's always been the goal of this project - to have fun and learn Emacs lore.
+
+The Emacs Lisp works pretty well these days (there are a few known issues), but there's a lot of it loaded when starting Emacs, and as far from all primitives - the parts of Emacs implemented in C, and in Deuce Clojure - are implemented or work properly, many things aren't in the right state after the Emacs boot. This leads to a situation where one fix one issue, only to unlock (Emacs Lisp - The Game!) an entire subsystem in Emacs after implementing a new set of primitives - which used to return `nil` - which then again reveal further problems. That said, it's not a bad thing, but rather showing the road forward - but it makes planning the effort one needs to put into a single session quite hard, which makes it easy to give up.
+
+The terminal UI and keyboard handling (there's been some regression here) need plenty of work, I spent quite some time trying to replace this entire thing with a web UI a year back (somewhat related to `dg` below), but backed off from that effort for various reasons while learning some interesting things. That said, the longer time plan of Deuce has never been to have a text UI embedded in the actual editor, which is meant to be a server for various front-ends.
+
+
 **2013-11-28 At work**
 
 I'm currently working on another Clojure project (paid, "real" work), which will last into next year, hence the inactivity here. The good news is that it should support time for open source hacking afterwards.
