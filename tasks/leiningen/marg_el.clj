@@ -5,6 +5,7 @@
 (defn marg-el
   "Run Marginalia with Deuce Emacs Lisp macro support."
   [project & args]
+
   (defn emacs-lisp-doc [form raw nspace-sym]
     (let [doc (nth form 3 nil)]
       [doc (marginalia.parser/strip-docstring doc raw) nspace-sym]))
@@ -21,5 +22,11 @@
   (defn symbol-reader [s]
     (symbol nil s))
 
-  (binding [*data-readers* {'el/sym #'symbol-reader}]
-    (apply marginalia.main/-main args)))
+  (defn vector-reader [v]
+    (object-array (vec v)))
+
+  (alter-var-root #'default-data-readers
+                  (constantly (merge default-data-readers
+                                     {'el/sym #'symbol-reader
+                                      'el/vec #'vector-reader})))
+  (apply marginalia.main/-main args))

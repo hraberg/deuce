@@ -80,6 +80,12 @@ run: target/deuce
 run-dev: emacs/lisp/loaddefs.el
 	lein run -Q --nrepl || reset
 
+docs/index.html: $(deuce_source_files)
+	git submodule update --init docs
+	lein marg-el -f index.html
+
+docs: docs/index.html
+
 emacs/src/TAGS: emacs/Makefile
 	make -C emacs/src tags
 
