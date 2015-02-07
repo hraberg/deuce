@@ -21,5 +21,5 @@ body { background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAY
 @keyframes blink-cursor-mode { 0% { opacity: 0; } 50% { opacity: 1; } }
 a { color: blue; }
 a:hover { text-decoration: none; background-color: lightgreen; color: black; }
-#window-1 .point:before { content: " \A                                       "; }
+#window-1 .point:before { content: "                                      "; }
 #window-2 .point:before { content: ""; }
