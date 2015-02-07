@@ -12,7 +12,9 @@
   :repositories {"sonatype-staging"
                  "https://oss.sonatype.org/content/groups/staging/"}
   :plugins [[lein-difftest "2.0.0"]
-            [lein-marginalia "0.8.0"]]
+            [lein-marginalia "0.8.0"]
+            [codox "0.8.10"]]
+  :codox {:output-dir "docs/codox"}
   :profiles {:uberjar {:aot :all
                        :auto-clean false}
              :test {:global-vars {*warn-on-reflection* true}}}

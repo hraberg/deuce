@@ -82,7 +82,7 @@ run-dev: emacs/lisp/loaddefs.el
 
 docs/index.html: $(deuce_source_files)
 	git submodule update --init docs
-	lein marg-el -f index.html
+	lein do marg-el -f index.html, doc
 
 docs: docs/index.html
 
