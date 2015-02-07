@@ -14,8 +14,9 @@ body { background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAY
 .window strong { font-weight: normal; text-shadow: 1px 0px 0px black; }
 .point { z-index: 1; position: absolute; }
 .point:before { opacity: 0; }
-.live.window:not(.minibuffer) .point:after { content: " ";  border: 1px solid darkgray; }
-.selected.live.window .point:after { background: rgba(0, 0, 0, 0.2); -webkit-animation: blink-cursor-mode 1s steps(1) infinite; animation: blink-cursor-mode 1s steps(1) infinite; }
+.point:after { content: " ";  }
+.live.window:not(.minibuffer) .point:after { border: 1px solid darkgray; }
+.selected.live.window .point:after { border: 1px solid darkgray; background: rgba(0, 0, 0, 0.2); -webkit-animation: blink-cursor-mode 1s steps(1) infinite; animation: blink-cursor-mode 1s steps(1) infinite; }
 @-webkit-keyframes blink-cursor-mode { 0% { opacity: 0; } 50% { opacity: 1; } }
 @keyframes blink-cursor-mode { 0% { opacity: 0; } 50% { opacity: 1; } }
 a { color: blue; }
