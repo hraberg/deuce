@@ -74,6 +74,9 @@ test:
 smoke: target/deuce
 	target/deuce $(smoke_test_args)
 
+jslint:
+	jslint --browser $(shell find resources/public -iname "*.js")
+
 run: target/deuce
 	target/deuce
 

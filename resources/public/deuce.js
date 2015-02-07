@@ -1,4 +1,3 @@
-'use strict';
 // This is a spike for the Deuce web UI. In the real world it won't have as much logic on the client side.
 
 // JS to XTerm, see keyPress and keyDown:
@@ -7,14 +6,12 @@
 //  https://github.com/Gottox/terminal.js/blob/master/lib/input/dom.js MIT/X
 
 (function () {
+    'use strict';
+
     var fontWidth,
         fontHeight,
         keys = {backspace: 8, newline: 10, ret: 13, left: 37, up: 38, right: 39, down: 40, del: 127},
         keymap = {};
-
-    function selectedFrame() {
-        return document.querySelector('.frame');
-    }
 
     function selectedWindow() {
         return document.querySelector('.selected.window');
@@ -26,16 +23,6 @@
 
     function bufferString() {
         return currentBuffer().textContent;
-    }
-
-    function bufferText() {
-        var buffer = currentBuffer(),
-            text = buffer.childNodes[0];
-        if (!text) {
-            text = document.createTextNode('');
-            buffer.appendChild(text);
-        }
-        return text;
     }
 
     function bufferLines(offset) {
@@ -57,7 +44,6 @@
         var p = point(),
             lines = bufferLines(),
             lineLength;
-
         if (row < 0) {
             row = 0;
         }
@@ -81,8 +67,36 @@
             row = lines.length - 1;
         setPt(row, lines[row].length);
     }
-    function floatStyle(e, p) {
-        return parseFloat(e.style[p] || '0');
+
+    // Adapted from http://stackoverflow.com/questions/6240139/highlight-text-range-using-javascript
+    function getTextRange(element, start, end) {
+        function getTextNodesIn(node) {
+            if (node.nodeType === 3) {
+                return [node];
+            }
+            return [].concat.apply([], [].slice.call(node.childNodes).map(getTextNodesIn));
+        }
+        var range = document.createRange(), textNodes = getTextNodesIn(element),
+            foundStart = false, charCount = 0, i, textNode, endCharCount;
+        for (i = 0; i < textNodes.length; i += 1) {
+            textNode = textNodes[i];
+            endCharCount = charCount + textNode.length;
+            if (!foundStart && start >= charCount && (start < endCharCount ||
+                    (start === endCharCount && i < textNodes.length))) {
+                range.setStart(textNode, start - charCount);
+                foundStart = true;
+            }
+            if (foundStart && end <= endCharCount) {
+                range.setEnd(textNode, end - charCount);
+                break;
+            }
+            charCount = endCharCount;
+        }
+        return range;
+    }
+
+    function floatStyle(element, style) {
+        return parseFloat(element.style[style] || '0');
     }
 
     function ptRow() {
@@ -98,8 +112,9 @@
     }
 
     function selfInsertCommand(n) {
-        var offset = ptOffset();
-        bufferText().insertData(offset, String.fromCharCode(n));
+        var offset = ptOffset(),
+            range = getTextRange(currentBuffer(), offset, offset);
+        range.insertNode(document.createTextNode(String.fromCharCode(n)));
         setPtOffset(offset + 1);
     }
 
@@ -112,17 +127,19 @@
     }
 
     function backwardDeleteChar(n) {
-        var offset = ptOffset() - n;
-        if (offset >= 0) {
-            bufferText().deleteData(offset, n);
-            setPtOffset(offset);
+        var end = ptOffset(),
+            start = end - n;
+        if (start >= 0) {
+            getTextRange(currentBuffer(), start, end).deleteContents();
+            setPtOffset(start);
         }
     }
 
     function deleteChar(n) {
-        var offset = ptOffset();
-        if (offset >= 0) {
-            bufferText().deleteData(offset, n);
+        var start = ptOffset(),
+            end = start + n;
+        if (end >= 0) {
+            getTextRange(currentBuffer(), start, end).deleteContents();
         }
     }
 
