@@ -56,7 +56,7 @@ There's more information about this throughout this document, but some of it mig
 
 ### What is there to see?
 
-[Marginalia](http://hraberg.github.io/deuce/) | [Codox](http://hraberg.github.io/deuce/codox) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors) | [Dependencies](https://github.com/hraberg/deuce#dependencies)
+[Marginalia](http://hraberg.github.io/deuce/uberdoc.html) | [Codox](http://hraberg.github.io/deuce/codox) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors) | [Dependencies](https://github.com/hraberg/deuce#dependencies)
 
 **2015-02-06**
 
