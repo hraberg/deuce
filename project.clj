@@ -14,7 +14,8 @@
   :plugins [[lein-difftest "2.0.0"]
             [lein-marginalia "0.8.0"]
             [codox "0.8.10"]]
-  :codox {:output-dir "docs/codox"}
+  :codox {:output-dir "docs/codox"
+          :exclude deuce.emacs}
   :profiles {:uberjar {:aot :all
                        :auto-clean false}
              :test {:global-vars {*warn-on-reflection* true}}}
