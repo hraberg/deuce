@@ -11,13 +11,14 @@ body { margin: 0.5em; background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhE
 .window > .buffer { position: absolute; overflow: hidden; width: 100%; top: 0; bottom: 1.2em; background: white; }
 .window > .mode-line { position: absolute; bottom: 0; width: 100%; background-color: #ddd; overflow: hidden; border-top: 1px solid #ccc; }
 .minibuffer.window > .buffer { bottom: 0; }
-.buffer bold { font-weight: normal; text-shadow: 1px 0px 0px black; }
+.window bold { font-weight: normal; text-shadow: 1px 0px 0px black; }
 .point { z-index: 1; position: absolute; }
 .point:before { opacity: 0; }
 .live.window:not(.minibuffer) .point:after { content: " ";  border: 1px solid darkgray; }
 .selected.live.window .point:after { background: rgba(0, 0, 0, 0.2); -webkit-animation: blink-cursor-mode 1s steps(1) infinite; animation: blink-cursor-mode 1s steps(1) infinite; }
 @-webkit-keyframes blink-cursor-mode { 0% { opacity: 0; } 50% { opacity: 1; } }
 @keyframes blink-cursor-mode { 0% { opacity: 0; } 50% { opacity: 1; } }
-a:hover { text-decoration: none; background-color: silver; color: white; }
+a { color: blue; }
+a:hover { text-decoration: none; background-color: lightgreen; color: black; }
 #window-1 .point:before { content: " \A                                       "; }
 #window-2 .point:before { content: ""; }
