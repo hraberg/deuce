@@ -3,7 +3,7 @@
   :license {:name "GNU General Public License Version 3"
             :url "http://www.gnu.org/licenses/"
             :distribution :repo}
-  :url "http://www.gnu.org/software/emacs/"
+  :url "http://hraberg.github.io/deuce/"
   :dependencies [[org.clojure/clojure "1.7.0-alpha5"]
                  [clojure-lanterna "0.9.3"]
                  [com.taoensso/timbre "3.3.1"]
