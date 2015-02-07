@@ -64,7 +64,6 @@
         if (row > lines.length - 1) {
             row = lines.length - 1;
         }
-        p.dataset.row = row;
         p.style.top = (fontHeight * row) + 'px';
 
         if (col < 0) {
@@ -74,7 +73,6 @@
         if (col > lineLength) {
             col = lineLength;
         }
-        p.dataset.col = col;
         p.style.left = (fontWidth * col) + 'px';
     }
 
@@ -83,17 +81,16 @@
             row = lines.length - 1;
         setPt(row, lines[row].length);
     }
-
-    function floatData(e, p) {
-        return parseFloat(e.dataset[p] || '0');
+    function floatStyle(e, p) {
+        return parseFloat(e.style[p] || '0');
     }
 
     function ptRow() {
-        return floatData(point(), 'row');
+        return Math.floor(floatStyle(point(), 'top') / fontHeight);
     }
 
     function ptCol() {
-        return floatData(point(), 'col');
+        return Math.floor(floatStyle(point(), 'left') / fontWidth);
     }
 
     function ptOffset() {
