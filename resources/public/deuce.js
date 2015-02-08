@@ -11,7 +11,7 @@
     'use strict';
 
     var fontWidth, fontHeight,
-        keys = {backspace: 8, newline: 10, ret: 13, left: 37, up: 38, right: 39, down: 40, del: 127};
+        keys = {backspace: 8, newline: 10, ret: 13, left: 37, up: 38, right: 39, down: 40, del: 46};
 
     function selectedWindow() {
         return document.querySelector('.selected.window');
@@ -216,8 +216,8 @@
             e.preventDefault();
             window.requestAnimationFrame(function () {
                 var prefixArg = 1,
-                    command = keymap[e.keyCode];
-                if (command) {
+                    command = keymap[e.charCode];
+                if (command && e.charCode !== keys.del) {
                     command(prefixArg);
                 } else {
                     selfInsertCommand(e.charCode);
