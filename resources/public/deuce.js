@@ -76,6 +76,9 @@
             }
             return [].concat.apply([], [].slice.call(node.childNodes).map(getTextNodesIn));
         }
+        if (element.childElementCount === 0) {
+            element.appendChild(document.createTextNode(''))
+        }
         var range = document.createRange(), textNodes = getTextNodesIn(element),
             foundStart = false, charCount = 0, i, textNode, endCharCount;
         for (i = 0; i < textNodes.length; i += 1) {
