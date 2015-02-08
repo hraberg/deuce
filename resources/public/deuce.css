@@ -4,8 +4,8 @@ body { font-size: 14pt; font-family: "Courier", monospace; background: url(data:
 .menu-bar-mode .menu-bar { display: block; }
 .window { display: flex; flex-wrap: nowrap; order: 0; flex: 1 1 auto; }
 .minibuffer.window { flex: 0 1 auto; height: 1.2em; }
-.split-window-horizontally { flex-direction: row; }
-.split-window-vertically { flex-direction: column; }
+.split-window.horizontally { flex-direction: row; }
+.split-window.vertically { flex-direction: column; }
 .live.window, .menu-bar { border: 1px solid #bbb; }
 .live.window { position: relative; }
 .window > .buffer { position: absolute; overflow: hidden; width: 100%; top: 0; bottom: 1.2em; background: white; }

@@ -13,6 +13,10 @@
     var fontWidth, fontHeight,
         keys = {backspace: 8, newline: 10, ret: 13, left: 37, up: 38, right: 39, down: 40, del: 46};
 
+    function selectedFrame() {
+        return document.querySelector('.selected.frame');
+    }
+
     function selectedWindow() {
         return document.querySelector('.selected.window');
     }
@@ -262,6 +266,10 @@
         return pt;
     }
 
+    function nextWindowId(frame) {
+        return (frame || selectedFrame()).querySelectorAll('.window').length + 1;
+    }
+
     function createWindow(id) {
         var window = document.createElement('div');
         window.id = id;
@@ -275,7 +283,7 @@
         window.appendChild(buffer);
         window.appendChild(createPoint());
         if (modeLine) {
-            window.appendChild(createModeLine(modeLine));
+            window.appendChild(modeLine);
         }
         return window;
     }
@@ -287,23 +295,88 @@
         return window;
     }
 
+    function selectWindow(window) {
+        var selected = selectedWindow();
+        if (selected) {
+            selected.classList.remove('selected');
+            currentBuffer().classList.remove('current');
+        }
+        window.classList.add('selected');
+        window.querySelector('.buffer').classList.add('current');
+        return window;
+    }
+
+    function siblingWindow(window) {
+        return [].slice.call(window.parentElement.querySelectorAll('.window')).filter(function (w) {
+            return w !== window;
+        })[0];
+    }
+
+    function deleteWindow(window) {
+        var parent = window.parentElement,
+            grandparent = parent.parentElement,
+            sibling = siblingWindow(window);
+        if (grandparent && parent.classList.contains('window')) {
+            grandparent.replaceChild(sibling, parent);
+            selectWindow(sibling);
+        }
+        return window;
+    }
+
+    function otherWindow(window) {
+        return selectWindow(siblingWindow(window));
+    }
+
+    function splitWindow(frame, window, side) {
+        var newWindow =  createWindow(nextWindowId(frame)),
+            sibling = window.cloneNode(true),
+            direction;
+
+        if (side === 'right' || side === 'left') {
+            direction = 'horizontally';
+        } else {
+            direction = 'vertically';
+        }
+
+        newWindow.classList.add('split-window', direction);
+        window.parentElement.replaceChild(newWindow, window);
+        newWindow.appendChild(window);
+
+        sibling.id = nextWindowId(frame);
+        sibling.classList.remove('selected');
+        sibling.querySelector('.buffer').classList.remove('current');
+
+        if (side === 'right' || side === 'below') {
+            newWindow.appendChild(sibling);
+        } else {
+            newWindow.insertBefore(sibling, window);
+        }
+
+        return newWindow;
+    }
+
     function initFrame() {
         var frame = createFrame(),
             buffer = createBuffer('*scratch*'),
             modeline = '-UUU:----F1  <strong>*scratch*</strong>      All L1     (Lisp Interaction) ',
-            rootWindow = createLiveWindow(1, buffer, modeline);
-        rootWindow.classList.add('selected');
-        buffer.classList.add('current');
+            rootWindow = createLiveWindow(nextWindowId(frame), buffer, createModeLine(modeline));
+        selectWindow(rootWindow);
         frame.appendChild(createMenuBar(['File', 'Edit', 'Options', 'Tools', 'Buffers', 'Help']));
         frame.appendChild(rootWindow);
-        frame.appendChild(createMinibufferWindow(2, createBuffer(' *Minibuf-0*')));
+        frame.appendChild(createMinibufferWindow(nextWindowId(frame), createBuffer(' *Minibuf-0*')));
         frame.classList.add('selected', 'menu-bar-mode', 'blink-cursor-mode');
         document.body.appendChild(frame);
+    }
+
+    function unused() {
+        return;
     }
 
     document.addEventListener('DOMContentLoaded', function () {
         initFrame();
         calculateFontSize();
         registerKeyboardHandler();
+
+        unused(splitWindow, deleteWindow, otherWindow);
     });
 }());
