@@ -59,9 +59,9 @@ endef
 export deuce_header
 
 target/deuce: $(deuce_uberjar)
-	echo "$$deuce_header" > target/deuce
-	cat $(deuce_uberjar) >> target/deuce
-	chmod +x target/deuce
+	echo "$$deuce_header" > $@
+	cat $(deuce_uberjar) >> $@
+	chmod +x $@
 
 clean:
 	rm -rf target
@@ -100,7 +100,7 @@ emacs/src/TAGS-TEMACS: emacs/src/temacs
 		../lib-src/etags -o TAGS-TEMACS --regex='/[     ]*DEFVAR_[A-Z_  (]+"\([^"]+\)"/' $$(echo *.o | sed s/\\.o/.c/g))
 
 TAGS: emacs/src/TAGS emacs/src/TAGS-LISP
-	cat emacs/src/TAGS* > TAGS
+	cat $? > TAGS
 	find src/deuce/emacs/ -name "*.clj" -print | etags --language=lisp -a TAGS -
 
 $(deuce_stubs): emacs/src/TAGS-TEMACS
