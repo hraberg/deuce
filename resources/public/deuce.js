@@ -8,10 +8,8 @@
 (function () {
     'use strict';
 
-    var fontWidth,
-        fontHeight,
-        keys = {backspace: 8, newline: 10, ret: 13, left: 37, up: 38, right: 39, down: 40, del: 127},
-        keymap = {};
+    var fontWidth, fontHeight,
+        keys = {backspace: 8, newline: 10, ret: 13, left: 37, up: 38, right: 39, down: 40, del: 127};
 
     function selectedWindow() {
         return document.querySelector('.selected.window');
@@ -25,6 +23,10 @@
         return currentBuffer().textContent;
     }
 
+    function point() {
+        return currentBuffer().parentElement.querySelector('.point');
+    }
+
     function bufferLines(offset) {
         var linesAndBreaks = bufferString().substring(0, offset).split(/(\r?\n)/),
             lines = [],
@@ -34,10 +36,6 @@
             lines.push(linesAndBreaks[i] + (linesAndBreaks[i + 1] || ""));
         }
         return lines;
-    }
-
-    function point() {
-        return currentBuffer().parentElement.querySelector('.point');
     }
 
     function setPt(row, col) {
@@ -62,10 +60,17 @@
         p.style.left = (fontWidth * col) + 'px';
     }
 
-    function setPtOffset(offset) {
-        var lines = bufferLines(offset),
-            row = lines.length - 1;
-        setPt(row, lines[row].length);
+    function calculateFontSize() {
+        var temp = document.createElement('span');
+        temp.style.position = 'absolute';
+        temp.textContent = ' ';
+        selectedWindow().appendChild(temp);
+        window.requestAnimationFrame(function () {
+            var style = window.getComputedStyle(temp);
+            fontWidth = parseFloat(style.width);
+            fontHeight = parseFloat(style.height);
+            temp.remove();
+        });
     }
 
     // Adapted from http://stackoverflow.com/questions/6240139/highlight-text-range-using-javascript
@@ -75,9 +80,6 @@
                 return [node];
             }
             return [].concat.apply([], [].slice.call(node.childNodes).map(getTextNodesIn));
-        }
-        if (element.childElementCount === 0) {
-            element.appendChild(document.createTextNode(''));
         }
         var range = document.createRange(), textNodes = getTextNodesIn(element),
             foundStart = false, charCount = 0, i, textNode, endCharCount;
@@ -114,11 +116,34 @@
         return bufferLines().slice(0, ptRow()).join('').length + ptCol();
     }
 
-    function selfInsertCommand(n) {
+    // Remote Editing API
+
+    function gotoChar(offset) {
+        var lines = bufferLines(offset),
+            row = lines.length - 1;
+        setPt(row, lines[row].length);
+    }
+
+    function insert(args) {
         var offset = ptOffset(),
-            range = getTextRange(currentBuffer(), offset, offset);
-        range.insertNode(document.createTextNode(String.fromCharCode(n)));
-        setPtOffset(offset + 1);
+            buffer = currentBuffer(),
+            text = document.createTextNode(args);
+        if (buffer.childElementCount === 0) {
+            buffer.appendChild(document.createTextNode(''));
+        }
+        getTextRange(currentBuffer(), offset, offset).insertNode(text);
+        gotoChar(offset + args.length);
+    }
+
+    function deleteRegion(start, end) {
+        getTextRange(currentBuffer(), start, end).deleteContents();
+        gotoChar(start);
+    }
+
+    // Commands, implemented in Clojure / Emacs Lisp
+
+    function selfInsertCommand(n) {
+        insert(String.fromCharCode(n));
     }
 
     function newline(arg) {
@@ -133,8 +158,7 @@
         var end = ptOffset(),
             start = end - n;
         if (start >= 0) {
-            getTextRange(currentBuffer(), start, end).deleteContents();
-            setPtOffset(start);
+            deleteRegion(start, end);
         }
     }
 
@@ -142,16 +166,16 @@
         var start = ptOffset(),
             end = start + n;
         if (end >= 0) {
-            getTextRange(currentBuffer(), start, end).deleteContents();
+            deleteRegion(start, end);
         }
     }
 
     function backwardChar(n) {
-        setPtOffset(ptOffset() - n);
+        gotoChar(ptOffset() - n);
     }
 
     function forwardChar(n) {
-        setPtOffset(ptOffset() + n);
+        gotoChar(ptOffset() + n);
     }
 
     function previousLine(arg) {
@@ -162,15 +186,19 @@
         setPt(ptRow() + arg,  ptCol());
     }
 
-    keymap[keys.ret] = newline;
-    keymap[keys.backspace] = backwardDeleteChar;
-    keymap[keys.del] = deleteChar;
-    keymap[keys.left] = backwardChar;
-    keymap[keys.up] = previousLine;
-    keymap[keys.right] = forwardChar;
-    keymap[keys.down] = nextLine;
+    // Keyboard, will send XTerm keys down, similar to how term.js works.
 
     function registerKeyboardHandler() {
+        var keymap = {};
+
+        keymap[keys.ret] = newline;
+        keymap[keys.backspace] = backwardDeleteChar;
+        keymap[keys.del] = deleteChar;
+        keymap[keys.left] = backwardChar;
+        keymap[keys.up] = previousLine;
+        keymap[keys.right] = forwardChar;
+        keymap[keys.down] = nextLine;
+
         document.addEventListener('keydown', function (e) {
             var prefixArg = 1,
                 command = keymap[e.keyCode];
@@ -193,19 +221,6 @@
                     selfInsertCommand(e.charCode);
                 }
             });
-        });
-    }
-
-    function calculateFontSize() {
-        var temp = document.createElement('span');
-        temp.style.position = 'absolute';
-        temp.textContent = ' ';
-        selectedWindow().appendChild(temp);
-        window.requestAnimationFrame(function () {
-            var style = window.getComputedStyle(temp);
-            fontWidth = parseFloat(style.width);
-            fontHeight = parseFloat(style.height);
-            temp.remove();
         });
     }
 
