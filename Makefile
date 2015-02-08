@@ -36,7 +36,7 @@ emacs-tests: emacs/src/emacs
 	make -C emacs/test/automated check
 
 emacs-smoke: emacs/src/temacs
-	emacs/src/temacs $(smoke_test_args)
+	$< $(smoke_test_args)
 
 zile/Makefile:
 	git submodule update --init zile
@@ -72,13 +72,13 @@ test:
 	lein difftest
 
 smoke: target/deuce
-	target/deuce $(smoke_test_args)
+	$< $(smoke_test_args)
 
 jslint:
-	jslint $(shell find resources/public -iname "*.js")
+	$@ $(shell find resources/public -iname "*.js")
 
 run: target/deuce
-	target/deuce
+	$<
 
 run-dev: emacs/lisp/loaddefs.el
 	lein run -Q --nrepl || reset
