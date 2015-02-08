@@ -133,7 +133,7 @@
         if (buffer.childElementCount === 0) {
             buffer.appendChild(document.createTextNode(''));
         }
-        getTextRange(currentBuffer(), offset, offset).insertNode(text);
+        getTextRange(buffer, offset, offset).insertNode(text);
         gotoChar(offset + args.length);
     }
 
