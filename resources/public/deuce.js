@@ -1,3 +1,5 @@
+/*jslint browser: true */
+
 // This is a spike for the Deuce web UI. In the real world it won't have as much logic on the client side.
 
 // JS to XTerm, see keyPress and keyDown:
