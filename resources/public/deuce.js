@@ -226,7 +226,77 @@
         });
     }
 
+    // Window Management
+
+    function createFrame() {
+        var frame = document.createElement('div');
+        frame.classList.add('frame');
+        return frame;
+    }
+
+    function createMenuBar(menus) {
+        var menubar = document.createElement('nav');
+        menubar.innerHTML = menus.join(' ');
+        menubar.classList.add('menu-bar');
+        return menubar;
+    }
+
+    function createModeLine(line) {
+        var modeLine = document.createElement('footer');
+        modeLine.innerHTML = line + new Array(80).join('-');
+        modeLine.classList.add('mode-line');
+        return modeLine;
+    }
+
+    function createBuffer(id) {
+        var buffer = document.createElement('div');
+        buffer.id = id;
+        buffer.classList.add('buffer');
+        return buffer;
+    }
+
+    function createPoint() {
+        var pt = document.createElement('span');
+        pt.innerHTML = ' ';
+        pt.classList.add('point');
+        return pt;
+    }
+
+    function createLiveWindow(id, buffer, modeLine) {
+        var window = document.createElement('div');
+        window.id = id;
+        window.classList.add('window', 'live');
+        window.appendChild(buffer);
+        window.appendChild(createPoint());
+        if (modeLine) {
+            window.appendChild(createModeLine(modeLine));
+        }
+        return window;
+    }
+
+    function createMinibufferWindow(id, buffer) {
+        var window = createLiveWindow(id, buffer);
+        buffer.classList.add('minibuffer-inactive-mode');
+        window.classList.add('minibuffer');
+        return window;
+    }
+
+    function initFrame() {
+        var frame = createFrame(),
+            buffer = createBuffer('*scratch*'),
+            modeline = '-UUU:----F1  <strong>*scratch*</strong>      All L1     (Lisp Interaction) ',
+            rootWindow = createLiveWindow(1, buffer, modeline);
+        rootWindow.classList.add('selected');
+        buffer.classList.add('current');
+        frame.appendChild(createMenuBar(['File', 'Edit', 'Options', 'Tools', 'Buffers', 'Help']));
+        frame.appendChild(rootWindow);
+        frame.appendChild(createMinibufferWindow(2, createBuffer(' *Minibuf-0*')));
+        frame.classList.add('selected', 'menu-bar-mode', 'blink-cursor-mode');
+        document.body.appendChild(frame);
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
+        initFrame();
         calculateFontSize();
         registerKeyboardHandler();
     });
