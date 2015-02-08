@@ -262,10 +262,16 @@
         return pt;
     }
 
-    function createLiveWindow(id, buffer, modeLine) {
+    function createWindow(id) {
         var window = document.createElement('div');
         window.id = id;
-        window.classList.add('window', 'live');
+        window.classList.add('window');
+        return window;
+    }
+
+    function createLiveWindow(id, buffer, modeLine) {
+        var window = createWindow(id);
+        window.classList.add('live');
         window.appendChild(buffer);
         window.appendChild(createPoint());
         if (modeLine) {
