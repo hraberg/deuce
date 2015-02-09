@@ -11,7 +11,12 @@
     'use strict';
 
     var fontWidth, fontHeight,
-        keys = {backspace: 8, newline: 10, ret: 13, left: 37, up: 38, right: 39, down: 40, del: 46};
+        keys = {backspace: 8, newline: 10, ret: 13, left: 37, up: 38, right: 39, down: 40, del: 46},
+        mouseButton = {left: 0, middle: 1, right: 2};
+
+    function matches(element, selector) {
+        return (element.matches || element.mozMatchesSelector).call(element, selector);
+    }
 
     function selectedFrame() {
         return document.querySelector('.selected.frame');
@@ -39,9 +44,14 @@
             i;
 
         for (i = 0; i < linesAndBreaks.length; i += 2) {
-            lines.push(linesAndBreaks[i] + (linesAndBreaks[i + 1] || ""));
+            lines.push(linesAndBreaks[i] + (linesAndBreaks[i + 1] || ''));
         }
         return lines;
+    }
+
+
+    function lineLengthNoNewline(line) {
+        return (line || '').replace(/(\r?\n)*$/, '').length;
     }
 
     function setPt(row, col) {
@@ -59,7 +69,7 @@
         if (col < 0) {
             col = 0;
         }
-        lineLength = (lines[row] || "").replace(/(\r?\n)*$/, '').length;
+        lineLength = lineLengthNoNewline(lines[row]);
         if (col > lineLength) {
             col = lineLength;
         }
@@ -248,6 +258,28 @@
         });
     }
 
+    // Mouse
+
+    function registerMouseHandler() {
+        document.addEventListener('mousedown', function (e) {
+            e.preventDefault();
+            if (mouseButton.left === e.button && matches(e.target, '.buffer')) {
+                var row = Math.floor(e.layerY / fontHeight),
+                    col = Math.floor(e.layerX / fontWidth),
+                    lines = bufferLines(),
+                    line = lines[row],
+                    offset = lines.slice(0, row).join('').length + Math.min(col, lineLengthNoNewline(line));
+                window.requestAnimationFrame(function () {
+                    gotoChar(offset);
+                });
+            }
+        });
+
+        document.oncontextmenu = function (e) {
+            e.preventDefault();
+        };
+    }
+
     // Window Management
 
     function createFrame() {
@@ -311,10 +343,6 @@
         buffer.classList.add('minibuffer-inactive-mode');
         window.classList.add('minibuffer');
         return window;
-    }
-
-    function matches(element, selector) {
-        return (element.matches || element.mozMatchesSelector).call(element, selector);
     }
 
     function selectWindow(window) {
@@ -407,6 +435,7 @@
         initFrame();
         loadTheme('default-theme.css');
         registerKeyboardHandler();
+        registerMouseHandler();
 
         unused(splitWindow, deleteWindow, otherWindow);
     });
