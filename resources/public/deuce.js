@@ -297,13 +297,20 @@
 
     function selectWindow(window) {
         var selected = selectedWindow(),
-            buffer = window.querySelector('.buffer');
+            buffer = window.querySelector('.buffer'),
+            current = currentBuffer();
         if (selected) {
             selected.classList.remove('selected');
-            currentBuffer().classList.remove('current');
+            current.classList.remove('current');
+            if (selected.matches('minibuffer')) {
+                current.classList.add('minibuffer-inactive-mode');
+            }
         }
         window.classList.add('selected');
         buffer.classList.add('current');
+        if (window.matches('minibuffer')) {
+            buffer.classList.remove('minibuffer-inactive-mode');
+        }
         document.title = buffer.id;
         return window;
     }
