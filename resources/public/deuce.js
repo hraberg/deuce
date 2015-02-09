@@ -220,65 +220,6 @@
         setPt(ptRow() + arg,  ptCol());
     }
 
-    // Keyboard, will send XTerm keys down, similar to how term.js works.
-
-    function registerKeyboardHandler() {
-        var keymap = {};
-
-        keymap[keys.ret] = newline;
-        keymap[keys.backspace] = backwardDeleteChar;
-        keymap[keys.del] = deleteChar;
-        keymap[keys.left] = backwardChar;
-        keymap[keys.up] = previousLine;
-        keymap[keys.right] = forwardChar;
-        keymap[keys.down] = nextLine;
-
-        document.addEventListener('keydown', function (e) {
-            var prefixArg = 1,
-                command = keymap[e.keyCode];
-            if (command) {
-                e.preventDefault();
-                window.requestAnimationFrame(function () {
-                    command(prefixArg);
-                });
-            }
-        });
-
-        document.addEventListener('keypress', function (e) {
-            e.preventDefault();
-            window.requestAnimationFrame(function () {
-                var prefixArg = 1,
-                    command = keymap[e.charCode];
-                if (command && e.charCode !== keys.del) {
-                    command(prefixArg);
-                } else {
-                    selfInsertCommand(e.charCode);
-                }
-            });
-        });
-    }
-
-    // Mouse
-
-    function registerMouseHandler() {
-        document.addEventListener('mousedown', function (e) {
-            e.preventDefault();
-            if (mouseButton.left === e.button && matches(e.target, '.buffer')) {
-                var row = Math.floor(e.layerY / fontHeight),
-                    col = Math.floor(e.layerX / fontWidth),
-                    lines = bufferLines(),
-                    line = lines[row],
-                    offset = lines.slice(0, row).join('').length + Math.min(col, lineLengthNoNewline(line));
-                window.requestAnimationFrame(function () {
-                    gotoChar(offset);
-                });
-            }
-        });
-
-        document.oncontextmenu = function (e) {
-            e.preventDefault();
-        };
-    }
 
     // Window Management
 
@@ -349,6 +290,9 @@
         var selected = selectedWindow(),
             buffer = window.querySelector('.buffer'),
             current = currentBuffer();
+        if (window === selected) {
+            return window;
+        }
         if (selected) {
             selected.classList.remove('selected');
             current.classList.remove('current');
@@ -425,6 +369,68 @@
         frame.appendChild(createMinibufferWindow(nextWindowId(frame), createBuffer(' *Minibuf-0*')));
         frame.classList.add('selected', 'menu-bar-mode', 'blink-cursor-mode', 'border');
         document.body.appendChild(frame);
+    }
+
+    // Keyboard, will send XTerm keys down, similar to how term.js works.
+
+    function registerKeyboardHandler() {
+        var keymap = {};
+
+        keymap[keys.ret] = newline;
+        keymap[keys.backspace] = backwardDeleteChar;
+        keymap[keys.del] = deleteChar;
+        keymap[keys.left] = backwardChar;
+        keymap[keys.up] = previousLine;
+        keymap[keys.right] = forwardChar;
+        keymap[keys.down] = nextLine;
+
+        document.addEventListener('keydown', function (e) {
+            var prefixArg = 1,
+                command = keymap[e.keyCode];
+            if (command) {
+                e.preventDefault();
+                window.requestAnimationFrame(function () {
+                    command(prefixArg);
+                });
+            }
+        });
+
+        document.addEventListener('keypress', function (e) {
+            e.preventDefault();
+            window.requestAnimationFrame(function () {
+                var prefixArg = 1,
+                    command = keymap[e.charCode];
+                if (command && e.charCode !== keys.del) {
+                    command(prefixArg);
+                } else {
+                    selfInsertCommand(e.charCode);
+                }
+            });
+        });
+    }
+
+    // Mouse
+
+    function registerMouseHandler() {
+        document.addEventListener('mousedown', function (e) {
+            e.preventDefault();
+            if (mouseButton.left === e.button
+                     && matches(e.target, '.buffer:not(.minibuffer-inactive-mode')) {
+                selectWindow(e.target.parentElement);
+                var row = Math.floor(e.layerY / fontHeight),
+                    col = Math.floor(e.layerX / fontWidth),
+                    lines = bufferLines(),
+                    line = lines[row],
+                    offset = lines.slice(0, row).join('').length + Math.min(col, lineLengthNoNewline(line));
+                window.requestAnimationFrame(function () {
+                    gotoChar(offset);
+                });
+            }
+        });
+
+        document.oncontextmenu = function (e) {
+            e.preventDefault();
+        };
     }
 
     function unused() {
