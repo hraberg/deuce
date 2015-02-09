@@ -1,0 +1,9 @@
+.frame { font-size: 14pt; font-family: "Courier", monospace; background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAaklEQVQYV2NkYGAwBuKzQAwC9UA8C4ifQ/n/GaEMkCIfIG6E8iWB9DMgZoQpAOncgmTSfyBbCmQSSAFIEqYTZNIZkE6YSSAGyDi4nUC2CbKb4CphdqK7CaYAbieSb8BuAikASSKblIbsJgCKXBfTNjWx1AAAAABJRU5ErkJggg==); background-color: #ddd; }
+.frame.border { padding: 0.5em; }
+.menu-bar { background-color: black; color: white; box-shadow: 0 0 4px 2px #ddd; }
+.window > .buffer {  background-color: white; color: black; }
+.window > .mode-line { background-color: #ddd; border-top: 1px solid #ccc; }
+.live.window .point { border: 1px solid darkgray; }
+.selected.live.window .point { background: black; background: rgba(0, 0, 0, 0.2); }
+.buffer a { color: blue; }
+.buffer a:hover { text-decoration: none; background-color: lightgreen; color: black; }

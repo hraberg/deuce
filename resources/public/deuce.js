@@ -79,6 +79,18 @@
         });
     }
 
+    function loadTheme(theme) {
+        var link = document.querySelector('.theme') || document.createElement('link');
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.classList.add('theme');
+        link.href = theme;
+        if (!link.parentElement) {
+            document.head.appendChild(link);
+        }
+        setTimeout(calculateFontSize);
+    }
+
     // Adapted from http://stackoverflow.com/questions/6240139/highlight-text-range-using-javascript
     function getTextRange(element, start, end) {
         function getTextNodesIn(node) {
@@ -247,7 +259,7 @@
 
     function createModeLine(line) {
         var modeLine = document.createElement('footer');
-        modeLine.innerHTML = line + new Array(80).join('-');
+        modeLine.innerHTML = line + new Array(256).join('-');
         modeLine.classList.add('mode-line');
         return modeLine;
     }
@@ -295,6 +307,10 @@
         return window;
     }
 
+    function matches(element, selector) {
+        return (element.matches || element.mozMatchesSelector).call(element, selector);
+    }
+
     function selectWindow(window) {
         var selected = selectedWindow(),
             buffer = window.querySelector('.buffer'),
@@ -302,13 +318,13 @@
         if (selected) {
             selected.classList.remove('selected');
             current.classList.remove('current');
-            if (selected.matches('minibuffer')) {
+            if (matches(selected, 'minibuffer')) {
                 current.classList.add('minibuffer-inactive-mode');
             }
         }
         window.classList.add('selected');
         buffer.classList.add('current');
-        if (window.matches('minibuffer')) {
+        if (matches(window, 'minibuffer')) {
             buffer.classList.remove('minibuffer-inactive-mode');
         }
         document.title = buffer.id;
@@ -383,7 +399,7 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         initFrame();
-        calculateFontSize();
+        loadTheme('default-theme.css');
         registerKeyboardHandler();
 
         unused(splitWindow, deleteWindow, otherWindow);
