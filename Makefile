@@ -77,6 +77,11 @@ smoke: target/deuce
 jslint:
 	$@ $(shell find resources/public -iname "*.js")
 
+csslint:
+	$@ --ignore=adjoining-classes $(shell find resources/public -iname "*.css")
+
+lint: jslint csslint
+
 run: target/deuce
 	$<
 
@@ -109,4 +114,4 @@ $(deuce_stubs): emacs/src/TAGS-TEMACS
 
 stubs: $(deuce_stubs)
 
-.PHONY: test emacs-tests zile-tests emacs-smoke smoke clean stubs dist run run-dev all
+.PHONY: test emacs-tests zile-tests emacs-smoke smoke clean stubs dist run run-dev all jslint csslint lint
