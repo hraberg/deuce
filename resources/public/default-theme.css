@@ -2,9 +2,9 @@
 .frame.border { padding: 0.5em; }
 .menu-bar { background-color: black; color: white; box-shadow: 0 0 4px 2px #ddd; }
 .live.window, .menu-bar { border: 1px solid #bbb; border-radius: 4px; }
-.window > .buffer {  background-color: white; color: black; }
+.window {  background-color: white; color: black; }
 .window > .mode-line { background-color: #ddd; border-top: 1px solid #ccc; }
 .live.window .point { border: 1px solid darkgray; }
 .selected.live.window .point { background: black; background: rgba(0, 0, 0, 0.2); }
-.buffer a { color: blue; }
-.buffer a:hover { text-decoration: none; background-color: lightgreen; color: black; }
+.window a { color: blue; }
+.window a:hover { text-decoration: none; background-color: lightgreen; color: black; }

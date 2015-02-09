@@ -1,8 +1,8 @@
 .frame { font-size: 14pt; font-family: "Courier", monospace; }
 .menu-bar { background-color: #3f3f3f; color: #dcdccc; border-bottom: 1px solid #2b2b2b; }
-.window > .buffer {  background-color: #3f3f3f; color: #dcdccc; }
+.window { background-color: #3f3f3f; color: #dcdccc; }
 .window > .mode-line { background-color: #2b2b2b; color: #8fb28f; border-top: 1px solid #2b2b2b; }
 .live.window .point { border: none; }
 .selected.live.window .point { background-color: #dcdccc; background-color: rgba(208, 208, 192, 0.8); }
-.buffer a { color: #93e0e3; }
-.buffer a:hover { text-decoration: none; background-color: lightgray; color: #dcdccc; }
+.window a { color: #93e0e3; }
+.window a:hover { text-decoration: none; background-color: lightgray; color: #dcdccc; }
