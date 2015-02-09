@@ -387,7 +387,9 @@
         document.addEventListener('keydown', function (e) {
             var prefixArg = 1,
                 command = keymap[e.keyCode];
-            selectedFrame().classList.add('keydown');
+            if (e.repeat) {
+                selectedFrame().classList.add('keyrepeat');
+            }
             if (command) {
                 e.preventDefault();
                 window.requestAnimationFrame(function () {
@@ -397,7 +399,7 @@
         });
 
         document.addEventListener('keyup', function () {
-            selectedFrame().classList.remove('keydown');
+            selectedFrame().classList.remove('keyrepeat');
         });
 
         document.addEventListener('keypress', function (e) {
