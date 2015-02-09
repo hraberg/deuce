@@ -79,16 +79,22 @@
         });
     }
 
-    function loadTheme(theme) {
-        var link = document.querySelector('.theme') || document.createElement('link');
+    function createStylesheetLink(href) {
+        var link = document.createElement('link');
         link.rel = 'stylesheet';
         link.type = 'text/css';
-        link.classList.add('theme');
-        link.href = theme;
-        if (!link.parentElement) {
-            document.head.appendChild(link);
-        }
-        setTimeout(calculateFontSize);
+        link.href = href;
+        return link;
+    }
+
+    function loadTheme(theme) {
+        var head = document.head;
+        [].slice.call(head.querySelectorAll('link[rel=stylesheet]')).map(function (e) {
+            e.remove();
+        });
+        head.appendChild(createStylesheetLink('layout.css'));
+        head.appendChild(createStylesheetLink(theme));
+        window.requestAnimationFrame(calculateFontSize);
     }
 
     // Adapted from http://stackoverflow.com/questions/6240139/highlight-text-range-using-javascript
