@@ -15,6 +15,9 @@ deuce_uberjar=target/deuce-$(deuce_version)-standalone.jar
 deuce_stubs=src-$(emacs_version)-stubs
 deuce_source_files=$(shell find src -iname "*.clj")
 
+deuce_javascript=$(shell find resources/public/ -iname "*.js")
+deuce_css=$(shell find resources/public/ -iname "*.css")
+
 smoke_test_args=-Q --batch --eval "(print (emacs-version))"
 
 all: target/deuce test
@@ -74,11 +77,11 @@ test:
 smoke: target/deuce
 	$< $(smoke_test_args)
 
-jslint:
-	$@ $(shell find resources/public -iname "*.js")
+jslint: $(deuce_javascript)
+	$@ $?
 
-csslint:
-	$@ --ignore=adjoining-classes $(shell find resources/public -iname "*.css")
+csslint: $(deuce_css)
+	$@ --ignore=adjoining-classes $?
 
 lint: jslint csslint
 
