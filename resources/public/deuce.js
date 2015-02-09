@@ -70,7 +70,7 @@
         var temp = document.createElement('span');
         temp.style.position = 'absolute';
         temp.textContent = ' ';
-        selectedWindow().appendChild(temp);
+        selectedFrame().appendChild(temp);
         window.requestAnimationFrame(function () {
             var style = window.getComputedStyle(temp);
             fontWidth = parseFloat(style.width);
