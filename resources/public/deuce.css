@@ -1,5 +1,6 @@
 body { font-size: 14pt; font-family: "Courier", monospace; background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAaklEQVQYV2NkYGAwBuKzQAwC9UA8C4ifQ/n/GaEMkCIfIG6E8iWB9DMgZoQpAOncgmTSfyBbCmQSSAFIEqYTZNIZkE6YSSAGyDi4nUC2CbKb4CphdqK7CaYAbieSb8BuAikASSKblIbsJgCKXBfTNjWx1AAAAABJRU5ErkJggg==); background-color: #ddd; }
-.frame { display: flex; flex-direction: column; left: 0.5em; right: 0.5em; top: 0.5em; bottom: 0.5em; position: fixed; white-space: pre; }
+.frame { display: flex; flex-direction: column; position: fixed; white-space: pre; left: 0; right: 0; top: 0; bottom: 0; }
+.frame.border { padding: 0.5em; }
 .menu-bar { background-color: black; color: white; display: none; box-shadow: 0 0 4px 2px #ddd; }
 .menu-bar-mode .menu-bar { display: block; }
 .window { display: flex; flex-wrap: nowrap; order: 0; flex: 1 1 auto; }
