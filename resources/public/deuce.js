@@ -166,11 +166,14 @@
             buffer.appendChild(document.createTextNode(''));
         }
         getTextRange(buffer, offset, offset).insertNode(text);
+        buffer.normalize();
         gotoChar(offset + args.length);
     }
 
     function deleteRegion(start, end) {
-        getTextRange(currentBuffer(), start, end).deleteContents();
+        var buffer = currentBuffer();
+        getTextRange(buffer, start, end).deleteContents();
+        buffer.normalize();
         gotoChar(start);
     }
 
