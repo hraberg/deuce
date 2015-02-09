@@ -387,12 +387,17 @@
         document.addEventListener('keydown', function (e) {
             var prefixArg = 1,
                 command = keymap[e.keyCode];
+            selectedFrame().classList.add('keydown');
             if (command) {
                 e.preventDefault();
                 window.requestAnimationFrame(function () {
                     command(prefixArg);
                 });
             }
+        });
+
+        document.addEventListener('keyup', function () {
+            selectedFrame().classList.remove('keydown');
         });
 
         document.addEventListener('keypress', function (e) {

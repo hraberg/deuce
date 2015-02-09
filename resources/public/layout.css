@@ -12,6 +12,6 @@
 .minibuffer.window > .buffer { bottom: 0; }
 .minibuffer.window > .buffer.minibuffer-inactive-mode + .point { display: none; }
 .point { z-index: 1; position: absolute; border: 1px solid; }
-.blink-cursor-mode .selected.live.window .point { -webkit-animation: blink-cursor-mode 1s steps(1) infinite; -moz-animation: blink-cursor-mode 1s steps(1) infinite; animation: blink-cursor-mode 1s steps(1) infinite; }
+.frame.blink-cursor-mode:not(.keydown) .selected.live.window .point { -webkit-animation: blink-cursor-mode 1s steps(1) infinite; -moz-animation: blink-cursor-mode 1s steps(1) infinite; animation: blink-cursor-mode 1s steps(1) infinite; }
 @-webkit-keyframes blink-cursor-mode { 0% { opacity: 0; } 50% { opacity: 1; } }
 @keyframes blink-cursor-mode { 0% { opacity: 0; } 50% { opacity: 1; } }
