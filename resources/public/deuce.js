@@ -296,13 +296,15 @@
     }
 
     function selectWindow(window) {
-        var selected = selectedWindow();
+        var selected = selectedWindow(),
+            buffer = window.querySelector('.buffer');
         if (selected) {
             selected.classList.remove('selected');
             currentBuffer().classList.remove('current');
         }
         window.classList.add('selected');
-        window.querySelector('.buffer').classList.add('current');
+        buffer.classList.add('current');
+        document.title = buffer.id;
         return window;
     }
 
