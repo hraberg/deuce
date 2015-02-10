@@ -11,6 +11,7 @@
     'use strict';
 
     var fontWidth, fontHeight,
+        requestAnimationFrame = (window.requestAnimationFrame || window.setTimeout),
         keys = {backspace: 8, newline: 10, ret: 13,
                 shift: 16, ctrl: 17, alt: 18, esc: 27, left: 37,
                 up: 38, right: 39, down: 40,
@@ -20,7 +21,7 @@
         killRing;
 
     function matches(element, selector) {
-        return (element.matches || element.mozMatchesSelector).call(element, selector);
+        return (element.matches || element.webkitMatchesSelector || element.mozMatchesSelector).call(element, selector);
     }
 
     function selectedFrame() {
@@ -90,8 +91,8 @@
         temp.style.position = 'absolute';
         temp.textContent = ' ';
         selectedFrame().appendChild(temp);
-        window.requestAnimationFrame(function () {
-            var style = window.getComputedStyle(temp);
+        requestAnimationFrame(function () {
+            var style = document.defaultView.getComputedStyle(temp);
             fontWidth = parseFloat(style.width);
             fontHeight = parseFloat(style.height);
             temp.remove();
@@ -113,7 +114,7 @@
         });
         head.appendChild(createStylesheetLink('layout.css'));
         head.appendChild(createStylesheetLink(theme));
-        window.requestAnimationFrame(calculateFontSize);
+        requestAnimationFrame(calculateFontSize);
     }
 
     // Adapted from http://stackoverflow.com/questions/6240139/highlight-text-range-using-javascript
@@ -595,7 +596,7 @@
             }
             if (command) {
                 e.preventDefault();
-                window.requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
                     command(prefixArg);
                 });
             }
@@ -611,7 +612,7 @@
 
         window.addEventListener('keypress', function (e) {
             e.preventDefault();
-            window.requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
                 selfInsertCommand(e.charCode);
             });
         });
@@ -625,12 +626,13 @@
             if (mouseButton.left === e.button
                      && matches(e.target, '.buffer:not(.minibuffer-inactive-mode')) {
                 selectWindow(e.target.parentElement);
+
                 var row = Math.floor(e.layerY / fontHeight),
                     col = Math.floor(e.layerX / fontWidth),
                     lines = bufferLines(),
                     line = lines[row],
                     offset = lines.slice(0, row).join('').length + Math.min(col, lineLengthNoNewline(line));
-                window.requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
                     gotoChar(offset);
                 });
             }

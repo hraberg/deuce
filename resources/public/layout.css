@@ -1,10 +1,10 @@
-.frame { display: flex; flex-direction: column; position: fixed; font-family: monospace; white-space: pre; left: 0; right: 0; top: 0; bottom: 0; }
+.frame { display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; position: fixed; font-family: monospace; white-space: pre; left: 0; right: 0; top: 0; bottom: 0; }
 .menu-bar { display: none; }
 .menu-bar-mode .menu-bar { display: block; }
-.window { display: flex; flex-wrap: nowrap; order: 0; flex: 1 1 auto; }
-.minibuffer.window { flex: 0 1 auto; height: 1.2em; }
-.split-window.horizontally { flex-direction: row; }
-.split-window.vertically { flex-direction: column; }
+.window { display: -webkit-flex; display: flex; -webkit-flex-wrap: nowrap; flex-wrap: nowrap; order: 0; -webkit-flex: 1 1 auto; flex: 1 1 auto; }
+.minibuffer.window { -webkit-flex: 0 1 auto; flex: 0 1 auto; height: 1.2em; }
+.split-window.horizontally { -webkit-flex-direction: row; flex-direction: row; }
+.split-window.vertically { -webkit-flex-direction: column; flex-direction: column; }
 .live.window { position: relative; }
 .window > .buffer { position: absolute; overflow: hidden; width: 100%; top: 0; bottom: 1.2em; }
 .window > .mode-line { position: absolute; bottom: 0; width: 100%; overflow: hidden; }
