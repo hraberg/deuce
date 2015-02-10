@@ -14,8 +14,9 @@
         keys = {backspace: 8, newline: 10, ret: 13,
                 shift: 16, ctrl: 17, alt: 18, esc: 27, left: 37,
                 up: 38, right: 39, down: 40,
-                ins: 45, del: 46},
-        mouseButton = {left: 0, middle: 1, right: 2};
+                ins: 45, del: 46, slash: 191},
+        mouseButton = {left: 0, middle: 1, right: 2},
+        killRing;
 
     function matches(element, selector) {
         return (element.matches || element.mozMatchesSelector).call(element, selector);
@@ -243,6 +244,50 @@
         setPtUpdateRegion(ptRow() + arg,  ptCol());
     }
 
+    function beginningOfLine(arg) {
+        if (arg > 1) {
+            nextLine(arg);
+        }
+        setPtUpdateRegion(ptRow(), 0);
+    }
+
+    function endOfLine(arg) {
+        if (arg > 1) {
+            nextLine(arg);
+        }
+        var row = ptRow();
+        setPtUpdateRegion(row, lineLengthNoNewline(bufferLines()[row]));
+    }
+
+    function killLine(arg) {
+        var row = ptRow(),
+            col = ptCol(),
+            offset = ptOffset(),
+            lines = bufferLines(),
+            line = lines[row],
+            eol = lineLengthNoNewline(line);
+        if (line.substring(col).trim() === '') {
+            eol = line.length;
+        }
+        killRing = line.substring(col, eol);
+        deleteRegion(offset, eol + offset - col);
+        if (arg > 1) {
+            killLine(arg - 1);
+        }
+    }
+
+    function yank() {
+        if (killRing) {
+            var offset = ptOffset();
+            insert(killRing);
+            gotoChar(offset);
+        }
+    }
+
+    function undo() {
+        console.log("not implemented");
+    }
+
     function selfInsertCommand(n) {
         var s = String.fromCharCode(n);
         if (matches(currentBuffer(), '.overwrite-mode')) {
@@ -441,6 +486,12 @@
         keymap[keys.up] = previousLine;
         keymap[keys.right] = forwardChar;
         keymap[keys.down] = nextLine;
+        keymap[keys.ctrl] = {' ': setMark,
+                             A: beginningOfLine,
+                             E: endOfLine,
+                             K: killLine,
+                             Y: yank};
+        keymap[keys.ctrl][String.fromCharCode(keys.slash)] = undo;
 
         window.addEventListener('keydown', function (e) {
             var prefixArg = 1,
@@ -451,15 +502,8 @@
                 selectedFrame().classList.add('keydown');
             }
             if (e.ctrlKey) {
-                if (key === 'A'.charCodeAt(0)) {
-                    e.preventDefault();
-                }
-                if (key === ' '.charCodeAt(0)) {
-                    e.preventDefault();
-                    command = setMark;
-                }
+                command = keymap[keys.ctrl][String.fromCharCode(key)];
             }
-
             if (command) {
                 e.preventDefault();
                 window.requestAnimationFrame(function () {
