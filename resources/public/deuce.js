@@ -353,6 +353,12 @@
         }
     }
 
+    function openLine(arg) {
+        var offset = ptOffset();
+        newline(arg);
+        gotoChar(offset);
+    }
+
     function setMark(pos) {
         pos = pos || ptOffset();
         var marker = mark(),
@@ -537,8 +543,17 @@
         keymap[keys.down] = nextLine;
         keymap[keys.ctrl] = {' ': setMark,
                              A: beginningOfLine,
+                             B: backwardChar,
+                             D: deleteChar,
                              E: endOfLine,
+                             F: forwardChar,
+                             J: newline,
                              K: killLine,
+                             M: newline,
+                             O: openLine,
+                             P: previousLine,
+                             N: nextLine,
+                             V: yank,
                              Y: yank};
         keymap[keys.ctrl][String.fromCharCode(keys.slash)] = undo;
 
