@@ -341,9 +341,7 @@
 
     function yank() {
         if (killRing) {
-            var offset = ptOffset();
             insert(killRing);
-            gotoChar(offset);
         }
     }
 
