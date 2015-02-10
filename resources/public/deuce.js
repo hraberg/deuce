@@ -195,29 +195,28 @@
         setPtUpdateRegion(row, lines[row].length);
     }
 
-    function insertNoUndo(args) {
-        var offset = ptOffset(),
-            buffer = currentBuffer(),
-            text = document.createTextNode(args),
-            range;
+    function insertInternal(buffer, offset, text) {
         if (buffer.childElementCount === 0) {
             buffer.appendChild(document.createTextNode(''));
         }
-        range = getTextRange(buffer, offset, offset);
-        range.insertNode(text);
+        getTextRange(buffer, offset, offset).insertNode(document.createTextNode(text));
         buffer.normalize();
-        gotoChar(offset + args.length);
-        return range;
     }
 
-    function deleteAndExtractRegionNoUndo(start, end) {
-        var buffer = currentBuffer(),
-            range = getTextRange(buffer, start, end),
+    function deleteInternal(buffer, start, end) {
+        var range = getTextRange(buffer, start, end),
             text = range.toString();
         range.deleteContents();
         buffer.normalize();
-        gotoChar(start);
         return text;
+    }
+
+    // Commands, implemented in Clojure / Emacs Lisp
+
+    function insertNoUndo(args) {
+        var offset = ptOffset();
+        insertInternal(currentBuffer(), offset, args);
+        gotoChar(offset + args.length);
     }
 
     function insert(args) {
@@ -238,13 +237,17 @@
         bufferUndoHistory(buffer).push({type: 'insert', start: start, end: end, text: args});
     }
 
+    function deleteAndExtractRegionNoUndo(start, end) {
+        var text = deleteInternal(currentBuffer(), start, end);
+        gotoChar(start);
+        return text;
+    }
+
     function deleteRegion(start, end) {
         var buffer = currentBuffer(),
             text = deleteAndExtractRegionNoUndo(start, end);
         bufferUndoHistory(buffer).push({type: 'delete', start: start, end: end, text: text});
     }
-
-    // Commands, implemented in Clojure / Emacs Lisp
 
     function overwriteMode() {
         currentBuffer().classList.toggle('overwrite-mode');
