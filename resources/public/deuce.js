@@ -396,6 +396,9 @@
                 clearTimeout(keyUpTimeoutId);
                 selectedFrame().classList.add('keydown');
             }
+            if (key === 'A'.charCodeAt(0) && e.ctrlKey) {
+                e.preventDefault();
+            }
             if (command) {
                 e.preventDefault();
                 window.requestAnimationFrame(function () {
