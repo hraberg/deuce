@@ -92,7 +92,7 @@
         temp.textContent = ' ';
         selectedFrame().appendChild(temp);
         requestAnimationFrame(function () {
-            var style = document.defaultView.getComputedStyle(temp);
+            var style = window.getComputedStyle(temp);
             fontWidth = parseFloat(style.width);
             fontHeight = parseFloat(style.height);
             temp.remove();
