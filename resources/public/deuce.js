@@ -377,11 +377,14 @@
             modeline = '-UUU:----F1  <strong>*scratch*</strong>      All L1     (Lisp Interaction) ',
             rootWindow = createLiveWindow(nextWindowId(frame), buffer, createModeLine(modeline));
         selectWindow(rootWindow);
+
         frame.appendChild(createMenuBar(['File', 'Edit', 'Options', 'Tools', 'Buffers', 'Help']));
         frame.appendChild(rootWindow);
         frame.appendChild(createMinibufferWindow(nextWindowId(frame), createBuffer(' *Minibuf-0*')));
         frame.classList.add('selected', 'menu-bar-mode', 'blink-cursor-mode', 'border');
+
         document.body.appendChild(frame);
+        return frame;
     }
 
     // Keyboard, will send XTerm keys down, similar to how term.js works.
