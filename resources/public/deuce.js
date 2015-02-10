@@ -11,7 +11,7 @@
     'use strict';
 
     var fontWidth, fontHeight,
-        keys = {backspace: 8, newline: 10, ret: 13, left: 37, up: 38, right: 39, down: 40, del: 46},
+        keys = {backspace: 8, newline: 10, ret: 13, shift: 16, ctrl: 17, alt: 18, left: 37, up: 38, right: 39, down: 40, del: 46},
         mouseButton = {left: 0, middle: 1, right: 2};
 
     function matches(element, selector) {
@@ -390,8 +390,9 @@
 
         window.addEventListener('keydown', function (e) {
             var prefixArg = 1,
-                command = keymap[e.keyCode];
-            if (!(e.ctrlKey || e.shiftKey || e.metaKey || e.altKey)) {
+                key = e.keyCode,
+                command = keymap[key];
+            if (!(key === keys.shift || key === keys.ctrl || key === keys.alt)) {
                 clearTimeout(keyUpTimeoutId);
                 selectedFrame().classList.add('keydown');
             }
