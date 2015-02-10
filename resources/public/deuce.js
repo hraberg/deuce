@@ -418,13 +418,7 @@
         window.addEventListener('keypress', function (e) {
             e.preventDefault();
             window.requestAnimationFrame(function () {
-                var prefixArg = 1,
-                    command = keymap[e.charCode];
-                if (command && e.charCode !== keys.del) {
-                    command(prefixArg);
-                } else {
-                    selfInsertCommand(e.charCode);
-                }
+                selfInsertCommand(e.charCode);
             });
         });
     }
