@@ -377,7 +377,8 @@
     // Keyboard, will send XTerm keys down, similar to how term.js works.
 
     function registerKeyboardHandler() {
-        var keymap = {};
+        var keymap = {},
+            keyUpTimeoutId;
 
         keymap[keys.ret] = newline;
         keymap[keys.backspace] = backwardDeleteChar;
@@ -387,11 +388,12 @@
         keymap[keys.right] = forwardChar;
         keymap[keys.down] = nextLine;
 
-        document.addEventListener('keydown', function (e) {
+        window.addEventListener('keydown', function (e) {
             var prefixArg = 1,
                 command = keymap[e.keyCode];
-            if (e.repeat) {
-                selectedFrame().classList.add('keyrepeat');
+            if (!(e.ctrlKey || e.shiftKey || e.metaKey || e.altKey)) {
+                clearTimeout(keyUpTimeoutId);
+                selectedFrame().classList.add('keydown');
             }
             if (command) {
                 e.preventDefault();
@@ -401,11 +403,15 @@
             }
         });
 
-        document.addEventListener('keyup', function () {
-            selectedFrame().classList.remove('keyrepeat');
+        ['keyup', 'blur'].forEach(function (e) {
+            window.addEventListener(e, function () {
+                keyUpTimeoutId = setTimeout(function () {
+                    selectedFrame().classList.remove('keydown');
+                }, 500);
+            });
         });
 
-        document.addEventListener('keypress', function (e) {
+        window.addEventListener('keypress', function (e) {
             e.preventDefault();
             window.requestAnimationFrame(function () {
                 var prefixArg = 1,
@@ -422,7 +428,7 @@
     // Mouse
 
     function registerMouseHandler() {
-        document.addEventListener('mousedown', function (e) {
+        window.addEventListener('mousedown', function (e) {
             e.preventDefault();
             if (mouseButton.left === e.button
                      && matches(e.target, '.buffer:not(.minibuffer-inactive-mode')) {
@@ -438,7 +444,7 @@
             }
         });
 
-        document.oncontextmenu = function (e) {
+        window.oncontextmenu = function (e) {
             e.preventDefault();
         };
     }

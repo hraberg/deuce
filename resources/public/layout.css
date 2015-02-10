@@ -13,6 +13,6 @@
 .minibuffer.window > .buffer.minibuffer-inactive-mode + .point { display: none; }
 .point { z-index: 1; position: absolute; border: 1px solid; }
 .frame.blink-cursor-mode .selected.live.window .point { -webkit-animation: blink-cursor-mode 1s steps(1) infinite; -moz-animation: blink-cursor-mode 1s steps(1) infinite; animation: blink-cursor-mode 1s steps(1) infinite; }
-.frame.blink-cursor-mode.keyrepeat .selected.live.window .point { opacity: 1; -webkit-animation: none; -moz-animation: none; animation: none; }
+.frame.blink-cursor-mode.keydown .selected.live.window .point { opacity: 1; -webkit-animation: none; -moz-animation: none; animation: none; }
 @-webkit-keyframes blink-cursor-mode { 0% { opacity: 0; } 50% { opacity: 1; } }
 @keyframes blink-cursor-mode { 0% { opacity: 0; } 50% { opacity: 1; } }
