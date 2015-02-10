@@ -16,6 +16,7 @@
                 up: 38, right: 39, down: 40,
                 ins: 45, del: 46, slash: 191},
         mouseButton = {left: 0, middle: 1, right: 2},
+        undoHistory = {},
         killRing;
 
     function matches(element, selector) {
@@ -179,6 +180,13 @@
         updateRegion();
     }
 
+    function bufferUndoHistory(buffer) {
+        if (!undoHistory[buffer.id]) {
+            undoHistory[buffer.id] = [];
+        }
+        return undoHistory[buffer.id];
+    }
+
     // Remote Editing API
 
     function gotoChar(offset) {
@@ -187,23 +195,53 @@
         setPtUpdateRegion(row, lines[row].length);
     }
 
-    function insert(args) {
+    function insertNoUndo(args) {
         var offset = ptOffset(),
             buffer = currentBuffer(),
-            text = document.createTextNode(args);
+            text = document.createTextNode(args),
+            range;
         if (buffer.childElementCount === 0) {
             buffer.appendChild(document.createTextNode(''));
         }
-        getTextRange(buffer, offset, offset).insertNode(text);
+        range = getTextRange(buffer, offset, offset);
+        range.insertNode(text);
         buffer.normalize();
         gotoChar(offset + args.length);
+        return range;
+    }
+
+    function deleteAndExtractRegionNoUndo(start, end) {
+        var buffer = currentBuffer(),
+            range = getTextRange(buffer, start, end),
+            text = range.toString();
+        range.deleteContents();
+        buffer.normalize();
+        gotoChar(start);
+        return text;
+    }
+
+    function insert(args) {
+        var buffer = currentBuffer(),
+            start = ptOffset(),
+            end,
+            history = bufferUndoHistory(buffer),
+            lastUndo = history && history[history.length - 1];
+        insertNoUndo(args);
+        end = ptOffset();
+        if (lastUndo && lastUndo.type === 'insert') {
+            if (lastUndo.end >= start && lastUndo.start <= end) {
+                start = Math.min(start, lastUndo.start);
+                end = Math.max(end, lastUndo.end);
+                history.pop();
+            }
+        }
+        bufferUndoHistory(buffer).push({type: 'insert', start: start, end: end, text: args});
     }
 
     function deleteRegion(start, end) {
-        var buffer = currentBuffer();
-        getTextRange(buffer, start, end).deleteContents();
-        buffer.normalize();
-        gotoChar(start);
+        var buffer = currentBuffer(),
+            text = deleteAndExtractRegionNoUndo(start, end);
+        bufferUndoHistory(buffer).push({type: 'delete', start: start, end: end, text: text});
     }
 
     // Commands, implemented in Clojure / Emacs Lisp
@@ -285,7 +323,18 @@
     }
 
     function undo() {
-        console.log("not implemented");
+        var command = bufferUndoHistory(currentBuffer()).pop();
+        if (command) {
+            switch (command.type) {
+            case 'insert':
+                deleteAndExtractRegionNoUndo(command.start, command.end);
+                break;
+            case 'delete':
+                gotoChar(command.start);
+                insertNoUndo(command.text);
+                break;
+            }
+        }
     }
 
     function selfInsertCommand(n) {
