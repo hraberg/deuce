@@ -11,7 +11,10 @@
     'use strict';
 
     var fontWidth, fontHeight,
-        keys = {backspace: 8, newline: 10, ret: 13, shift: 16, ctrl: 17, alt: 18, left: 37, up: 38, right: 39, down: 40, del: 46},
+        keys = {backspace: 8, newline: 10, ret: 13,
+                shift: 16, ctrl: 17, alt: 18, esc: 27, left: 37,
+                up: 38, right: 39, down: 40,
+                ins: 45, del: 46},
         mouseButton = {left: 0, middle: 1, right: 2};
 
     function matches(element, selector) {
@@ -179,16 +182,8 @@
 
     // Commands, implemented in Clojure / Emacs Lisp
 
-    function selfInsertCommand(n) {
-        insert(String.fromCharCode(n));
-    }
-
-    function newline(arg) {
-        arg = arg || 1;
-        while (arg > 0) {
-            selfInsertCommand(keys.newline);
-            arg -= 1;
-        }
+    function overwriteMode() {
+        currentBuffer().classList.toggle('overwrite-mode');
     }
 
     function backwardDeleteChar(n) {
@@ -223,6 +218,21 @@
         setPt(ptRow() + arg,  ptCol());
     }
 
+    function selfInsertCommand(n) {
+        var s = String.fromCharCode(n);
+        if (matches(currentBuffer(), '.overwrite-mode')) {
+            deleteChar(s.length);
+        }
+        insert(s);
+    }
+
+    function newline(arg) {
+        arg = arg || 1;
+        while (arg > 0) {
+            selfInsertCommand(keys.newline);
+            arg -= 1;
+        }
+    }
 
     // Window Management
 
@@ -299,13 +309,13 @@
         if (selected) {
             selected.classList.remove('selected');
             current.classList.remove('current');
-            if (matches(selected, 'minibuffer')) {
+            if (matches(selected, '.minibuffer')) {
                 current.classList.add('minibuffer-inactive-mode');
             }
         }
         window.classList.add('selected');
         buffer.classList.add('current');
-        if (matches(window, 'minibuffer')) {
+        if (matches(window, '.minibuffer')) {
             buffer.classList.remove('minibuffer-inactive-mode');
         }
         document.title = buffer.id;
@@ -322,7 +332,7 @@
         var parent = window.parentElement,
             grandparent = parent.parentElement,
             sibling = siblingWindow(window);
-        if (grandparent && parent.classList.contains('window')) {
+        if (grandparent && matches(parent, '.window')) {
             grandparent.replaceChild(sibling, parent);
             selectWindow(sibling);
         }
@@ -383,6 +393,7 @@
         keymap[keys.ret] = newline;
         keymap[keys.backspace] = backwardDeleteChar;
         keymap[keys.del] = deleteChar;
+        keymap[keys.ins] = overwriteMode;
         keymap[keys.left] = backwardChar;
         keymap[keys.up] = previousLine;
         keymap[keys.right] = forwardChar;
