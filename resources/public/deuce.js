@@ -282,6 +282,28 @@
         setPtUpdateRegion(ptRow() + arg,  ptCol());
     }
 
+    function backwardWord(arg) {
+        var offset = ptOffset(),
+            nextWord = currentBuffer().textContent.substring(0, offset).match(/\w*\s*$/g);
+        if (nextWord) {
+            gotoChar(offset - nextWord[0].length);
+            if (arg > 1) {
+                backwardWord(arg - 1);
+            }
+        }
+    }
+
+    function forwardWord(arg) {
+        var offset = ptOffset(),
+            nextWord = currentBuffer().textContent.substring(offset).match(/\s*\w*/g);
+        if (nextWord) {
+            gotoChar(offset + nextWord[0].length);
+            if (arg > 1) {
+                forwardWord(arg - 1);
+            }
+        }
+    }
+
     function beginningOfLine(arg) {
         if (arg > 1) {
             nextLine(arg);
@@ -556,6 +578,8 @@
                              V: yank,
                              Y: yank};
         keymap[keys.ctrl][String.fromCharCode(keys.slash)] = undo;
+        keymap[keys.ctrl][String.fromCharCode(keys.left)] = backwardWord;
+        keymap[keys.ctrl][String.fromCharCode(keys.right)] = forwardWord;
 
         window.addEventListener('keydown', function (e) {
             var prefixArg = 1,
