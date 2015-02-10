@@ -41,6 +41,10 @@
         return currentBuffer().parentElement.querySelector('.point');
     }
 
+    function mark() {
+        return currentBuffer().parentElement.querySelector('.mark');
+    }
+
     function bufferLines(offset) {
         var linesAndBreaks = bufferString().substring(0, offset).split(/(\r?\n)/),
             lines = [],
@@ -141,16 +145,37 @@
         return parseFloat(element.style[style] || '0');
     }
 
-    function ptRow() {
-        return Math.floor(floatStyle(point(), 'top') / fontHeight);
+    function ptRow(pt) {
+        return Math.floor(floatStyle((pt || point()), 'top') / fontHeight);
     }
 
-    function ptCol() {
-        return Math.floor(floatStyle(point(), 'left') / fontWidth);
+    function ptCol(pt) {
+        return Math.floor(floatStyle((pt || point()), 'left') / fontWidth);
     }
 
-    function ptOffset() {
-        return bufferLines().slice(0, ptRow()).join('').length + ptCol();
+    function ptOffset(pt) {
+        return bufferLines().slice(0, ptRow(pt)).join('').length + ptCol(pt);
+    }
+
+    function updateRegion() {
+        var marker = mark(),
+            offset = ptOffset(),
+            selection = window.getSelection(),
+            markerOffset;
+        if (marker) {
+            selection.removeAllRanges();
+            markerOffset = ptOffset(marker);
+            if (markerOffset < offset) {
+                selection.addRange(getTextRange(currentBuffer(), markerOffset, offset));
+            } else {
+                selection.addRange(getTextRange(currentBuffer(), offset, markerOffset));
+            }
+        }
+    }
+
+    function setPtUpdateRegion(row, col) {
+        setPt(row, col);
+        updateRegion();
     }
 
     // Remote Editing API
@@ -158,7 +183,7 @@
     function gotoChar(offset) {
         var lines = bufferLines(offset),
             row = lines.length - 1;
-        setPt(row, lines[row].length);
+        setPtUpdateRegion(row, lines[row].length);
     }
 
     function insert(args) {
@@ -211,11 +236,11 @@
     }
 
     function previousLine(arg) {
-        setPt(ptRow() - arg,  ptCol());
+        setPtUpdateRegion(ptRow() - arg,  ptCol());
     }
 
     function nextLine(arg) {
-        setPt(ptRow() + arg,  ptCol());
+        setPtUpdateRegion(ptRow() + arg,  ptCol());
     }
 
     function selfInsertCommand(n) {
@@ -231,6 +256,21 @@
         while (arg > 0) {
             selfInsertCommand(keys.newline);
             arg -= 1;
+        }
+    }
+
+    function setMark(pos) {
+        pos = pos || ptOffset();
+        var marker = mark(),
+            selection = window.getSelection();
+        if (marker) {
+            selection.removeAllRanges();
+            marker.remove();
+        } else {
+            marker = point().cloneNode(true);
+            marker.classList.remove('point');
+            marker.classList.add('mark');
+            selectedWindow().appendChild(marker);
         }
     }
 
@@ -410,9 +450,16 @@
                 clearTimeout(keyUpTimeoutId);
                 selectedFrame().classList.add('keydown');
             }
-            if (key === 'A'.charCodeAt(0) && e.ctrlKey) {
-                e.preventDefault();
+            if (e.ctrlKey) {
+                if (key === 'A'.charCodeAt(0)) {
+                    e.preventDefault();
+                }
+                if (key === ' '.charCodeAt(0)) {
+                    e.preventDefault();
+                    command = setMark;
+                }
             }
+
             if (command) {
                 e.preventDefault();
                 window.requestAnimationFrame(function () {

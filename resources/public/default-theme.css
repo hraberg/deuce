@@ -8,3 +8,5 @@
 .selected.live.window .point { background: black; background: rgba(0, 0, 0, 0.2); }
 .window a { color: blue; }
 .window a:hover { text-decoration: none; background-color: lightgreen; color: black; }
+.window ::selection { background-color: #cdcd00; }
+.window ::-moz-selection { background-color: #cdcd00; }
