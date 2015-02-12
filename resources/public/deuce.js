@@ -640,7 +640,7 @@
     }
 
     function resizeHandler() {
-        selectedFrame().classList.toggle('toggle-fullscreen', window.innerHeight == screen.height);
+        selectedFrame().classList.toggle('toggle-fullscreen', window.innerHeight === screen.height);
     }
 
     document.addEventListener('DOMContentLoaded', function () {

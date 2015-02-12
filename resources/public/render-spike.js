@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
         styleSheet.insertRule(rule, 0);
     }
 
-    function alignDisplay () {
+    function alignDisplay() {
         display.style.top = (win.offsetTop + win.clientTop) + 'px';
         display.style.left = (win.offsetLeft + win.clentLeft) + 'px';
     }
