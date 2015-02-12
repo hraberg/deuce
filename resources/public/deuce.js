@@ -1,4 +1,4 @@
-/*jslint browser: true */
+/*jslint browser: true regexp: true */
 
 // This is a spike for the Deuce web UI. In the real world it won't have as much logic on the client side.
 
@@ -49,16 +49,8 @@
     }
 
     function bufferLines(offset) {
-        var linesAndBreaks = bufferString().substring(0, offset).split(/(\r?\n)/),
-            lines = [],
-            i;
-
-        for (i = 0; i < linesAndBreaks.length; i += 2) {
-            lines.push(linesAndBreaks[i] + (linesAndBreaks[i + 1] || ''));
-        }
-        return lines;
+        return bufferString().substring(0, offset).match(/^.*((\r\n|\n|\r)|$)/gm);
     }
-
 
     function lineLengthNoNewline(line) {
         return (line || '').replace(/(\r?\n)*$/, '').length;
