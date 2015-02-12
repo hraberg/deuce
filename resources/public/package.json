@@ -2,6 +2,10 @@
     "name": "deuce",
     "version": "0.1.0-SNAPSHOT",
     "description": "DEUCE - Deuce is (not yet) Emacs under Clojure",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/hraberg/deuce.git"
+    },
     "main": "index.html",
     "window": {
         "width": 800,
@@ -9,5 +13,11 @@
         "min_width": 600,
         "min_height": 400,
         "toolbar": false
+    },
+    "devDependencies": {
+        "jslint": "0.7.3",
+        "csslint": "0.10.0",
+        "node-webkit-builder": "1.0.8",
+        "java": "0.4.6"
     }
 }

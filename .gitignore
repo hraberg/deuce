@@ -11,3 +11,4 @@ TAGS
 target
 /src-*-stubs
 .nrepl-port
+node_modules

@@ -15,10 +15,11 @@ deuce_uberjar=target/deuce-$(deuce_version)-standalone.jar
 deuce_stubs=src-$(emacs_version)-stubs
 deuce_source_files=$(shell find src -iname "*.clj")
 
-deuce_javascript=$(shell find resources/public/ -iname "*.js")
-deuce_css=$(shell find resources/public/ -iname "*.css")
+deuce_javascript=$(shell find resources/public -iname "*.js" ! -path "*/node_modules/*")
+deuce_css=$(shell find resources/public -iname "*.css")
 
-nwbuild=node $(shell which nwbuild)
+node_modules=resources/public/node_modules
+nwbuild=node $(node_modules)/.bin/nwbuild
 
 smoke_test_args=-Q --batch --eval "(print (emacs-version))"
 
@@ -79,18 +80,22 @@ test:
 smoke: target/deuce
 	$< $(smoke_test_args)
 
-jslint: $(deuce_javascript)
-	$@ $?
+$(node_modules): resources/public/package.json
+	(cd $(@D) && npm install)
+	touch $@
 
-csslint: $(deuce_css)
-	$@ --ignore=adjoining-classes $?
+jslint: $(deuce_javascript) $(node_modules)
+	$(node_modules)/.bin/$@ $?
+
+csslint: $(deuce_css) $(node_modules)
+	$(node_modules)/.bin/$@ --ignore=adjoining-classes $?
 
 lint: jslint csslint
 
-nw:
+nw: $(node_modules)
 	$(nwbuild) -r resources/public
 
-nwbuild:
+nwbuild: $(node_modules)
 	$(nwbuild) -p linux64,osx64,win64 -o target/nwbuild resources/public
 
 run: target/deuce
