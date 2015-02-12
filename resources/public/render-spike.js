@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var scrollBuffer = document.querySelector('.scroll-buffer'),
         win = document.querySelector('.window'),
         display = document.querySelector('.display'),
+        clipboard = document.querySelector('.clipboard'),
         pendingRedraw = false,
         fontHeight,
         fontWidth,
@@ -129,6 +130,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.addEventListener('resize', resize);
     resize();
+
+    document.addEventListener('paste', function (e) {
+        e.preventDefault();
+        console.log('paste', e.clipboardData.getData('text/plain'));
+    });
+
+    function handleCopyAndCut(type, text) {
+        console.log(type, text);
+        clipboard.value = text;
+        clipboard.select();
+        setTimeout(function () {
+            clipboard.blur();
+            clipboard.value = '';
+        });
+    }
+
+    document.addEventListener('cut', function () {
+        handleCopyAndCut('cut', 'Cut from Deuce' + new Date());
+    });
+
+    document.addEventListener('copy', function () {
+        handleCopyAndCut('copy', 'Copied from Deuce ' + new Date());
+    });
 
     console.log('lines: ' + linesInFile.length, (Math.round(file.length / (1024 * 1024) * 100) / 100) + 'Mb');
 });

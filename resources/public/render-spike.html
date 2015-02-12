@@ -9,6 +9,7 @@
       .scroll-buffer { display: hidden; }
       .display { white-space: pre; position: absolute; z-index: -1; }
       .display.linum-mode .line:before { content: attr(data-line) ' '; display: inline-block; border-right: 1px solid lightgrey; text-align: right; color: grey; }
+      .clipboard { position: fixed; left: -10000px; top: 0; }
 
       input { margin: 0; vertical-align: bottom; }
       .file-contents { display: none; }
@@ -21,6 +22,7 @@
         <div class="scroll-buffer"></div>
       </div>
       <label>linum-mode <input class="mode" name="linum-mode" type="checkbox" autocomplete="off"></input></label>
+      <textarea class="clipboard"></textarea>
     </div>
     <pre data-filename="TUTORIAL" class="file-contents">Emacs tutorial.  See end for copying conditions.
 
