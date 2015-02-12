@@ -6,9 +6,9 @@
     <style type="text/css">
       .frame { font-family: monospace; padding: 0; }
       .window { border: 1px solid black; overflow: auto; }
-      .display { white-space: pre; position: absolute; z-index: -1; }
       .scroll-buffer { display: hidden; }
-      .buffer.linum-mode .line:before { content: attr(data-line) ' '; display: inline-block; border-right: 1px solid lightgrey; text-align: right; color: grey; }
+      .display { white-space: pre; position: absolute; z-index: -1; }
+      .display.linum-mode .line:before { content: attr(data-line) ' '; display: inline-block; border-right: 1px solid lightgrey; text-align: right; color: grey; }
 
       input { margin: 0; vertical-align: bottom; }
       .file-contents { display: none; }
@@ -17,12 +17,10 @@
   <body>
     <div class="frame">
       <div class="window">
-        <div class="buffer">
-          <div class="display"></div>
-          <div class="scroll-buffer"></div>
-        </div>
+        <div class="display"></div>
+        <div class="scroll-buffer"></div>
       </div>
-      <label>linum-mode <input class="mode" name="linum-mode" type="checkbox"></input></label>
+      <label>linum-mode <input class="mode" name="linum-mode" type="checkbox" autocomplete="off"></input></label>
     </div>
     <pre data-filename="TUTORIAL" class="file-contents">Emacs tutorial.  See end for copying conditions.
 

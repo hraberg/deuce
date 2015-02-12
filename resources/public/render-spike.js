@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function alignLineNumbers() {
         var gutterWidth = ((linesInFile.length.toString().length + 1) * fontWidth),
-            selector = '.buffer.linum-mode .line:before',
+            selector = '.display.linum-mode .line:before',
             rule = selector + ' { width: ' + gutterWidth + 'px; }',
             styleSheet = document.styleSheets[0];
         if (styleSheet.cssRules[0].selectorText === selector) {
@@ -30,21 +30,32 @@ document.addEventListener('DOMContentLoaded', function () {
         styleSheet.insertRule(rule, 0);
     }
 
+    function alignDisplay () {
+        display.style.top = (win.offsetTop + win.clientTop) + 'px';
+        display.style.left = (win.offsetLeft + win.clentTop) + 'px';
+    }
+
     function calculateFontSize() {
         var temp = document.createElement('span');
         temp.style.position = 'absolute';
         temp.textContent = ' ';
         display.appendChild(temp);
-        window.requestAnimationFrame(function () {
-            var style = window.getComputedStyle(temp);
-            fontWidth = parseFloat(style.width);
-            fontHeight = parseFloat(style.height);
+        function setCalculatedFontSize() {
+            var style = window.getComputedStyle(temp),
+                parsedWidth = parseFloat(style.width),
+                parsedHeight = parseFloat(style.height);
+            if (!(parsedWidth && parsedHeight)) {
+                return window.requestAnimationFrame(setCalculatedFontSize);
+            }
+            fontWidth = parsedWidth;
+            fontHeight = parsedHeight;
             temp.remove();
 
             scrollBuffer.style.height = (fontHeight * linesInFile.length) + 'px';
             win.style.width = (width * fontWidth) + 'px';
             win.style.height = (height * fontHeight) + 'px';
-        });
+        }
+        window.requestAnimationFrame(setCalculatedFontSize);
     }
 
     function renderLine(idx) {
@@ -104,13 +115,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.querySelector('[name=linum-mode]').addEventListener('click', function (e) {
-        document.querySelector('.buffer').classList.toggle(e.target.name);
+        document.querySelector('.display').classList.toggle(e.target.name);
     });
 
     function resize() {
         calculateFontSize();
-        window.requestAnimationFrame(alignLineNumbers);
-        window.requestAnimationFrame(render);
+        window.requestAnimationFrame(function () {
+            alignLineNumbers();
+            alignDisplay();
+            render();
+        });
     }
 
     window.addEventListener('resize', resize);
