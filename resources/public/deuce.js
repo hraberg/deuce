@@ -537,7 +537,7 @@
         frame.appendChild(createMenuBar(['File', 'Edit', 'Options', 'Tools', 'Buffers', 'Help']));
         frame.appendChild(rootWindow);
         frame.appendChild(createMinibufferWindow(nextWindowId(frame), createBuffer(' *Minibuf-0*')));
-        frame.classList.add('selected', 'menu-bar-mode', 'blink-cursor-mode', 'border');
+        frame.classList.add('selected', 'menu-bar-mode', 'blink-cursor-mode');
 
         document.body.appendChild(frame);
         return frame;
@@ -639,11 +639,18 @@
         return;
     }
 
+    function resizeHandler() {
+        selectedFrame().classList.toggle('toggle-fullscreen', window.innerHeight == screen.height);
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         initFrame();
         loadTheme('default-theme.css');
         registerKeyboardHandler();
         registerMouseHandler();
+
+        window.addEventListener('resize', resizeHandler);
+        resizeHandler();
 
         unused(splitWindow, deleteWindow, otherWindow);
     });

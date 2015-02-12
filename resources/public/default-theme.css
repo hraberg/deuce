@@ -1,5 +1,5 @@
 .frame { font-size: 14pt; font-family: "Courier", monospace; background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAaklEQVQYV2NkYGAwBuKzQAwC9UA8C4ifQ/n/GaEMkCIfIG6E8iWB9DMgZoQpAOncgmTSfyBbCmQSSAFIEqYTZNIZkE6YSSAGyDi4nUC2CbKb4CphdqK7CaYAbieSb8BuAikASSKblIbsJgCKXBfTNjWx1AAAAABJRU5ErkJggg==); background-color: #ddd; }
-.frame.border { padding: 0.5em; }
+.frame.toggle-fullscreen { padding: 0.5em; }
 .menu-bar { background-color: black; color: white; box-shadow: 0 0 4px 2px #ddd; }
 .live.window, .menu-bar { border: 1px solid #bbb; border-radius: 4px; }
 .window {  background-color: white; color: black; }
