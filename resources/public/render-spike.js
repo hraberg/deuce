@@ -125,6 +125,7 @@ document.addEventListener('DOMContentLoaded', function () {
             alignLineNumbers();
             alignDisplay();
             render();
+            win.focus();
         });
     }
 
