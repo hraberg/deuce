@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function alignDisplay () {
         display.style.top = (win.offsetTop + win.clientTop) + 'px';
-        display.style.left = (win.offsetLeft + win.clentTop) + 'px';
+        display.style.left = (win.offsetLeft + win.clentLeft) + 'px';
     }
 
     function calculateFontSize() {
