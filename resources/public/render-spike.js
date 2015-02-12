@@ -7,9 +7,9 @@ document.addEventListener('DOMContentLoaded', function () {
         return s.match(/^.*((\r\n|\n|\r)|$)/gm);
     }
 
-    var buffer = document.querySelector('#buffer'),
-        win = document.querySelector('#window'),
-        display = document.querySelector('#display'),
+    var scrollBuffer = document.querySelector('.scroll-buffer'),
+        win = document.querySelector('.window'),
+        display = document.querySelector('.display'),
         pendingRedraw = false,
         fontHeight,
         fontWidth,
@@ -23,14 +23,14 @@ document.addEventListener('DOMContentLoaded', function () {
         var temp = document.createElement('span');
         temp.style.position = 'absolute';
         temp.textContent = ' ';
-        buffer.appendChild(temp);
+        win.appendChild(temp);
         window.requestAnimationFrame(function () {
             var style = window.getComputedStyle(temp);
             fontWidth = parseFloat(style.width);
             fontHeight = parseFloat(style.height);
             temp.remove();
 
-            buffer.style.height = (fontHeight * linesInFile.length) + 'px';
+            scrollBuffer.style.height = (fontHeight * linesInFile.length) + 'px';
             win.style.width = (width * fontWidth) + 'px';
             win.style.height = (height * fontHeight) + 'px';
         });
