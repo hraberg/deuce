@@ -64,7 +64,6 @@ document.addEventListener('DOMContentLoaded', function () {
             useDeltas = true,
             i;
 
-
         console.log('line: ' + newStart);
 
         if (useDeltas && Math.abs(diff) < height && diff !== 0) {
