@@ -10,12 +10,13 @@ document.addEventListener('DOMContentLoaded', function () {
     var scrollBuffer = document.querySelector('.scroll-buffer'),
         win = document.querySelector('.window'),
         display = document.querySelector('.display'),
+        lineNumberLabel = document.querySelector('.line-number'),
         pendingRedraw = false,
         fontHeight,
         fontWidth,
         width = 132,
         height = 43,
-        file = new Array(1000).join(document.querySelector('#tutorial').textContent + '\n'),
+        file = new Array(1000).join(document.querySelector('.tutorial').textContent + '\n'),
         linesInFile = bufferLines(file),
         visibleStart = 0;
 
@@ -23,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var temp = document.createElement('span');
         temp.style.position = 'absolute';
         temp.textContent = ' ';
-        win.appendChild(temp);
+        display.appendChild(temp);
         window.requestAnimationFrame(function () {
             var style = window.getComputedStyle(temp);
             fontWidth = parseFloat(style.width);
@@ -46,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
             i;
 
         console.log('line: ' + newStart);
+        lineNumberLabel.innerHTML = 'line: ' + newStart;
 
         if (useDeltas && Math.abs(diff) < height && diff !== 0) {
             console.log('diff: ' + diff);

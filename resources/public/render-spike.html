@@ -4,15 +4,20 @@
     <meta charset="utf-8">
     <script type="text/javascript" src="render-spike.js"></script>
     <style type="text/css">
-      body { font-family: monospace; white-space: pre; padding: 0; }
+      body { font-family: monospace; padding: 0; }
       .window { border: 1px solid black; overflow: auto; }
-      .display { position: absolute; z-index: -1; }
+      .display { white-space: pre; position: absolute; z-index: -1; }
       .scroll-buffer { display: hidden; }
-      #tutorial { display: none; }
+      .tutorial { display: none; }
     </style>
   </head>
-  <body><div class="window"><div class="display"></div><div class="scroll-buffer"></div></div>
-    <pre id="tutorial">Emacs tutorial.  See end for copying conditions.
+  <body>
+    <div class="window">
+      <div class="display"></div>
+      <div class="scroll-buffer"></div>
+    </div>
+    <span class="line-number"></span>
+    <pre class="tutorial">Emacs tutorial.  See end for copying conditions.
 
 Emacs commands generally involve the CONTROL key (sometimes labeled
 CTRL or CTL) or the META key (sometimes labeled EDIT or ALT).  Rather than
