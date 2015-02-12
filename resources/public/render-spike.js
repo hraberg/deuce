@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('resize', resize);
     resize();
 
-    document.addEventListener('paste', function (e) {
+    window.addEventListener('paste', function (e) {
         e.preventDefault();
         console.log('paste', e.clipboardData.getData('text/plain'));
     });
@@ -146,11 +146,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    document.addEventListener('cut', function () {
+    window.addEventListener('cut', function () {
         handleCopyAndCut('cut', 'Cut from Deuce' + new Date());
     });
 
-    document.addEventListener('copy', function () {
+    window.addEventListener('copy', function () {
         handleCopyAndCut('copy', 'Copied from Deuce ' + new Date());
     });
 
