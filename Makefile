@@ -18,6 +18,8 @@ deuce_source_files=$(shell find src -iname "*.clj")
 deuce_javascript=$(shell find resources/public/ -iname "*.js")
 deuce_css=$(shell find resources/public/ -iname "*.css")
 
+nwbuild=node $(shell which nwbuild)
+
 smoke_test_args=-Q --batch --eval "(print (emacs-version))"
 
 all: target/deuce test
@@ -85,6 +87,12 @@ csslint: $(deuce_css)
 
 lint: jslint csslint
 
+nw:
+	$(nwbuild) -r resources/public
+
+nwbuild:
+	$(nwbuild) -p linux64,osx64,win64 -o target/nwbuild resources/public
+
 run: target/deuce
 	$<
 
@@ -117,4 +125,4 @@ $(deuce_stubs): emacs/src/TAGS-TEMACS
 
 stubs: $(deuce_stubs)
 
-.PHONY: test emacs-tests zile-tests emacs-smoke smoke clean stubs dist run run-dev all jslint csslint lint
+.PHONY: test emacs-tests zile-tests emacs-smoke smoke clean stubs dist run run-dev all jslint csslint lint nw nwbuild
