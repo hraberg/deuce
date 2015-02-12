@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
         fontWidth,
         width = 132,
         height = 43,
-        file = new Array(1000).join(document.querySelector('.tutorial').textContent + '\n'),
+        file = new Array(1000).join(document.querySelector('[data-filename=TUTORIAL]').textContent + '\n'),
         linesInFile = bufferLines(file),
         visibleStart = 0;
 

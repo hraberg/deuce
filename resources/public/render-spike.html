@@ -8,9 +8,10 @@
       .window { border: 1px solid black; overflow: auto; }
       .display { white-space: pre; position: absolute; z-index: -1; }
       .scroll-buffer { display: hidden; }
-      .tutorial { display: none; }
-      .buffer.linum-mode .line:before { white-space: pre; content: attr(data-line) ' '; display: inline-block; border-right: 1px solid lightgrey; text-align: right; color: grey; }
+      .buffer.linum-mode .line:before { content: attr(data-line) ' '; display: inline-block; border-right: 1px solid lightgrey; text-align: right; color: grey; }
+
       input { margin: 0; vertical-align: bottom; }
+      .file-contents { display: none; }
     </style>
   </head>
   <body>
@@ -23,7 +24,7 @@
       </div>
       <label>linum-mode <input class="mode" name="linum-mode" type="checkbox"></input></label>
     </div>
-    <pre class="tutorial">Emacs tutorial.  See end for copying conditions.
+    <pre data-filename="TUTORIAL" class="file-contents">Emacs tutorial.  See end for copying conditions.
 
 Emacs commands generally involve the CONTROL key (sometimes labeled
 CTRL or CTL) or the META key (sometimes labeled EDIT or ALT).  Rather than
