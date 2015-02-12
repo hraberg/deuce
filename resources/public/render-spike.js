@@ -86,8 +86,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    calculateFontSize();
-    window.requestAnimationFrame(render);
+    function resize() {
+        calculateFontSize();
+        window.requestAnimationFrame(render);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
 
     console.log('lines: ' + linesInFile.length, (Math.round(file.length / (1024 * 1024) * 100) / 100) + 'Mb');
 });
