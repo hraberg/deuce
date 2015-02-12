@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
             selector = '.buffer.linum-mode .line:before',
             rule = selector + ' { width: ' + gutterWidth + 'px; }',
             styleSheet = document.styleSheets[0];
-        if (styleSheet.rules[0].selectorText === selector) {
+        if (styleSheet.cssRules[0].selectorText === selector) {
             styleSheet.deleteRule(0);
         }
         styleSheet.insertRule(rule, 0);
