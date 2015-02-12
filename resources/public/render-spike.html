@@ -4,19 +4,25 @@
     <meta charset="utf-8">
     <script type="text/javascript" src="render-spike.js"></script>
     <style type="text/css">
-      body { font-family: monospace; padding: 0; }
+      .frame { font-family: monospace; padding: 0; }
       .window { border: 1px solid black; overflow: auto; }
       .display { white-space: pre; position: absolute; z-index: -1; }
       .scroll-buffer { display: hidden; }
       .tutorial { display: none; }
+      .buffer.linum-mode .line:before { white-space: pre; content: attr(data-line) ' '; display: inline-block; border-right: 1px solid lightgrey; text-align: right; }
+      input { margin: 0; vertical-align: bottom; }
     </style>
   </head>
   <body>
-    <div class="window">
-      <div class="display"></div>
-      <div class="scroll-buffer"></div>
+    <div class="frame">
+      <div class="window">
+        <div class="buffer">
+          <div class="display"></div>
+          <div class="scroll-buffer"></div>
+        </div>
+      </div>
+      <label>linum-mode <input class="mode" name="linum-mode" type="checkbox"></input></label>
     </div>
-    <span class="line-number"></span>
     <pre class="tutorial">Emacs tutorial.  See end for copying conditions.
 
 Emacs commands generally involve the CONTROL key (sometimes labeled

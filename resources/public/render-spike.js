@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', function () {
     var scrollBuffer = document.querySelector('.scroll-buffer'),
         win = document.querySelector('.window'),
         display = document.querySelector('.display'),
-        lineNumberLabel = document.querySelector('.line-number'),
         pendingRedraw = false,
         fontHeight,
         fontWidth,
@@ -19,6 +18,17 @@ document.addEventListener('DOMContentLoaded', function () {
         file = new Array(1000).join(document.querySelector('.tutorial').textContent + '\n'),
         linesInFile = bufferLines(file),
         visibleStart = 0;
+
+    function alignLineNumbers() {
+        var gutterWidth = ((linesInFile.length.toString().length + 1) * fontWidth),
+            selector = '.buffer.linum-mode .line:before',
+            rule = selector + ' { width: ' + gutterWidth + 'px; }',
+            styleSheet = document.styleSheets[0];
+        if (styleSheet.rules[0].selectorText == selector) {
+            styleSheet.deleteRule(0);
+        }
+        styleSheet.insertRule(rule, 0);
+    }
 
     function calculateFontSize() {
         var temp = document.createElement('span');
@@ -37,6 +47,14 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function renderLine(idx) {
+        var line = document.createElement('span');
+        line.dataset.line = idx + 1;
+        line.classList.add('line');
+        line.innerHTML = linesInFile[idx];
+        return line;
+    }
+
     function render() {
         var t = Date.now(),
             newStart = Math.floor(win.scrollTop / fontHeight),
@@ -46,28 +64,28 @@ document.addEventListener('DOMContentLoaded', function () {
             useDeltas = true,
             i;
 
+
         console.log('line: ' + newStart);
-        lineNumberLabel.innerHTML = 'line: ' + newStart;
 
         if (useDeltas && Math.abs(diff) < height && diff !== 0) {
             console.log('diff: ' + diff);
             if (diff > 0) {
                 for (i = diff; i > 0; i -= 1) {
                     display.firstChild.remove();
-                    fragment.appendChild(document.createTextNode(linesInFile[newEnd - i]));
+                    fragment.appendChild(renderLine(newEnd - i));
                 }
                 display.appendChild(fragment);
             } else {
                 for (i = 0; i < -diff; i += 1) {
                     display.lastChild.remove();
-                    fragment.appendChild(document.createTextNode(linesInFile[newStart + i]));
+                    fragment.appendChild(renderLine(newStart + i));
                 }
                 display.insertBefore(fragment, display.firstChild);
             }
         } else {
             console.log('full redraw');
             for (i = newStart; i < newEnd; i += 1) {
-                fragment.appendChild(document.createTextNode(linesInFile[i]));
+                fragment.appendChild(renderLine(i));
             }
             display.innerHTML = '';
             display.appendChild(fragment);
@@ -86,8 +104,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    document.querySelector('[name=linum-mode]').addEventListener('click', function (e) {
+        document.querySelector('.buffer').classList.toggle(e.target.name);
+    });
+
     function resize() {
         calculateFontSize();
+        window.requestAnimationFrame(alignLineNumbers);
         window.requestAnimationFrame(render);
     }
 
