@@ -29,61 +29,63 @@ document.addEventListener('DOMContentLoaded', function () {
             fontWidth = parseFloat(style.width);
             fontHeight = parseFloat(style.height);
             temp.remove();
-            buffer.style.height = (fontHeight * linesInFile.length) + 'px';
 
+            buffer.style.height = (fontHeight * linesInFile.length) + 'px';
             win.style.width = (width * fontWidth) + 'px';
             win.style.height = (height * fontHeight) + 'px';
-
-            win.onscroll();
-            win.focus();
         });
     }
 
-    win.onscroll = function () {
+    function render() {
+        var t = Date.now(),
+            newStart = Math.floor(win.scrollTop / fontHeight),
+            newEnd = newStart + height,
+            diff = newStart - visibleStart,
+            fragment = document.createDocumentFragment(),
+            useDeltas = true,
+            i;
+
+        console.log('line: ' + newStart);
+
+        if (useDeltas && Math.abs(diff) < height && diff !== 0) {
+            console.log('diff: ' + diff);
+            if (diff > 0) {
+                for (i = diff; i > 0; i -= 1) {
+                    display.firstChild.remove();
+                    fragment.appendChild(document.createTextNode(linesInFile[newEnd - i]));
+                }
+                display.appendChild(fragment);
+            } else {
+                for (i = 0; i < -diff; i += 1) {
+                    display.lastChild.remove();
+                    fragment.appendChild(document.createTextNode(linesInFile[newStart + i]));
+                }
+                display.insertBefore(fragment, display.firstChild);
+            }
+        } else {
+            console.log('full redraw');
+            for (i = newStart; i < newEnd; i += 1) {
+                fragment.appendChild(document.createTextNode(linesInFile[i]));
+            }
+            display.innerHTML = '';
+            display.appendChild(fragment);
+        }
+
+        visibleStart = newStart;
+        pendingRedraw = false;
+
+        console.log((Date.now() - t) + 'ms');
+    }
+
+    win.addEventListener('scroll', function () {
         if (!pendingRedraw) {
             pendingRedraw = true;
-            window.requestAnimationFrame(function () {
-                var t = Date.now(),
-                    line = Math.floor(win.scrollTop / fontHeight),
-                    newStart = line,
-                    newEnd = line + height,
-                    diff = newStart - visibleStart,
-                    fragment = document.createDocumentFragment(),
-                    i,
-                    useDeltas = true;
-                console.log('line: ' + line);
-                if (useDeltas && Math.abs(diff) < height && diff !== 0) {
-                    console.log('diff: ' + diff);
-                    if (diff > 0) {
-                        for (i = diff; i > 0; i -= 1) {
-                            display.firstChild.remove();
-                            fragment.appendChild(document.createTextNode(linesInFile[newEnd - i]));
-                        }
-                        display.appendChild(fragment);
-                    } else {
-                        for (i = 0; i < -diff; i += 1) {
-                            display.lastChild.remove();
-                            fragment.appendChild(document.createTextNode(linesInFile[newStart + i]));
-                        }
-                        display.insertBefore(fragment, display.firstChild);
-                    }
-                } else {
-                    console.log('full redraw');
-                    for (i = newStart; i < newEnd; i += 1) {
-                        fragment.appendChild(document.createTextNode(linesInFile[i]));
-                    }
-                    display.innerHTML = '';
-                    display.appendChild(fragment);
-                }
-
-                visibleStart = newStart;
-                pendingRedraw = false;
-
-                console.log((Date.now() - t) + 'ms');
-            });
+            window.requestAnimationFrame(render);
         }
-    };
+    });
 
     calculateFontSize();
+    window.requestAnimationFrame(render);
+
     console.log('lines: ' + linesInFile.length, (Math.round(file.length / (1024 * 1024) * 100) / 100) + 'Mb');
 });
