@@ -7,6 +7,10 @@ document.addEventListener('DOMContentLoaded', function () {
         return s.match(/^.*((\r\n|\n|\r)|$)/gm);
     }
 
+    function tabsToSpaces(s, tabWidth) {
+        return s.replace(/\t/g, new Array(tabWidth).join(' '))
+    }
+
     var scrollBuffer = document.querySelector('.scroll-buffer'),
         win = document.querySelector('.window'),
         display = document.querySelector('.display'),
@@ -22,7 +26,8 @@ document.addEventListener('DOMContentLoaded', function () {
         gutterVisible = false,
         width = 132,
         height = 38,
-        file = new Array(1000).join(document.querySelector('[data-filename=TUTORIAL]').textContent + '\n'),
+        tabWidth = 8,
+        file = new Array(1000).join(tabsToSpaces(document.querySelector('[data-filename=TUTORIAL]').textContent, tabWidth) + '\n'),
         linesInFile = bufferLines(file),
         lineOffsets = {},
         offset = 0,
@@ -115,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var line = document.createElement('span');
         line.dataset.line = idx + 1;
         line.classList.add('line');
-        line.innerHTML = (linesInFile[idx] || '').replace('<', '&lt;');
+        line.innerHTML = (linesInFile[idx] || '').replace(/</g, '&lt;');
         return line;
     }
 
@@ -189,6 +194,10 @@ document.addEventListener('DOMContentLoaded', function () {
         return Math.max(min, Math.min(x, max));
     }
 
+    function lineColumn(line, col) {
+        return limit(col, 0, (linesInFile[line] || '').length - 1);
+    }
+
     function bufferSize() {
         return offsetOfLine(linesInFile.length);
     }
@@ -221,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var col = offset - offsetOfLine(currentLine),
             newLine = limit(currentLine + arg, 0, linesInFile.length - 1),
             newLineOffset = offsetOfLine(newLine),
-            newOffset = newLineOffset + limit(col, 0, (linesInFile[newLine] || '').length);
+            newOffset = newLineOffset + lineColumn(newLine, col);
         gotoChar(newOffset, newLine);
     }
 
@@ -265,6 +274,18 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    window.addEventListener('mousedown', function (e) {
+        if (0 === e.button && e.target === scrollBuffer) {
+            e.preventDefault();
+            var row = Math.floor(e.layerY / fontHeight),
+                col = Math.floor(e.layerX / fontWidth),
+                line = row + visibleStart;
+            col = lineColumn(line, col);
+            console.log('mouse click:', row, col, line);
+            gotoChar(offsetOfLine(line) + col, line);
+            win.focus();
+        }
+    });
 
     win.addEventListener('scroll', function () {
         if (requestScroll) {
