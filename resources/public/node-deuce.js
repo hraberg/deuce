@@ -1,13 +1,13 @@
 #!/usr/bin/env node
-/*jslint node: true stupid: true nomen: true */
+/*jslint node: true stupid: true */
 
 'use strict';
 
 process.env.TERM = 'dumb';
 
-var evalClj = require('./node-clojure').evalClj;
+var evalCljSync = require('./node-clojure').evalCljSync;
 
-evalClj('(require \'deuce.main)');
-evalClj('(deuce.emacs.lread/load \"deuce-loadup.el\")');
+evalCljSync('(require \'deuce.main)');
+evalCljSync('(deuce.emacs.lread/load \"deuce-loadup.el\")');
 
-console.log(evalClj('(deuce.emacs/emacs-version)').invokeSync());
+console.log(evalCljSync('(deuce.emacs/emacs-version)').invokeSync());

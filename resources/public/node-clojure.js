@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/*jslint node: true stupid: true nomen: true */
+/*jslint node: true stupid: true */
 
 'use strict';
 
