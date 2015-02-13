@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
         height = 38,
         file = new Array(1000).join(document.querySelector('[data-filename=TUTORIAL]').textContent + '\n'),
         linesInFile = bufferLines(file),
+        lineOffsets = {},
         offset = 0,
         currentLine = 0,
         visibleStart = 0,
@@ -33,10 +34,14 @@ document.addEventListener('DOMContentLoaded', function () {
         keyUpTimeoutId;
 
     function offsetOfLine(idx) {
-        var i, acc = 0;
-        for (i = 0; i < idx; i += 1) {
-            acc += linesInFile[i].length;
+        var i, acc = 0, cache = lineOffsets[idx];
+        if (cache) {
+            return cache;
         }
+        for (i = 0; i < idx; i += 1) {
+            acc += (linesInFile[i] || '').length;
+        }
+        lineOffsets[idx] = acc;
         return acc;
     }
 
@@ -224,22 +229,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.addEventListener('keydown', function (e) {
         var key = e.keyCode,
-            command = keymap[key];
+            command = keymap[key],
+            t;
         if (!(key === keys.shift || key === keys.ctrl || key === keys.alt)) {
-            clearTimeout(keyUpTimeoutId);
+            if (keyUpTimeoutId) {
+                clearTimeout(keyUpTimeoutId);
+                keyUpTimeoutId = null;
+            }
             frame.classList.add('keydown');
         }
         if (command) {
             e.preventDefault();
+            t = Date.now();
             command(prefixArg);
+            console.log(command.name, Date.now() - t, 'ms');
         }
     });
 
     ['keyup', 'blur'].forEach(function (e) {
         window.addEventListener(e, function () {
-            keyUpTimeoutId = setTimeout(function () {
-                frame.classList.remove('keydown');
-            }, 500);
+            if (!keyUpTimeoutId) {
+                keyUpTimeoutId = setTimeout(function () {
+                    frame.classList.remove('keydown');
+                    keyUpTimeoutId = null;
+                }, 500);
+            }
         });
     });
 
