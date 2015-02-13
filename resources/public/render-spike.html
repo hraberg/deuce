@@ -8,16 +8,25 @@
       .window { border: 1px solid black; overflow: auto; outline: 0; }
       .scroll-buffer { display: hidden; }
       .display { white-space: pre; position: absolute; z-index: -1; }
-      .display.linum-mode .line:before { content: attr(data-line) ' '; display: inline-block; border-right: 1px solid lightgrey; text-align: right; color: grey; }
+      .window.linum-mode .line:before { content: attr(data-line) ' '; display: inline-block; border-right: 1px solid lightgrey; text-align: right; color: grey; }
       .clipboard { position: fixed; left: -10000px; top: 0; }
 
-      input { margin: 0; vertical-align: bottom; }
+      .live.window .point { border: 1px solid darkgray; }
+      .selected.live.window .point { background: black; background: rgba(0, 0, 0, 0.2); }
+      .point { z-index: 2; position: absolute; border: 1px solid; }
+      .frame.blink-cursor-mode .selected.live.window .point { -webkit-animation: blink-cursor-mode 1s steps(1) infinite; -moz-animation: blink-cursor-mode 1s steps(1) infinite; animation: blink-cursor-mode 1s steps(1) infinite; }
+      .frame.blink-cursor-mode.keydown .selected.live.window .point { opacity: 1; -webkit-animation: none; -moz-animation: none; animation: none; }
+      @-webkit-keyframes blink-cursor-mode { 0% { opacity: 0; } 50% { opacity: 1; } }
+      @keyframes blink-cursor-mode { 0% { opacity: 0; } 50% { opacity: 1; } }
+
+      input.mode { margin: 0; vertical-align: bottom; }
       .file-contents { display: none; }
     </style>
   </head>
   <body>
-    <div class="frame">
-      <div tabindex="-1" class="window">
+    <div class="frame blink-cursor-mode">
+      <div class="selected live window" tabindex="-1">
+        <span class="point"></span>
         <div class="display"></div>
         <div class="scroll-buffer"></div>
       </div>

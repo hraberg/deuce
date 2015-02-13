@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
         win = document.querySelector('.window'),
         display = document.querySelector('.display'),
         clipboard = document.querySelector('.clipboard'),
+        point = document.querySelector('.point'),
         pendingRedraw = false,
         fontHeight,
         fontWidth,
@@ -20,15 +21,23 @@ document.addEventListener('DOMContentLoaded', function () {
         linesInFile = bufferLines(file),
         visibleStart = 0;
 
-    function alignLineNumbers() {
-        var gutterWidth = ((linesInFile.length.toString().length + 1) * fontWidth),
-            selector = '.display.linum-mode .line:before',
-            rule = selector + ' { width: ' + gutterWidth + 'px; }',
-            styleSheet = document.styleSheets[0];
-        if (styleSheet.cssRules[0].selectorText === selector) {
-            styleSheet.deleteRule(0);
+
+    function setCssRule(selector, css) {
+        var styleSheet = document.styleSheets[0],
+            i;
+        for (i = 0; i < styleSheet.cssRules.length; i += 1) {
+            if (styleSheet.cssRules[i].selectorText === selector) {
+                styleSheet.deleteRule(i);
+                break;
+            }
         }
-        styleSheet.insertRule(rule, 0);
+        styleSheet.insertRule(selector + ' ' + css, 0);
+    }
+
+    function alignLineNumbers() {
+        var gutterWidth = ((linesInFile.length.toString().length + 1) * fontWidth);
+        setCssRule('.window.linum-mode .display .line:before', '{ width: ' + gutterWidth + 'px; }');
+        setCssRule('.window.linum-mode .point', '{ margin-left: ' + gutterWidth + 'px; }');
     }
 
     function alignDisplay() {
@@ -55,6 +64,9 @@ document.addEventListener('DOMContentLoaded', function () {
             scrollBuffer.style.height = (fontHeight * linesInFile.length) + 'px';
             win.style.width = (width * fontWidth) + 'px';
             win.style.height = (height * fontHeight) + 'px';
+
+            point.style.width = fontWidth + 'px';
+            point.style.height = fontHeight + 'px';
         }
         window.requestAnimationFrame(setCalculatedFontSize);
     }
@@ -116,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.querySelector('[name=linum-mode]').addEventListener('click', function (e) {
-        document.querySelector('.display').classList.toggle(e.target.name);
+        document.querySelector('.window').classList.toggle(e.target.name);
     });
 
     function resize() {
