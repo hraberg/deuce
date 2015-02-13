@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
         frame = document.querySelector('.frame'),
         pendingRedraw = false,
         requestScroll = false,
+        forceRedraw = false,
         fontHeight,
         fontWidth,
         gutterWidth = 0,
@@ -39,6 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return cache;
         }
         for (i = 0; i < idx; i += 1) {
+            lineOffsets[i] = acc;
             acc += (linesInFile[i] || '').length;
         }
         lineOffsets[idx] = acc;
@@ -53,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return i;
             }
         }
-        return -1;
+        return lines - 1;
     }
 
     function normalizeSelector(selector) {
@@ -123,13 +125,12 @@ document.addEventListener('DOMContentLoaded', function () {
             col = offset - lineOffset,
             startLinePx = startLine * fontHeight;
 
-        console.log('window start line:', startLine, 'line:', currentLine, 'offset:', offset, 'row:', row, 'col:', col);
+        console.log('visible start line:', startLine, 'line:', currentLine, 'offset:', offset, 'row:', row, 'col:', col);
         point.style.left = (col * fontWidth + (gutterVisible ? gutterWidth : 0)) + 'px';
         point.style.top = (row * fontHeight) + 'px';
 
         if (requestScroll && startLine !== visibleStart) {
             win.scrollTop = startLinePx;
-            requestScroll = false;
         }
     }
 
@@ -144,8 +145,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         renderPoint(newStart);
 
-        if (useDeltas && Math.abs(diff) < height && diff !== 0) {
-            console.log('diff:', diff);
+        if (useDeltas && !forceRedraw && Math.abs(diff) < height && diff !== 0) {
+            console.log('diff redraw:', diff);
             if (diff > 0) {
                 for (i = diff; i > 0; i -= 1) {
                     display.firstChild.remove();
@@ -159,13 +160,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 display.insertBefore(fragment, display.firstChild);
             }
-        } else {
-            console.log('full redraw');
+        } else if (diff !== 0 || forceRedraw) {
+            console.log('full redraw:', diff);
             for (i = newStart; i < newEnd; i += 1) {
                 fragment.appendChild(renderLine(i));
             }
             display.innerHTML = '';
             display.appendChild(fragment);
+            forceRedraw = false;
         }
 
         visibleStart = newStart;
@@ -174,8 +176,9 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log((Date.now() - t) + 'ms');
     }
 
-    function requestRedraw(scroll) {
+    function requestRedraw(scroll, force) {
         requestScroll = scroll || requestScroll;
+        forceRedraw = force || forceRedraw;
         if (!pendingRedraw) {
             pendingRedraw = true;
             window.requestAnimationFrame(render);
@@ -190,19 +193,24 @@ document.addEventListener('DOMContentLoaded', function () {
         return offsetOfLine(linesInFile.length);
     }
 
-    function gotoChar(n) {
+    function gotoChar(n, line) {
         offset = limit(n, 0, bufferSize());
-        currentLine = lineAtOffset(offset);
+        console.log('goto char:', offset, n);
+        currentLine = line || lineAtOffset(offset);
         if (visibleStart > currentLine || ((visibleStart + height) < currentLine + 1)) {
             newVisibleStart = limit(Math.floor(currentLine - height / 2), 0, linesInFile.length);
-            requestRedraw(true);
+            requestRedraw(true, false);
         } else {
-            requestRedraw(false);
+            requestRedraw(false, false);
         }
     }
 
     function forwardChar(n) {
-        gotoChar(offset + n);
+        var newOffset = offset + n,
+            line = (linesInFile[currentLine] || ''),
+            lineOffset = offsetOfLine(currentLine),
+            isSameLine = newOffset > lineOffset && newOffset < lineOffset + line.length;
+        gotoChar(newOffset, isSameLine ? currentLine : null);
     }
 
     function backwardChar(n) {
@@ -211,10 +219,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function nextLine(arg) {
         var col = offset - offsetOfLine(currentLine),
-            newLine =  limit(currentLine + arg, 0, linesInFile.length - 1),
+            newLine = limit(currentLine + arg, 0, linesInFile.length - 1),
             newLineOffset = offsetOfLine(newLine),
-            newOffset = newLineOffset + Math.min(col, (linesInFile[newLine] || '').length);
-        gotoChar(newOffset);
+            newOffset = newLineOffset + limit(col, 0, (linesInFile[newLine] || '').length);
+        gotoChar(newOffset, newLine);
     }
 
     function previousLine(arg) {
@@ -259,10 +267,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     win.addEventListener('scroll', function () {
+        if (requestScroll) {
+            requestScroll = false;
+            return;
+        }
         var newOffset, newLine;
         newVisibleStart = Math.floor(win.scrollTop / fontHeight);
         newLine = newVisibleStart;
-        console.log(newLine, currentLine, offset);
+        console.log('scrolling', newLine, currentLine, offset);
         if (newLine === 0) {
             console.log('at top');
             newOffset = 0;
@@ -281,12 +293,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         offset = newOffset;
         currentLine = newLine;
-        requestRedraw(false);
+        requestRedraw(false, false);
     });
 
     document.querySelector('[name=linum-mode]').addEventListener('click', function (e) {
         gutterVisible =  win.classList.toggle(e.target.name);
-        requestRedraw(false);
+        requestRedraw(false, false);
     });
 
     function resize() {
@@ -294,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function () {
         window.requestAnimationFrame(function () {
             alignLineNumbers();
             alignDisplay();
-            render();
+            requestRedraw(true, true);
             win.focus();
         });
     }
