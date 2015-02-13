@@ -8,7 +8,7 @@
       .window { border: 1px solid black; overflow: auto; outline: 0; }
       .scroll-buffer { display: hidden; }
       .display { white-space: pre; position: absolute; z-index: -1; }
-      .window.linum-mode .line:before { content: attr(data-line) ' '; display: inline-block; border-right: 1px solid lightgrey; text-align: right; color: grey; }
+      .window .line:before { content: attr(data-line) ' '; display: none; border-right: 1px solid lightgrey; text-align: right; color: grey; }
       .clipboard { position: fixed; left: -10000px; top: 0; }
 
       .live.window .point { border: 1px solid darkgray; }

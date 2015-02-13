@@ -30,11 +30,15 @@ document.addEventListener('DOMContentLoaded', function () {
         return acc;
     }
 
+    function normalizeSelector(selector) {
+        return selector && selector.trim().replace('::', ':')
+    }
+
     function setCssRule(selector, css) {
         var styleSheet = document.styleSheets[0],
             i;
         for (i = 0; i < styleSheet.cssRules.length; i += 1) {
-            if (styleSheet.cssRules[i].selectorText === selector) {
+            if (normalizeSelector(styleSheet.cssRules[i].selectorText) === selector) {
                 styleSheet.deleteRule(i);
                 break;
             }
@@ -46,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var gutterWidth = ((linesInFile.length.toString().length + 1) * fontWidth);
         setCssRule('.window.linum-mode', '{ padding-left: ' + gutterWidth + 'px; }');
         setCssRule('.window.linum-mode .line:before',
-                   '{ width: ' + gutterWidth + 'px; margin-left: ' + -gutterWidth + 'px; }');
+                   '{ display: inline-block; width: ' + gutterWidth + 'px; margin-left: ' + -gutterWidth + 'px; }');
     }
 
     function alignDisplay() {
