@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var line = document.createElement('span');
         line.dataset.line = idx + 1;
         line.classList.add('line');
-        line.innerHTML = linesInFile[idx];
+        line.innerHTML = linesInFile[idx].replace('<', '&lt;');
         return line;
     }
 
