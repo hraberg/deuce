@@ -19,8 +19,16 @@ document.addEventListener('DOMContentLoaded', function () {
         height = 43,
         file = new Array(1000).join(document.querySelector('[data-filename=TUTORIAL]').textContent + '\n'),
         linesInFile = bufferLines(file),
+        offset = 0,
         visibleStart = 0;
 
+    function offsetOfLine(idx) {
+        var i, acc = 0;
+        for (i = 0; i < idx; i += 1) {
+            acc += linesInFile[i].length;
+        }
+        return acc;
+    }
 
     function setCssRule(selector, css) {
         var styleSheet = document.styleSheets[0],
@@ -87,11 +95,12 @@ document.addEventListener('DOMContentLoaded', function () {
             fragment = document.createDocumentFragment(),
             useDeltas = true,
             i;
+        offset = offsetOfLine(newStart);
 
-        console.log('line: ' + newStart);
+        console.log('line:', newStart, 'offset:', offset);
 
         if (useDeltas && Math.abs(diff) < height && diff !== 0) {
-            console.log('diff: ' + diff);
+            console.log('diff:', diff);
             if (diff > 0) {
                 for (i = diff; i > 0; i -= 1) {
                     display.firstChild.remove();
@@ -167,5 +176,5 @@ document.addEventListener('DOMContentLoaded', function () {
         handleCopyAndCut('copy', 'Copied from Deuce ' + new Date());
     });
 
-    console.log('lines: ' + linesInFile.length, (Math.round(file.length / (1024 * 1024) * 100) / 100) + 'Mb');
+    console.log('lines:', linesInFile.length, (Math.round(file.length / (1024 * 1024) * 100) / 100), 'Mb');
 });
