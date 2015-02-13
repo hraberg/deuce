@@ -12,17 +12,25 @@ document.addEventListener('DOMContentLoaded', function () {
         display = document.querySelector('.display'),
         clipboard = document.querySelector('.clipboard'),
         point = document.querySelector('.point'),
+        frame = document.querySelector('.frame'),
         pendingRedraw = false,
+        requestScroll = false,
         fontHeight,
         fontWidth,
+        gutterWidth = 0,
+        gutterVisible = false,
         width = 132,
-        height = 43,
+        height = 38,
         file = new Array(1000).join(document.querySelector('[data-filename=TUTORIAL]').textContent + '\n'),
         linesInFile = bufferLines(file),
         offset = 0,
         currentLine = 0,
         visibleStart = 0,
-        newVisibleStart = 0;
+        newVisibleStart = 0,
+        prefixArg = 1,
+        keys = {left: 37,  up: 38, right: 39, down: 40},
+        keymap,
+        keyUpTimeoutId;
 
     function offsetOfLine(idx) {
         var i, acc = 0;
@@ -30,6 +38,17 @@ document.addEventListener('DOMContentLoaded', function () {
             acc += linesInFile[i].length;
         }
         return acc;
+    }
+
+    function lineAtOffset(offset) {
+        var i, acc = 0, lines = linesInFile.length;
+        for (i = 0; i < lines; i += 1) {
+            acc += linesInFile[i].length;
+            if (offset < acc) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     function normalizeSelector(selector) {
@@ -49,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function alignLineNumbers() {
-        var gutterWidth = ((linesInFile.length.toString().length + 1) * fontWidth);
+        gutterWidth = ((linesInFile.length.toString().length + 1) * fontWidth);
         setCssRule('*.window.linum-mode', '{ padding-left: ' + gutterWidth + 'px; }');
         setCssRule('*.window.linum-mode .line:before', '{ width: ' + gutterWidth + 'px; margin-left: ' + -gutterWidth + 'px; }');
     }
@@ -96,10 +115,17 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderPoint(startLine) {
         var lineOffset = offsetOfLine(currentLine),
             row = currentLine - startLine,
-            col = offset - lineOffset;
+            col = offset - lineOffset,
+            startLinePx = startLine * fontHeight;
+
         console.log('window start line:', startLine, 'line:', currentLine, 'offset:', offset, 'row:', row, 'col:', col);
-        point.style.left = (col * fontWidth) + 'px';
+        point.style.left = (col * fontWidth + (gutterVisible ? gutterWidth : 0)) + 'px';
         point.style.top = (row * fontHeight) + 'px';
+
+        if (requestScroll && startLine !== visibleStart) {
+            win.scrollTop = startLinePx;
+            requestScroll = false;
+        }
     }
 
     function render() {
@@ -143,12 +169,80 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log((Date.now() - t) + 'ms');
     }
 
-    function requestRedraw() {
+    function requestRedraw(scroll) {
+        requestScroll = scroll || requestScroll;
         if (!pendingRedraw) {
             pendingRedraw = true;
             window.requestAnimationFrame(render);
         }
     }
+
+    function limit(x, min, max) {
+        return Math.max(min, Math.min(x, max));
+    }
+
+    function bufferSize() {
+        return offsetOfLine(linesInFile.length);
+    }
+
+    function gotoChar(n) {
+        offset = limit(n, 0, bufferSize());
+        currentLine = lineAtOffset(offset);
+        if (visibleStart > currentLine || ((visibleStart + height) < currentLine + 1)) {
+            newVisibleStart = limit(Math.floor(currentLine - height / 2), 0, linesInFile.length);
+            requestRedraw(true);
+        } else {
+            requestRedraw(false);
+        }
+    }
+
+    function forwardChar(n) {
+        gotoChar(offset + n);
+    }
+
+    function backwardChar(n) {
+        forwardChar(-n);
+    }
+
+    function nextLine(arg) {
+        var col = offset - offsetOfLine(currentLine),
+            newLine =  limit(currentLine + arg, 0, linesInFile.length - 1),
+            newLineOffset = offsetOfLine(newLine),
+            newOffset = newLineOffset + Math.min(col, (linesInFile[newLine] || '').length);
+        gotoChar(newOffset);
+    }
+
+    function previousLine(arg) {
+        nextLine(-arg);
+    }
+
+    keymap = {};
+    keymap[keys.up] = previousLine;
+    keymap[keys.down] = nextLine;
+    keymap[keys.left] = backwardChar;
+    keymap[keys.right] = forwardChar;
+
+    window.addEventListener('keydown', function (e) {
+        var key = e.keyCode,
+            command = keymap[key];
+        if (!(key === keys.shift || key === keys.ctrl || key === keys.alt)) {
+            clearTimeout(keyUpTimeoutId);
+            frame.classList.add('keydown');
+        }
+        if (command) {
+            e.preventDefault();
+            command(prefixArg);
+        }
+    });
+
+    ['keyup', 'blur'].forEach(function (e) {
+        window.addEventListener(e, function () {
+            keyUpTimeoutId = setTimeout(function () {
+                frame.classList.remove('keydown');
+            }, 500);
+        });
+    });
+
 
     win.addEventListener('scroll', function () {
         var newOffset, newLine;
@@ -173,11 +267,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         offset = newOffset;
         currentLine = newLine;
-        requestRedraw();
+        requestRedraw(false);
     });
 
     document.querySelector('[name=linum-mode]').addEventListener('click', function (e) {
-        document.querySelector('.window').classList.toggle(e.target.name);
+        gutterVisible =  win.classList.toggle(e.target.name);
+        requestRedraw(false);
     });
 
     function resize() {
