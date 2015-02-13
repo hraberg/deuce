@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function normalizeSelector(selector) {
-        return selector && selector.trim().replace('::', ':')
+        return selector && selector.trim().replace('::', ':');
     }
 
     function setCssRule(selector, css) {
