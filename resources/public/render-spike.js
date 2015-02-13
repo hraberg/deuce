@@ -44,8 +44,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function alignLineNumbers() {
         var gutterWidth = ((linesInFile.length.toString().length + 1) * fontWidth);
-        setCssRule('.window.linum-mode .display .line:before', '{ width: ' + gutterWidth + 'px; }');
-        setCssRule('.window.linum-mode .point', '{ margin-left: ' + gutterWidth + 'px; }');
+        setCssRule('.window.linum-mode', '{ padding-left: ' + gutterWidth + 'px; }');
+        setCssRule('.window.linum-mode .line:before ',
+                   '{ width: ' + gutterWidth + 'px; margin-left: ' + -gutterWidth + 'px; }');
     }
 
     function alignDisplay() {
