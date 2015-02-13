@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
         newVisibleStart = 0,
         prefixArg = 1,
         keys = {left: 37,  up: 38, right: 39, down: 40},
+        mouseButton = {left: 0},
         keymap,
         keyUpTimeoutId;
 
@@ -274,8 +275,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    window.addEventListener('mousedown', function (e) {
-        if (0 === e.button && e.target === scrollBuffer) {
+    win.addEventListener('mousedown', function (e) {
+        if (mouseButton.left === e.button) {
             e.preventDefault();
             var rect = win.getBoundingClientRect(),
                 x = e.clientX - rect.left,
