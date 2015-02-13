@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function tabsToSpaces(s, tabWidth) {
-        return s.replace(/\t/g, new Array(tabWidth).join(' '))
+        return s.replace(/\t/g, [].constructor(tabWidth).join(' '));
     }
 
     var scrollBuffer = document.querySelector('.scroll-buffer'),
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function () {
             col = offset - lineOffset,
             startLinePx = startLine * fontHeight;
 
-        console.log('visible start line:', startLine, 'line:', currentLine, 'offset:', offset, 'row:', row, 'col:', col);
+        console.log('point:', 'visible start line:', startLine, 'line:', currentLine, 'offset:', offset, 'row:', row, 'col:', col);
         point.style.left = (col * fontWidth + (gutterVisible ? gutterWidth : 0)) + 'px';
         point.style.top = (row * fontHeight) + 'px';
 
@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function () {
         visibleStart = newStart;
         pendingRedraw = false;
 
-        console.log((Date.now() - t) + 'ms');
+        console.log('render:', (Date.now() - t), 'ms');
     }
 
     function requestRedraw(scroll, force) {
@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function gotoChar(n, line) {
         offset = limit(n, 0, bufferSize());
-        console.log('goto char:', offset, n);
+        console.log('goto char:', offset);
         currentLine = line || lineAtOffset(offset);
         if (visibleStart > currentLine || ((visibleStart + height) < currentLine + 1)) {
             newVisibleStart = limit(Math.floor(currentLine - height / 2), 0, linesInFile.length);
@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             t = Date.now();
             command(prefixArg);
-            console.log(command.name, Date.now() - t, 'ms');
+            console.log('command:', command.name, Date.now() - t, 'ms');
         }
     });
 
@@ -277,11 +277,14 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('mousedown', function (e) {
         if (0 === e.button && e.target === scrollBuffer) {
             e.preventDefault();
-            var row = Math.floor(e.layerY / fontHeight),
-                col = Math.floor(e.layerX / fontWidth),
+            var rect = win.getBoundingClientRect(),
+                x = e.clientX - rect.left,
+                y = e.clientY - rect.top,
+                row = Math.floor(y / fontHeight),
+                col = Math.floor(x / fontWidth),
                 line = row + visibleStart;
             col = lineColumn(line, col);
-            console.log('mouse click:', row, col, line);
+            console.log('mouse click:', 'x:', x, 'y:', y, 'col:', col, 'row:', row);
             gotoChar(offsetOfLine(line) + col, line);
             win.focus();
         }
@@ -295,7 +298,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var newOffset, newLine;
         newVisibleStart = Math.floor(win.scrollTop / fontHeight);
         newLine = newVisibleStart;
-        console.log('scrolling', newLine, currentLine, offset);
+        console.log('scrolling:', 'new visible start line:', newLine, 'line:', currentLine, 'offset:', offset);
         if (newLine === 0) {
             console.log('at top');
             newOffset = 0;
@@ -337,11 +340,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.addEventListener('paste', function (e) {
         e.preventDefault();
-        console.log('paste', e.clipboardData.getData('text/plain'));
+        console.log('paste:', e.clipboardData.getData('text/plain'));
     });
 
     function handleCopyAndCut(type, text) {
-        console.log(type, text);
+        console.log(type + ':', text);
         clipboard.value = text;
         clipboard.select();
         setTimeout(function () {
@@ -351,11 +354,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     window.addEventListener('cut', function () {
-        handleCopyAndCut('cut', 'Cut from Deuce' + new Date());
+        handleCopyAndCut('cut', linesInFile[currentLine]);
     });
 
     window.addEventListener('copy', function () {
-        handleCopyAndCut('copy', 'Copied from Deuce ' + new Date());
+        handleCopyAndCut('copy', linesInFile[currentLine]);
     });
 
     console.log('lines:', linesInFile.length, (Math.round(file.length / (1024 * 1024) * 100) / 100), 'Mb');
