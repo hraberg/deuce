@@ -322,6 +322,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelector('[name=linum-mode]').addEventListener('click', function (e) {
         gutterVisible =  win.classList.toggle(e.target.name);
+        win.focus();
         requestRedraw(false, false);
     });
 
