@@ -18,8 +18,8 @@ deuce_source_files=$(shell find src -iname "*.clj")
 deuce_javascript=$(shell find resources/public -iname "*.js" ! -path "*/node_modules/*")
 deuce_css=$(shell find resources/public -iname "*.css")
 
-node_modules=resources/public/node_modules
 nw_version=0.12.0-alpha2
+node_modules=resources/public/node_modules
 nwbuild=node $(node_modules)/.bin/nwbuild -v $(nw_version)
 
 smoke_test_args=-Q --batch --eval "(print (emacs-version))"
