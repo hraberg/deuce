@@ -20,7 +20,9 @@ document.addEventListener('DOMContentLoaded', function () {
         file = new Array(1000).join(document.querySelector('[data-filename=TUTORIAL]').textContent + '\n'),
         linesInFile = bufferLines(file),
         offset = 0,
-        visibleStart = 0;
+        currentLine = 0,
+        visibleStart = 0,
+        newVisibleStart = 0;
 
     function offsetOfLine(idx) {
         var i, acc = 0;
@@ -87,21 +89,29 @@ document.addEventListener('DOMContentLoaded', function () {
         var line = document.createElement('span');
         line.dataset.line = idx + 1;
         line.classList.add('line');
-        line.innerHTML = linesInFile[idx].replace('<', '&lt;');
+        line.innerHTML = (linesInFile[idx] || '').replace('<', '&lt;');
         return line;
+    }
+
+    function renderPoint(startLine) {
+        var lineOffset = offsetOfLine(currentLine),
+            row = currentLine - startLine,
+            col = offset - lineOffset;
+        console.log('window start line:', startLine, 'line:', currentLine, 'offset:', offset, 'row:', row, 'col:', col);
+        point.style.left = (col * fontWidth) + 'px';
+        point.style.top = (row * fontHeight) + 'px';
     }
 
     function render() {
         var t = Date.now(),
-            newStart = Math.floor(win.scrollTop / fontHeight),
+            newStart = newVisibleStart,
             newEnd = newStart + height,
             diff = newStart - visibleStart,
             fragment = document.createDocumentFragment(),
             useDeltas = true,
             i;
-        offset = offsetOfLine(newStart);
 
-        console.log('line:', newStart, 'offset:', offset);
+        renderPoint(newStart);
 
         if (useDeltas && Math.abs(diff) < height && diff !== 0) {
             console.log('diff:', diff);
@@ -133,11 +143,37 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log((Date.now() - t) + 'ms');
     }
 
-    win.addEventListener('scroll', function () {
+    function requestRedraw() {
         if (!pendingRedraw) {
             pendingRedraw = true;
             window.requestAnimationFrame(render);
         }
+    }
+
+    win.addEventListener('scroll', function () {
+        var newOffset, newLine;
+        newVisibleStart = Math.floor(win.scrollTop / fontHeight);
+        newLine = newVisibleStart;
+        console.log(newLine, currentLine, offset);
+        if (newLine === 0) {
+            console.log('at top');
+            newOffset = 0;
+            newLine = 0;
+        } else if (newLine === (linesInFile.length - 1)) {
+            console.log('at bottom');
+            newLine = linesInFile.length - 1;
+            newOffset = offsetOfLine(newLine) + linesInFile[newLine].length;
+        } else if (newLine > currentLine) {
+            console.log('scrolling down');
+            newOffset = offsetOfLine(newLine);
+        } else {
+            console.log('scrolling up');
+            newLine = newLine + height - 2;
+            newOffset = offsetOfLine(newLine);
+        }
+        offset = newOffset;
+        currentLine = newLine;
+        requestRedraw();
     });
 
     document.querySelector('[name=linum-mode]').addEventListener('click', function (e) {
