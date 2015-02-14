@@ -125,7 +125,7 @@ GapBuffer.prototype.forwardChar = function (n) {
 };
 
 GapBuffer.prototype.backwardChar = function (n) {
-    return this.forwardChar(-n);
+    return this.forwardChar(-(n || 1));
 };
 
 GapBuffer.prototype.insert = function (s) {
@@ -191,7 +191,7 @@ GapBuffer.prototype.deleteChar = function (n) {
 };
 
 GapBuffer.prototype.backwardDeleteChar = function (n) {
-    return this.deleteChar(-n);
+    return this.deleteChar(-(n || 1));
 };
 
 var assert = require('assert');
