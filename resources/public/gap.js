@@ -13,6 +13,7 @@ function GapBuffer(s) {
     this.point = 0;
     this.start = 0;
     this.end = 0;
+    this.markRing = [];
     this.grow();
 }
 
@@ -78,6 +79,16 @@ GapBuffer.prototype.gotoChar = function (n) {
     return this;
 };
 
+GapBuffer.prototype.pushMark = function () {
+    this.markRing.push(this.point);
+    return this;
+};
+
+GapBuffer.prototype.popMark = function () {
+    this.markRing.pop();
+    return this;
+};
+
 GapBuffer.prototype.bobp = function () {
     return this.point === 0;
 };
@@ -131,7 +142,30 @@ GapBuffer.prototype.insert = function (s) {
     return this;
 };
 
+GapBuffer.prototype.deleteRegion = function (start, end) {
+    start = start || this.point;
+    if (!end && this.markRing.length > 0) {
+        end = this.markRing.pop();
+    } else if (!end) {
+        return this;
+    }
+
+    this.gotoChar(Math.min(start, end));
+    this.moveGapToPoint();
+    this.end = this.offsetToIndex(Math.max(start, end));
+
+    var i;
+    for (i = this.start; i < this.end; i += 1) {
+        delete this.buffer[i];
+    }
+
+    return this;
+};
+
 GapBuffer.prototype.deleteChar = function (n) {
+    if (this.markRing.length > 0) {
+        return this.deleteRegion();
+    }
     this.moveGapToPoint();
     n = n || 1;
     var direction = n > 0 ? FORWARD : BACKWARD;
@@ -168,7 +202,9 @@ GapBuffer.prototype.expect = function (expected) {
     } else {
         var that = this;
         assert.deepEqual(Object.keys(expected).reduce(function (m, k) {
-            m[k] = that[k];
+            m[k] = k.split('.').reduce(function (o, k) {
+                return o[k];
+            }, that);
             return m;
         }, {}), expected);
     }
@@ -185,15 +221,21 @@ for (i = 0; i < text.length; i += 1) {
     assert.equal(buffer.charAt(i), text.charAt(i));
 }
 
-buffer.expect('Hello World').expect({point: 0, start: 0, end: 6})
+buffer.expect('Hello World').expect({point: 0, start: 0, end: 6, length: 11, 'buffer.length': 17})
     .gotoChar(2).expect({point: 2, start: 0, end: 6})
     .forwardChar(4).expect({point: 6})
     .backwardChar(4).expect({point: 2})
     .forwardChar(5).expect({point: 7})
     .forwardChar(5).expect({point: 11, start: 0, end: 6})
-    .insert('Space!').expect('Hello WorldSpace!').expect({point: 17, start: 17, end: 26})
+    .insert('Space!').expect('Hello WorldSpace!').expect({point: 17, start: 17, end: 26, 'buffer.length': 26})
     .backwardChar(2).expect({point: 15, start: 15, end: 24})
     .deleteChar(2).expect('Hello WorldSpac').expect({start: 15, end: 26})
     .backwardDeleteChar(3).expect('Hello WorldS').expect({start: 12, end: 26})
     .forwardChar(50).expect({start: 12, end: 26})
-    .gotoChar(5).expect({point: 5, start: 12, end: 26});
+    .gotoChar(5).expect({point: 5, start: 12, end: 26})
+    .pushMark().expect({markRing: [5]})
+    .gotoChar(9).expect({point: 9, markRing: [5]})
+    .deleteRegion().expect({point: 5, start: 5, end: 23, markRing: [], length: 8}).expect('HelloldS')
+    .gotoChar(0).pushMark().expect({markRing: [0]})
+    .forwardChar(3).expect({point: 3, markRing: [0]})
+    .backwardDeleteChar(1).expect({point: 0, start: 0, end: 21, markRing: [], length: 5}).expect('loldS');
