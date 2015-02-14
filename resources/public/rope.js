@@ -87,10 +87,17 @@ function walk(a, f) {
     if (!a) {
         return;
     }
-    f(a);
-    if (!isLeaf(a)) {
-        walk(a[LEFT], f);
-        walk(a[RIGHT], f);
+    var todo = [a],
+        next;
+    while (todo.length > 0) {
+        next = todo.shift();
+        if (next) {
+            f(next);
+            if (!isLeaf(next)) {
+                todo.push(next[LEFT]);
+                todo.push(next[RIGHT]);
+            }
+        }
     }
 }
 
@@ -111,14 +118,19 @@ function merge(leaves, start, end) {
     }
 }
 
-function balance(a) {
-    var leaves = [];
+function leaves(a) {
+    var acc = [];
     walk(a, function (b) {
         if (isLeaf(b)) {
-            leaves.push(b);
+            acc.push(b);
         }
     });
-    return merge(leaves, 0, leaves.length);
+    return acc;
+}
+
+function balance(a) {
+    var ls = leaves(a);
+    return merge(ls, 0, ls.length);
 }
 
 function cat(a, b) {
@@ -249,6 +261,9 @@ function subs(a, i, j, lines) {
 
 // Example from http://en.wikipedia.org/wiki/Rope_(data_structure)
 var example = cat(cat(cat('hello ', 'my '), cat(cat('na', 'me i'), cat('s', ' Simon'))));
+
+walk(example, function (x) { console.log('walk:', x); });
+console.log('leaves:', leaves(example));
 
 function logInspect(o, depth) {
     console.log(inspect(o, false, depth || 10));
