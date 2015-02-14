@@ -163,9 +163,6 @@ function fromStrings(ss) {
 
 function insert(a, i, b, line) {
     var s = split(a, i, line);
-    if (isString(b)) {
-        b = leaf(b);
-    }
     return cat(cat(s[0], b), s[1]);
 }
 
