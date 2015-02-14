@@ -4,7 +4,7 @@
 'use strict';
 
 // http://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf
-
+// https://github.com/ivmai/bdwgc/blob/master/cord/cordbscs.c
 
 var inspect = require('util').inspect;
 
@@ -13,10 +13,13 @@ function isString(x) {
 }
 
 var LENGTH = 0,
-    LINE = 1,
+    LINES = 1,
+    DEPTH = 2,
     WEIGHTS = 0,
     LEFT = 1,
-    RIGHT = 2;
+    RIGHT = 2,
+    SHORT_LIMIT = 16,
+    MAX_DEPTH = 48;
 
 function length(a) {
     if (a) {
@@ -29,7 +32,14 @@ var splitLinesPattern = /^.*((\r\n|\n|\r))/gm;
 
 function newlines(a) {
     if (a) {
-        return a[WEIGHTS][LINE] + newlines(a[RIGHT]);
+        return a[WEIGHTS][LINES] + newlines(a[RIGHT]);
+    }
+    return 0;
+}
+
+function depth(a) {
+    if (a) {
+        return Math.max(a[WEIGHTS][DEPTH], depth(a[RIGHT]) + 1);
     }
     return 0;
 }
@@ -38,13 +48,13 @@ function weights(a) {
     if (a) {
         var aws = a[WEIGHTS],
             rws = weights(a[RIGHT]);
-        return [aws[LENGTH] + rws[LENGTH], aws[LINE] + rws[LINE]];
+        return [aws[LENGTH] + rws[LENGTH], aws[LINES] + rws[LINES], Math.max(aws[DEPTH], rws[DEPTH]) + 1];
     }
-    return [0, 0];
+    return [0, 0, 0];
 }
 
 function leaf(s) {
-    return [[s.length, (s.match(splitLinesPattern) || '').length], s];
+    return [[s.length, (s.match(splitLinesPattern) || '').length, 1], s];
 }
 
 function toRope(a) {
@@ -60,44 +70,44 @@ function cat(a, b) {
     return [weights(a), a];
 }
 
-function index(a, i, line) {
+function index(a, i, ofLine) {
     if (!a) {
         return;
     }
-    var w = a[WEIGHTS][line ? LINE : LENGTH],
+    var w = a[WEIGHTS][ofLine ? LINES : LENGTH],
         l = a[LEFT],
         r = a[RIGHT];
     if (isString(l)) {
-        if (line) {
+        if (ofLine) {
             return l.match(splitLinesPattern)[i];
         }
         return l[i];
     }
     if (w <= i) {
-        return index(r, i - w, line);
+        return index(r, i - w, ofLine);
     }
-    return index(l, i, line);
+    return index(l, i, ofLine);
 }
 
 // http://stackoverflow.com/a/22028152
-function split(a, i, line) {
-    var w = a[WEIGHTS][line ? LINE : LENGTH],
+function split(a, i, atLine) {
+    var w = a[WEIGHTS][atLine ? LINES : LENGTH],
         l = a[LEFT],
         r = a[RIGHT],
         s;
     if (isString(l)) {
-        if (line) {
+        if (atLine) {
             s = l.match(splitLinesPattern);
             return [leaf(s.splice(0, i).join('')), leaf(s.splice(i).join(''))];
         }
         return [leaf(l.substring(0, i)), leaf(l.substring(i))];
     }
     if (i < w) {
-        s = split(l, i, line);
+        s = split(l, i, atLine);
         return [s[0], cat(s[1], r)];
     }
     if (i > w) {
-        s = split(r, i - w, line);
+        s = split(r, i - w, atLine);
         return [cat(l, s[0]), s[1]];
     }
     return [l, r];
@@ -194,7 +204,10 @@ function logTime(label, f) {
 
 logInspect(index(example, 10));
 logInspect(length(example));
+logInspect(depth(example));
 logInspect(newlines(cat('Hello\n', 'World\n')));
+logInspect(cat('Hello\n', 'World\n'));
+logInspect(depth(cat('Hello\n', 'World\n')));
 logInspect(lines(cat('Hello Ruthless\n', 'World\n'), 1));
 logInspect(index(cat('Hello Ruthless\n', 'World\n'), 1, true));
 logInspect(lines(cat('Hello Ruthless\n', 'World\n'), 0, 2));
