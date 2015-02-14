@@ -20,6 +20,21 @@ GapBuffer.prototype.toString = function () {
     return this.buffer.slice(0, this.start).concat(this.buffer.slice(this.end)).join('');
 };
 
+GapBuffer.prototype.offsetToIndex = function (offset) {
+    if (offset < this.start) {
+        return offset;
+    }
+    return offset + (this.end - this.start);
+};
+
+GapBuffer.prototype.charAt = function (n) {
+    return this.buffer[this.offsetToIndex(n)];
+};
+
+GapBuffer.prototype.toArray = function () {
+    return this.toString ().split('');
+};
+
 Object.defineProperty(GapBuffer.prototype, 'length', {
     get: function () {
         return this.buffer.length - (this.end - this.start);
@@ -158,7 +173,15 @@ GapBuffer.prototype.backwardDeleteChar = function (n) {
     return this.deleteChar(-n);
 };
 
-var buffer = new GapBuffer('Hello World');
+var text = 'Hello World',
+    buffer = new GapBuffer(text),
+    i;
+
+assert.equal(buffer.length, text.length);
+assert.deepEqual(text.split(''), buffer.toArray());
+for (i = 0; i < text.length; i += 1) {
+    assert.equal(buffer.charAt(i), text.charAt(i));
+}
 
 buffer.expect('Hello World').expect({point: 0, start: 0, end: 6})
     .gotoChar(2).expect({point: 2, start: 0, end: 6})
