@@ -6,7 +6,8 @@
 // http://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf
 // https://github.com/ivmai/bdwgc/blob/master/cord/cordbscs.c
 
-var inspect = require('util').inspect;
+var inspect = require('util').inspect,
+    assert = require('assert');
 
 function isString(x) {
     return typeof x === 'string' || x instanceof String;
@@ -61,6 +62,11 @@ function toRope(a) {
     return isString(a) ? leaf(a) : a;
 }
 
+function balance(a) {
+    console.warn('balancing not implemented');
+    return a;
+}
+
 // Need to rebalance here.
 function cat(a, b) {
     a = toRope(a);
@@ -87,6 +93,10 @@ function index(a, i, ofLine) {
         return index(r, i - w, ofLine);
     }
     return index(l, i, ofLine);
+}
+
+function isLeaf(a) {
+    return a && a[WEIGHTS][DEPTH] === 1;
 }
 
 // http://stackoverflow.com/a/22028152
@@ -161,6 +171,11 @@ function deleteRange(a, i, j, lines) {
     return cat(s[0], split(s[1], j - i, lines)[1]);
 }
 
+function subs(a, i, j, lines) {
+    var s = split(a, i, lines);
+    return j ? split(s[1], j - i, lines)[0] : s[1];
+}
+
 // function *iterator(a) {
 //     if (!a) {
 //         return;
@@ -201,6 +216,54 @@ function logTime(label, f) {
         console.timeEnd(label);
     }
 }
+
+// https://github.com/ivmai/bdwgc/blob/master/cord/tests/cordtest.c
+
+var x = toRope('ab');
+assert(isLeaf(x));
+assert.equal(ropeToString(x), 'ab');
+assert.equal(ropeToString(subs(x, 0, 1)), 'a');
+assert.equal(ropeToString(subs(x, 1)), 'b');
+assert.equal(length(x), 2);
+assert.equal(newlines(x), 0);
+assert.equal(depth(x), 1);
+x = cat(x, x);
+
+assert(!isLeaf(x));
+assert.equal(ropeToString(x), 'abab');
+assert.equal(ropeToString(subs(x, 1, 3)), 'ba');
+assert.equal(length(x), 4);
+assert.equal(newlines(x), 0);
+assert.equal(depth(x), 2);
+
+assert.equal(length(cat(x, x)), 8);
+assert.equal(length(cat(cat(x, x), 'c')), 9);
+
+var i;
+for (i = 1; i < 16; i += 1) {
+    x = cat(x, x);
+}
+x = cat(x, 'c');
+assert.equal(length(x), 128 * 1024 + 1);
+
+var y = subs(x, 1023, 5);
+assert(isLeaf(y));
+assert.equal(ropeToString(y), 'babab');
+
+y = subs(x, 1024, 8);
+assert(isLeaf(y));
+assert.equal(ropeToString(y), 'abababab');
+
+y = subs(x, 128 * 1024 - 1, 8);
+assert(isLeaf(y));
+assert.equal(ropeToString(y), 'bc');
+
+x = balance(x);
+assert.equal(length(x), 128 * 1024 + 1);
+
+y = subs(x, 1023, 5);
+assert(isLeaf(y));
+assert.equal(ropeToString(y), 'babab');
 
 logInspect(index(example, 10));
 logInspect(length(example));
