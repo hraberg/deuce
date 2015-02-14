@@ -116,8 +116,8 @@ GapBuffer.prototype.deleteChar = function (n) {
             delete this.buffer[this.end];
             this.end += direction;
         } else {
-            delete this.buffer[this.start];
             this.start += direction;
+            delete this.buffer[this.start];
         }
         n -= 1;
     }
