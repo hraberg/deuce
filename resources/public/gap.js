@@ -32,7 +32,7 @@ GapBuffer.prototype.charAt = function (n) {
 };
 
 GapBuffer.prototype.toArray = function () {
-    return this.toString ().split('');
+    return this.toString().split('');
 };
 
 Object.defineProperty(GapBuffer.prototype, 'length', {
