@@ -113,7 +113,7 @@ function merge(leaves, start, end) {
     case 2:
         return cat(leaves[start], leaves[start + 1]);
     default:
-        middle = start - range / 2;
+        middle = Math.round(start + range / 2);
         return cat(merge(leaves, start, middle), merge(leaves, middle, end));
     }
 }
@@ -213,13 +213,8 @@ function lines(a, i, j) {
 }
 
 function fromStrings(ss) {
-    return ss.reduce(function (r, s) {
-        var n = leaf(s);
-        if (!r) {
-            return n;
-        }
-        return cat(r, n);
-    }, null);
+    var ls = ss.map(leaf);
+    return merge(ls, 0, ls.length);
 }
 
 function insert(a, i, b, line) {
@@ -259,12 +254,6 @@ function subs(a, i, j, lines) {
 //     yield *iterator(r);
 // }
 
-// Example from http://en.wikipedia.org/wiki/Rope_(data_structure)
-var example = cat(cat(cat('hello ', 'my '), cat(cat('na', 'me i'), cat('s', ' Simon'))));
-
-walk(example, function (x) { console.log('walk:', x); });
-console.log('leaves:', leaves(example));
-
 function logInspect(o, depth) {
     console.log(inspect(o, false, depth || 10));
 }
@@ -288,6 +277,14 @@ function logTime(label, f) {
         console.timeEnd(label);
     }
 }
+
+// Example from http://en.wikipedia.org/wiki/Rope_(data_structure)
+var example = cat(cat(cat('hello ', 'my '), cat(cat('na', 'me i'), cat('s', ' Simon'))));
+
+walk(example, function (x) { console.log('walk:', x); });
+console.log('leaves:', leaves(example));
+
+logInspect(fromStrings(['Hello', 'Rope!', 'A bit', 'Longer', 'Lorem Ipsum']));
 
 // https://github.com/ivmai/bdwgc/blob/master/cord/tests/cordtest.c
 
