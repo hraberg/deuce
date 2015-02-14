@@ -30,6 +30,11 @@ GapBuffer.prototype.grow = function () {
     return this;
 };
 
+GapBuffer.prototype.log = function () {
+    console.log(this);
+    return this;
+};
+
 Object.defineProperty(GapBuffer.prototype, "length", {
     get: function () {
         return this.buffer.length - (this.end - this.start);
@@ -51,6 +56,7 @@ GapBuffer.prototype.gotoChar = function (n) {
 
     return this;
 };
+
 
 GapBuffer.prototype.bobp = function () {
     return this.start === 0;
@@ -124,27 +130,15 @@ GapBuffer.prototype.backwardDeleteChar = function (n) {
 
 var buffer = new GapBuffer('Hello World');
 console.log(buffer, buffer.length, buffer.toString());
-buffer = buffer.forwardChar(2);
-console.log(buffer);
-buffer = buffer.forwardChar(4);
-console.log(buffer);
-buffer = buffer.backwardChar(4);
-console.log(buffer);
 
-buffer = buffer.forwardChar(5);
-console.log(buffer);
-
-buffer = buffer.insert('Space!');
-console.log(buffer);
-
-buffer = buffer.deleteChar(2);
-console.log(buffer);
-
-buffer = buffer.backwardDeleteChar(3);
-console.log(buffer);
-
-buffer = buffer.forwardChar(50);
-console.log(buffer);
-
-buffer = buffer.gotoChar(5);
-console.log(buffer);
+buffer
+    .forwardChar(2).log()
+    .forwardChar(4).log()
+    .backwardChar(4).log()
+    .forwardChar(5).log()
+    .forwardChar(5).log()
+    .insert('Space!').log()
+    .deleteChar(2).log()
+    .backwardDeleteChar(3).log()
+    .forwardChar(50).log()
+    .gotoChar(5).log();
