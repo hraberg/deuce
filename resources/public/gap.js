@@ -36,6 +36,7 @@ GapBuffer.prototype.toArray = function () {
 };
 
 Object.defineProperty(GapBuffer.prototype, 'length', {
+    enumerable: true,
     get: function () {
         return this.buffer.length - (this.end - this.start);
     }
