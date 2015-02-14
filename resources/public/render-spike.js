@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var newOffset = offset + n,
             line = (linesInFile[currentLine] || ''),
             lineOffset = offsetOfLine(currentLine),
-            isSameLine = newOffset > lineOffset && newOffset < lineOffset + line.length;
+            isSameLine = newOffset >= lineOffset && newOffset < lineOffset + line.length;
         gotoChar(newOffset, isSameLine ? currentLine : null);
     }
 
