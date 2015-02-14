@@ -8,7 +8,7 @@
 // C: https://github.com/ivmai/bdwgc/blob/master/cord/cordbscs.c
 // Common Lisp: https://github.com/Ramarren/ropes
 // JavaScript: https://github.com/component/rope
-// Java: http://ahmadsoft.org/ropes/index.html
+// Java: https://code.google.com/p/ropes/
 // Go: https://github.com/vinzmay/go-rope
 
 var inspect = require('util').inspect,
@@ -40,7 +40,7 @@ function ropeToString(a) {
 }
 
 function isLeaf(a) {
-    return a && a[WEIGHTS][DEPTH] === 1;
+    return a && a[WEIGHTS][DEPTH] === 0;
 }
 
 function length(a) {
@@ -60,7 +60,7 @@ function newlines(a) {
 }
 
 function depth(a) {
-    if (a) {
+    if (a && !isLeaf(a)) {
         return Math.max(a[WEIGHTS][DEPTH], depth(a[RIGHT]) + 1);
     }
     return 0;
@@ -76,7 +76,7 @@ function weights(a) {
 }
 
 function leaf(s) {
-    return [[s.length, (s.match(splitLinesPattern) || '').length, 1], s];
+    return [[s.length, (s.match(splitLinesPattern) || '').length, 0], s];
 }
 
 function toRope(a) {
@@ -229,7 +229,7 @@ function logTime(label, f) {
 
 var x = toRope('ab');
 assert(isLeaf(x));
-assert.equal(depth(x), 1);
+assert.equal(depth(x), 0);
 assert.equal(ropeToString(x), 'ab');
 assert.equal(ropeToString(subs(x, 0, 1)), 'a');
 assert.equal(ropeToString(subs(x, 1)), 'b');
@@ -238,7 +238,7 @@ assert.equal(newlines(x), 0);
 
 x = cat(x, x);
 assert(isLeaf(x));
-assert.equal(depth(x), 1);
+assert.equal(depth(x), 0);
 assert.equal(ropeToString(x), 'abab');
 assert.equal(ropeToString(subs(x, 1, 3)), 'ba');
 assert.equal(length(x), 4);
@@ -253,7 +253,7 @@ for (i = 1; i < 16; i += 1) {
 }
 x = cat(x, 'c');
 assert(!isLeaf(x));
-assert.equal(depth(x), 15);
+assert.equal(depth(x), 14);
 assert.equal(length(x), 128 * 1024 + 1);
 
 var y = subs(x, 1023, 5);
