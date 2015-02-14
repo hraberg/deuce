@@ -92,7 +92,6 @@ GapBuffer.prototype.gotoChar = function (n) {
     return this;
 };
 
-
 GapBuffer.prototype.bobp = function () {
     return this.point === 0;
 };
