@@ -103,6 +103,22 @@ function cat(a, b) {
     return [weights(a), a];
 }
 
+function rotateLeft(a) {
+    var r = a[RIGHT];
+    if (isLeaf(r) || !r) {
+        return a;
+    }
+    return cat(cat(a[LEFT], r[LEFT]), r[RIGHT]);
+}
+
+function rotateRight(a) {
+    var l = a[LEFT];
+    if (isLeaf(l) || !l) {
+        return a;
+    }
+    return cat(l[LEFT], cat(l[RIGHT], a[RIGHT]));
+}
+
 function index(a, i, ofLine) {
     if (!a) {
         return;
