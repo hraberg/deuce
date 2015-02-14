@@ -3,7 +3,9 @@
 
 'use strict';
 
-var assert = require('assert');
+var GROWTH_FACTOR = 0.5,
+    FORWARD = 1,
+    BACKWARD = -1;
 
 // not persistent, uses destructive updates to the buffer.
 function GapBuffer(s) {
@@ -13,10 +15,6 @@ function GapBuffer(s) {
     this.end = 0;
     this.grow();
 }
-
-var GROWTH_FACTOR = 0.5,
-    FORWARD = 1,
-    BACKWARD = -1;
 
 GapBuffer.prototype.toString = function () {
     return this.buffer.slice(0, this.start).concat(this.buffer.slice(this.end)).join('');
@@ -53,19 +51,6 @@ GapBuffer.prototype.grow = function () {
     this.start = before.length;
     this.end = before.length + gap.length;
 
-    return this;
-};
-
-GapBuffer.prototype.expect = function (expected) {
-    if (typeof expected === 'string') {
-        assert.equal(this.toString(), expected);
-    } else {
-        var that = this;
-        assert.deepEqual(Object.keys(expected).reduce(function (m, k) {
-            m[k] = that[k];
-            return m;
-        }, {}), expected);
-    }
     return this;
 };
 
@@ -172,6 +157,21 @@ GapBuffer.prototype.deleteChar = function (n) {
 
 GapBuffer.prototype.backwardDeleteChar = function (n) {
     return this.deleteChar(-n);
+};
+
+var assert = require('assert');
+
+GapBuffer.prototype.expect = function (expected) {
+    if (typeof expected === 'string') {
+        assert.equal(this.toString(), expected);
+    } else {
+        var that = this;
+        assert.deepEqual(Object.keys(expected).reduce(function (m, k) {
+            m[k] = that[k];
+            return m;
+        }, {}), expected);
+    }
+    return this;
 };
 
 var text = 'Hello World',
