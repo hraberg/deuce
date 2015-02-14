@@ -4,7 +4,11 @@
 'use strict';
 
 // http://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf
-// https://github.com/ivmai/bdwgc/blob/master/cord/cordbscs.c
+
+// C: https://github.com/ivmai/bdwgc/blob/master/cord/cordbscs.c
+// Common Lisp: https://github.com/Ramarren/ropes
+// JavaScript: https://github.com/component/rope
+// Java: http://ahmadsoft.org/ropes/index.html
 
 var inspect = require('util').inspect,
     assert = require('assert');
