@@ -19,6 +19,12 @@ GapBuffer.prototype.toString = function () {
     return this.buffer.slice(0, this.start).concat(this.buffer.slice(this.end)).join('');
 };
 
+Object.defineProperty(GapBuffer.prototype, 'length', {
+    get: function () {
+        return this.buffer.length - (this.end - this.start);
+    }
+});
+
 GapBuffer.prototype.grow = function () {
     var size = Math.round(this.length * GapBuffer.GROWTH_FACTOR),
         before = this.buffer.slice(0, this.start),
@@ -50,12 +56,6 @@ GapBuffer.prototype.expect = function (expected) {
     return this;
 };
 
-
-Object.defineProperty(GapBuffer.prototype, "length", {
-    get: function () {
-        return this.buffer.length - (this.end - this.start);
-    }
-});
 
 // should move the gap lazily on demand on first edit after point movement.
 GapBuffer.prototype.gotoChar = function (n) {
