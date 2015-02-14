@@ -87,23 +87,26 @@ function walk(a, f) {
     if (!a) {
         return;
     }
-    return f(a);
+    f(a);
     if (!isLeaf(a)) {
-        return walk(a[LEFT], f);
-        return walk(a[RIGHT], f);
+        walk(a[LEFT], f);
+        walk(a[RIGHT], f);
     }
 }
 
+var cat;
+
 // this is from https://code.google.com/p/ropes/
 function merge(leaves, start, end) {
-    var range = end - start;
+    var range = end - start,
+        middle;
     switch (range) {
     case 1:
         return leaves[start];
     case 2:
         return cat(leaves[start], leaves[start + 1]);
     default:
-        var middle = start - range / 2;
+        middle = start - range / 2;
         return cat(merge(leaves, start, middle), merge(leaves, middle, end));
     }
 }
