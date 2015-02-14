@@ -9,6 +9,7 @@
 // Common Lisp: https://github.com/Ramarren/ropes
 // JavaScript: https://github.com/component/rope
 // Java: http://ahmadsoft.org/ropes/index.html
+// Go: https://github.com/vinzmay/go-rope
 
 var inspect = require('util').inspect,
     assert = require('assert');
