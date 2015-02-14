@@ -3,6 +3,8 @@
 
 'use strict';
 
+var assert = require('assert');
+
 // not persistent, uses destructive updates to the buffer.
 function GapBuffer(s) {
     this.buffer = s.split('');
@@ -34,6 +36,20 @@ GapBuffer.prototype.log = function () {
     console.log(this);
     return this;
 };
+
+GapBuffer.prototype.expect = function (expected) {
+    if (typeof expected === 'string') {
+        assert.equal(this.toString(), expected);
+    } else {
+        var that = this;
+        assert.deepEqual(Object.keys(expected).reduce(function (m, k) {
+            m[k] = that[k];
+            return m;
+        }, {}), expected);
+    }
+    return this;
+};
+
 
 Object.defineProperty(GapBuffer.prototype, "length", {
     get: function () {
@@ -129,16 +145,16 @@ GapBuffer.prototype.backwardDeleteChar = function (n) {
 };
 
 var buffer = new GapBuffer('Hello World');
-console.log(buffer, buffer.length, buffer.toString());
 
-buffer
-    .forwardChar(2).log()
-    .forwardChar(4).log()
-    .backwardChar(4).log()
-    .forwardChar(5).log()
-    .forwardChar(5).log()
-    .insert('Space!').log()
-    .deleteChar(2).log()
-    .backwardDeleteChar(3).log()
-    .forwardChar(50).log()
-    .gotoChar(5).log();
+buffer.expect('Hello World').expect({start: 0, end: 6})
+    .forwardChar(2).expect({start: 2, end: 8})
+    .forwardChar(4).expect({start: 6, end: 12})
+    .backwardChar(4).expect({start: 2, end: 8})
+    .forwardChar(5).expect({start: 7, end: 13})
+    .forwardChar(5).expect({start: 11, end: 17})
+    .insert('Space!').expect('Hello WorldSpace!').expect({start: 17, end: 26})
+    .backwardChar(2).expect({start: 15, end: 24})
+    .deleteChar(2).expect('Hello WorldSpac').expect({start: 15, end: 26})
+    .backwardDeleteChar(3).expect('Hello WorldS').expect({start: 12, end: 26})
+    .forwardChar(50).expect({start: 12, end: 26})
+    .gotoChar(5).expect({start: 5, end: 19});
