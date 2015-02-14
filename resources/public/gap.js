@@ -39,11 +39,6 @@ GapBuffer.prototype.grow = function () {
     return this;
 };
 
-GapBuffer.prototype.log = function () {
-    console.log(this);
-    return this;
-};
-
 GapBuffer.prototype.expect = function (expected) {
     if (typeof expected === 'string') {
         assert.equal(this.toString(), expected);
