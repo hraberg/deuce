@@ -3,12 +3,17 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    function bufferLines(s) {
-        return s.match(/^.*((\r\n|\n|\r)|$)/gm);
+    function tabsToSpaces(s, tabWidth) {
+        tabWidth = tabWidth || 8;
+        return s.match(/[^\t]*\t?/g).reduce(function (acc, s) {
+            return acc + s.replace(/\t/g, [].constructor(tabWidth - ((s.length - 1) % tabWidth) + 1).join(' '));
+        }, '');
     }
 
-    function tabsToSpaces(s, tabWidth) {
-        return s.replace(/\t/g, [].constructor(tabWidth).join(' '));
+    function bufferLines(s, tabWidth) {
+        return s.match(/^.*((\r\n|\n|\r)|$)/gm).map(function (l) {
+            return tabsToSpaces(l, tabWidth);
+        });
     }
 
     var scrollBuffer = document.querySelector('.scroll-buffer'),
@@ -27,8 +32,8 @@ document.addEventListener('DOMContentLoaded', function () {
         width = 132,
         height = 38,
         tabWidth = 8,
-        file = new Array(1000).join(tabsToSpaces(document.querySelector('[data-filename=TUTORIAL]').textContent, tabWidth) + '\n'),
-        linesInFile = bufferLines(file),
+        file = bufferLines(document.querySelector('[data-filename=TUTORIAL]').textContent + '\n', tabWidth),
+        linesInFile = [].concat.apply([], new Array(1000).fill(file)),
         lineOffsets = {},
         offset = 0,
         currentLine = 0,
