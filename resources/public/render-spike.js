@@ -3,17 +3,8 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    function tabsToSpaces(s, tabWidth) {
-        tabWidth = tabWidth || 8;
-        return s.match(/[^\t]*\t?/g).reduce(function (acc, s) {
-            return acc + s.replace(/\t/g, [].constructor(tabWidth - ((s.length - 1) % tabWidth) + 1).join(' '));
-        }, '');
-    }
-
-    function bufferLines(s, tabWidth) {
-        return s.match(/^.*((\r\n|\n|\r)|$)/gm).map(function (l) {
-            return tabsToSpaces(l, tabWidth);
-        });
+    function bufferLines(s) {
+        return s.match(/^.*((\r\n|\n|\r)|$)/gm);
     }
 
     var DEBUG = true,
@@ -52,6 +43,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function tabsToSpaces(s) {
+        return s.match(/[^\t]*\t?/g).reduce(function (acc, s) {
+            return acc + s.replace(/\t/g, [].constructor(tabWidth - ((s.length - 1) % tabWidth) + 1).join(' '));
+        }, '');
+    }
+
     function offsetOfLine(idx) {
         var i, acc = 0, cache = lineOffsets[idx];
         if (cache) {
@@ -74,6 +71,34 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
         return lines - 1;
+    }
+
+    function limit(x, min, max) {
+        return Math.max(min, Math.min(x, max));
+    }
+
+    function lineColumn(line, col) {
+        return limit(col, 0, (linesInFile[line] || '').length - 1);
+    }
+
+    function lineVisibleColumn(line, col) {
+        return tabsToSpaces(linesInFile[line].substring(0, col), tabWidth).length;
+    }
+
+    function visibleColumnToColumn(line, visibleCol) {
+        var i, col = 0;
+        line = linesInFile[line];
+        for (i = 0; i < line.length && col < visibleCol; i += 1) {
+            col += (line[i] === '\t' ? tabWidth : 1);
+        }
+        if (limit(col, 0, visibleCol) % tabWidth !== 0 && line[i - 1] === '\t') {
+            return i - 1;
+        }
+        return i;
+    }
+
+    function bufferSize() {
+        return offsetOfLine(linesInFile.length);
     }
 
     function normalizeSelector(selector) {
@@ -141,10 +166,11 @@ document.addEventListener('DOMContentLoaded', function () {
         var lineOffset = offsetOfLine(currentLine),
             row = currentLine - startLine,
             col = offset - lineOffset,
+            visibleCol = lineVisibleColumn(currentLine, col),
             startLinePx = startLine * fontHeight;
 
-        debug('point:', 'visible start line:', startLine, 'line:', currentLine, 'offset:', offset, 'row:', row, 'col:', col);
-        point.style.left = (col * fontWidth + (gutterVisible ? gutterWidth : 0)) + 'px';
+        debug('point:', 'visible start line:', startLine, 'line:', currentLine, 'offset:', offset, 'row:', row, 'col:', col, 'visible col:', visibleCol);
+        point.style.left = (visibleCol * fontWidth + (gutterVisible ? gutterWidth : 0)) + 'px';
         point.style.top = (row * fontHeight) + 'px';
 
         if (requestScroll && startLine !== visibleStart) {
@@ -203,18 +229,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function limit(x, min, max) {
-        return Math.max(min, Math.min(x, max));
-    }
-
-    function lineColumn(line, col) {
-        return limit(col, 0, (linesInFile[line] || '').length - 1);
-    }
-
-    function bufferSize() {
-        return offsetOfLine(linesInFile.length);
-    }
-
     function gotoChar(n, line) {
         offset = limit(n, 0, bufferSize());
         debug('goto char:', offset);
@@ -241,9 +255,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function nextLine(arg) {
         var col = offset - offsetOfLine(currentLine),
+            visibleCol = lineVisibleColumn(currentLine, col),
             newLine = limit(currentLine + arg, 0, linesInFile.length - 1),
             newLineOffset = offsetOfLine(newLine),
-            newOffset = newLineOffset + lineColumn(newLine, col);
+            newCol = lineColumn(newLine, visibleColumnToColumn(newLine, visibleCol)),
+            newVisibleCol = lineVisibleColumn(newLine, newCol),
+            newOffset = newLineOffset + newCol;
+        debug('visible column:', 'new:', newVisibleCol, 'old:', visibleCol);
         gotoChar(newOffset, newLine);
     }
 
@@ -295,10 +313,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 y = e.clientY - rect.top,
                 row = Math.floor(y / fontHeight),
                 col = Math.floor(x / fontWidth),
-                line = row + visibleStart;
-            col = lineColumn(line, col);
-            debug('mouse click:', 'x:', x, 'y:', y, 'col:', col, 'row:', row);
-            gotoChar(offsetOfLine(line) + col, line);
+                line = row + visibleStart,
+                realCol = visibleColumnToColumn(line, col);
+            realCol = lineColumn(line, realCol);
+            debug('mouse click:', 'x:', x, 'y:', y, 'visible col:', col, 'visible line:', row, 'col:', realCol, 'line:', line);
+            gotoChar(offsetOfLine(line) + realCol, line);
             win.focus();
         }
     });
