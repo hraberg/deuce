@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded', function () {
         lineOffsets = {},
         offset = 0,
         currentLine = 0,
+        currentCol = 0,
+        desiredVisibleCol = 0,
         visibleStart = 0,
         newVisibleStart = 0,
         prefixArg = 1,
@@ -41,12 +43,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (DEBUG) {
             console.log.apply(console, [].slice.call(arguments));
         }
-    }
-
-    function tabsToSpaces(s) {
-        return s.match(/[^\t]*\t?/g).reduce(function (acc, s) {
-            return acc + s.replace(/\t/g, [].constructor(tabWidth - ((s.length - 1) % tabWidth) + 1).join(' '));
-        }, '');
     }
 
     function offsetOfLine(idx) {
@@ -82,7 +78,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function lineVisibleColumn(line, col) {
-        return tabsToSpaces(linesInFile[line].substring(0, col), tabWidth).length;
+        var i, visibleCol = 0;
+        line = linesInFile[line];
+        for (i = 0; i < col; i += 1) {
+            visibleCol += (line[i] === '\t' ? tabWidth : 1);
+        }
+        return visibleCol;
     }
 
     function visibleColumnToColumn(line, visibleCol) {
@@ -163,13 +164,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function renderPoint(startLine) {
-        var lineOffset = offsetOfLine(currentLine),
-            row = currentLine - startLine,
-            col = offset - lineOffset,
-            visibleCol = lineVisibleColumn(currentLine, col),
+        var row = currentLine - startLine,
+            visibleCol = lineVisibleColumn(currentLine, currentCol),
             startLinePx = startLine * fontHeight;
 
-        debug('point:', 'visible start line:', startLine, 'line:', currentLine, 'offset:', offset, 'row:', row, 'col:', col, 'visible col:', visibleCol);
+        debug('point:', 'visible start line:', startLine,  'visible row:', row,
+              'visible col:', visibleCol, 'desired visible col:', desiredVisibleCol);
         point.style.left = (visibleCol * fontWidth + (gutterVisible ? gutterWidth : 0)) + 'px';
         point.style.top = (row * fontHeight) + 'px';
 
@@ -229,10 +229,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function gotoChar(n, line) {
+    function gotoChar(n, line, keepDesiredVisibleColumn) {
         offset = limit(n, 0, bufferSize());
-        debug('goto char:', offset);
+        debug('goto char:', 'offset:', offset, 'line:', currentLine, 'col:', currentCol);
         currentLine = line || lineAtOffset(offset);
+        currentCol = offset - offsetOfLine(currentLine);
+        if (!keepDesiredVisibleColumn) {
+            desiredVisibleCol = lineVisibleColumn(currentLine, currentCol);
+        }
         if (visibleStart > currentLine || ((visibleStart + height) < currentLine + 1)) {
             newVisibleStart = limit(Math.floor(currentLine - height / 2), 0, linesInFile.length);
             requestRedraw(true, false);
@@ -254,15 +258,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function nextLine(arg) {
-        var col = offset - offsetOfLine(currentLine),
-            visibleCol = lineVisibleColumn(currentLine, col),
-            newLine = limit(currentLine + arg, 0, linesInFile.length - 1),
+        var newLine = limit(currentLine + arg, 0, linesInFile.length - 1),
             newLineOffset = offsetOfLine(newLine),
+            newLineVisibleLength = lineVisibleColumn(newLine, linesInFile[newLine].length - 1),
+            visibleCol = desiredVisibleCol < newLineVisibleLength ? desiredVisibleCol : lineVisibleColumn(currentLine, currentCol),
             newCol = lineColumn(newLine, visibleColumnToColumn(newLine, visibleCol)),
-            newVisibleCol = lineVisibleColumn(newLine, newCol),
             newOffset = newLineOffset + newCol;
-        debug('visible column:', 'new:', newVisibleCol, 'old:', visibleCol);
-        gotoChar(newOffset, newLine);
+        gotoChar(newOffset, newLine, true);
     }
 
     function previousLine(arg) {
@@ -314,9 +316,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 row = Math.floor(y / fontHeight),
                 col = Math.floor(x / fontWidth),
                 line = row + visibleStart,
-                realCol = visibleColumnToColumn(line, col);
-            realCol = lineColumn(line, realCol);
-            debug('mouse click:', 'x:', x, 'y:', y, 'visible col:', col, 'visible line:', row, 'col:', realCol, 'line:', line);
+                realCol = lineColumn(line, visibleColumnToColumn(line, col));
+            debug('mouse click:', 'x:', x, 'y:', y, 'visible col:', col, 'visible row:', row);
             gotoChar(offsetOfLine(line) + realCol, line);
             win.focus();
         }
