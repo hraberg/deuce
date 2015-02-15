@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (mouseButton.left === e.button) {
             e.preventDefault();
             var rect = win.getBoundingClientRect(),
-                x = e.clientX - rect.left,
+                x = e.clientX - rect.left - (gutterVisible ? gutterWidth : 0),
                 y = e.clientY - rect.top,
                 row = Math.floor(y / fontHeight),
                 col = Math.floor(x / fontWidth),
