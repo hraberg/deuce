@@ -231,9 +231,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function gotoChar(n, line, keepDesiredVisibleColumn) {
         offset = limit(n, 0, bufferSize());
-        debug('goto char:', 'offset:', offset, 'line:', currentLine, 'col:', currentCol);
         currentLine = line || lineAtOffset(offset);
         currentCol = offset - offsetOfLine(currentLine);
+        debug('goto char:', 'offset:', offset, 'line:', currentLine, 'col:', currentCol);
         if (!keepDesiredVisibleColumn) {
             desiredVisibleCol = lineVisibleColumn(currentLine, currentCol);
         }
