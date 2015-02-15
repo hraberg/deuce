@@ -16,7 +16,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    var scrollBuffer = document.querySelector('.scroll-buffer'),
+    var DEBUG = true,
+        scrollBuffer = document.querySelector('.scroll-buffer'),
         win = document.querySelector('.window'),
         display = document.querySelector('.display'),
         clipboard = document.querySelector('.clipboard'),
@@ -44,6 +45,12 @@ document.addEventListener('DOMContentLoaded', function () {
         mouseButton = {left: 0},
         keymap,
         keyUpTimeoutId;
+
+    function debug() {
+        if (DEBUG) {
+            console.log.apply(console, [].slice.call(arguments));
+        }
+    }
 
     function offsetOfLine(idx) {
         var i, acc = 0, cache = lineOffsets[idx];
@@ -136,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
             col = offset - lineOffset,
             startLinePx = startLine * fontHeight;
 
-        console.log('point:', 'visible start line:', startLine, 'line:', currentLine, 'offset:', offset, 'row:', row, 'col:', col);
+        debug('point:', 'visible start line:', startLine, 'line:', currentLine, 'offset:', offset, 'row:', row, 'col:', col);
         point.style.left = (col * fontWidth + (gutterVisible ? gutterWidth : 0)) + 'px';
         point.style.top = (row * fontHeight) + 'px';
 
@@ -157,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
         renderPoint(newStart);
 
         if (useDeltas && !forceRedraw && Math.abs(diff) < height && diff !== 0) {
-            console.log('diff redraw:', diff);
+            debug('diff redraw:', diff);
             if (diff > 0) {
                 for (i = diff; i > 0; i -= 1) {
                     display.firstChild.remove();
@@ -172,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 display.insertBefore(fragment, display.firstChild);
             }
         } else if (diff !== 0 || forceRedraw) {
-            console.log('full redraw:', diff);
+            debug('full redraw:', diff);
             for (i = newStart; i < newEnd; i += 1) {
                 fragment.appendChild(renderLine(i));
             }
@@ -184,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function () {
         visibleStart = newStart;
         pendingRedraw = false;
 
-        console.log('render:', (Date.now() - t), 'ms');
+        debug('render:', (Date.now() - t), 'ms');
     }
 
     function requestRedraw(scroll, force) {
@@ -210,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function gotoChar(n, line) {
         offset = limit(n, 0, bufferSize());
-        console.log('goto char:', offset);
+        debug('goto char:', offset);
         currentLine = line || lineAtOffset(offset);
         if (visibleStart > currentLine || ((visibleStart + height) < currentLine + 1)) {
             newVisibleStart = limit(Math.floor(currentLine - height / 2), 0, linesInFile.length);
@@ -265,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             t = Date.now();
             command(prefixArg);
-            console.log('command:', command.name, Date.now() - t, 'ms');
+            debug('command:', command.name, Date.now() - t, 'ms');
         }
     });
 
@@ -290,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 col = Math.floor(x / fontWidth),
                 line = row + visibleStart;
             col = lineColumn(line, col);
-            console.log('mouse click:', 'x:', x, 'y:', y, 'col:', col, 'row:', row);
+            debug('mouse click:', 'x:', x, 'y:', y, 'col:', col, 'row:', row);
             gotoChar(offsetOfLine(line) + col, line);
             win.focus();
         }
@@ -304,20 +311,20 @@ document.addEventListener('DOMContentLoaded', function () {
         var newOffset, newLine;
         newVisibleStart = Math.floor(win.scrollTop / fontHeight);
         newLine = newVisibleStart;
-        console.log('scrolling:', 'new visible start line:', newLine, 'line:', currentLine, 'offset:', offset);
+        debug('scrolling:', 'new visible start line:', newLine, 'line:', currentLine, 'offset:', offset);
         if (newLine === 0) {
-            console.log('at top');
+            debug('at top');
             newOffset = 0;
             newLine = 0;
         } else if (newLine === (linesInFile.length - 1)) {
-            console.log('at bottom');
+            debug('at bottom');
             newLine = linesInFile.length - 1;
             newOffset = offsetOfLine(newLine) + linesInFile[newLine].length;
         } else if (newLine > currentLine) {
-            console.log('scrolling down');
+            debug('scrolling down');
             newOffset = offsetOfLine(newLine);
         } else {
-            console.log('scrolling up');
+            debug('scrolling up');
             newLine = newLine + height - 2;
             newOffset = offsetOfLine(newLine);
         }
@@ -347,11 +354,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.addEventListener('paste', function (e) {
         e.preventDefault();
-        console.log('paste:', e.clipboardData.getData('text/plain'));
+        debug('paste:', e.clipboardData.getData('text/plain'));
     });
 
     function handleCopyAndCut(type, text) {
-        console.log(type + ':', text);
+        debug(type + ':', text);
         clipboard.value = text;
         clipboard.select();
         setTimeout(function () {
@@ -368,5 +375,5 @@ document.addEventListener('DOMContentLoaded', function () {
         handleCopyAndCut('copy', linesInFile[currentLine]);
     });
 
-    console.log('lines:', linesInFile.length, (Math.round(file.length / (1024 * 1024) * 100) / 100), 'Mb');
+    debug('lines:', linesInFile.length, (Math.round(file.length / (1024 * 1024) * 100) / 100), 'Mb');
 });
