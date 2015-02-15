@@ -129,6 +129,9 @@ GapBuffer.prototype.backwardChar = function (n) {
 };
 
 GapBuffer.prototype.insert = function (s) {
+    if (this.markRing.length > 0) {
+        this.deleteRegion();
+    }
     this.moveGapToPoint();
     var i;
     for (i = 0; i < s.length; i += 1) {
@@ -238,4 +241,6 @@ buffer.expect('Hello World').expect({point: 0, start: 0, end: 6, length: 11, 'bu
     .deleteRegion().expect({point: 5, start: 5, end: 23, markRing: [], length: 8}).expect('HelloldS')
     .gotoChar(0).pushMark().expect({markRing: [0]})
     .forwardChar(3).expect({point: 3, markRing: [0]})
-    .backwardDeleteChar(1).expect({point: 0, start: 0, end: 21, markRing: [], length: 5}).expect('loldS');
+    .backwardDeleteChar(1).expect({point: 0, start: 0, end: 21, markRing: [], length: 5}).expect('loldS')
+    .pushMark().expect({markRing: [0]})
+    .forwardChar(2).insert('ABC').expect('ABCldS').expect({point: 3, start: 3, end: 23, markRing: [], length: 6});
