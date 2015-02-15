@@ -60,6 +60,10 @@ GapBuffer.prototype.moveGapToPoint = function () {
     if (this.point === this.start) {
         return this;
     }
+    if (this.point === this.end) {
+        this.point = this.start;
+        return this;
+    }
     var before = this.buffer.slice(0, this.start),
         gap = this.buffer.slice(this.start, this.end),
         after = this.buffer.slice(this.end),
