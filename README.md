@@ -863,7 +863,7 @@ For details, see [`project.clj`](https://github.com/hraberg/deuce/blob/master/pr
 
 [YMACS](http://www.ymacs.org/) Ymacs is an Emacs-like editor that works in your browser.
 
-[Engine](https://github.com/e-user/engine) Alexander Kahl, 2012-2012, "Engine new generation internet Emacs." Another Emacs-like editor in Clojure using ACE and web sockets.
+[Engine](https://github.com/e-user/engine) Alexander Kahl, 2011-2012, "Engine new generation internet Emacs." Another Emacs-like editor in Clojure using ACE and web sockets.
 
 [Pymacs](https://github.com/pinard/Pymacs.git) Emacs to Python interface
 
