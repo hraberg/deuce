@@ -57,29 +57,19 @@ Rope.prototype.charAt = function (index) {
 };
 
 Rope.prototype.lineAt = function (index) {
-    if (index === this.length) {
-        return this.newlines + 1;
-    }
-    if (index < 0 || index > this.length) {
-        return -1;
-    }
     if (index < this.weight) {
-        return this.left.lineAt(this.left, index);
+        return this.left.lineAt(index);
     }
-    return this.right.lineAt(this.right, index - this.weight) + this.left.newlines;
+    var line = this.right.lineAt(index - this.weight);
+    return line === -1 ? -1 : line + this.left.newlines;
 };
 
 Rope.prototype.indexOfLine = function (line) {
-    if (line === this.newlines + 1) {
-        return this.length;
+    if (line <= this.left.newlines + 1) {
+        return this.left.indexOfLine(line);
     }
-    if (line < 1 || line > this.newlines) {
-        return -1;
-    }
-    if (line <= this.left.newlines) {
-        return this.left.indexOfLine(this.left, line);
-    }
-    return this.right.indexOfLine(this.right, line) + this.weight;
+    var index = this.right.indexOfLine(line - this.left.newlines);
+    return index === -1 ? -1 : index + this.weight;
 };
 
 Rope.prototype.concat = function () {
@@ -116,6 +106,10 @@ Rope.prototype.slice = function (beginSlice, endSlice) {
     return toRope(right);
 };
 
+Rope.prototype.line = function (line) {
+    return this.slice(this.indexOfLine(line), this.indexOfLine(line + 1));
+};
+
 Rope.prototype.insert = function (offset, str) {
     return this.slice(0, offset).concat(str).concat(this.slice(offset));
 };
@@ -132,7 +126,7 @@ function RopeString(s) {
 }
 
 mixin(RopeString, String, ['charAt', 'match', 'indexOf']);
-mixin(RopeString, Rope, ['concat', 'insert', 'del']);
+mixin(RopeString, Rope, ['concat', 'insert', 'del', 'line']);
 
 RopeString.prototype.toString = function () {
     return this.s;
@@ -143,11 +137,24 @@ RopeString.prototype.slice = function (beginSlice, endSlice) {
 };
 
 RopeString.prototype.lineAt = function (index) {
+    if (index < 0 || index > this.length) {
+        return -1;
+    }
     return (this.s.slice(0, index).match(LINES_PATTERN) || []).length + 1;
 };
 
 RopeString.prototype.indexOfLine = function (line) {
-    return this.s.match(LINES_PATTERN).slice(0, line - 1).join('').length;
+    if (line === this.newlines + 1) {
+        return this.length;
+    }
+    if (line === 1) {
+        return 0;
+    }
+    if (line < 1 || line >= this.newlines + 1) {
+        return -1;
+    }
+    var m = this.s.match(LINES_PATTERN);
+    return m ? m.slice(0, line - 1).join('').length : -1;
 };
 
 var assert = require('assert');
@@ -201,3 +208,6 @@ assert.equal(new Rope('Hello\n', 'World\n').lineAt(13), -1);
 assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(1), 0);
 assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(2), 6);
 assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(3), 12);
+
+assert.equal(new Rope('Hello\n', 'World\n').line(2).toString(), 'World\n');
+assert.equal(new Rope('Hello\n', 'World\n').concat('Space').line(2).toString(), 'World\n');
