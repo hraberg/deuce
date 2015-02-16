@@ -144,14 +144,11 @@ RopeString.prototype.lineAt = function (index) {
 };
 
 RopeString.prototype.indexOfLine = function (line) {
+    if (line < 1 || line > this.newlines + 1) {
+        return -1;
+    }
     if (line === this.newlines + 1) {
         return this.length;
-    }
-    if (line === 1) {
-        return 0;
-    }
-    if (line < 1 || line >= this.newlines + 1) {
-        return -1;
     }
     var m = this.s.match(LINES_PATTERN);
     return m ? m.slice(0, line - 1).join('').length : -1;
