@@ -13,7 +13,7 @@
 // Scheme: https://bitbucket.org/evhan/rope
 
 var SHORT_LIMIT = 16;
-var LINES_PATTERN = /^.*((\r\n|\n|\r))/gm;
+var LINES_PATTERN = /^.*(\r\n|\n|\r)/gm;
 
 var Rope, RopeString;
 
