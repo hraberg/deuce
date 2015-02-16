@@ -77,11 +77,15 @@ document.addEventListener('DOMContentLoaded', function () {
         return limit(col, 0, (linesInFile[line] || '').length - 1);
     }
 
+    function expandTab(line, col, visibleCol) {
+        return line[col] === '\t' ? (tabWidth - (visibleCol % tabWidth)) : 1;
+    }
+
     function lineVisibleColumn(line, col) {
         var i, visibleCol = 0;
         line = linesInFile[line];
         for (i = 0; i < col; i += 1) {
-            visibleCol += (line[i] === '\t' ? tabWidth : 1);
+            visibleCol += expandTab(line, i, visibleCol);
         }
         return visibleCol;
     }
@@ -90,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var i, col = 0;
         line = linesInFile[line];
         for (i = 0; i < line.length && col < visibleCol; i += 1) {
-            col += (line[i] === '\t' ? tabWidth : 1);
+            col += expandTab(line, i, col);
         }
         if (limit(col, 0, visibleCol) % tabWidth !== 0 && line[i - 1] === '\t') {
             return i - 1;
