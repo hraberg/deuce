@@ -368,7 +368,7 @@ document.addEventListener('DOMContentLoaded', function () {
         window.requestAnimationFrame(function () {
             alignLineNumbers();
             alignDisplay();
-            requestRedraw(true, true);
+            requestRedraw(false, true);
             win.focus();
         });
     }
