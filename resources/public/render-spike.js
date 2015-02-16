@@ -91,15 +91,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function visibleColumnToColumn(line, visibleCol) {
-        var i, col = 0;
+        var col, i = 0;
         line = linesInFile[line];
-        for (i = 0; i < line.length && col < visibleCol; i += 1) {
-            col += expandTab(line, i, col);
+        for (col = 0; col < line.length && i < visibleCol; col += 1) {
+            i += expandTab(line, col, i);
         }
-        if (limit(col, 0, visibleCol) % tabWidth !== 0 && line[i - 1] === '\t') {
-            return i - 1;
+        if (limit(i, 0, visibleCol) % tabWidth !== 0 && line[col - 1] === '\t') {
+            return col - 1;
         }
-        return i;
+        return col;
     }
 
     function bufferSize() {
