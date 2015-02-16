@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function gotoChar(n, line, keepDesiredVisibleColumn) {
+    function gotoChar(n, line, keepDesiredVisibleColumn, noScroll) {
         offset = limit(n, 0, bufferSize());
         currentLine = line || lineAtOffset(offset);
         currentCol = offset - offsetOfLine(currentLine);
@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!keepDesiredVisibleColumn) {
             desiredVisibleCol = lineVisibleColumn(currentLine, currentCol);
         }
-        if (visibleStart > currentLine || ((visibleStart + height) < currentLine + 1)) {
+        if (!noScroll && (visibleStart > currentLine || ((visibleStart + height) < currentLine + 1))) {
             newVisibleStart = limit(Math.floor(currentLine - height / 2), 0, linesInFile.length);
             requestRedraw(true, false);
         } else {
@@ -332,7 +332,8 @@ document.addEventListener('DOMContentLoaded', function () {
             requestScroll = false;
             return;
         }
-        var newOffset, newLine;
+        var newOffset,
+            newLine;
         newVisibleStart = Math.floor(win.scrollTop / fontHeight);
         newLine = newVisibleStart;
         debug('scrolling:', 'new visible start line:', newLine, 'line:', currentLine, 'offset:', offset);
@@ -352,9 +353,7 @@ document.addEventListener('DOMContentLoaded', function () {
             newLine = newLine + height - 2;
             newOffset = offsetOfLine(newLine);
         }
-        offset = newOffset;
-        currentLine = newLine;
-        requestRedraw(false, false);
+        gotoChar(newOffset, newLine, false, true);
     });
 
     document.querySelector('[name=linum-mode]').addEventListener('click', function (e) {
