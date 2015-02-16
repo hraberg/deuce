@@ -260,8 +260,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function nextLine(arg) {
         var newLine = limit(currentLine + arg, 0, linesInFile.length - 1),
             newLineOffset = offsetOfLine(newLine),
-            newLineVisibleLength = lineVisibleColumn(newLine, linesInFile[newLine].length - 1),
-            visibleCol = desiredVisibleCol < newLineVisibleLength ? desiredVisibleCol : lineVisibleColumn(currentLine, currentCol),
+            newLineVisibleLength = lineVisibleColumn(newLine, linesInFile[newLine].length),
+            visibleCol = desiredVisibleCol < newLineVisibleLength ? desiredVisibleCol : newLineVisibleLength,
             newCol = lineColumn(newLine, visibleColumnToColumn(newLine, visibleCol)),
             newOffset = newLineOffset + newCol;
         gotoChar(newOffset, newLine, true);
