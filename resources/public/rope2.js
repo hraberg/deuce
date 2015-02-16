@@ -171,12 +171,13 @@ assert.equal(r.charAt(19), 'd');
 
 assert.equal(new Rope('Hello').concat('World').constructor, RopeString);
 
-assert.equal(new Rope('Hello', 'World').slice(0, 5).toString(), 'Hello');
-assert.equal(new Rope('Hello', 'World').slice(5).toString(), 'World');
-assert.equal(new Rope('Hello', 'World').slice(3, 8).toString(), 'loWor');
+assert.equal(new Rope('Hello', 'World').slice(0, 5), 'Hello');
+assert.equal(new Rope('Hello', 'World').slice(5), 'World');
+assert.equal(new Rope('Hello', 'World').slice(3, 8), 'loWor');
+assert.equal(new Rope('Hello', 'World').slice(3, 8).constructor, RopeString);
 
-assert.equal(new Rope('Hello', 'World').insert(3, 'Space').toString(), 'HelSpaceloWorld');
-assert.equal(new Rope('Hello', 'World').del(3, 8).toString(), 'Helld');
+assert.equal(new Rope('Hello', 'World').insert(3, 'Space'), 'HelSpaceloWorld');
+assert.equal(new Rope('Hello', 'World').del(3, 8), 'Helld');
 
 assert.equal(new Rope('Hello').newlines, 0);
 assert.equal(new Rope('Hello').depth, 1);
@@ -185,16 +186,17 @@ assert.equal(new Rope(new Rope('Hello\n'), new Rope('World\n')).depth, 2);
 
 assert(new Rope('Hello', 'World').match('Hello'));
 assert(!new Rope('Hello', 'World').match('Space'));
+assert(new Rope('Hello', 'World').indexOf('oW'), 4);
 
 assert.equal(new RopeString('HelloWorld').charAt(0), 'H');
-assert.equal(new RopeString('HelloWorld').slice(3, 8).toString(), 'loWor');
+assert.equal(new RopeString('HelloWorld').slice(3, 8), 'loWor');
 assert.equal(new RopeString('HelloWorld').slice(3, 8).constructor, RopeString);
-assert.equal(new RopeString('Hello').concat('World').toString(), 'HelloWorld');
+assert.equal(new RopeString('Hello').concat('World'), 'HelloWorld');
 assert.equal(new RopeString('HelloWorld').lineAt(0), 1);
 
-assert.equal(new RopeString('HelloWorld').insert(3, 'Space').toString(), 'HelSpaceloWorld');
+assert.equal(new RopeString('HelloWorld').insert(3, 'Space'), 'HelSpaceloWorld');
 assert.equal(new RopeString('HelloWorld').insert(3, 'A longer String').constructor, Rope);
-assert.equal(new RopeString('HelloWorld').del(3, 8).toString(), 'Helld');
+assert.equal(new RopeString('HelloWorld').del(3, 8), 'Helld');
 
 assert.equal(new Rope('Hello\n', 'World\n').lineAt(-1), -1);
 assert.equal(new Rope('Hello\n', 'World\n').lineAt(0), 1);
@@ -206,5 +208,5 @@ assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(1), 0);
 assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(2), 6);
 assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(3), 12);
 
-assert.equal(new Rope('Hello\n', 'World\n').line(2).toString(), 'World\n');
-assert.equal(new Rope('Hello\n', 'World\n').concat('Space').line(2).toString(), 'World\n');
+assert.equal(new Rope('Hello\n', 'World\n').line(2), 'World\n');
+assert.equal(new Rope('Hello\n', 'World\n').concat('Space').line(2), 'World\n');
