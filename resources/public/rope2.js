@@ -73,16 +73,12 @@ Rope.prototype.indexOfLine = function (line) {
 };
 
 Rope.prototype.concat = function () {
-    var acc = this, i, x;
-    for (i = 0; i < arguments.length; i += 1) {
-        x = arguments[i];
+    return [].slice.call(arguments).reduce(function (acc, x) {
         if (acc.length + x.length < SHORT_LIMIT) {
-            acc = new RopeString(acc + x);
-        } else {
-            acc = new Rope(acc, x);
+            return new RopeString(acc + x);
         }
-    }
-    return acc;
+        return new Rope(acc, x);
+    }, this);
 };
 
 Rope.prototype.slice = function (beginSlice, endSlice) {
