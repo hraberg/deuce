@@ -207,7 +207,7 @@ assert.equal(new RopeString('HelloWorld').del(3, 8), 'Helld');
 
 assert.equal(new Rope('Hello\n', 'World\n').lineAt(-1), -1);
 assert.equal(new Rope('Hello\n', 'World\n').lineAt(0), 0);
-assert.equal(new Rope('Hello\n', 'World\n').lineAt(8), 1);
+assert.equal(new Rope('Hello\n', 'World\n').lineAt(6), 1);
 assert.equal(new Rope('Hello\n', 'World\n').lineAt(12), 2);
 assert.equal(new Rope('Hello\n', 'World\n').lineAt(13), -1);
 
