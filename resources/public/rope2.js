@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /*jslint node: true regexp: true */
 
 'use strict';
@@ -161,7 +160,23 @@ RopeString.prototype.indexOfLine = function (line) {
     return this.s.match(LINES_PATTERN).slice(0, line).join('').length;
 };
 
-var assert = require('assert');
+var assert;
+
+try {
+    assert = require('assert');
+} catch (e) {
+    assert = function (x, y) {
+        if (x !== (y || x)) {
+            throw new Error(x + ' == ' + y);
+        }
+    };
+    assert.equal = function (x, y) {
+        assert('' + x, '' + y);
+    };
+    assert.deepEqual = function (x, y) {
+        assert.equal(JSON.stringify(x), JSON.stringify(y));
+    };
+}
 
 var r = new Rope('Hello', 'World');
 assert.equal(r.length, 10);
