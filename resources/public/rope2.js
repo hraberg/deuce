@@ -163,6 +163,7 @@ RopeString.prototype.indexOfLine = function (line) {
 var assert;
 
 try {
+    module.exports.Rope = Rope;
     assert = require('assert');
 } catch (e) {
     assert = function (x, y) {
