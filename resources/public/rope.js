@@ -239,7 +239,7 @@ RopeString.prototype.balance = function (force) {
     }
     var leaves = [], i;
     for (i = 0; i < this.length; i += Rope.LONG_LIMIT) {
-        leaves.push(new RopeString(this.slice(i, i + Rope.LONG_LIMIT)));
+        leaves.push(this.slice(i, i + Rope.LONG_LIMIT));
     }
     return Rope.merge(leaves).balance();
 };
