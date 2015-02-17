@@ -28,13 +28,33 @@ function Rope(left, right) {
 
 var RopeString, RopeFile;
 
+var fs = require('fs'),
+    mmap = require('mmap.js');
+
 Rope.SHORT_LIMIT = 16;
+Rope.MMAP_THRESHOLD = 16 * 1024;
+
 Rope.toRope = function (x) {
     if (x instanceof Rope || x instanceof RopeString || x instanceof RopeFile) {
         return x;
     }
     return new RopeString((x || '').toString());
 };
+
+Rope.openSync = function (file) {
+    var fd = fs.openSync(file, 'r'), length, buffer;
+    try {
+        length = fs.fstatSync(fd).size;
+        if (length > Rope.MMAP_THRESHOLD) {
+            buffer = mmap.alloc(length, mmap.PROT_READ, mmap.MAP_SHARED, fd, 0);
+            return new RopeFile(buffer, 0, length);
+        } else {
+            return Rope.toRope(fs.readFileSync(file, {encoding: 'utf8'}));
+        }
+    } finally {
+        fs.closeSync(fd);
+    }
+}
 
 mixin(Rope, String, ['match', 'indexOf']);
 
@@ -162,9 +182,6 @@ RopeString.prototype.indexOfLine = function (line) {
     return this.match(RopeString.LINES_PATTERN).slice(0, line).join('').length;
 };
 
-var fs = require('fs'),
-    mmap = require('mmap.js');
-
 // Assumes ASCII.
 
 function RopeFile(buffer, start, end) {
@@ -178,17 +195,6 @@ function RopeFile(buffer, start, end) {
 mixin(RopeFile, String, ['match', 'indexOf']);
 mixin(RopeFile, Rope, ['concat', 'insert', 'del', 'lines', 'reduce']);
 mixin(RopeFile, RopeString, ['indexOfLine', 'lineAt']);
-
-RopeFile.mmap = function (file) {
-    var fd = fs.openSync(file, 'r'), buffer, length;
-    try {
-        length = fs.fstatSync(fd).size;
-        buffer = mmap.alloc(length, mmap.PROT_READ, mmap.MAP_SHARED, fd, 0);
-        return new RopeFile(buffer, 0, length);
-    } finally {
-        fs.closeSync(fd);
-    }
-};
 
 RopeFile.prototype.toString = function () {
     return this.buffer.slice(this.start, this.end).toString();
@@ -312,7 +318,7 @@ assert.deepEqual(new RopeString('HelloWorld').reduce(function (acc, x) {
     return acc;
 }, []), ['HelloWorld']);
 
-var rf = RopeFile.mmap(__dirname + '/../etc/tutorials/TUTORIAL');
+var rf = Rope.openSync(__dirname + '/../etc/tutorials/TUTORIAL');
 
 assert.equal(rf.charAt(0), 'E');
 assert.equal(rf.charAt(-1), '');
@@ -336,3 +342,6 @@ assert.equal(rf.insert(2000, 'HelloWorld').right.constructor, RopeFile);
 assert.equal(rf.del(2000, 3000).length, 46571 - 1000);
 assert.equal(rf.del(2000, 3000).left.constructor, RopeFile);
 assert.equal(rf.del(2000, 3000).right.constructor, RopeFile);
+
+assert.equal(Rope.openSync(__filename).constructor, RopeString);
+assert.equal(Rope.openSync(__filename).s.constructor, String);
