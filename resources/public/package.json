@@ -18,6 +18,7 @@
         "jslint": "0.7.3",
         "csslint": "0.10.0",
         "node-webkit-builder": "1.0.8",
-        "java": "0.4.6"
+        "java": "0.4.6",
+        "mmap.js": "0.2.1"
     }
 }
