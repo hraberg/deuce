@@ -23,7 +23,8 @@ function Rope(left, right) {
     this.left = Rope.toRope(left);
     this.right = Rope.toRope(right);
     this.weight = left.length;
-    this.memoize();
+    this.length = this.left.length + this.right.length;
+    this.depth = Math.max(this.left.depth, this.right.depth) + 1;
 }
 
 var RopeString, RopeFile;
@@ -81,15 +82,10 @@ try {
 
 mixin(Rope, String, ['match', 'indexOf']);
 
-Rope.prototype.memoize = function () {
-    this.length = this.left.length + this.right.length;
-    this.depth = Math.max(this.left.depth, this.right.depth) + 1;
-};
-
 Object.defineProperty(Rope.prototype, 'newlines', {
     enumerable: true,
     get: function () {
-        if (!this._newlines) {
+        if (this._newlines === undefined) {
             this._newlines = this.left.newlines + this.right.newlines;
         }
         return this._newlines;
@@ -204,7 +200,7 @@ mixin(RopeString, Rope, ['concat', 'insert', 'del', 'lines', 'reduce']);
 Object.defineProperty(RopeString.prototype, 'newlines', {
     enumerable: true,
     get: function () {
-        if (!this._newlines) {
+        if (this._newlines === undefined) {
             this._newlines = (this.match(/\r\n?|\n/gm) || []).length;
         }
         return this._newlines;
@@ -234,7 +230,7 @@ RopeString.prototype.indexOfLine = function (line) {
 };
 
 RopeString.prototype.balance = function () {
-    if (this.length < Rope.LONG_LIMIT) {
+    if (this.length < Rope.LONG_LIMIT || true) {
         return this;
     }
     var leaves = [], i;
@@ -272,7 +268,7 @@ RopeFile.prototype.charAt = function (index) {
 Object.defineProperty(RopeFile.prototype, 'newlines', {
     enumerable: true,
     get: function () {
-        if (!this._newlines) {
+        if (this._newlines === undefined) {
             var i, acc = 0, nl = '\n'.charCodeAt(0);
             for (i = this.start; i < this.end; i += 1) {
                 if (this.buffer[i] === nl) {
@@ -332,6 +328,7 @@ assert.equal(new Rope('Hello', 'World').insert(3, 'Space'), 'HelSpaceloWorld');
 assert.equal(new Rope('Hello', 'World').del(3, 8), 'Helld');
 
 assert.equal(Rope.EMPTY.newlines, 0);
+assert.equal(Rope.EMPTY._newlines, 0);
 assert.equal(new Rope('Hello').right, Rope.EMPTY);
 assert.equal(new Rope('Hello').newlines, 0);
 assert.equal(new Rope('Hello').depth, 1);
@@ -339,6 +336,19 @@ assert.equal(new Rope('Hello\n', 'World\n').newlines, 2);
 assert.equal(new Rope(new Rope('Hello\n'), new Rope('World\n')).depth, 2);
 assert.equal(new Rope(new Rope(new Rope('Hello\n'), new Rope('World\n')),
                       new Rope(new Rope('Hello\n'), new Rope('World\n'))).balance(true).length, 24);
+
+var rl = new Rope(new Rope('Hello\n'), new Rope('World\n'));
+assert(!rl._newlines);
+assert(!rl.left._newlines);
+assert(!rl.right._newlines);
+assert.equal(rl.newlines, 2);
+assert.equal(rl._newlines, 2);
+assert.equal(rl.left._newlines, 1);
+assert.equal(rl.right._newlines, 1);
+
+rl.balance(true);
+assert.equal(rl.left._newlines, 1);
+assert.equal(rl.right._newlines, 1);
 
 assert(new Rope('Hello', 'World').match('Hello'));
 assert(!new Rope('Hello', 'World').match('Space'));
@@ -385,20 +395,45 @@ assert.deepEqual(new RopeString('HelloWorld').reduce(function (acc, x) {
 }, []), ['HelloWorld']);
 
 function stress(text) {
-    var rs = Rope.toRope(new Array(100).join(text + '\n')), i;
-    console.log(rs.length, rs.depth);
+    text = new Array(1000).join(text + '\n');
+    var rs = Rope.toRope(text), i, idx;
+    console.log(rs.length, rs.depth, rs.newlines);
+    console.time('slice str');
+    console.log(text.slice(Math.floor(text.length / 2)).length);
+    console.log(text.length, 0, (text.match(/\r\n?|\n/gm) || []).length);
+    console.timeEnd('slice str');
     console.time('slice');
     console.log(rs.slice(Math.floor(rs.length / 2)).length);
     console.timeEnd('slice');
     for (i = 0; i < 10; i += 1) {
         console.time('insert');
-        rs = rs.insert(Math.floor(rs.length / 2), 'HelloWorld');
-        console.log(rs.length, rs.depth, rs.newlines);
+        idx = Math.floor(rs.length / 2);
+        rs = rs.insert(idx, 'HelloWorld');
+        console.log(rs.length, rs.depth, rs.lineAt(idx));
         console.timeEnd('insert');
+        console.time('insert str');
+        idx = Math.floor(text.length / 2);
+        text = text.slice(0, idx) + 'HelloWorld' + text.slice(idx);
+        console.log(text.length, 0, (text.slice(idx).match(/\r\n?|\n/gm) || []).length);
+        console.timeEnd('insert str');
         console.time('delete');
-        rs = rs.del(Math.floor(rs.length / 2), Math.floor(rs.length / 2) + 1000);
-        console.log(rs.length, rs.depth, rs.newlines);
+        idx = Math.floor(rs.length / 2);
+        rs = rs.del(idx, idx + 1000);
+        console.log(rs.length, rs.depth, rs.lineAt(idx));
         console.timeEnd('delete');
+        console.time('delete str');
+        idx = Math.floor(text.length / 2);
+        text = text.slice(0, idx) + text.slice(idx + 1000);
+        console.log(text.length, 0, (text.slice(idx).match(/\r\n?|\n/gm) || []).length);
+        console.timeEnd('delete str');
+
+        console.time('newlines');
+        console.log(rs.length, rs.depth, rs.newlines);
+        console.timeEnd('newlines');
+
+        console.time('newlines str');
+        console.log(text.length, 0, (text.match(/\r\n?|\n/gm) || []).length);
+        console.timeEnd('newlines str');
     }
 }
 
