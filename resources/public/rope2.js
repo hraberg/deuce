@@ -11,30 +11,28 @@
 // Go: https://github.com/vinzmay/go-rope
 // Scheme: https://bitbucket.org/evhan/rope
 
-var SHORT_LIMIT = 16;
-var LINES_PATTERN = /^.*(\r\n|\n|\r)/gm;
-
-var Rope, RopeString;
-
 function mixin(target, source, methods) {
     methods.forEach(function (m) {
         target.prototype[m] = source.prototype[m];
     });
 }
 
-function toRope(x) {
+function Rope(left, right) {
+    this.left = Rope.toRope(left);
+    this.right = Rope.toRope(right);
+    this.weight = left.length;
+    this.memoize();
+}
+
+var RopeString;
+
+Rope.SHORT_LIMIT = 16;
+Rope.toRope = function (x) {
     if (x instanceof Rope || x instanceof RopeString) {
         return x;
     }
     return new RopeString((x || '').toString());
-}
-
-function Rope(left, right) {
-    this.left = toRope(left);
-    this.right = toRope(right);
-    this.weight = left.length;
-    this.memoize();
-}
+};
 
 mixin(Rope, String, ['match', 'indexOf']);
 
@@ -73,7 +71,7 @@ Rope.prototype.indexOfLine = function (line) {
 
 Rope.prototype.concat = function () {
     return [].slice.call(arguments).reduce(function (acc, x) {
-        if (acc.length + x.length < SHORT_LIMIT) {
+        if (acc.length + x.length < Rope.SHORT_LIMIT) {
             return new RopeString(acc + x);
         }
         return new Rope(acc, x);
@@ -93,12 +91,12 @@ Rope.prototype.slice = function (beginSlice, endSlice) {
         right = this.right.slice(Math.max(0, beginSlice - this.weight), endSlice - this.weight);
     }
     if (left && right) {
-        return toRope(left).concat(right);
+        return Rope.toRope(left).concat(right);
     }
     if (left) {
-        return toRope(left);
+        return Rope.toRope(left);
     }
-    return toRope(right);
+    return Rope.toRope(right);
 };
 
 Rope.prototype.lines = function (startLine, endLine) {
@@ -132,8 +130,10 @@ function RopeString(s) {
     this.s = s;
     this.length = s.length;
     this.depth = 0;
-    this.newlines = (s.match(LINES_PATTERN) || []).length;
+    this.newlines = (s.match(RopeString.LINES_PATTERN) || []).length;
 }
+
+RopeString.LINES_PATTERN = /^.*(\r\n|\n|\r)/gm;
 
 mixin(RopeString, String, ['charAt', 'match', 'indexOf']);
 mixin(RopeString, Rope, ['concat', 'insert', 'del', 'lines', 'reduce']);
@@ -150,14 +150,14 @@ RopeString.prototype.lineAt = function (index) {
     if (index < 0 || index > this.length) {
         return -1;
     }
-    return (this.s.slice(0, index).match(LINES_PATTERN) || []).length;
+    return (this.s.slice(0, index).match(RopeString.LINES_PATTERN) || []).length;
 };
 
 RopeString.prototype.indexOfLine = function (line) {
     if (line < 0 || line > this.newlines) {
         return -1;
     }
-    return this.s.match(LINES_PATTERN).slice(0, line).join('').length;
+    return this.s.match(RopeString.LINES_PATTERN).slice(0, line).join('').length;
 };
 
 var assert;
@@ -171,7 +171,7 @@ try {
         }
     };
     assert.equal = function (x, y) {
-        assert('' + x, '' + y);
+        assert(''.concat(x), ''.concat(y));
     };
     assert.deepEqual = function (x, y) {
         assert.equal(JSON.stringify(x), JSON.stringify(y));
