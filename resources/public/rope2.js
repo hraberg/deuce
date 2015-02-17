@@ -175,7 +175,7 @@ function RopeFile(buffer, start, end) {
     this.depth = 0;
 }
 
-mixin(RopeFile, String, ['charAt', 'match', 'indexOf']);
+mixin(RopeFile, String, ['match', 'indexOf']);
 mixin(RopeFile, Rope, ['concat', 'insert', 'del', 'lines', 'reduce']);
 mixin(RopeFile, RopeString, ['indexOfLine', 'lineAt']);
 
