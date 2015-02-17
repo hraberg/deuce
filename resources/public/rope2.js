@@ -158,11 +158,7 @@ RopeString.prototype.indexOfLine = function (line) {
     if (line < 0 || line > this.newlines) {
         return -1;
     }
-    if (line === this.newlines + 1) {
-        return this.length;
-    }
-    var m = this.s.match(LINES_PATTERN);
-    return m ? m.slice(0, line).join('').length : -1;
+    return this.s.match(LINES_PATTERN).slice(0, line).join('').length;
 };
 
 var assert = require('assert');
@@ -215,9 +211,11 @@ assert.equal(new Rope('Hello\n', 'World\n').lineAt(8), 1);
 assert.equal(new Rope('Hello\n', 'World\n').lineAt(12), 2);
 assert.equal(new Rope('Hello\n', 'World\n').lineAt(13), -1);
 
+assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(-1), -1);
 assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(0), 0);
 assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(1), 6);
 assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(2), 12);
+assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(3), -1);
 
 assert.equal(new Rope('Hello\n', 'World\n').lines(0, 1), 'Hello\n');
 assert.equal(new Rope('Hello\n', 'World\n').lines(0), 'Hello\nWorld\n');
