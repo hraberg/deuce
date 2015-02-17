@@ -65,7 +65,7 @@ Rope.prototype.lineAt = function (index) {
 };
 
 Rope.prototype.indexOfLine = function (line) {
-    if (line <= this.left.newlines + 1) {
+    if (line <= this.left.newlines) {
         return this.left.indexOfLine(line);
     }
     var index = this.right.indexOfLine(line - this.left.newlines);
@@ -102,8 +102,8 @@ Rope.prototype.slice = function (beginSlice, endSlice) {
     return toRope(right);
 };
 
-Rope.prototype.line = function (line) {
-    return this.slice(this.indexOfLine(line), this.indexOfLine(line + 1));
+Rope.prototype.lines = function (startLine, endLine) {
+    return this.slice(this.indexOfLine(startLine), endLine ? this.indexOfLine(endLine) : this.length);
 };
 
 Rope.prototype.insert = function (offset, str) {
@@ -151,18 +151,18 @@ RopeString.prototype.lineAt = function (index) {
     if (index < 0 || index > this.length) {
         return -1;
     }
-    return (this.s.slice(0, index).match(LINES_PATTERN) || []).length + 1;
+    return (this.s.slice(0, index).match(LINES_PATTERN) || []).length;
 };
 
 RopeString.prototype.indexOfLine = function (line) {
-    if (line < 1 || line > this.newlines + 1) {
+    if (line < 0 || line > this.newlines) {
         return -1;
     }
     if (line === this.newlines + 1) {
         return this.length;
     }
     var m = this.s.match(LINES_PATTERN);
-    return m ? m.slice(0, line - 1).join('').length : -1;
+    return m ? m.slice(0, line).join('').length : -1;
 };
 
 var assert = require('assert');
@@ -203,24 +203,26 @@ assert.equal(new RopeString('HelloWorld').charAt(0), 'H');
 assert.equal(new RopeString('HelloWorld').slice(3, 8), 'loWor');
 assert.equal(new RopeString('HelloWorld').slice(3, 8).constructor, RopeString);
 assert.equal(new RopeString('Hello').concat('World'), 'HelloWorld');
-assert.equal(new RopeString('HelloWorld').lineAt(0), 1);
+assert.equal(new RopeString('HelloWorld').lineAt(0), 0);
 
 assert.equal(new RopeString('HelloWorld').insert(3, 'Space'), 'HelSpaceloWorld');
 assert.equal(new RopeString('HelloWorld').insert(3, 'A longer String').constructor, Rope);
 assert.equal(new RopeString('HelloWorld').del(3, 8), 'Helld');
 
 assert.equal(new Rope('Hello\n', 'World\n').lineAt(-1), -1);
-assert.equal(new Rope('Hello\n', 'World\n').lineAt(0), 1);
-assert.equal(new Rope('Hello\n', 'World\n').lineAt(8), 2);
-assert.equal(new Rope('Hello\n', 'World\n').lineAt(12), 3);
+assert.equal(new Rope('Hello\n', 'World\n').lineAt(0), 0);
+assert.equal(new Rope('Hello\n', 'World\n').lineAt(8), 1);
+assert.equal(new Rope('Hello\n', 'World\n').lineAt(12), 2);
 assert.equal(new Rope('Hello\n', 'World\n').lineAt(13), -1);
 
-assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(1), 0);
-assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(2), 6);
-assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(3), 12);
+assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(0), 0);
+assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(1), 6);
+assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(2), 12);
 
-assert.equal(new Rope('Hello\n', 'World\n').line(2), 'World\n');
-assert.equal(new Rope('Hello\n', 'World\n').concat('Space').line(2), 'World\n');
+assert.equal(new Rope('Hello\n', 'World\n').lines(0, 1), 'Hello\n');
+assert.equal(new Rope('Hello\n', 'World\n').lines(0), 'Hello\nWorld\n');
+assert.equal(new Rope('Hello\n', 'World\n').lines(1, 2), 'World\n');
+assert.equal(new Rope('Hello\n', 'World\n').concat('Space').lines(1, 2), 'World\n');
 
 assert.deepEqual(new Rope('Hello\n', 'World\n').concat('Space').reduce(function (acc, x) {
     acc.push(x.toString());
