@@ -119,12 +119,11 @@ Rope.prototype.reduce = function (f, acc) {
         next;
     while (todo.length > 0) {
         next = todo.pop();
-        if (next) {
-            if (next instanceof RopeString) {
-                acc = f(acc, next);
-            }
+        if (next instanceof Rope) {
             todo.push(next.right);
             todo.push(next.left);
+        } else {
+            acc = f(acc, next);
         }
     }
     return acc;
