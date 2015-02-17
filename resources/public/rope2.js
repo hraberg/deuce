@@ -48,13 +48,12 @@ Rope.openSync = function (file) {
         if (length > Rope.MMAP_THRESHOLD) {
             buffer = mmap.alloc(length, mmap.PROT_READ, mmap.MAP_SHARED, fd, 0);
             return new RopeFile(buffer, 0, length);
-        } else {
-            return Rope.toRope(fs.readFileSync(file, {encoding: 'utf8'}));
         }
+        return Rope.toRope(fs.readFileSync(file, {encoding: 'utf8'}));
     } finally {
         fs.closeSync(fd);
     }
-}
+};
 
 mixin(Rope, String, ['match', 'indexOf']);
 
