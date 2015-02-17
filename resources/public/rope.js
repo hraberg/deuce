@@ -30,7 +30,7 @@ function Rope(left, right) {
 var RopeString, RopeFile;
 
 Rope.SHORT_LIMIT = 16;
-Rope.LONG_LIMIT = 10 * 1024;
+Rope.LONG_LIMIT = 64 * 1024;
 Rope.MAX_DEPTH = 48;
 Rope.LINES_PATTERN = /^.*(\r\n?|\n)/gm;
 Rope.EMPTY = new RopeString('');
@@ -230,7 +230,7 @@ RopeString.prototype.indexOfLine = function (line) {
 };
 
 RopeString.prototype.balance = function () {
-    if (this.length < Rope.LONG_LIMIT || true) {
+    if (this.length < Rope.LONG_LIMIT) {
         return this;
     }
     var leaves = [], i;
