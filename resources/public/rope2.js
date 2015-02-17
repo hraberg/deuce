@@ -28,9 +28,6 @@ function Rope(left, right) {
 
 var RopeString, RopeFile;
 
-var fs = require('fs'),
-    mmap = require('mmap.js');
-
 Rope.SHORT_LIMIT = 16;
 Rope.MMAP_THRESHOLD = 16 * 1024;
 
@@ -41,19 +38,25 @@ Rope.toRope = function (x) {
     return new RopeString((x || '').toString());
 };
 
-Rope.openSync = function (file) {
-    var fd = fs.openSync(file, 'r'), length, buffer;
-    try {
-        length = fs.fstatSync(fd).size;
-        if (length > Rope.MMAP_THRESHOLD) {
-            buffer = mmap.alloc(length, mmap.PROT_READ, mmap.MAP_SHARED, fd, 0);
-            return new RopeFile(buffer, 0, length);
+try {
+    var fs = require('fs'),
+        mmap = require('mmap.js');
+
+    Rope.openSync = function (file) {
+        var fd = fs.openSync(file, 'r'), length, buffer;
+        try {
+            length = fs.fstatSync(fd).size;
+            if (length > Rope.MMAP_THRESHOLD) {
+                buffer = mmap.alloc(length, mmap.PROT_READ, mmap.MAP_SHARED, fd, 0);
+                return new RopeFile(buffer, 0, length);
+            }
+            return Rope.toRope(fs.readFileSync(file, {encoding: 'utf8'}));
+        } finally {
+            fs.closeSync(fd);
         }
-        return Rope.toRope(fs.readFileSync(file, {encoding: 'utf8'}));
-    } finally {
-        fs.closeSync(fd);
-    }
-};
+    };
+} catch (ignore) {
+}
 
 mixin(Rope, String, ['match', 'indexOf']);
 
