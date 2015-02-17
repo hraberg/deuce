@@ -31,7 +31,7 @@ var RopeString, RopeFile;
 Rope.SHORT_LIMIT = 16;
 Rope.LONG_LIMIT = 10 * 1024;
 Rope.MAX_DEPTH = 48;
-Rope.LINES_PATTERN = /^.*(\r\n|\n|\r)/gm;
+Rope.LINES_PATTERN = /^.*(\r\n?|\n)/gm;
 Rope.EMPTY = new RopeString('');
 
 Rope.toRope = function (x) {
@@ -205,7 +205,7 @@ Object.defineProperty(RopeString.prototype, 'newlines', {
     enumerable: true,
     get: function () {
         if (!this._newlines) {
-            this._newlines = (this.match(Rope.LINES_PATTERN) || []).length;
+            this._newlines = (this.match(/\r\n?|\n/gm) || []).length;
         }
         return this._newlines;
     }
@@ -393,11 +393,11 @@ function stress(text) {
     for (i = 0; i < 10; i += 1) {
         console.time('insert');
         rs = rs.insert(Math.floor(rs.length / 2), 'HelloWorld');
-        console.log(rs.length, rs.depth);
+        console.log(rs.length, rs.depth, rs.newlines);
         console.timeEnd('insert');
         console.time('delete');
         rs = rs.del(Math.floor(rs.length / 2), Math.floor(rs.length / 2) + 1000);
-        console.log(rs.length, rs.depth);
+        console.log(rs.length, rs.depth, rs.newlines);
         console.timeEnd('delete');
     }
 }
