@@ -137,7 +137,7 @@ function RopeString(s) {
 }
 
 mixin(RopeString, String, ['charAt', 'match', 'indexOf']);
-mixin(RopeString, Rope, ['concat', 'insert', 'del', 'line', 'reduce']);
+mixin(RopeString, Rope, ['concat', 'insert', 'del', 'lines', 'reduce']);
 
 RopeString.prototype.toString = function () {
     return this.s;
@@ -223,6 +223,9 @@ assert.equal(new Rope('Hello\n', 'World\n').lines(0, 1), 'Hello\n');
 assert.equal(new Rope('Hello\n', 'World\n').lines(0), 'Hello\nWorld\n');
 assert.equal(new Rope('Hello\n', 'World\n').lines(1, 2), 'World\n');
 assert.equal(new Rope('Hello\n', 'World\n').concat('Space').lines(1, 2), 'World\n');
+
+assert.equal(new RopeString('Hello\nWorld\n').lines(0, 1), 'Hello\n');
+assert.equal(new RopeString('Hello\nWorld\n').lines(1), 'World\n');
 
 assert.deepEqual(new Rope('Hello\n', 'World\n').concat('Space').reduce(function (acc, x) {
     acc.push(x.toString());
