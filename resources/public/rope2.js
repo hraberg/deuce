@@ -83,8 +83,17 @@ mixin(Rope, String, ['match', 'indexOf']);
 Rope.prototype.memoize = function () {
     this.length = this.left.length + this.right.length;
     this.depth = Math.max(this.left.depth, this.right.depth) + 1;
-    this.newlines = this.left.newlines + this.right.newlines;
 };
+
+Object.defineProperty(Rope.prototype, 'newlines', {
+    enumerable: true,
+    get: function () {
+        if (!this._newlines) {
+            this._newlines = this.left.newlines + this.right.newlines;
+        }
+        return this._newlines;
+    }
+});
 
 Rope.prototype.toString = function () {
     return this.left.toString() + this.right.toString();
@@ -186,11 +195,20 @@ function RopeString(s) {
     this.s = s.toString();
     this.length = s.length;
     this.depth = 0;
-    this.newlines = (s.match(Rope.LINES_PATTERN) || []).length;
 }
 
 mixin(RopeString, String, ['charAt', 'match', 'indexOf']);
 mixin(RopeString, Rope, ['concat', 'insert', 'del', 'lines', 'reduce', 'balance']);
+
+Object.defineProperty(RopeString.prototype, 'newlines', {
+    enumerable: true,
+    get: function () {
+        if (!this._newlines) {
+            this._newlines = (this.match(Rope.LINES_PATTERN) || []).length;
+        }
+        return this._newlines;
+    }
+});
 
 RopeString.prototype.toString = function () {
     return this.s;
@@ -355,17 +373,21 @@ assert.deepEqual(new RopeString('HelloWorld').reduce(function (acc, x) {
 }, []), ['HelloWorld']);
 
 function stress(text) {
-    var rs = Rope.toRope(new Array(100).join(text + '\n'));
+    var rs = Rope.toRope(new Array(100).join(text + '\n')), i;
     console.log(rs.length, rs.depth);
     console.time('slice');
     console.log(rs.slice(Math.floor(rs.length / 2)).length);
     console.timeEnd('slice');
-    console.time('insert');
-    console.log(rs.insert(Math.floor(rs.length / 2), 'HelloWorld').length);
-    console.timeEnd('insert');
-    console.time('delete');
-    console.log(rs.del(Math.floor(rs.length / 2), Math.floor(rs.length / 2) + 1000).length);
-    console.timeEnd('delete');
+    for (i = 0; i < 10; i += 1) {
+        console.time('insert');
+        rs = rs.insert(Math.floor(rs.length / 2), 'HelloWorld');
+        console.log(rs.length, rs.depth);
+        console.timeEnd('insert');
+        console.time('delete');
+        rs = rs.del(Math.floor(rs.length / 2), Math.floor(rs.length / 2) + 1000);
+        console.log(rs.length, rs.depth);
+        console.timeEnd('delete');
+    }
 }
 
 try {
