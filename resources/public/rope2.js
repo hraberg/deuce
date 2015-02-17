@@ -29,7 +29,6 @@ function Rope(left, right) {
 var RopeString, RopeFile;
 
 Rope.SHORT_LIMIT = 16;
-Rope.MMAP_THRESHOLD = 16 * 1024;
 
 Rope.toRope = function (x) {
     if (x instanceof Rope || x instanceof RopeString || x instanceof RopeFile) {
@@ -42,6 +41,7 @@ try {
     var fs = require('fs'),
         mmap = require('mmap.js');
 
+    Rope.MMAP_THRESHOLD = 16 * 1024;
     Rope.openSync = function (file) {
         var fd = fs.openSync(file, 'r'), length, buffer;
         try {
@@ -320,30 +320,32 @@ assert.deepEqual(new RopeString('HelloWorld').reduce(function (acc, x) {
     return acc;
 }, []), ['HelloWorld']);
 
-var rf = Rope.openSync(__dirname + '/../etc/tutorials/TUTORIAL');
+if (Rope.openSync) {
+    var rf = Rope.openSync(__dirname + '/../etc/tutorials/TUTORIAL');
 
-assert.equal(rf.charAt(0), 'E');
-assert.equal(rf.charAt(-1), '');
-assert.equal(rf.charAt(46571 + 1), '');
-assert.equal(rf.length, 46571);
-assert.equal(rf.toString().length, 46571);
-assert.equal(rf._newlines, undefined);
-assert.equal(rf.newlines, 1122);
-assert.equal(rf._newlines, 1122);
-assert.equal(rf.slice(6).charAt(0), 't');
-assert.equal(rf.slice(6).constructor, RopeFile);
-assert(/Emacs tutorial/.test(rf.toString()));
-assert.equal(rf.lines(2, 3), 'Emacs commands generally involve the CONTROL key (sometimes labeled\n');
-assert.equal(rf.lines(2, 3).constructor, RopeFile);
+    assert.equal(rf.charAt(0), 'E');
+    assert.equal(rf.charAt(-1), '');
+    assert.equal(rf.charAt(46571 + 1), '');
+    assert.equal(rf.length, 46571);
+    assert.equal(rf.toString().length, 46571);
+    assert.equal(rf._newlines, undefined);
+    assert.equal(rf.newlines, 1122);
+    assert.equal(rf._newlines, 1122);
+    assert.equal(rf.slice(6).charAt(0), 't');
+    assert.equal(rf.slice(6).constructor, RopeFile);
+    assert(/Emacs tutorial/.test(rf.toString()));
+    assert.equal(rf.lines(2, 3), 'Emacs commands generally involve the CONTROL key (sometimes labeled\n');
+    assert.equal(rf.lines(2, 3).constructor, RopeFile);
 
-assert.equal(rf.insert(2000, 'HelloWorld').length, 46571 + 10);
-assert.equal(rf.insert(2000, 'HelloWorld').constructor, Rope);
-assert.equal(rf.insert(2000, 'HelloWorld').left.left.constructor, RopeFile);
-assert.equal(rf.insert(2000, 'HelloWorld').left.right.constructor, RopeString);
-assert.equal(rf.insert(2000, 'HelloWorld').right.constructor, RopeFile);
-assert.equal(rf.del(2000, 3000).length, 46571 - 1000);
-assert.equal(rf.del(2000, 3000).left.constructor, RopeFile);
-assert.equal(rf.del(2000, 3000).right.constructor, RopeFile);
+    assert.equal(rf.insert(2000, 'HelloWorld').length, 46571 + 10);
+    assert.equal(rf.insert(2000, 'HelloWorld').constructor, Rope);
+    assert.equal(rf.insert(2000, 'HelloWorld').left.left.constructor, RopeFile);
+    assert.equal(rf.insert(2000, 'HelloWorld').left.right.constructor, RopeString);
+    assert.equal(rf.insert(2000, 'HelloWorld').right.constructor, RopeFile);
+    assert.equal(rf.del(2000, 3000).length, 46571 - 1000);
+    assert.equal(rf.del(2000, 3000).left.constructor, RopeFile);
+    assert.equal(rf.del(2000, 3000).right.constructor, RopeFile);
 
-assert.equal(Rope.openSync(__filename).constructor, RopeString);
-assert.equal(Rope.openSync(__filename).s.constructor, String);
+    assert.equal(Rope.openSync(__filename).constructor, RopeString);
+    assert.equal(Rope.openSync(__filename).s.constructor, String);
+}
