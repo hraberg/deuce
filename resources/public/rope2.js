@@ -29,6 +29,7 @@ function Rope(left, right) {
 var RopeString, RopeFile;
 
 Rope.SHORT_LIMIT = 16;
+Rope.LONG_LIMIT = 10 * 1024;
 Rope.MAX_DEPTH = 48;
 Rope.LINES_PATTERN = /^.*(\r\n|\n|\r)/gm;
 Rope.EMPTY = new RopeString('');
@@ -42,7 +43,7 @@ Rope.toRope = function (x) {
             return new Rope(Rope.toRope(left), Rope.toRope(right));
         }).balance();
     }
-    return x ? new RopeString(x.toString()) : Rope.EMPTY;
+    return x ? new RopeString(x.toString()).balance() : Rope.EMPTY;
 };
 
 Rope.merge = function (leaves) {
@@ -198,7 +199,7 @@ function RopeString(s) {
 }
 
 mixin(RopeString, String, ['charAt', 'match', 'indexOf']);
-mixin(RopeString, Rope, ['concat', 'insert', 'del', 'lines', 'reduce', 'balance']);
+mixin(RopeString, Rope, ['concat', 'insert', 'del', 'lines', 'reduce']);
 
 Object.defineProperty(RopeString.prototype, 'newlines', {
     enumerable: true,
@@ -230,6 +231,17 @@ RopeString.prototype.indexOfLine = function (line) {
         return -1;
     }
     return this.match(Rope.LINES_PATTERN).slice(0, line).join('').length;
+};
+
+RopeString.prototype.balance = function (force) {
+    if (this.length < Rope.LONG_LIMIT && !force) {
+        return this;
+    }
+    var leaves = [], i;
+    for (i = 0; i < this.length; i += Rope.LONG_LIMIT) {
+        leaves.push(new RopeString(this.slice(i, i + Rope.LONG_LIMIT)));
+    }
+    return Rope.merge(leaves).balance();
 };
 
 // Assumes ASCII.
@@ -422,9 +434,6 @@ if (Rope.openSync) {
     assert.equal(rf.del(2000, 3000).length, 46571 - 1000);
     assert.equal(rf.del(2000, 3000).left.constructor, RopeFile);
     assert.equal(rf.del(2000, 3000).right.constructor, RopeFile);
-
-    assert.equal(Rope.openSync(__filename).constructor, RopeString);
-    assert.equal(Rope.openSync(__filename).s.constructor, String);
 
     stress(rf.toString());
 }
