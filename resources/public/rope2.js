@@ -1,4 +1,4 @@
-/*jslint node: true regexp: true todo: true stupid: true nomen: true */
+/*jslint node: true browser: true regexp: true todo: true stupid: true nomen: true */
 
 // http://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf
 
@@ -29,12 +29,32 @@ function Rope(left, right) {
 var RopeString, RopeFile;
 
 Rope.SHORT_LIMIT = 16;
+Rope.MAX_DEPTH = 48;
+Rope.LINES_PATTERN = /^.*(\r\n|\n|\r)/gm;
+Rope.EMPTY = new RopeString('');
 
 Rope.toRope = function (x) {
     if (x instanceof Rope || x instanceof RopeString || x instanceof RopeFile) {
         return x;
     }
-    return new RopeString((x || '').toString());
+    if (x instanceof Array) {
+        return x.reduce(function (left, right) {
+            return new Rope(Rope.toRope(left), Rope.toRope(right));
+        }).balance();
+    }
+    return x ? new RopeString(x.toString()) : Rope.EMPTY;
+};
+
+Rope.merge = function (leaves) {
+    switch (leaves.length) {
+    case 1:
+        return leaves[0];
+    case 2:
+        return leaves[0].concat(leaves[1]);
+    default:
+        var middle = Math.floor(leaves.length / 2);
+        return Rope.merge(leaves.slice(0, middle)).concat(Rope.merge(leaves.slice(middle)));
+    }
 };
 
 try {
@@ -93,17 +113,29 @@ Rope.prototype.indexOfLine = function (line) {
     return index === -1 ? -1 : index + this.weight;
 };
 
-Rope.prototype.concat = function () {
-    return [].slice.call(arguments).reduce(function (acc, x) {
-        if (acc.length + x.length < Rope.SHORT_LIMIT) {
-            return new RopeString(acc + x);
-        }
-        return new Rope(acc, x);
-    }, this);
+Rope.prototype.balance = function (force) {
+    if (this.depth < Rope.MAX_DEPTH && !force) {
+        return this;
+    }
+    var leaves = this.reduce(function (acc, x) {
+        acc.push(x);
+        return acc;
+    }, []);
+    return Rope.merge(leaves);
+};
+
+Rope.prototype.concat = function (rope) {
+    if (this.length + rope.length < Rope.SHORT_LIMIT) {
+        return new RopeString(this + rope);
+    }
+    return new Rope(this, rope).balance();
 };
 
 Rope.prototype.slice = function (beginSlice, endSlice) {
     var left, right;
+    if (endSlice === 0) {
+        return Rope.EMPTY;
+    }
     endSlice = endSlice || this.length;
     if (endSlice < 0) {
         endSlice += this.length;
@@ -151,16 +183,14 @@ Rope.prototype.reduce = function (f, acc) {
 };
 
 function RopeString(s) {
-    this.s = s;
+    this.s = s.toString();
     this.length = s.length;
     this.depth = 0;
-    this.newlines = (s.match(RopeString.LINES_PATTERN) || []).length;
+    this.newlines = (s.match(Rope.LINES_PATTERN) || []).length;
 }
 
-RopeString.LINES_PATTERN = /^.*(\r\n|\n|\r)/gm;
-
 mixin(RopeString, String, ['charAt', 'match', 'indexOf']);
-mixin(RopeString, Rope, ['concat', 'insert', 'del', 'lines', 'reduce']);
+mixin(RopeString, Rope, ['concat', 'insert', 'del', 'lines', 'reduce', 'balance']);
 
 RopeString.prototype.toString = function () {
     return this.s;
@@ -174,14 +204,14 @@ RopeString.prototype.lineAt = function (index) {
     if (index < 0 || index > this.length) {
         return -1;
     }
-    return (this.toString().slice(0, index).match(RopeString.LINES_PATTERN) || []).length;
+    return (this.toString().slice(0, index).match(Rope.LINES_PATTERN) || []).length;
 };
 
 RopeString.prototype.indexOfLine = function (line) {
     if (line < 0 || line > this.newlines) {
         return -1;
     }
-    return this.match(RopeString.LINES_PATTERN).slice(0, line).join('').length;
+    return this.match(Rope.LINES_PATTERN).slice(0, line).join('').length;
 };
 
 // Assumes ASCII.
@@ -195,7 +225,7 @@ function RopeFile(buffer, start, end) {
 }
 
 mixin(RopeFile, String, ['match', 'indexOf']);
-mixin(RopeFile, Rope, ['concat', 'insert', 'del', 'lines', 'reduce']);
+mixin(RopeFile, Rope, ['concat', 'insert', 'del', 'lines', 'reduce', 'balance']);
 mixin(RopeFile, RopeString, ['indexOfLine', 'lineAt']);
 
 RopeFile.prototype.toString = function () {
@@ -271,10 +301,14 @@ assert.equal(new Rope('Hello', 'World').slice(3, 8).constructor, RopeString);
 assert.equal(new Rope('Hello', 'World').insert(3, 'Space'), 'HelSpaceloWorld');
 assert.equal(new Rope('Hello', 'World').del(3, 8), 'Helld');
 
+assert.equal(Rope.EMPTY.newlines, 0);
+assert.equal(new Rope('Hello').right, Rope.EMPTY);
 assert.equal(new Rope('Hello').newlines, 0);
 assert.equal(new Rope('Hello').depth, 1);
 assert.equal(new Rope('Hello\n', 'World\n').newlines, 2);
 assert.equal(new Rope(new Rope('Hello\n'), new Rope('World\n')).depth, 2);
+assert.equal(new Rope(new Rope(new Rope('Hello\n'), new Rope('World\n')),
+                      new Rope(new Rope('Hello\n'), new Rope('World\n'))).balance(true).length, 24);
 
 assert(new Rope('Hello', 'World').match('Hello'));
 assert(!new Rope('Hello', 'World').match('Space'));
@@ -320,6 +354,27 @@ assert.deepEqual(new RopeString('HelloWorld').reduce(function (acc, x) {
     return acc;
 }, []), ['HelloWorld']);
 
+function stress(text) {
+    var rs = Rope.toRope(new Array(100).join(text + '\n'));
+    console.log(rs.length, rs.depth);
+    console.time('slice');
+    console.log(rs.slice(Math.floor(rs.length / 2)).length);
+    console.timeEnd('slice');
+    console.time('insert');
+    console.log(rs.insert(Math.floor(rs.length / 2), 'HelloWorld').length);
+    console.timeEnd('insert');
+    console.time('delete');
+    console.log(rs.del(Math.floor(rs.length / 2), Math.floor(rs.length / 2) + 1000).length);
+    console.timeEnd('delete');
+}
+
+try {
+    window.setTimeout(function () {
+        stress(document.querySelector('[data-filename=TUTORIAL]').textContent);
+    }, 10000);
+} catch (ignore) {
+}
+
 if (Rope.openSync) {
     var rf = Rope.openSync(__dirname + '/../etc/tutorials/TUTORIAL');
 
@@ -348,4 +403,6 @@ if (Rope.openSync) {
 
     assert.equal(Rope.openSync(__filename).constructor, RopeString);
     assert.equal(Rope.openSync(__filename).s.constructor, String);
+
+    stress(rf.toString());
 }
