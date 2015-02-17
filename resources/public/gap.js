@@ -2,9 +2,9 @@
 
 'use strict';
 
-var GROWTH_FACTOR = 0.5,
-    FORWARD = 1,
-    BACKWARD = -1;
+// http://www.drdobbs.com/architecture-and-design/text-editors-algorithms-and-architecture/184408975
+// ftp://ftp.mpoli.fi/unpacked/software/programm/general/ddj9304.zip/_1993-apr.zip/texted.asc
+// http://www.lazyhacker.com/gapbuffer/gapbuffer.htm
 
 // not persistent, uses destructive updates to the buffer.
 function GapBuffer(s) {
@@ -15,6 +15,10 @@ function GapBuffer(s) {
     this.markRing = [];
     this.grow();
 }
+
+GapBuffer.GROWTH_FACTOR = 0.5;
+GapBuffer.FORWARD = 1;
+GapBuffer.BACKWARD = -1;
 
 GapBuffer.prototype.toString = function () {
     return this.buffer.slice(0, this.start).concat(this.buffer.slice(this.end)).join('');
@@ -43,7 +47,7 @@ Object.defineProperty(GapBuffer.prototype, 'length', {
 });
 
 GapBuffer.prototype.grow = function () {
-    var size = Math.round(this.length * GROWTH_FACTOR),
+    var size = Math.round(this.length * GapBuffer.GROWTH_FACTOR),
         before = this.buffer.slice(0, this.start),
         gap = [].constructor(size),
         after = this.buffer.slice(this.end);
@@ -102,7 +106,7 @@ GapBuffer.prototype.eobp = function () {
 
 GapBuffer.prototype.forwardChar = function (n) {
     n = n || 1;
-    var direction = n > 0 ? FORWARD : BACKWARD,
+    var direction = n > 0 ? GapBuffer.FORWARD : GapBuffer.BACKWARD,
         oldPoint;
     n = Math.abs(n);
     while (n > 0) {
@@ -112,7 +116,7 @@ GapBuffer.prototype.forwardChar = function (n) {
             break;
         }
         if (oldPoint === this.start) {
-            if (direction === FORWARD) {
+            if (direction === GapBuffer.FORWARD) {
                 this.buffer[this.start] = this.buffer[this.end];
                 delete this.buffer[this.end];
             } else {
@@ -174,10 +178,10 @@ GapBuffer.prototype.deleteChar = function (n) {
     }
     this.moveGapToPoint();
     n = n || 1;
-    var direction = n > 0 ? FORWARD : BACKWARD;
+    var direction = n > 0 ? GapBuffer.FORWARD : GapBuffer.BACKWARD;
     n = Math.abs(n);
     while (n > 0) {
-        if (direction === FORWARD) {
+        if (direction === GapBuffer.FORWARD) {
             if (this.eobp()) {
                 break;
             }
@@ -199,6 +203,8 @@ GapBuffer.prototype.deleteChar = function (n) {
 GapBuffer.prototype.backwardDeleteChar = function (n) {
     return this.deleteChar(-(n || 1));
 };
+
+module.export.GapBuffer = GapBuffer;
 
 var assert = require('assert');
 

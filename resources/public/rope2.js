@@ -1,7 +1,5 @@
 /*jslint node: true regexp: true */
 
-'use strict';
-
 // http://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf
 
 // C: https://github.com/ivmai/bdwgc/blob/master/cord/cordbscs.c
@@ -10,6 +8,8 @@
 // Java: https://code.google.com/p/ropes/
 // Go: https://github.com/vinzmay/go-rope
 // Scheme: https://bitbucket.org/evhan/rope
+
+'use strict';
 
 function mixin(target, source, methods) {
     methods.forEach(function (m) {
@@ -163,8 +163,8 @@ RopeString.prototype.indexOfLine = function (line) {
 var assert;
 
 try {
-    module.exports.Rope = Rope;
     assert = require('assert');
+    module.exports.Rope = Rope;
 } catch (e) {
     assert = function (x, y) {
         if (x !== (y || x)) {

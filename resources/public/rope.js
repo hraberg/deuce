@@ -1,7 +1,5 @@
 /*jslint node: true regexp: true nomen: true */
 
-'use strict';
-
 // http://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf
 
 // C: https://github.com/ivmai/bdwgc/blob/master/cord/cordbscs.c
@@ -9,6 +7,8 @@
 // JavaScript: https://github.com/component/rope
 // Java: https://code.google.com/p/ropes/
 // Go: https://github.com/vinzmay/go-rope
+
+'use strict';
 
 var inspect = require('util').inspect,
     assert = require('assert');
