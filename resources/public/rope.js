@@ -233,8 +233,8 @@ RopeString.prototype.indexOfLine = function (line) {
     return this.match(Rope.LINES_PATTERN).slice(0, line).join('').length;
 };
 
-RopeString.prototype.balance = function (force) {
-    if (this.length < Rope.LONG_LIMIT && !force) {
+RopeString.prototype.balance = function () {
+    if (this.length < Rope.LONG_LIMIT) {
         return this;
     }
     var leaves = [], i;
