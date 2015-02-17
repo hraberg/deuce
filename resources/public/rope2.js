@@ -330,6 +330,9 @@ assert.equal(rf.lines(2, 3).constructor, RopeFile);
 
 assert.equal(rf.insert(2000, 'HelloWorld').length, 46571 + 10);
 assert.equal(rf.insert(2000, 'HelloWorld').constructor, Rope);
+assert.equal(rf.insert(2000, 'HelloWorld').left.left.constructor, RopeFile);
+assert.equal(rf.insert(2000, 'HelloWorld').left.right.constructor, RopeString);
 assert.equal(rf.insert(2000, 'HelloWorld').right.constructor, RopeFile);
 assert.equal(rf.del(2000, 3000).length, 46571 - 1000);
+assert.equal(rf.del(2000, 3000).left.constructor, RopeFile);
 assert.equal(rf.del(2000, 3000).right.constructor, RopeFile);
