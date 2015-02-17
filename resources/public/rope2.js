@@ -205,9 +205,9 @@ Object.defineProperty(RopeFile.prototype, 'newlines', {
     enumerable: true,
     get: function () {
         if (!this._newlines) {
-            var i, acc = 0;
+            var i, acc = 0, nl = '\n'.charCodeAt(0);
             for (i = this.start; i < this.end; i += 1) {
-                if (this.charAt(i) === '\n') {
+                if (this.buffer[i] === nl) {
                     acc += 1;
                 }
             }
