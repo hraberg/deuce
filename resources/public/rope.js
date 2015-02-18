@@ -483,6 +483,24 @@ function benchmark(text) {
         return (text.slice(idx).match(/\r\n?|\n/gm) || []).length;
     }));
 
+    run(new Benchmark.Suite('charAt').add('Rope', function () {
+        var idx = Math.floor(Math.random() * rope.length);
+        rope.charAt(idx);
+    }).add('String', function () {
+        var idx = Math.floor(Math.random() * text.length);
+        text.charAt(idx);
+    }));
+
+    run(new Benchmark.Suite('lineAt').add('Rope', function () {
+        var start = Math.floor(Math.random() * rope.length),
+            idx = Math.floor(Math.random() * (rope.length - start));
+        rope.slice(start).lineAt(idx);
+    }).add('String', function () {
+        var start = Math.floor(Math.random() * text.length),
+            idx = Math.floor(Math.random() * (text.length - start));
+        return (text.slice(start).slice(0, idx).match(/\r\n?|\n/gm) || []).length;
+    }));
+
     run(new Benchmark.Suite('del').add('Rope', function () {
         var prev = rope,
             start = Math.floor(Math.random() * rope.length),
@@ -508,16 +526,6 @@ function benchmark(text) {
         var start = Math.floor(Math.random() * text.length),
             length = Math.floor(Math.random() * 1024);
         text = text.slice(0, start).concat([].constructor(length + 1).join('x')).concat(text.slice(start));
-    }));
-
-    run(new Benchmark.Suite('lineAt').add('Rope', function () {
-        var start = Math.floor(Math.random() * rope.length),
-            idx = Math.floor(Math.random() * (rope.length - start));
-        rope.slice(start).lineAt(idx);
-    }).add('String', function () {
-        var start = Math.floor(Math.random() * text.length),
-            idx = Math.floor(Math.random() * (text.length - start));
-        return (text.slice(start).slice(0, idx).match(/\r\n?|\n/gm) || []).length;
     }));
 }
 
