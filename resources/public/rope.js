@@ -192,7 +192,7 @@ Object.defineProperty(RopeString.prototype, 'newlines', {
     enumerable: true,
     get: function () {
         if (this._newlines === undefined) {
-            this._newlines = (this.match(/\r\n?|\n/gm) || []).length;
+            this._newlines = (this.match(Rope.LINES_PATTERN) || []).length;
         }
         return this._newlines;
     }
