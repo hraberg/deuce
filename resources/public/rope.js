@@ -9,8 +9,6 @@
 // Go: https://github.com/vinzmay/go-rope
 // Scheme: https://bitbucket.org/evhan/rope
 
-// TODO: balancing, web worker?, RopeFn nodes for paging - disk (via ws?) - weak refs in JS? Performance tuning.
-
 'use strict';
 
 function mixin(target, source, methods) {
