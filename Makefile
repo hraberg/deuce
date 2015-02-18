@@ -100,7 +100,7 @@ nw: $(node_modules)
 nwbuild: $(node_modules)
 	$(nwbuild) -p linux64,osx64,win64 -o target/nwbuild resources/public
 
-nwtest: $(node_modules)
+nwtest: jslint
 	$(foreach f, $(nw_tests),node $(f);)
 
 run: target/deuce
