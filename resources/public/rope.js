@@ -25,13 +25,13 @@ function Rope(left, right) {
     this.weight = left.length;
     this.length = this.left.length + this.right.length;
     this.depth = Math.max(this.left.depth, this.right.depth) + 1;
+    this.newlines = this.left.newlines + this.right.newlines;
 }
 
 var RopeString, RopeFile;
 
 Rope.SHORT_LIMIT = 16;
-Rope.LONG_LIMIT = 64 * 1024;
-Rope.MAX_DEPTH = 48;
+Rope.LONG_LIMIT = 1024;
 Rope.LINES_PATTERN = /^.*(\r\n?|\n)/gm;
 Rope.EMPTY = new RopeString('');
 
@@ -41,22 +41,10 @@ Rope.toRope = function (x) {
     }
     if (x instanceof Array) {
         return x.reduce(function (left, right) {
-            return new Rope(Rope.toRope(left), Rope.toRope(right));
-        }).balance();
+            return Rope.toRope(left).concat(Rope.toRope(right));
+        });
     }
-    return x ? new RopeString(x.toString()).balance() : Rope.EMPTY;
-};
-
-Rope.merge = function (leaves) {
-    switch (leaves.length) {
-    case 1:
-        return leaves[0];
-    case 2:
-        return leaves[0].concat(leaves[1]);
-    default:
-        var middle = Math.floor(leaves.length / 2);
-        return Rope.merge(leaves.slice(0, middle)).concat(Rope.merge(leaves.slice(middle)));
-    }
+    return x === undefined ? Rope.EMPTY :  new RopeString(x.toString()).balance();
 };
 
 try {
@@ -81,16 +69,6 @@ try {
 }
 
 mixin(Rope, String, ['match', 'indexOf']);
-
-Object.defineProperty(Rope.prototype, 'newlines', {
-    enumerable: true,
-    get: function () {
-        if (this._newlines === undefined) {
-            this._newlines = this.left.newlines + this.right.newlines;
-        }
-        return this._newlines;
-    }
-});
 
 Rope.prototype.toString = function () {
     return this.left.toString() + this.right.toString();
@@ -119,15 +97,28 @@ Rope.prototype.indexOfLine = function (line) {
     return index === -1 ? -1 : index + this.weight;
 };
 
-Rope.prototype.balance = function (force) {
-    if (this.depth < Rope.MAX_DEPTH && !force) {
-        return this;
+Rope.prototype.balance = function () {
+    if (this.left.depth > this.right.depth) {
+        return this.rotateRight();
     }
-    var leaves = this.reduce(function (acc, x) {
-        acc.push(x);
-        return acc;
-    }, []);
-    return Rope.merge(leaves);
+    if (this.right.depth > this.left.depth) {
+        return this.rotateLeft();
+    }
+    return this;
+};
+
+Rope.prototype.rotateLeft = function () {
+    if (this.right instanceof Rope) {
+        return new Rope(new Rope(this.left, this.right.left), this.right.right);
+    }
+    return this;
+};
+
+Rope.prototype.rotateRight = function () {
+    if (this.left instanceof Rope) {
+        return new Rope(this.left.left, new Rope(this.left.right, this.right));
+    }
+    return this;
 };
 
 Rope.prototype.concat = function (rope) {
@@ -139,12 +130,15 @@ Rope.prototype.concat = function (rope) {
 
 Rope.prototype.slice = function (beginSlice, endSlice) {
     var left, right;
-    if (endSlice === 0) {
-        return Rope.EMPTY;
-    }
-    endSlice = endSlice || this.length;
+    endSlice = endSlice === undefined ? this.length : endSlice;
     if (endSlice < 0) {
         endSlice += this.length;
+    }
+    if (beginSlice === endSlice) {
+        return Rope.EMPTY;
+    }
+    if (beginSlice === 0 && endSlice === this.length) {
+        return this;
     }
     if (beginSlice < this.weight) {
         left = this.left.slice(beginSlice).slice(0, Math.min(endSlice, this.weight));
@@ -153,12 +147,9 @@ Rope.prototype.slice = function (beginSlice, endSlice) {
         right = this.right.slice(Math.max(0, beginSlice - this.weight), endSlice - this.weight);
     }
     if (left && right) {
-        return Rope.toRope(left).concat(right);
+        return left.concat(right);
     }
-    if (left) {
-        return Rope.toRope(left);
-    }
-    return Rope.toRope(right);
+    return left || right;
 };
 
 Rope.prototype.lines = function (startLine, endLine) {
@@ -212,7 +203,7 @@ RopeString.prototype.toString = function () {
 };
 
 RopeString.prototype.slice = function (beginSlice, endSlice) {
-    return new RopeString(this.s.slice(beginSlice, endSlice));
+    return new RopeString(this.s.slice(beginSlice, endSlice)).balance();
 };
 
 RopeString.prototype.lineAt = function (index) {
@@ -230,14 +221,14 @@ RopeString.prototype.indexOfLine = function (line) {
 };
 
 RopeString.prototype.balance = function () {
+    if (this.length === 0) {
+        return Rope.EMPTY;
+    }
     if (this.length < Rope.LONG_LIMIT) {
         return this;
     }
-    var leaves = [], i;
-    for (i = 0; i < this.length; i += Rope.LONG_LIMIT) {
-        leaves.push(this.slice(i, i + Rope.LONG_LIMIT));
-    }
-    return Rope.merge(leaves).balance();
+    var middle = Math.floor(this.length / 2);
+    return this.slice(0, middle).concat(this.slice(middle, this.length));
 };
 
 // Assumes ASCII.
@@ -328,27 +319,13 @@ assert.equal(new Rope('Hello', 'World').insert(3, 'Space'), 'HelSpaceloWorld');
 assert.equal(new Rope('Hello', 'World').del(3, 8), 'Helld');
 
 assert.equal(Rope.EMPTY.newlines, 0);
-assert.equal(Rope.EMPTY._newlines, 0);
 assert.equal(new Rope('Hello').right, Rope.EMPTY);
 assert.equal(new Rope('Hello').newlines, 0);
 assert.equal(new Rope('Hello').depth, 1);
 assert.equal(new Rope('Hello\n', 'World\n').newlines, 2);
 assert.equal(new Rope(new Rope('Hello\n'), new Rope('World\n')).depth, 2);
 assert.equal(new Rope(new Rope(new Rope('Hello\n'), new Rope('World\n')),
-                      new Rope(new Rope('Hello\n'), new Rope('World\n'))).balance(true).length, 24);
-
-var rl = new Rope(new Rope('Hello\n'), new Rope('World\n'));
-assert(!rl._newlines);
-assert(!rl.left._newlines);
-assert(!rl.right._newlines);
-assert.equal(rl.newlines, 2);
-assert.equal(rl._newlines, 2);
-assert.equal(rl.left._newlines, 1);
-assert.equal(rl.right._newlines, 1);
-
-rl.balance(true);
-assert.equal(rl.left._newlines, 1);
-assert.equal(rl.right._newlines, 1);
+                      new Rope(new Rope('Hello\n'), new Rope('World\n'))).balance().length, 24);
 
 assert(new Rope('Hello', 'World').match('Hello'));
 assert(!new Rope('Hello', 'World').match('Space'));
@@ -412,9 +389,8 @@ function stress(text) {
         console.log(rs.length, rs.depth, rs.lineAt(idx));
         console.timeEnd('insert');
         console.time('insert str');
-        idx = Math.floor(text.length / 2);
         text = text.slice(0, idx) + 'HelloWorld' + text.slice(idx);
-        console.log(text.length, 0, (text.slice(idx).match(/\r\n?|\n/gm) || []).length);
+        console.log(text.length, 0, (text.slice(0, idx).match(/\r\n?|\n/gm) || []).length);
         console.timeEnd('insert str');
         console.time('delete');
         idx = Math.floor(rs.length / 2);
@@ -422,9 +398,8 @@ function stress(text) {
         console.log(rs.length, rs.depth, rs.lineAt(idx));
         console.timeEnd('delete');
         console.time('delete str');
-        idx = Math.floor(text.length / 2);
         text = text.slice(0, idx) + text.slice(idx + 1000);
-        console.log(text.length, 0, (text.slice(idx).match(/\r\n?|\n/gm) || []).length);
+        console.log(text.length, 0, (text.slice(0, idx).match(/\r\n?|\n/gm) || []).length);
         console.timeEnd('delete str');
 
         console.time('newlines');
@@ -463,9 +438,6 @@ if (Rope.openSync) {
 
     assert.equal(rf.insert(2000, 'HelloWorld').length, 46571 + 10);
     assert.equal(rf.insert(2000, 'HelloWorld').constructor, Rope);
-    assert.equal(rf.insert(2000, 'HelloWorld').left.left.constructor, RopeFile);
-    assert.equal(rf.insert(2000, 'HelloWorld').left.right.constructor, RopeString);
-    assert.equal(rf.insert(2000, 'HelloWorld').right.constructor, RopeFile);
     assert.equal(rf.del(2000, 3000).length, 46571 - 1000);
     assert.equal(rf.del(2000, 3000).left.constructor, RopeFile);
     assert.equal(rf.del(2000, 3000).right.constructor, RopeFile);
