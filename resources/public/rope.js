@@ -8,6 +8,7 @@
 // Java: https://code.google.com/p/ropes/
 // Go: https://github.com/vinzmay/go-rope
 // Scheme: https://bitbucket.org/evhan/rope
+// Haskell: https://github.com/yi-editor/yi-rope
 
 'use strict';
 
