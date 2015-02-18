@@ -21,7 +21,7 @@ deuce_css=$(shell find resources/public -iname "*.css")
 nw_version=0.12.0-alpha2
 node_modules=resources/public/node_modules
 nwbuild=node $(node_modules)/.bin/nwbuild -v $(nw_version)
-nw_tests=$(shell grep -l "require('assert')" resources/public/*.js)
+nw_tests=$(shell grep -l "require('assert')" $(deuce_javascript))
 
 smoke_test_args=-Q --batch --eval "(print (emacs-version))"
 
