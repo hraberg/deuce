@@ -469,6 +469,8 @@ function benchmark(text) {
         }).on('complete', function () {
             var ratio = Math.round(1000 * (this.filter('fastest').pluck('hz')[0] / this.filter('slowest').pluck('hz')[0])) / 1000;
             console.log(this.filter('fastest').pluck('name') + ' is ' + Benchmark.formatNumber(ratio) + ' times faster');
+            console.log('Rope', rope.length, rope.depth, rope.newlines);
+            console.log('String', text.length, 0, (text.match(/\r\n?|\n/gm) || []).length);
         }).run();
     }
 
@@ -491,7 +493,7 @@ function benchmark(text) {
     }).add('String', function () {
         var start = Math.floor(Math.random() * text.length),
             length = Math.floor(Math.random() * 1024);
-        text = text.slice(0, start).concat(text.slice(start + length));
+        text = text.slice(0, start).concat(text.slice(Math.min(text.length, start + length)));
     }));
 
     run(new Benchmark.Suite('insert').add('Rope', function () {
