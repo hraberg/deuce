@@ -48,7 +48,7 @@ Rope.toRope = function (x) {
 mixin(Rope, String, ['match', 'indexOf']);
 
 Rope.prototype.toString = function () {
-    return this.left + this.right;
+    return this.left.toString() + this.right.toString();
 };
 
 Rope.prototype.charAt = function (index) {
