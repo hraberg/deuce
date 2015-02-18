@@ -135,4 +135,4 @@ $(deuce_stubs): emacs/src/TAGS-TEMACS
 
 stubs: $(deuce_stubs)
 
-.PHONY: test emacs-tests zile-tests emacs-smoke smoke clean stubs dist run run-dev all jslint csslint lint nw nwbuild
+.PHONY: test emacs-tests zile-tests emacs-smoke smoke clean stubs dist run run-dev all jslint csslint lint nw nwbuild nwtest
