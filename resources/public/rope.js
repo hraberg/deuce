@@ -17,6 +17,17 @@ function mixin(target, source, methods) {
     });
 }
 
+function memoize(f) {
+    var memo = {};
+    return function () {
+        var args = [].slice.call(arguments);
+        if (memo[args] === undefined) {
+            memo[args] = f.apply(f, args);
+        }
+        return memo[args];
+    };
+}
+
 function Rope(left, right) {
     this.left = Rope.toRope(left);
     this.right = Rope.toRope(right);
@@ -32,6 +43,9 @@ Rope.SHORT_LIMIT = 16;
 Rope.LONG_LIMIT = 1024;
 Rope.LINES_PATTERN = /^.*(\r\n?|\n)/gm;
 Rope.EMPTY = new RopeString('');
+Rope.EMPTY.concat = function (rope) {
+    return rope;
+};
 
 Rope.toRope = function (x) {
     if (x instanceof Rope || x instanceof RopeString || x instanceof RopeFile) {
@@ -44,6 +58,14 @@ Rope.toRope = function (x) {
     }
     return x === undefined ? Rope.EMPTY :  new RopeString(x).balance();
 };
+
+Rope.fib =  function (n) {
+    if (n <= 1) {
+        return 1;
+    }
+    return Rope.fib(n - 1) + Rope.fib(n - 2);
+};
+Rope.fib = memoize(Rope.fib);
 
 mixin(Rope, String, ['match', 'indexOf']);
 
@@ -99,6 +121,9 @@ Rope.prototype.rotateRight = function () {
 };
 
 Rope.prototype.concat = function (rope) {
+    if (rope === Rope.EMPTY || !rope) {
+        return this;
+    }
     if (this.length + rope.length < Rope.SHORT_LIMIT) {
         return new RopeString(this + rope);
     }
@@ -296,6 +321,10 @@ try {
         assert.equal(JSON.stringify(x), JSON.stringify(y));
     };
 }
+
+assert.equal(Rope.fib(10), 89);
+assert.equal(Rope.fib(20), 10946);
+assert.equal(Rope.fib(100), 573147844013817200000);
 
 var r = new Rope('Hello', 'World');
 assert.equal(r.length, 10);
