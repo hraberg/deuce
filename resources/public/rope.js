@@ -42,13 +42,13 @@ Rope.toRope = function (x) {
             return Rope.toRope(left).concat(Rope.toRope(right));
         });
     }
-    return x === undefined ? Rope.EMPTY :  new RopeString(x.toString()).balance();
+    return x === undefined ? Rope.EMPTY :  new RopeString(x).balance();
 };
 
 mixin(Rope, String, ['match', 'indexOf']);
 
 Rope.prototype.toString = function () {
-    return this.left.toString() + this.right.toString();
+    return this.left + this.right;
 };
 
 Rope.prototype.charAt = function (index) {
