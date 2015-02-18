@@ -1,4 +1,4 @@
-/*jslint node: true browser: true regexp: true todo: true stupid: true nomen: true */
+/*jslint node: true browser: true regexp: true stupid: true nomen: true */
 
 // http://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf
 
