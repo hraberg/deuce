@@ -419,7 +419,11 @@ function stress(text) {
         console.time('toString str');
         console.log(text.toString().length);
         console.timeEnd('toString str');
+
+        assert.equal(rs.length, text.length);
     }
+    assert(rs.toString() === text);
+    assert(rs.newlines, (text.match(/\r\n?|\n/gm) || []).length);
 }
 
 try {
