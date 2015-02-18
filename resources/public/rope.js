@@ -240,7 +240,7 @@ function RopeFile(buffer, start, end) {
 }
 
 mixin(RopeFile, String, ['match', 'indexOf']);
-mixin(RopeFile, Rope, ['concat', 'insert', 'del', 'lines', 'reduce', 'balance']);
+mixin(RopeFile, Rope, ['concat', 'insert', 'del', 'lines', 'reduce']);
 mixin(RopeFile, RopeString, ['indexOfLine', 'lineAt']);
 
 RopeFile.prototype.toString = function () {
