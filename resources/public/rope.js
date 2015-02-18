@@ -274,6 +274,10 @@ RopeFile.prototype.slice = function (beginSlice, endSlice) {
     return new RopeFile(this.buffer, (beginSlice || 0) + this.start, endSlice ? endSlice + this.start : this.end);
 };
 
+RopeFile.prototype.balance = function () {
+    return this;
+};
+
 var assert;
 
 try {
