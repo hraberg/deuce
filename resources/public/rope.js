@@ -45,27 +45,6 @@ Rope.toRope = function (x) {
     return x === undefined ? Rope.EMPTY :  new RopeString(x.toString()).balance();
 };
 
-try {
-    var fs = require('fs'),
-        mmap = require('mmap.js');
-
-    Rope.MMAP_THRESHOLD = 16 * 1024;
-    Rope.openSync = function (file) {
-        var fd = fs.openSync(file, 'r'), length, buffer;
-        try {
-            length = fs.fstatSync(fd).size;
-            if (length > Rope.MMAP_THRESHOLD) {
-                buffer = mmap.alloc(length, mmap.PROT_READ, mmap.MAP_SHARED, fd, 0);
-                return new RopeFile(buffer, 0, length);
-            }
-            return Rope.toRope(fs.readFileSync(file, {encoding: 'utf8'}));
-        } finally {
-            fs.closeSync(fd);
-        }
-    };
-} catch (ignore) {
-}
-
 mixin(Rope, String, ['match', 'indexOf']);
 
 Rope.prototype.toString = function () {
@@ -230,6 +209,27 @@ RopeString.prototype.balance = function () {
 };
 
 // Assumes ASCII.
+
+try {
+    var fs = require('fs'),
+        mmap = require('mmap.js');
+
+    Rope.MMAP_THRESHOLD = 16 * 1024;
+    Rope.openSync = function (file) {
+        var fd = fs.openSync(file, 'r'), length, buffer;
+        try {
+            length = fs.fstatSync(fd).size;
+            if (length > Rope.MMAP_THRESHOLD) {
+                buffer = mmap.alloc(length, mmap.PROT_READ, mmap.MAP_SHARED, fd, 0);
+                return new RopeFile(buffer, 0, length);
+            }
+            return Rope.toRope(fs.readFileSync(file, {encoding: 'utf8'}));
+        } finally {
+            fs.closeSync(fd);
+        }
+    };
+} catch (ignore) {
+}
 
 function RopeFile(buffer, start, end) {
     this.buffer = buffer;
