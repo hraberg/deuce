@@ -464,8 +464,11 @@ function benchmark(text) {
     function run(s) {
         s.on('cycle', function (event) {
             console.log(String(event.target));
+        }).on('error', function (event) {
+            console.log(String(event));
         }).on('complete', function () {
-            console.log('Fastest is ' + this.filter('fastest').pluck('name'));
+            var ratio = Math.round(1000 * (this.filter('fastest').pluck('hz')[0] / this.filter('slowest').pluck('hz')[0])) / 1000;
+            console.log(this.filter('fastest').pluck('name') + ' is ' + Benchmark.formatNumber(ratio) + ' times faster');
         }).run();
     }
 
@@ -478,31 +481,40 @@ function benchmark(text) {
     }));
 
     run(new Benchmark.Suite().add('Rope del', function () {
-        var start = Math.floor(Math.random() * rope.length),
-            end = Math.floor(Math.random() * (rope.length - start)) + start;
-        rope = rope.del(start, end);
+        var prev = rope,
+            start = Math.floor(Math.random() * rope.length),
+            length = Math.floor(Math.random() * 1024);
+        length = Math.min(length, rope.length - start);
+        rope = rope.del(start, start + length);
+        assert.equal(rope.constructor, Rope);
+        assert.equal(rope.length, prev.length - length);
     }).add('String del', function () {
         var start = Math.floor(Math.random() * text.length),
-            end = Math.floor(Math.random() * (text.length - start)) + start;
-        text = text.slice(0, start).concat(text.slice(end));
+            length = Math.floor(Math.random() * 1024);
+        text = text.slice(0, start).concat(text.slice(start + length));
     }));
 
     run(new Benchmark.Suite().add('Rope insert', function () {
-        var start = Math.floor(Math.random() * rope.length),
+        var prev = rope,
+            start = Math.floor(Math.random() * rope.length),
             length = Math.floor(Math.random() * 1024);
-        rope = rope.insert(start, [].constructor(length).join('x'));
+        rope = rope.insert(start, [].constructor(length + 1).join('x'));
+        assert.equal(rope.constructor, Rope);
+        assert.equal(rope.length, prev.length + length);
     }).add('String insert', function () {
         var start = Math.floor(Math.random() * text.length),
             length = Math.floor(Math.random() * 1024);
-        text = text.slice(0, start).concat([].constructor(length).join('x')).concat(text.slice(start));
+        text = text.slice(0, start).concat([].constructor(length + 1).join('x')).concat(text.slice(start));
     }));
 
     run(new Benchmark.Suite().add('Rope lineAt', function () {
-        var idx = Math.floor(Math.random() * rope.length);
-        rope.lineAt(idx);
+        var start = Math.floor(Math.random() * rope.length),
+            idx = Math.floor(Math.random() * (rope.length - start));
+        rope.slice(start).lineAt(idx);
     }).add('String lineAt', function () {
-        var idx = Math.floor(Math.random() * rope.length);
-        return (text.slice(0, idx).match(/\r\n?|\n/gm) || []).length;
+        var start = Math.floor(Math.random() * text.length),
+            idx = Math.floor(Math.random() * (text.length - start));
+        return (text.slice(start).slice(0, idx).match(/\r\n?|\n/gm) || []).length;
     }));
 }
 
