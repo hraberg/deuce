@@ -21,6 +21,7 @@ deuce_css=$(shell find resources/public -iname "*.css")
 nw_version=0.12.0-alpha2
 node_modules=resources/public/node_modules
 nwbuild=node $(node_modules)/.bin/nwbuild -v $(nw_version)
+nw_tests=$(shell grep -l "require('assert')" resources/public/*.js)
 
 smoke_test_args=-Q --batch --eval "(print (emacs-version))"
 
@@ -98,6 +99,9 @@ nw: $(node_modules)
 
 nwbuild: $(node_modules)
 	$(nwbuild) -p linux64,osx64,win64 -o target/nwbuild resources/public
+
+nwtest: $(node_modules)
+	$(foreach f, $(nw_tests),node $(f);)
 
 run: target/deuce
 	$<

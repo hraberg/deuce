@@ -204,7 +204,7 @@ GapBuffer.prototype.backwardDeleteChar = function (n) {
     return this.deleteChar(-(n || 1));
 };
 
-module.export.GapBuffer = GapBuffer;
+module.exports.GapBuffer = GapBuffer;
 
 var assert = require('assert');
 
