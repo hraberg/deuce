@@ -411,6 +411,14 @@ function stress(text) {
         console.time('newlines str');
         console.log(text.length, 0, (text.match(/\r\n?|\n/gm) || []).length);
         console.timeEnd('newlines str');
+
+        console.time('toString');
+        console.log(rs.toString().length);
+        console.timeEnd('toString');
+
+        console.time('toString str');
+        console.log(text.toString().length);
+        console.timeEnd('toString str');
     }
 }
 
