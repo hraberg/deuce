@@ -52,23 +52,6 @@ Rope.toRope = function (x) {
     return x === undefined ? Rope.EMPTY :  new RopeString(x).balance();
 };
 
-Rope.fib =  function (n) {
-    if (n <= 1) {
-        return n;
-    }
-    return Rope.fib(n - 1) + Rope.fib(n - 2);
-};
-Rope.fib = (function (f) {
-    var memo = [];
-    return function (n) {
-        if (memo[n] === undefined) {
-            memo[n] = f(n);
-        }
-        return memo[n];
-    };
-}(Rope.fib));
-
-
 mixin(Rope, String, ['match', 'indexOf']);
 
 Rope.prototype.toString = function () {
@@ -126,29 +109,46 @@ Rope.prototype.balanceRotate = function () {
     return this;
 };
 
+Rope.fib =  function (n) {
+    if (n <= 1) {
+        return n;
+    }
+    return Rope.fib(n - 1) + Rope.fib(n - 2);
+};
+Rope.fib = (function (f) {
+    var memo = [];
+    return function (n) {
+        if (memo[n] === undefined) {
+            memo[n] = f(n);
+        }
+        return memo[n];
+    };
+}(Rope.fib));
+
+// based on this version in Common Lisp: https://github.com/Ramarren/ropes
+Rope.balanceFibStep = function (acc, rope, n) {
+    n = n || 0;
+    var maxLength = Rope.fib(n + 2);
+    if (!acc[n] && rope.length <= maxLength) {
+        acc[n] = rope;
+        return acc;
+    }
+    if (acc[n]) {
+        rope = new Rope(acc[n], rope);
+        acc[n] = undefined;
+        return Rope.balanceFibStep(acc, rope, n);
+    }
+    if (rope.length > maxLength) {
+        return Rope.balanceFibStep(acc, rope, n + 1);
+    }
+    return acc;
+};
+
 Rope.prototype.balanceFib = function (force, postConditions) {
     if (this.isBalanced() && !force) {
         return this;
     }
-    // based on this version in Common Lisp: https://github.com/Ramarren/ropes
-    function step(acc, rope, n) {
-        n = n || 0;
-        var maxLength = Rope.fib(n + 2);
-        if (!acc[n] && rope.length <= maxLength) {
-            acc[n] = rope;
-            return acc;
-        }
-        if (acc[n]) {
-            rope = new Rope(acc[n], rope);
-            acc[n] = undefined;
-            return step(acc, rope, n);
-        }
-        if (rope.length > maxLength) {
-            return step(acc, rope, n + 1);
-        }
-        return acc;
-    }
-    var balanced = Rope.toRope(this.reduce(step, []).reverse());
+    var balanced = Rope.toRope(this.reduce(Rope.balanceFibStep, []).reverse());
     if (postConditions && balanced.toString() !== this.toString()) {
         throw new Error('not same after balancing: \'' + this.toString().slice(0, 64) +
                         '\' ' + this.length + ' \'' + balanced.toString().slice(0, 64) + '\' ' + balanced.length);
