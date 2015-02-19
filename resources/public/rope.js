@@ -115,6 +115,7 @@ Rope.fib =  function (n) {
     }
     return Rope.fib(n - 1) + Rope.fib(n - 2);
 };
+
 Rope.fib = (function (f) {
     var memo = [];
     return function (n) {
