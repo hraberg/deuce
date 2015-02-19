@@ -109,6 +109,7 @@ Rope.prototype.balance = function () {
     return this;
 };
 
+// This isn't working, it shuffles the prefixes around.
 Rope.prototype.balanceFib = function (force) {
     if (this.isBalanced() && !force) {
         return this;
@@ -139,7 +140,11 @@ Rope.prototype.balanceFib = function (force) {
         }
         return acc;
     });
-    return Rope.toRope(balanced);
+    balanced = Rope.toRope(balanced);
+    if (balanced.toString() !== this.toString()) {
+        throw new Error('not same after balancing: ' + this.length + ' ' + balanced.length);
+    }
+    return balanced;
 };
 
 Rope.prototype.rotateLeft = function () {
