@@ -113,9 +113,8 @@ Rope.prototype.balanceFib = function (force) {
     if (this.isBalanced() && !force) {
         return this;
     }
-    console.time('balance fib');
     var leaves = [],
-        balanced = [].constructor(0);
+        balanced = [].constructor(this.depth);
     this.reduce(function (acc, leaf) {
         var n, i, prefix;
         leaves.push(leaf);
@@ -140,7 +139,6 @@ Rope.prototype.balanceFib = function (force) {
         }
         return acc;
     });
-    console.timeEnd('balance fib');
     return Rope.toRope(balanced);
 };
 
@@ -525,6 +523,12 @@ function benchmark(text) {
         }).run();
     }
 
+    function warnIfUnbalanced(rope) {
+        if (!rope.isBalanced()) {
+            console.log('WARN: unbalanced:', 'length:', rope.length, 'depth:', rope.depth, 'min:', Rope.fib(rope.depth + 2));
+        }
+    }
+
     run(new Benchmark.Suite('newlines').add('Rope', function () {
         var idx = Math.floor(Math.random() * rope.length);
         return rope.slice(idx).newlines;
@@ -559,9 +563,7 @@ function benchmark(text) {
         rope = rope.del(start, start + length);
         assert.equal(rope.constructor, Rope);
         assert.equal(rope.length, prev.length - length);
-        if (!rope.isBalanced()) {
-            console.log('WARN: unbalanced:', 'length:', rope.length, 'depth:', rope.depth, 'min:', Rope.fib(rope.depth + 2));
-        }
+        warnIfUnbalanced(rope);
     }).add('String', function () {
         var start = Math.floor(Math.random() * text.length),
             length = Math.floor(Math.random() * 1024);
@@ -575,9 +577,7 @@ function benchmark(text) {
         rope = rope.insert(start, [].constructor(length + 1).join('x'));
         assert.equal(rope.constructor, Rope);
         assert.equal(rope.length, prev.length + length);
-        if (!rope.isBalanced()) {
-            console.log('WARN: unbalanced:', 'length:', rope.length, 'depth:', rope.depth, 'min:', Rope.fib(rope.depth + 2));
-        }
+        warnIfUnbalanced(rope);
     }).add('String', function () {
         var start = Math.floor(Math.random() * text.length),
             length = Math.floor(Math.random() * 1024);
