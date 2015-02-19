@@ -126,22 +126,22 @@ Rope.fib = (function (f) {
 }(Rope.fib));
 
 // based on this version in Common Lisp: https://github.com/Ramarren/ropes
-Rope.balanceFibStep = function (acc, rope, n) {
-    n = n || 0;
-    var maxLength = Rope.fib(n + 2);
-    if (!acc[n] && rope.length <= maxLength) {
-        acc[n] = rope;
-        return acc;
+Rope.balanceFibStep = function (acc, rope) {
+    var n = 0,
+        maxLength = Rope.fib(n + 2);
+    while (true) {
+        if (!acc[n] && rope.length <= maxLength) {
+            acc[n] = rope;
+            return acc;
+        }
+        if (acc[n]) {
+            rope = new Rope(acc[n], rope);
+            acc[n] = undefined;
+        } else if (rope.length > maxLength) {
+            n += 1;
+            maxLength = Rope.fib(n + 2);
+        }
     }
-    if (acc[n]) {
-        rope = new Rope(acc[n], rope);
-        acc[n] = undefined;
-        return Rope.balanceFibStep(acc, rope, n);
-    }
-    if (rope.length > maxLength) {
-        return Rope.balanceFibStep(acc, rope, n + 1);
-    }
-    return acc;
 };
 
 Rope.prototype.balanceFib = function (force, postConditions) {
