@@ -457,9 +457,13 @@ assert.equal(rb, 'abcdef');
 
 rb = new Rope('The qui', new Rope('ck b', new Rope('rown', new Rope(' fox ju', new Rope('mps o', new Rope('ver the', new Rope(' lazy ', new Rope('do', 'g.'))))))));
 assert(!rb.isBalanced());
-rb = rb.balance();
-assert.equal(rb, 'The quick brown fox jumps over the lazy dog.');
-assert(rb.isBalanced());
+var rbr = rb.balanceRotate();
+assert.equal(rbr, 'The quick brown fox jumps over the lazy dog.');
+assert(rbr.isBalanced());
+
+var rbf = rb.balanceFib();
+assert.equal(rbf, 'The quick brown fox jumps over the lazy dog.');
+assert(rbf.isBalanced());
 
 function stress(text) {
     text = new Array(1000).join(text + '\n');
