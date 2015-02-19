@@ -18,17 +18,6 @@ function mixin(target, source, methods) {
     });
 }
 
-function memoize(f) {
-    var memo = {};
-    return function () {
-        var args = [].slice.call(arguments);
-        if (memo[args] === undefined) {
-            memo[args] = f.apply(f, args);
-        }
-        return memo[args];
-    };
-}
-
 function Rope(left, right) {
     this.left = Rope.toRope(left);
     this.right = Rope.toRope(right);
@@ -66,7 +55,16 @@ Rope.fib =  function (n) {
     }
     return Rope.fib(n - 1) + Rope.fib(n - 2);
 };
-Rope.fib = memoize(Rope.fib);
+Rope.fib = (function (f) {
+    var memo = [];
+    return function (n) {
+        if (memo[n] === undefined) {
+            memo[n] = f(n);
+        }
+        return memo[n];
+    };
+}(Rope.fib));
+
 
 mixin(Rope, String, ['match', 'indexOf']);
 
@@ -109,6 +107,41 @@ Rope.prototype.balance = function () {
         return this.rotateLeft();
     }
     return this;
+};
+
+Rope.prototype.balanceFib = function (force) {
+    if (this.isBalanced() && !force) {
+        return this;
+    }
+    console.time('balance fib');
+    var leaves = [],
+        balanced = [].constructor(0);
+    this.reduce(function (acc, leaf) {
+        var n, i, prefix;
+        leaves.push(leaf);
+        while (leaves.length > 0) {
+            leaf = leaves.shift();
+            n = 1;
+            while (Rope.fib(n) < leaf.length) {
+                n += 1;
+            }
+            prefix = null;
+            for (i = 0; i < n; i += 1) {
+                if (balanced[i]) {
+                    prefix = prefix ? new Rope(prefix, balanced[i]) : balanced[i];
+                    balanced[i] = undefined;
+                }
+            }
+            if (prefix) {
+                leaves.unshift(new Rope(prefix, leaf));
+            } else {
+                balanced[n - 1] = leaf;
+            }
+        }
+        return acc;
+    });
+    console.timeEnd('balance fib');
+    return Rope.toRope(balanced);
 };
 
 Rope.prototype.rotateLeft = function () {
@@ -412,7 +445,7 @@ assert.equal(rb.depth, 3);
 assert.equal(rb.length, 6);
 assert(rb.isBalanced());
 
-rb = rb.balance();
+rb = rb.balance(true);
 assert.equal(rb.depth, 2);
 assert.equal(rb.left.depth, 1);
 assert.equal(rb.right.depth, 1);
@@ -526,6 +559,9 @@ function benchmark(text) {
         rope = rope.del(start, start + length);
         assert.equal(rope.constructor, Rope);
         assert.equal(rope.length, prev.length - length);
+        if (!rope.isBalanced()) {
+            console.log('WARN: unbalanced:', 'length:', rope.length, 'depth:', rope.depth, 'min:', Rope.fib(rope.depth + 2));
+        }
     }).add('String', function () {
         var start = Math.floor(Math.random() * text.length),
             length = Math.floor(Math.random() * 1024);
@@ -539,6 +575,9 @@ function benchmark(text) {
         rope = rope.insert(start, [].constructor(length + 1).join('x'));
         assert.equal(rope.constructor, Rope);
         assert.equal(rope.length, prev.length + length);
+        if (!rope.isBalanced()) {
+            console.log('WARN: unbalanced:', 'length:', rope.length, 'depth:', rope.depth, 'min:', Rope.fib(rope.depth + 2));
+        }
     }).add('String', function () {
         var start = Math.floor(Math.random() * text.length),
             length = Math.floor(Math.random() * 1024);
