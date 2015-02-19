@@ -42,6 +42,9 @@ Rope.toRope = function (x) {
         return x;
     }
     if (x instanceof Array) {
+        if (x.length === 0) {
+            return Rope.EMPTY;
+        }
         return x.reduce(function (left, right) {
             return Rope.toRope(left).concat(Rope.toRope(right));
         });
@@ -99,54 +102,6 @@ Rope.prototype.isBalanced = function () {
     return this.length >= Rope.fib(this.depth + 2);
 };
 
-Rope.prototype.balance = function () {
-    if (this.left.depth > this.right.depth) {
-        return this.rotateRight();
-    }
-    if (this.right.depth > this.left.depth) {
-        return this.rotateLeft();
-    }
-    return this;
-};
-
-// This isn't working, it shuffles the prefixes around.
-Rope.prototype.balanceFib = function (force) {
-    if (this.isBalanced() && !force) {
-        return this;
-    }
-    var leaves = [],
-        balanced = [].constructor(this.depth);
-    this.reduce(function (acc, leaf) {
-        var n, i, prefix;
-        leaves.push(leaf);
-        while (leaves.length > 0) {
-            leaf = leaves.shift();
-            n = 1;
-            while (Rope.fib(n) < leaf.length) {
-                n += 1;
-            }
-            prefix = null;
-            for (i = 0; i < n; i += 1) {
-                if (balanced[i]) {
-                    prefix = prefix ? new Rope(prefix, balanced[i]) : balanced[i];
-                    balanced[i] = undefined;
-                }
-            }
-            if (prefix) {
-                leaves.unshift(new Rope(prefix, leaf));
-            } else {
-                balanced[n - 1] = leaf;
-            }
-        }
-        return acc;
-    });
-    balanced = Rope.toRope(balanced);
-    if (balanced.toString() !== this.toString()) {
-        throw new Error('not same after balancing: ' + this.length + ' ' + balanced.length);
-    }
-    return balanced;
-};
-
 Rope.prototype.rotateLeft = function () {
     if (this.right instanceof Rope) {
         return new Rope(new Rope(this.left, this.right.left), this.right.right);
@@ -160,6 +115,48 @@ Rope.prototype.rotateRight = function () {
     }
     return this;
 };
+
+Rope.prototype.balanceRotate = function () {
+    if (this.left.depth > this.right.depth) {
+        return this.rotateRight();
+    }
+    if (this.right.depth > this.left.depth) {
+        return this.rotateLeft();
+    }
+    return this;
+};
+
+Rope.prototype.balanceFib = function (force, postConditions) {
+    if (this.isBalanced() && !force) {
+        return this;
+    }
+    // based on this version in Common Lisp: https://github.com/Ramarren/ropes
+    function step(acc, rope, n) {
+        n = n || 0;
+        var maxLength = Rope.fib(n + 2);
+        if (!acc[n] && rope.length <= maxLength) {
+            acc[n] = rope;
+            return acc;
+        }
+        if (acc[n]) {
+            rope = new Rope(acc[n], rope);
+            acc[n] = undefined;
+            return step(acc, rope, n);
+        }
+        if (rope.length > maxLength) {
+            return step(acc, rope, n + 1);
+        }
+        return acc;
+    }
+    var balanced = Rope.toRope(this.reduce(step, []).reverse());
+    if (postConditions && balanced.toString() !== this.toString()) {
+        throw new Error('not same after balancing: \'' + this.toString().slice(0, 64) +
+                        '\' ' + this.length + ' \'' + balanced.toString().slice(0, 64) + '\' ' + balanced.length);
+    }
+    return balanced;
+};
+
+Rope.prototype.balance = Rope.prototype.balanceRotate;
 
 Rope.prototype.concat = function (rope) {
     if (rope === Rope.EMPTY || !rope) {
@@ -455,6 +452,13 @@ assert.equal(rb.right.depth, 1);
 assert.equal(rb.length, 6);
 assert(rb.isBalanced());
 assert.equal(rb, 'abcdef');
+
+
+rb = new Rope('The qui', new Rope('ck b', new Rope('rown', new Rope(' fox ju', new Rope('mps o', new Rope('ver the', new Rope(' lazy ', new Rope('do', 'g.'))))))));
+assert(!rb.isBalanced());
+rb = rb.balance();
+assert.equal(rb, 'The quick brown fox jumps over the lazy dog.');
+assert(rb.isBalanced());
 
 function stress(text) {
     text = new Array(1000).join(text + '\n');
