@@ -62,7 +62,7 @@ Rope.toRope = function (x) {
 
 Rope.fib =  function (n) {
     if (n <= 1) {
-        return 1;
+        return n;
     }
     return Rope.fib(n - 1) + Rope.fib(n - 2);
 };
@@ -95,6 +95,10 @@ Rope.prototype.indexOfLine = function (line) {
     }
     var index = this.right.indexOfLine(line - this.left.newlines);
     return index === -1 ? -1 : index + this.weight;
+};
+
+Rope.prototype.isBalanced = function () {
+    return this.length >= Rope.fib(this.depth + 2);
 };
 
 Rope.prototype.balance = function () {
@@ -323,9 +327,9 @@ try {
     };
 }
 
-assert.equal(Rope.fib(10), 89);
-assert.equal(Rope.fib(20), 10946);
-assert.equal(Rope.fib(100), 573147844013817200000);
+assert.equal(Rope.fib(10), 55);
+assert.equal(Rope.fib(20), 6765);
+assert.equal(Rope.fib(100), 354224848179262000000);
 
 var r = new Rope('Hello', 'World');
 assert.equal(r.length, 10);
@@ -402,6 +406,19 @@ assert.deepEqual(new RopeString('HelloWorld').reduce(function (acc, x) {
     acc.push(x.toString());
     return acc;
 }, []), ['HelloWorld']);
+
+var rb = new Rope('a', new Rope('bc', new Rope('d', 'ef')));
+assert.equal(rb.depth, 3);
+assert.equal(rb.length, 6);
+assert(rb.isBalanced());
+
+rb = rb.balance();
+assert.equal(rb.depth, 2);
+assert.equal(rb.left.depth, 1);
+assert.equal(rb.right.depth, 1);
+assert.equal(rb.length, 6);
+assert(rb.isBalanced());
+assert.equal(rb, 'abcdef');
 
 function stress(text) {
     text = new Array(1000).join(text + '\n');
