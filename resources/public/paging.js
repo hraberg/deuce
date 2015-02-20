@@ -47,14 +47,11 @@ function RemoteIndexable(ws, id, length, pageSize, notFound, cacheSize) {
         var message = JSON.parse(data);
         console.log('client received:', message);
         if (message.type === 'page' && message.id === id) {
-            Object.keys(message.data.pages).forEach(function (k) {
-                var pageIndex = parseInt(k, 10);
-                delete that.requestedPages[pageIndex];
-                that.cache.set(pageIndex, message.data.pages[k]);
-                if (that.callbacks.length > 0) {
-                    that.callbacks.shift()();
-                }
-            });
+            delete that.requestedPages[message.data.page];
+            that.cache.set(message.data.page, message.data.content);
+            if (that.callbacks.length > 0) {
+                that.callbacks.shift()();
+            }
         }
     });
 }
@@ -87,12 +84,15 @@ RemoteIndexable.prototype.get = function (index, callback) {
 };
 
 RemoteIndexable.prototype.slice = function (beginSlice, endSlice, callback) {
-    var i, s = '', that = this, called = false, cb = callback && function () {
-        if (!called && that.cache.get(that.pageIndex(endSlice - 1))) {
-            callback(that.slice(beginSlice, endSlice));
-            called = true;
-        }
-    };
+    beginSlice = beginSlice || 0;
+    endSlice = endSlice || this.length;
+    var i, s = '', that = this, called = false,
+        cb = callback && function () {
+            if (!called && that.cache.get(that.pageIndex(endSlice - 1))) {
+                callback(that.slice(beginSlice, endSlice));
+                called = true;
+            }
+        };
     for (i = beginSlice; i < endSlice; i += 1) {
         s += this.get(i, cb);
     }
@@ -110,13 +110,12 @@ function IndexableServer(wss, indexables) {
             return acc;
         }, {})}}));
         ws.on('message', function (data) {
-            var message = JSON.parse(data), pages = {}, beginSlice, pageSize;
+            var message = JSON.parse(data), beginSlice, pageSize;
             console.log('server received:', message);
             if (message.type === 'page') {
                 pageSize = message.data['page-size'];
                 beginSlice = message.data.page * pageSize;
-                pages[message.data.page] = indexables[message.id].slice(beginSlice, beginSlice + pageSize);
-                message.data = {pages: pages};
+                message.data.content = indexables[message.id].slice(beginSlice, beginSlice + pageSize);
                 message = JSON.stringify(message);
                 console.log('server reply:', message);
                 ws.send(message);
