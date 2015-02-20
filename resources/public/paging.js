@@ -55,8 +55,8 @@ RemoteBuffer.prototype.handle = function (message) {
 };
 
 RemoteBuffer.prototype.onpage = function (message) {
-    delete this.requestedPages[message.data.page];
-    this.cache.set(message.data.page, message.data.content);
+    delete this.requestedPages[message.page];
+    this.cache.set(message.page, message.content);
 };
 
 RemoteBuffer.prototype.nextRequestId = function () {
@@ -90,7 +90,7 @@ RemoteBuffer.prototype.charAt = function (index, callback) {
     if (!page && !this.requestedPages[pageIndex]) {
         this.requestedPages[pageIndex] = true;
         this.request({type: 'page', id: this.id, scope: 'buffer',
-                      data: {page: pageIndex, 'page-size': this.pageSize}},
+                      page: pageIndex, 'page-size': this.pageSize},
                      function () { callback(that.charAt(index)); });
     }
     return (page && page[index - pageIndex * this.pageSize]) || this.notFound;
@@ -124,8 +124,7 @@ function EditorServer(wss, buffers) {
                 acc[k] = {length: buffers[k].length};
                 return acc;
             }, {}),
-            data = JSON.stringify({type: 'init', id: id, scope: 'frame',
-                                   data: {id: id, buffers: bufferMeta}});
+            data = JSON.stringify({type: 'init', id: id, scope: 'frame', buffers: bufferMeta});
         that.frames.push(ws);
         console.log('server frame connection:', data);
         ws.send(data);
@@ -148,9 +147,9 @@ function EditorServer(wss, buffers) {
 }
 
 EditorServer.prototype.onpage = function (message) {
-    var pageSize = message.data['page-size'],
-        beginSlice = message.data.page * pageSize;
-    message.data.content = this.buffers[message.id].slice(beginSlice, beginSlice + pageSize);
+    var pageSize = message['page-size'],
+        beginSlice = message.page * pageSize;
+    message.content = this.buffers[message.id].slice(beginSlice, beginSlice + pageSize);
     return message;
 };
 
@@ -184,8 +183,8 @@ function EditorClientFrame(ws, onopen, pageSize) {
 EditorClientFrame.prototype.oninit = function (message) {
     var that = this;
     this.id = message.id;
-    this.buffers = Object.keys(message.data.buffers).reduce(function (acc, k) {
-        acc[k] = new RemoteBuffer(that.ws, k, message.data.buffers[k].length, that.pageSize);
+    this.buffers = Object.keys(message.buffers).reduce(function (acc, k) {
+        acc[k] = new RemoteBuffer(that.ws, k, message.buffers[k].length, that.pageSize);
         return acc;
     }, {});
     this.onopen(this);
