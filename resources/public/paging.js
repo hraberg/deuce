@@ -43,27 +43,37 @@ function RemoteBuffer(ws, id, length, pageSize, notFound, cacheSize) {
     this.notFound = notFound || 'x';
     this.callbacks = {};
     this.lastRequestId = 0;
-    var that = this;
-    this.ws.on('message', function (data) {
-        var message = JSON.parse(data), requestId;
-        if (message.scope === 'buffer') {
-            console.log('client buffer received:', data);
-            if (message.type === 'page' && message.id === id) {
-                delete that.requestedPages[message.data.page];
-                that.cache.set(message.data.page, message.data.content);
-                requestId = message['request-id'];
-                if (that.callbacks[requestId]) {
-                    that.callbacks[requestId]();
-                    delete that.callbacks[requestId];
-                }
-            }
-        }
-    });
 }
+
+RemoteBuffer.prototype.handle = function (message) {
+    var requestId = message['request-id'];
+    this['on' + message.type](message);
+    if (this.callbacks[requestId]) {
+        this.callbacks[requestId]();
+        delete this.callbacks[requestId];
+    }
+};
+
+RemoteBuffer.prototype.onpage = function (message) {
+    delete this.requestedPages[message.data.page];
+    this.cache.set(message.data.page, message.data.content);
+};
 
 RemoteBuffer.prototype.nextRequestId = function () {
     this.lastRequestId += 1;
     return this.lastRequestId;
+};
+
+RemoteBuffer.prototype.request = function (message, callback) {
+    var requestId = this.nextRequestId(),
+        data;
+    message['request-id'] = requestId;
+    data = JSON.stringify(message);
+    console.log('client buffer request:', data);
+    if (callback) {
+        this.callbacks[requestId] = callback;
+    }
+    this.ws.send(data);
 };
 
 RemoteBuffer.prototype.pageIndex = function (index) {
@@ -76,21 +86,12 @@ RemoteBuffer.prototype.charAt = function (index, callback) {
     }
     var pageIndex = this.pageIndex(index),
         page = this.cache.get(pageIndex),
-        data,
-        requestId,
         that = this;
     if (!page && !this.requestedPages[pageIndex]) {
-        requestId = this.nextRequestId();
-        data = JSON.stringify({type: 'page', id: this.id, scope: 'buffer', 'request-id': requestId,
-                               data: {page: pageIndex, 'page-size': this.pageSize}});
         this.requestedPages[pageIndex] = true;
-        console.log('client buffer request:', data);
-        this.ws.send(data);
-        if (callback) {
-            this.callbacks[requestId] = function () {
-                callback(that.charAt(index));
-            };
-        }
+        this.request({type: 'page', id: this.id, scope: 'buffer',
+                      data: {page: pageIndex, 'page-size': this.pageSize}},
+                     function () { callback(that.charAt(index)); });
     }
     return (page && page[index - pageIndex * this.pageSize]) || this.notFound;
 };
@@ -117,7 +118,7 @@ function EditorServer(wss, buffers) {
     this.url = 'ws://' + wss.options.host + ':' + wss.options.port;
     this.frames = [];
     var that = this;
-    wss.on('connection', function connection(ws) {
+    wss.on('connection', function (ws) {
         var id = that.frames.length,
             bufferMeta = Object.keys(buffers).reduce(function (acc, k) {
                 acc[k] = {length: buffers[k].length};
@@ -129,26 +130,29 @@ function EditorServer(wss, buffers) {
         console.log('server frame connection:', data);
         ws.send(data);
         ws.on('message', function (data) {
-            var beginSlice, pageSize, message = JSON.parse(data);
+            var message = JSON.parse(data);
             console.log('server received:', data);
-            if (message.type === 'page') {
-                pageSize = message.data['page-size'];
-                beginSlice = message.data.page * pageSize;
-                message.data.content = buffers[message.id].slice(beginSlice, beginSlice + pageSize);
+            message = that['on' + message.type](message);
+            if (message['request-id']) {
                 data = JSON.stringify(message);
                 console.log('server reply:', data);
                 ws.send(data);
             }
-        });
-        ws.on('close', function () {
+        }).on('close', function () {
             console.log('server frame close:', id);
             that.frames.splice(id, 1);
         });
-    });
-    wss.on('error', function (e) {
-        console.log(e);
+    }).on('error', function (e) {
+        console.log('server error:', e);
     });
 }
+
+EditorServer.prototype.onpage = function (message) {
+    var pageSize = message.data['page-size'],
+        beginSlice = message.data.page * pageSize;
+    message.data.content = this.buffers[message.id].slice(beginSlice, beginSlice + pageSize);
+    return message;
+};
 
 EditorServer.open = function (port, buffers) {
     var WebSocketServer = require('ws').Server,
@@ -156,31 +160,41 @@ EditorServer.open = function (port, buffers) {
     return new EditorServer(wss, buffers);
 };
 
-function EditorClientFrame(ws, id, buffers) {
+function EditorClientFrame(ws, onopen, pageSize) {
     this.ws = ws;
-    this.id = id;
-    this.buffers = buffers;
-    ws.on('close', function () {
-        console.log('frame closed:', id);
+    this.onopen = onopen;
+    this.pageSize = pageSize;
+    var that = this;
+    ws.on('message', function (data) {
+        var message = JSON.parse(data);
+        console.log('client received:', data);
+        if (message.scope === 'frame') {
+            that['on' + message.type](message);
+        }
+        if (message.scope === 'buffer') {
+            that.buffers[message.id].handle(message);
+        }
+    }).on('close', function () {
+        console.log('frame closed:', that.id);
+    }).on('error', function (e) {
+        console.log('frame error:', e);
     });
 }
 
-EditorClientFrame.connect = function (url, callback, pageSize) {
+EditorClientFrame.prototype.oninit = function (message) {
+    var that = this;
+    this.id = message.id;
+    this.buffers = Object.keys(message.data.buffers).reduce(function (acc, k) {
+        acc[k] = new RemoteBuffer(that.ws, k, message.data.buffers[k].length, that.pageSize);
+        return acc;
+    }, {});
+    this.onopen(this);
+};
+
+EditorClientFrame.connect = function (url, onopen, pageSize) {
     var WebSocket = require('ws'),
         ws = new WebSocket(url);
-    ws.on('message', function (data) {
-        var message = JSON.parse(data), buffers;
-        if (message.scope === 'frame') {
-            console.log('client frame received:', data);
-            if (message.type === 'init') {
-                buffers = Object.keys(message.data.buffers).reduce(function (acc, k) {
-                    acc[k] = new RemoteBuffer(ws, k, message.data.buffers[k].length, pageSize);
-                    return acc;
-                }, {});
-                callback(new EditorClientFrame(ws, message.data.id, buffers));
-            }
-        }
-    });
+    return new EditorClientFrame(ws, onopen, pageSize);
 };
 
 var text = require('fs').readFileSync(__dirname + '/../etc/tutorials/TUTORIAL', {encoding: 'utf8'});
