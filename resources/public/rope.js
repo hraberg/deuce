@@ -353,9 +353,12 @@ function RopeServer(wss, rope) {
                 attribute = rope[message.type];
             console.log('server received:', message);
             if (attribute.apply) {
-                message.data = attribute.apply(rope, message.data).toString();
+                message.data = attribute.apply(rope, message.data);
             } else {
                 message.data = attribute;
+            }
+            if (typeof message.data === 'object') {
+                message.data = message.data.toString();
             }
             message = JSON.stringify(message);
             console.log('server reply:', message);
@@ -476,7 +479,7 @@ RopeSocket.prototype.balance = function () {
     return this;
 };
 
-// var rs = new RopeServer.open(8080, Rope.toRope('The quick\nbrown fox jumps over the lazy dog.'));
+// var rs = RopeServer.open(8080, Rope.toRope('The quick\nbrown fox jumps over the lazy dog.'));
 // var rc = RopeSocket.connect('ws://' + rs.host + ':' + rs.port);
 
 // rc.ws.on('open', function () {
