@@ -32,7 +32,7 @@ LRU.prototype.get = function (key, orElse) {
     }
 };
 
-function RemoteIndexable(ws, id, length, pageSize, notFound, cacheSize) {
+function RemoteBuffer(ws, id, length, pageSize, notFound, cacheSize) {
     this.ws = ws;
     this.id = id;
     this.length = length;
@@ -58,11 +58,11 @@ function RemoteIndexable(ws, id, length, pageSize, notFound, cacheSize) {
     });
 }
 
-RemoteIndexable.prototype.pageIndex = function (index) {
+RemoteBuffer.prototype.pageIndex = function (index) {
     return Math.floor(index / this.pageSize);
 };
 
-RemoteIndexable.prototype.get = function (index, callback) {
+RemoteBuffer.prototype.get = function (index, callback) {
     if (index < 0 || index >= this.length) {
         return '';
     }
@@ -85,7 +85,7 @@ RemoteIndexable.prototype.get = function (index, callback) {
     return (page && page[index - pageIndex * this.pageSize]) || this.notFound;
 };
 
-RemoteIndexable.prototype.slice = function (beginSlice, endSlice, callback) {
+RemoteBuffer.prototype.slice = function (beginSlice, endSlice, callback) {
     beginSlice = beginSlice || 0;
     endSlice = endSlice || this.length;
     var i, s = '', that = this, called = false,
@@ -101,21 +101,20 @@ RemoteIndexable.prototype.slice = function (beginSlice, endSlice, callback) {
     return s;
 };
 
-function IndexableServer(wss, indexables) {
-    this.indexables = indexables;
+function EditorServer(wss, buffers) {
+    this.buffers = buffers;
     this.wss = wss;
-    this.host = wss.options.host;
-    this.port = wss.options.port;
+    this.url = 'ws://' + wss.options.host + ':' + wss.options.port;
     this.frames = [];
     var that = this;
     wss.on('connection', function connection(ws) {
-        var frameId = that.frames.length,
-            buffers = Object.keys(indexables).reduce(function (acc, k) {
-                acc[k] = {length: indexables[k].length};
+        var id = that.frames.length,
+            bufferMeta = Object.keys(buffers).reduce(function (acc, k) {
+                acc[k] = {length: buffers[k].length};
                 return acc;
             }, {}),
-            data = JSON.stringify({type: 'init', id: frameId, scope: 'frame',
-                                   data: {id: frameId, buffers: buffers}});
+            data = JSON.stringify({type: 'init', id: id, scope: 'frame',
+                                   data: {id: id, buffers: bufferMeta}});
         that.frames.push(ws);
         console.log('server frame connection:', data);
         ws.send(data);
@@ -125,15 +124,15 @@ function IndexableServer(wss, indexables) {
             if (message.type === 'page') {
                 pageSize = message.data['page-size'];
                 beginSlice = message.data.page * pageSize;
-                message.data.content = indexables[message.id].slice(beginSlice, beginSlice + pageSize);
+                message.data.content = buffers[message.id].slice(beginSlice, beginSlice + pageSize);
                 data = JSON.stringify(message);
                 console.log('server reply:', data);
                 ws.send(data);
             }
         });
         ws.on('close', function () {
-            console.log('server frame close:', frameId);
-            that.frames.splice(frameId, 1);
+            console.log('server frame close:', id);
+            that.frames.splice(id, 1);
         });
     });
     wss.on('error', function (e) {
@@ -141,34 +140,42 @@ function IndexableServer(wss, indexables) {
     });
 }
 
-IndexableServer.open = function (port, indexables) {
+EditorServer.open = function (port, buffers) {
     var WebSocketServer = require('ws').Server,
         wss = new WebSocketServer({ port: port});
-    return new IndexableServer(wss, indexables);
+    return new EditorServer(wss, buffers);
 };
 
-RemoteIndexable.connect = function (url, callback, pageSize) {
+function EditorClientFrame(ws, id, buffers) {
+    this.ws = ws;
+    this.id = id;
+    this.buffers = buffers;
+    ws.on('close', function () {
+        console.log('frame closed:', id);
+    });
+}
+
+EditorClientFrame.connect = function (url, callback, pageSize) {
     var WebSocket = require('ws'),
         ws = new WebSocket(url);
     ws.on('message', function (data) {
-        var message = JSON.parse(data);
+        var message = JSON.parse(data), buffers;
         if (message.scope === 'frame') {
             console.log('client frame received:', data);
             if (message.type === 'init') {
-                message.data.buffers = Object.keys(message.data.buffers).reduce(function (acc, k) {
-                    acc[k] = new RemoteIndexable(ws, k, message.data.buffers[k].length, pageSize);
+                buffers = Object.keys(message.data.buffers).reduce(function (acc, k) {
+                    acc[k] = new RemoteBuffer(ws, k, message.data.buffers[k].length, pageSize);
                     return acc;
                 }, {});
-                message.data.ws = ws;
-                callback(message.data);
+                callback(new EditorClientFrame(ws, message.data.id, buffers));
             }
         }
     });
 };
 
 var text = require('fs').readFileSync(__dirname + '/../etc/tutorials/TUTORIAL', {encoding: 'utf8'});
-var server = IndexableServer.open(8080, {TUTORIAL: text});
-var client = RemoteIndexable.connect('ws://' + server.host + ':' + server.port, function (frame) {
+var server = EditorServer.open(8080, {TUTORIAL: text});
+EditorClientFrame.connect(server.url, function (frame) {
     var buffers = frame.buffers;
     console.log('-------');
     console.log('frame:', frame.id);
@@ -189,7 +196,7 @@ var client = RemoteIndexable.connect('ws://' + server.host + ':' + server.port, 
         console.log('-------');
         console.log('sliceSync within cache:', buffers.TUTORIAL.slice(64, 128));
         console.log('-------');
-        frame.ws.close();
+        server.wss.close();
     }));
 }, 128);
 
