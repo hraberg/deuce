@@ -80,19 +80,25 @@ RemoteBuffer.prototype.pageIndex = function (index) {
     return Math.floor(index / this.pageSize);
 };
 
-RemoteBuffer.prototype.charAt = function (index, callback) {
-    if (index < 0 || index >= this.length) {
-        return '';
-    }
+RemoteBuffer.prototype.pageAt = function (index, callback) {
     var pageIndex = this.pageIndex(index),
-        page = this.cache.get(pageIndex),
-        that = this;
+        page = this.cache.get(pageIndex);
     if (!page && !this.requestedPages[pageIndex]) {
         this.requestedPages[pageIndex] = true;
         this.request({type: 'page', name: this.name, scope: 'buffer',
                       page: pageIndex, 'page-size': this.pageSize},
-                     function () { callback(that.charAt(index)); });
+                     callback);
     }
+    return page;
+};
+
+RemoteBuffer.prototype.charAt = function (index, callback) {
+    if (index < 0 || index >= this.length) {
+        return '';
+    }
+    var that = this,
+        pageIndex = this.pageIndex(index),
+        page = this.pageAt(index, function () { callback(that.charAt(index)); });
     return (page && page[index - pageIndex * this.pageSize]) || this.notFound;
 };
 
@@ -105,11 +111,14 @@ RemoteBuffer.prototype.slice = function (beginSlice, endSlice, callback) {
                 callback(that.slice(beginSlice, endSlice));
                 called = true;
             }
-        };
-    for (i = beginSlice; i < endSlice; i += 1) {
-        s += this.charAt(i, cb);
+        },
+        missingPage = [].constructor(this.pageSize).join(this.notFound),
+        firstPageSize = this.pageSize - beginSlice % this.pageSize;
+    s = (this.pageAt(beginSlice, cb) || missingPage).slice(0, firstPageSize);
+    for (i = beginSlice + s.length; i < endSlice; i += this.pageSize) {
+        s += this.pageAt(i, cb) || missingPage;
     }
-    return s;
+    return s.slice(0, endSlice - beginSlice);
 };
 
 function EditorServer(wss, buffers) {
