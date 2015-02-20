@@ -41,22 +41,30 @@ function RemoteBuffer(ws, id, length, pageSize, notFound, cacheSize) {
     this.cache = new LRU(cacheSize || 10);
     this.requestedPages = {};
     this.notFound = notFound || 'x';
-    this.callbacks = [];
+    this.callbacks = {};
+    this.lastRequestId = 0;
     var that = this;
     this.ws.on('message', function (data) {
-        var message = JSON.parse(data);
+        var message = JSON.parse(data), requestId;
         if (message.scope === 'buffer') {
             console.log('client buffer received:', data);
             if (message.type === 'page' && message.id === id) {
                 delete that.requestedPages[message.data.page];
                 that.cache.set(message.data.page, message.data.content);
-                if (that.callbacks.length > 0) {
-                    that.callbacks.shift()();
+                requestId = message['request-id'];
+                if (that.callbacks[requestId]) {
+                    that.callbacks[requestId]();
+                    delete that.callbacks[requestId];
                 }
             }
         }
     });
 }
+
+RemoteBuffer.prototype.nextRequestId = function () {
+    this.lastRequestId += 1;
+    return this.lastRequestId;
+};
 
 RemoteBuffer.prototype.pageIndex = function (index) {
     return Math.floor(index / this.pageSize);
@@ -69,17 +77,19 @@ RemoteBuffer.prototype.charAt = function (index, callback) {
     var pageIndex = this.pageIndex(index),
         page = this.cache.get(pageIndex),
         data,
+        requestId,
         that = this;
     if (!page && !this.requestedPages[pageIndex]) {
-        data = JSON.stringify({type: 'page', id: this.id, scope: 'buffer',
+        requestId = this.nextRequestId();
+        data = JSON.stringify({type: 'page', id: this.id, scope: 'buffer', 'request-id': requestId,
                                data: {page: pageIndex, 'page-size': this.pageSize}});
         this.requestedPages[pageIndex] = true;
         console.log('client buffer request:', data);
         this.ws.send(data);
         if (callback) {
-            this.callbacks.push(function () {
+            this.callbacks[requestId] = function () {
                 callback(that.charAt(index));
-            });
+            };
         }
     }
     return (page && page[index - pageIndex * this.pageSize]) || this.notFound;
