@@ -32,15 +32,15 @@ LRU.prototype.get = function (key, orElse) {
     }
 };
 
-function RemoteBuffer(ws, id, length, pageSize, notFound, cacheSize) {
+function RemoteBuffer(ws, id, length, options) {
     this.ws = ws;
     this.id = id;
     this.length = length;
-    this.pageSize = pageSize || 8 * 1024;
+    this.cache = new LRU(options['cache-size'] || 10);
+    this.notFound = options['not-found'] || 'x';
+    this.pageSize = options['page-size'] || 8 * 1024;
     this.pages = Math.round(length / this.pageSize);
-    this.cache = new LRU(cacheSize || 10);
     this.requestedPages = {};
-    this.notFound = notFound || 'x';
     this.callbacks = {};
     this.lastRequestId = 0;
 }
@@ -159,10 +159,10 @@ EditorServer.open = function (port, buffers) {
     return new EditorServer(wss, buffers);
 };
 
-function EditorClientFrame(ws, onopen, pageSize) {
+function EditorClientFrame(ws, onopen, options) {
     this.ws = ws;
     this.onopen = onopen;
-    this.pageSize = pageSize;
+    this.options = options;
     var that = this;
     ws.on('message', function (data) {
         var message = JSON.parse(data);
@@ -184,16 +184,16 @@ EditorClientFrame.prototype.oninit = function (message) {
     var that = this;
     this.id = message.id;
     this.buffers = Object.keys(message.buffers).reduce(function (acc, k) {
-        acc[k] = new RemoteBuffer(that.ws, k, message.buffers[k].length, that.pageSize);
+        acc[k] = new RemoteBuffer(that.ws, k, message.buffers[k].length, that.options);
         return acc;
     }, {});
     this.onopen(this);
 };
 
-EditorClientFrame.connect = function (url, onopen, pageSize) {
+EditorClientFrame.connect = function (url, onopen, options) {
     var WebSocket = require('ws'),
         ws = new WebSocket(url);
-    return new EditorClientFrame(ws, onopen, pageSize);
+    return new EditorClientFrame(ws, onopen, options);
 };
 
 var text = require('fs').readFileSync(__dirname + '/../etc/tutorials/TUTORIAL', {encoding: 'utf8'});
@@ -221,7 +221,7 @@ EditorClientFrame.connect(server.url, function (frame) {
         console.log('-------');
         server.wss.close();
     }));
-}, 128);
+}, {'page-size': 128});
 
 var lru = new LRU(3);
 lru.set(1, 'foo');
