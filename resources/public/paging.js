@@ -62,7 +62,7 @@ RemoteBuffer.prototype.pageIndex = function (index) {
     return Math.floor(index / this.pageSize);
 };
 
-RemoteBuffer.prototype.get = function (index, callback) {
+RemoteBuffer.prototype.charAt = function (index, callback) {
     if (index < 0 || index >= this.length) {
         return '';
     }
@@ -78,7 +78,7 @@ RemoteBuffer.prototype.get = function (index, callback) {
         that.ws.send(data);
         if (callback) {
             that.callbacks.push(function () {
-                callback(that.get(index));
+                callback(that.charAt(index));
             });
         }
     }
@@ -96,7 +96,7 @@ RemoteBuffer.prototype.slice = function (beginSlice, endSlice, callback) {
             }
         };
     for (i = beginSlice; i < endSlice; i += 1) {
-        s += this.get(i, cb);
+        s += this.charAt(i, cb);
     }
     return s;
 };
@@ -182,11 +182,11 @@ EditorClientFrame.connect(server.url, function (frame) {
     console.log('-------');
     console.log('remote buffers:', Object.keys(buffers));
     console.log('-------');
-    console.log('charAtSync no cache:', buffers.TUTORIAL.get(0, function (x) {
+    console.log('charAtSync no cache:', buffers.TUTORIAL.charAt(0, function (x) {
         console.log('-------');
         console.log('charAt:', x);
         console.log('-------');
-        console.log('charAtSync with cache', buffers.TUTORIAL.get(0));
+        console.log('charAtSync with cache', buffers.TUTORIAL.charAt(0));
         console.log('-------');
     }));
     console.log('-------');
