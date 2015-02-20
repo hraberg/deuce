@@ -183,7 +183,7 @@ var client = RemoteIndexable.connect('ws://' + server.host + ':' + server.port, 
         console.log('-------');
     }));
     console.log('-------');
-    console.log('slice no cache:', buffers.TUTORIAL.slice(0, 256, function (x) {
+    console.log('sliceSync no cache:', buffers.TUTORIAL.slice(0, 256, function (x) {
         console.log('-------');
         console.log('slice:', x);
         console.log('-------');
