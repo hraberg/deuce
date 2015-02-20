@@ -114,7 +114,7 @@ RemoteBuffer.prototype.slice = function (beginSlice, endSlice, callback) {
         },
         missingPage = [].constructor(this.pageSize).join(this.notFound),
         firstPageSize = this.pageSize - beginSlice % this.pageSize;
-    s = (this.pageAt(beginSlice, cb) || missingPage).slice(0, firstPageSize);
+    s = (this.pageAt(beginSlice, cb) || missingPage).slice(this.pageSize - firstPageSize);
     for (i = beginSlice + s.length; i < endSlice; i += this.pageSize) {
         s += this.pageAt(i, cb) || missingPage;
     }
