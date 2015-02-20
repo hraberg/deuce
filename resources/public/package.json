@@ -20,6 +20,7 @@
         "node-webkit-builder": "1.0.8",
         "java": "0.4.6",
         "mmap.js": "0.2.1",
+        "ws": "0.7.1",
         "benchmark": "1.0.0"
     }
 }

@@ -342,6 +342,154 @@ RopeFile.prototype.balance = function () {
     return this;
 };
 
+function RopeServer(wss, rope) {
+    this.rope = rope;
+    this.wss = wss;
+    this.host = wss.options.host;
+    this.port = wss.options.port;
+    wss.on('connection', function connection(ws) {
+        ws.on('message', function (data) {
+            var message = JSON.parse(data),
+                attribute = rope[message.type];
+            console.log('server received:', message);
+            if (attribute.apply) {
+                message.data = attribute.apply(rope, message.data).toString();
+            } else {
+                message.data = attribute;
+            }
+            message = JSON.stringify(message);
+            console.log('server reply:', message);
+            ws.send(message);
+        });
+    });
+    wss.on('error', function (e) {
+        console.log(e);
+    });
+}
+
+RopeServer.open = function (port, rope) {
+    var WebSocketServer = require('ws').Server,
+        wss = new WebSocketServer({ port: port});
+    return new RopeServer(wss, rope);
+};
+
+function RopeSocket(id, ws, start, end) {
+    this.id = id;
+    this.ws = ws;
+    this.hasData = false;
+    this.depth = 0;
+    this.start = start || 0;
+    this.end = end || Number.NaN;
+    this.length = end - start;
+    if (!Number.isNaN(this.length)) {
+        this.onlength(this.length);
+    }
+    var that = this;
+    ws.on('message', function (data) {
+        var message = JSON.parse(data);
+        if (message.client === that.id) {
+            console.log('client received:', data);
+            that['on' + message.type](message.data);
+            console.log('client after message:', that.id, that.s, that.start, that.end, that.length, this._newlines);
+        }
+    });
+    ws.on('error', function (e) {
+        console.log(e);
+    });
+}
+
+RopeSocket.prototype.onslice = function (s) {
+    this.s = s;
+    this.hasData = true;
+};
+
+RopeSocket.prototype.onlength = function (length) {
+    this.length = length;
+    if (Number.isNaN(this.end) || this.end < this.length) {
+        this.end = this.length;
+    }
+    this.s = [].constructor(this.length).join('x');
+};
+
+RopeSocket.nextClientId = (function () {
+    var _nextClientId = 0;
+    return function () {
+        _nextClientId += 1;
+        return _nextClientId;
+    };
+}());
+
+RopeSocket.connect = function (url) {
+    var WebSocket = require('ws'),
+        ws = new WebSocket(url),
+        rs = new RopeSocket(RopeSocket.nextClientId(),  ws);
+    ws.on('open', function () {
+        ws.send(JSON.stringify({type: 'length', client: rs.id}));
+    });
+    return rs;
+};
+
+mixin(RopeSocket, String, ['match', 'indexOf']);
+mixin(RopeSocket, Rope, ['concat', 'insert', 'del', 'lines', 'reduce']);
+
+Object.defineProperty(RopeSocket.prototype, 'newlines', {
+    enumerable: true,
+    get: function () {
+        if (this._newlines === undefined) {
+            this.toString();
+            if (this.hasData) {
+                this._newlines = new RopeString(this.s).newlines;
+            }
+        }
+        return this._newlines;
+    }
+});
+
+RopeSocket.prototype.toString = function () {
+    if (!this.hasData) {
+        var message = JSON.stringify({type: 'slice',
+                                      client: this.id,
+                                      data: Number.isNaN(this.end) ? [this.start] :  [this.start, this.end]});
+        console.log('client sending:', message);
+        this.ws.send(message);
+    }
+    return this.s;
+};
+
+RopeSocket.prototype.charAt = function (index) {
+    if (index < 0 || index >= this.length) {
+        return '';
+    }
+    return (this.s || '').charAt(index);
+
+};
+
+RopeSocket.prototype.slice = function (beginSlice, endSlice) {
+    if (this.s) {
+        return new RopeString(this.s.slice(beginSlice, endSlice));
+    }
+    return new RopeSocket(RopeSocket.nextClientId(), this.ws,
+                          (beginSlice || 0) + this.start, endSlice ? endSlice + this.start : this.end);
+};
+
+RopeSocket.prototype.balance = function () {
+    return this;
+};
+
+// var rs = new RopeServer.open(8080, Rope.toRope('The quick\nbrown fox jumps over the lazy dog.'));
+// var rc = RopeSocket.connect('ws://' + rs.host + ':' + rs.port);
+
+// rc.ws.on('open', function () {
+//     console.log('loading contents of rope node to client');
+//     var part = rc.slice(0, 10);
+//     part.toString();
+//     setTimeout(function () {
+//         console.log(part.slice(0, 5));
+//         console.log(part.newlines);
+//         console.log(part.toString());
+//     }, 1000);
+// });
+
 var assert;
 
 try {
