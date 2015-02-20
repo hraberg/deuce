@@ -70,14 +70,14 @@ RemoteBuffer.prototype.charAt = function (index, callback) {
         page = this.cache.get(pageIndex),
         data,
         that = this;
-    if (!page && !that.requestedPages[pageIndex]) {
-        data = JSON.stringify({type: 'page', id: that.id, scope: 'buffer',
-                               data: {page: pageIndex, 'page-size': that.pageSize}});
+    if (!page && !this.requestedPages[pageIndex]) {
+        data = JSON.stringify({type: 'page', id: this.id, scope: 'buffer',
+                               data: {page: pageIndex, 'page-size': this.pageSize}});
         this.requestedPages[pageIndex] = true;
         console.log('client buffer request:', data);
-        that.ws.send(data);
+        this.ws.send(data);
         if (callback) {
-            that.callbacks.push(function () {
+            this.callbacks.push(function () {
                 callback(that.charAt(index));
             });
         }
