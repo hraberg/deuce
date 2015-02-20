@@ -32,9 +32,9 @@ LRU.prototype.get = function (key, orElse) {
     }
 };
 
-function RemoteBuffer(ws, id, length, options) {
+function RemoteBuffer(ws, name, length, options) {
     this.ws = ws;
-    this.id = id;
+    this.name = name;
     this.length = length;
     this.cache = new LRU(options['cache-size'] || 10);
     this.notFound = options['not-found'] || 'x';
@@ -89,7 +89,7 @@ RemoteBuffer.prototype.charAt = function (index, callback) {
         that = this;
     if (!page && !this.requestedPages[pageIndex]) {
         this.requestedPages[pageIndex] = true;
-        this.request({type: 'page', id: this.id, scope: 'buffer',
+        this.request({type: 'page', name: this.name, scope: 'buffer',
                       page: pageIndex, 'page-size': this.pageSize},
                      function () { callback(that.charAt(index)); });
     }
@@ -149,7 +149,7 @@ function EditorServer(wss, buffers) {
 EditorServer.prototype.onpage = function (message) {
     var pageSize = message['page-size'],
         beginSlice = message.page * pageSize;
-    message.content = this.buffers[message.id].slice(beginSlice, beginSlice + pageSize);
+    message.content = this.buffers[message.name].slice(beginSlice, beginSlice + pageSize);
     return message;
 };
 
@@ -171,7 +171,7 @@ function EditorClientFrame(ws, onopen, options) {
             that['on' + message.type](message);
         }
         if (message.scope === 'buffer') {
-            that.buffers[message.id].handle(message);
+            that.buffers[message.name].handle(message);
         }
     }).on('close', function () {
         console.log('frame closed:', that.id);
