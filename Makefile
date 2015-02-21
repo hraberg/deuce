@@ -16,7 +16,7 @@ deuce_stubs=src-$(emacs_version)-stubs
 deuce_source_files=$(shell find src -iname "*.clj")
 
 deuce_javascript=$(shell find resources/public -iname "*.js" ! -path "*/node_modules/*")
-deuce_css=$(shell find resources/public -iname "*.css")
+deuce_css=$(shell find resources/public -iname "*.css" ! -path "*/node_modules/*")
 
 nw_version=0.12.0-alpha2
 node_modules=resources/public/node_modules
@@ -87,10 +87,11 @@ $(node_modules): resources/public/package.json
 	touch $@
 
 jslint: $(deuce_javascript) $(node_modules)
-	$(node_modules)/.bin/$@ $?
+	$(foreach js, $(deuce_javascript), \
+		$(foreach linter, $(shell grep -o "[je]s[lh]int" $(js) | uniq), $(node_modules)/.bin/$(linter) $(js) || exit;))
 
 csslint: $(deuce_css) $(node_modules)
-	$(node_modules)/.bin/$@ --ignore=adjoining-classes $?
+	$(node_modules)/.bin/$@ --ignore=adjoining-classes $(deuce_css)
 
 lint: jslint csslint
 
