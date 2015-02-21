@@ -232,7 +232,7 @@ RemoteFrame.prototype.onpage = function (message) {
 var WebSocketServer = require('ws').Server;
 
 function EditorServer(port, buffers) {
-    this.wss = new WebSocketServer({ port: port});
+    this.wss = new WebSocketServer({port: port});
     this.buffers = buffers;
     this.url = 'ws://' + this.wss.options.host + ':' + this.wss.options.port + '/' + this.wss.options.path;
     this.frames = [];
