@@ -1,5 +1,8 @@
-/*jslint node: true stupid: true nomen: true */
+/*jslint node: true, stupid: true, nomen: true */
 /*globals Promise */
+/*jshint node: true */
+/*eslint-env node */
+/*eslint  quotes: [0, "double"] */
 
 'use strict';
 
@@ -130,10 +133,9 @@ RemoteBuffer.prototype.slice = function (beginSlice, endSlice, callback) {
     endSlice = Math.min(endSlice, this.length);
     var i, s = '', that = this,
         lastPageCallback = function (index) {
-            return that.pageIndex(index) === that.pageIndex(endSlice - 1)
-                && callback && function () {
-                    callback(that.slice(beginSlice, endSlice));
-                };
+            return that.pageIndex(index) === that.pageIndex(endSlice - 1) && callback && function () {
+                callback(that.slice(beginSlice, endSlice));
+            };
         },
         firstPageSize = this.pageSize - beginSlice % this.pageSize;
     s = this.pageAt(beginSlice, lastPageCallback(beginSlice)).slice(this.pageSize - firstPageSize);
@@ -154,22 +156,27 @@ function EditorClientFrame(ws, onopen, options) {
     this.ws = ws;
     this.onopen = onopen;
     this.options = options;
-    var that = this;
-    ws.on('message', function (data) {
-        var message = JSON.parse(data);
-        console.log('client received:', data);
-        if (message.scope === 'frame') {
-            that['on' + message.type](message);
-        }
-        if (message.scope === 'buffer') {
-            that.buffers[message.name].handle(message);
-        }
-    }).on('close', function () {
-        console.log('frame closed:', that.id);
-    }).on('error', function (e) {
-        console.log('frame error:', e);
-    });
+    ws.on('message', this.onmessage.bind(this))
+        .on('close', this.onclose.bind(this))
+        .on('error', function (e) {
+            console.log('frame error:', e);
+        });
 }
+
+EditorClientFrame.prototype.onclose = function () {
+    console.log('frame closed:', this.id);
+};
+
+EditorClientFrame.prototype.onmessage = function (data) {
+    var message = JSON.parse(data);
+    console.log('client received:', data);
+    if (message.scope === 'frame') {
+        this['on' + message.type](message);
+    }
+    if (message.scope === 'buffer') {
+        this.buffers[message.name].handle(message);
+    }
+};
 
 EditorClientFrame.prototype.oninit = function (message) {
     var that = this;
@@ -181,45 +188,53 @@ EditorClientFrame.prototype.oninit = function (message) {
     this.onopen(this);
 };
 
+var WebSocket = require('ws');
+
 EditorClientFrame.connect = function (url, onopen, options) {
-    var WebSocket = require('ws'),
-        ws = new WebSocket(url);
+    var ws = new WebSocket(url);
     return new EditorClientFrame(ws, onopen, options);
 };
 
 function EditorServer(wss, buffers) {
     this.buffers = buffers;
     this.wss = wss;
-    this.url = 'ws://' + wss.options.host + ':' + wss.options.port;
+    this.url = 'ws://' + wss.options.host + ':' + wss.options.port + '/' + wss.options.path;
     this.frames = [];
-    var that = this;
-    wss.on('connection', function (ws) {
-        var id = that.frames.length,
-            bufferMeta = Object.keys(buffers).reduce(function (acc, k) {
-                acc[k] = {length: buffers[k].length};
-                return acc;
-            }, {}),
-            data = JSON.stringify({type: 'init', id: id, scope: 'frame', buffers: bufferMeta});
-        that.frames.push(ws);
-        console.log('server frame connection:', data);
-        ws.send(data);
-        ws.on('message', function (data) {
-            var message = JSON.parse(data);
-            console.log('server received:', data);
-            message = that['on' + message.type](message);
-            if (message['request-id']) {
-                data = JSON.stringify(message);
-                console.log('server reply:', data);
-                ws.send(data);
-            }
-        }).on('close', function () {
-            console.log('server frame close:', id);
-            that.frames.splice(id, 1);
+    wss.on('connection', this.onconnection.bind(this))
+        .on('error', function (e) {
+            console.log('server error:', e);
         });
-    }).on('error', function (e) {
-        console.log('server error:', e);
-    });
 }
+
+EditorServer.prototype.onconnection = function (ws) {
+    var id = this.frames.length, buffers = this.buffers,
+        bufferMeta = Object.keys(buffers).reduce(function (acc, k) {
+            acc[k] = {length: buffers[k].length};
+            return acc;
+        }, {}),
+        data = JSON.stringify({type: 'init', id: id, scope: 'frame', buffers: bufferMeta});
+    console.log('server frame connection:', data);
+    ws.send(data);
+    ws.on('message', this.onmessage.bind(this, ws)).on('close', this.onclose.bind(this, ws));
+    this.frames.push(ws);
+};
+
+EditorServer.prototype.onclose = function (ws) {
+    var id = this.frames.indexOf(ws);
+    console.log('server frame close:', id);
+    this.frames.splice(id, 1);
+};
+
+EditorServer.prototype.onmessage = function (ws, data) {
+    var message = JSON.parse(data);
+    console.log('server received:', data);
+    message = this['on' + message.type](message);
+    if (message['request-id']) {
+        data = JSON.stringify(message);
+        console.log('server reply:', data);
+        ws.send(data);
+    }
+};
 
 EditorServer.prototype.onpage = function (message) {
     var pageSize = message['page-size'],
@@ -228,16 +243,20 @@ EditorServer.prototype.onpage = function (message) {
     return message;
 };
 
+var WebSocketServer = require('ws').Server;
+
 EditorServer.open = function (port, buffers) {
-    var WebSocketServer = require('ws').Server,
-        wss = new WebSocketServer({ port: port});
+    var wss = new WebSocketServer({ port: port});
     return new EditorServer(wss, buffers);
 };
 
-var assert = require('assert');
-var text = require('fs').readFileSync(__dirname + '/../etc/tutorials/TUTORIAL', {encoding: 'utf8'});
+var assert = require('assert'),
+    path = require('path');
+
+var text = require('fs').readFileSync(path.join(__dirname, '/../etc/tutorials/TUTORIAL'), {encoding: 'utf8'});
 var server = EditorServer.open(8080, {TUTORIAL: text});
 var error;
+
 EditorClientFrame.connect(server.url, function (frame) {
     var buffers = frame.buffers;
     assert.equal(frame.id, 0);
@@ -249,11 +268,11 @@ EditorClientFrame.connect(server.url, function (frame) {
     buffers.TUTORIAL.charAt(0, function (x) {
         assert.equal(x, text.charAt(0), 'charAt callback no cache');
         assert.equal(buffers.TUTORIAL.charAt(0), 'E', 'charAtSync within cache');
-        buffers.TUTORIAL.charAt(0, function (x) {
-            assert.equal(x, text.charAt(0), 'charAtSync with cache using callback');
+        buffers.TUTORIAL.charAt(0, function (y) {
+            assert.equal(y, text.charAt(0), 'charAtSync with cache using callback');
         });
-        buffers.TUTORIAL.charAtAsync(10000).then(function (x) {
-            assert.equal(x, text.charAt(10000), 'charAtAsync no cache');
+        buffers.TUTORIAL.charAtAsync(10000).then(function (y) {
+            assert.equal(y, text.charAt(10000), 'charAtAsync no cache');
         }).catch(function (e) {
             error = e;
         });
@@ -266,11 +285,11 @@ EditorClientFrame.connect(server.url, function (frame) {
         assert.equal(buffers.TUTORIAL.slice(-1, -1), '', 'sliceSync within cache both negative');
         assert.equal(buffers.TUTORIAL.slice(64, 0), '', 'sliceSync within cache begin larger than end');
         assert.equal(buffers.TUTORIAL.slice(64, -buffers.TUTORIAL.length), '', 'sliceSync within cache begin larger than negative end');
-        buffers.TUTORIAL.slice(0, 128, function (x) {
-            assert.equal(x, text.slice(0, 128), 'sliceSync within cache using callback');
+        buffers.TUTORIAL.slice(0, 128, function (y) {
+            assert.equal(y, text.slice(0, 128), 'sliceSync within cache using callback');
         });
-        buffers.TUTORIAL.sliceAsync(20000, 20128).then(function (x) {
-            assert.equal(x, text.slice(20000, 20128), 'sliceAsync no cache');
+        buffers.TUTORIAL.sliceAsync(20000, 20128).then(function (y) {
+            assert.equal(y, text.slice(20000, 20128), 'sliceAsync no cache');
         }).catch(function (e) {
             error = e;
         });
@@ -284,6 +303,7 @@ EditorClientFrame.connect(server.url, function (frame) {
 }, {'page-size': 128});
 
 var lru = new LRU(3);
+
 lru.set(1, 'foo');
 lru.set(2, 'bar');
 lru.set(3, 'baz');
