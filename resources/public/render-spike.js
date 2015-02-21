@@ -1,4 +1,4 @@
-/*jslint browser: true regexp: true */
+/*jslint browser: true, regexp: true */
 
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';

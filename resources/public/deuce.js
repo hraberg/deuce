@@ -1,4 +1,4 @@
-/*jslint browser: true regexp: true */
+/*jslint browser: true, regexp: true */
 
 // This is a spike for the Deuce web UI. In the real world it won't have as much logic on the client side.
 
@@ -615,8 +615,7 @@
     function registerMouseHandler() {
         window.addEventListener('mousedown', function (e) {
             e.preventDefault();
-            if (mouseButton.left === e.button
-                     && matches(e.target, '.buffer:not(.minibuffer-inactive-mode')) {
+            if (mouseButton.left === e.button && matches(e.target, '.buffer:not(.minibuffer-inactive-mode')) {
                 selectWindow(e.target.parentElement);
 
                 var row = Math.floor(e.layerY / fontHeight),
