@@ -238,6 +238,8 @@ EditorClientFrame.connect(server.url, function (frame) {
     var buffers = frame.buffers;
     assert.equal(frame.id, 0);
     assert.deepEqual(Object.keys(buffers), ['TUTORIAL']);
+    assert.equal(buffers.TUTORIAL.charAt(-1), '');
+    assert.equal(buffers.TUTORIAL.charAt(buffers.TUTORIAL.length), '');
     assert.equal(buffers.TUTORIAL.notFound, 'x');
     assert.equal(buffers.TUTORIAL.charAt(0), buffers.TUTORIAL.notFound, 'charAt page miss');
     buffers.TUTORIAL.charAt(0, function (x) {
