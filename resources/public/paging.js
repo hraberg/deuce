@@ -57,8 +57,8 @@ RemoteBuffer.prototype.handle = function (message) {
 };
 
 RemoteBuffer.prototype.onpage = function (message) {
-    delete this.requestedPages[message.page];
     this.cache.set(message.page, message.content);
+    delete this.requestedPages[message.page];
 };
 
 RemoteBuffer.prototype.nextRequestId = function () {
