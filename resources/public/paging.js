@@ -152,16 +152,20 @@ RemoteBuffer.prototype.sliceAsync = function (beginSlice, endSlice) {
     });
 };
 
-function EditorClientFrame(ws, onopen, options) {
-    this.ws = ws;
+var WebSocket = require('ws');
+
+function EditorClientFrame(url, onopen, options) {
+    this.ws = new WebSocket(url);
     this.onopen = onopen;
     this.options = options;
-    ws.on('message', this.onmessage.bind(this))
+    this.ws.on('message', this.onmessage.bind(this))
         .on('close', this.onclose.bind(this))
-        .on('error', function (e) {
-            console.log('frame error:', e);
-        });
+        .on('error', this.onerror.bind(this));
 }
+
+EditorClientFrame.prototype.onerror = function (e) {
+    console.log('client frame error:', this.id, e);
+};
 
 EditorClientFrame.prototype.onclose = function () {
     console.log('client frame closed:', this.id);
@@ -188,20 +192,19 @@ EditorClientFrame.prototype.oninit = function (message) {
     this.onopen(this);
 };
 
-var WebSocket = require('ws');
-
-EditorClientFrame.connect = function (url, onopen, options) {
-    var ws = new WebSocket(url);
-    return new EditorClientFrame(ws, onopen, options);
-};
-
 function RemoteFrame(ws, id, editor) {
     this.ws = ws;
     this.id = id;
     this.editor = editor;
     this.windows = [];
-    ws.on('message', this.onmessage.bind(this)).on('close', this.onclose.bind(this));
+    ws.on('message', this.onmessage.bind(this))
+        .on('close', this.onclose.bind(this))
+        .on('error', this.onerror.bind(this));
 }
+
+RemoteFrame.prototype.onerror = function (e) {
+    console.log('server frame error:', this.id, e);
+};
 
 RemoteFrame.prototype.onclose = function () {
     delete this.editor.frames[this.id];
@@ -226,12 +229,14 @@ RemoteFrame.prototype.onpage = function (message) {
     return message;
 };
 
-function EditorServer(wss, buffers) {
+var WebSocketServer = require('ws').Server;
+
+function EditorServer(port, buffers) {
+    this.wss = new WebSocketServer({ port: port});
     this.buffers = buffers;
-    this.wss = wss;
-    this.url = 'ws://' + wss.options.host + ':' + wss.options.port + '/' + wss.options.path;
+    this.url = 'ws://' + this.wss.options.host + ':' + this.wss.options.port + '/' + this.wss.options.path;
     this.frames = [];
-    wss.on('connection', this.onconnection.bind(this))
+    this.wss.on('connection', this.onconnection.bind(this))
         .on('error', this.onerror.bind(this));
 }
 
@@ -251,22 +256,13 @@ EditorServer.prototype.onerror = function (e) {
     console.log('server error:', e);
 };
 
-var WebSocketServer = require('ws').Server;
-
-EditorServer.open = function (port, buffers) {
-    var wss = new WebSocketServer({ port: port});
-    return new EditorServer(wss, buffers);
-};
-
 var assert = require('assert'),
     path = require('path');
 
 var text = require('fs').readFileSync(path.join(__dirname, '/../etc/tutorials/TUTORIAL'), {encoding: 'utf8'});
-var server = EditorServer.open(8080, {TUTORIAL: text});
-var error;
-
-EditorClientFrame.connect(server.url, function (frame) {
-    var buffers = frame.buffers;
+var server = new EditorServer(8080, {TUTORIAL: text});
+var client = new EditorClientFrame(server.url, function (frame) {
+    var buffers = frame.buffers, error;
     assert.equal(frame.id, 0);
     assert.deepEqual(Object.keys(buffers), ['TUTORIAL']);
     assert.equal(buffers.TUTORIAL.charAt(-1), '');
@@ -309,6 +305,7 @@ EditorClientFrame.connect(server.url, function (frame) {
         }
     }, 100);
 }, {'page-size': 128});
+assert(client.ws.url, server.url);
 
 var lru = new LRU(3);
 
