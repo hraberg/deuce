@@ -164,7 +164,7 @@ function EditorClientFrame(ws, onopen, options) {
 }
 
 EditorClientFrame.prototype.onclose = function () {
-    console.log('frame closed:', this.id);
+    console.log('client frame closed:', this.id);
 };
 
 EditorClientFrame.prototype.onmessage = function (data) {
@@ -195,15 +195,44 @@ EditorClientFrame.connect = function (url, onopen, options) {
     return new EditorClientFrame(ws, onopen, options);
 };
 
+function RemoteFrame(ws, id, editor) {
+    this.ws = ws;
+    this.id = id;
+    this.editor = editor;
+    this.windows = [];
+    ws.on('message', this.onmessage.bind(this)).on('close', this.onclose.bind(this));
+}
+
+RemoteFrame.prototype.onclose = function () {
+    delete this.editor.frames[this.id];
+    console.log('server frame closed:', this.id);
+};
+
+RemoteFrame.prototype.onmessage = function (data) {
+    var message = JSON.parse(data);
+    console.log('server received:', data);
+    message = this['on' + message.type](message);
+    if (message['request-id']) {
+        data = JSON.stringify(message);
+        console.log('server reply:', data);
+        this.ws.send(data);
+    }
+};
+
+RemoteFrame.prototype.onpage = function (message) {
+    var pageSize = message['page-size'],
+        beginSlice = message.page * pageSize;
+    message.content = this.editor.buffers[message.name].slice(beginSlice, beginSlice + pageSize);
+    return message;
+};
+
 function EditorServer(wss, buffers) {
     this.buffers = buffers;
     this.wss = wss;
     this.url = 'ws://' + wss.options.host + ':' + wss.options.port + '/' + wss.options.path;
     this.frames = [];
     wss.on('connection', this.onconnection.bind(this))
-        .on('error', function (e) {
-            console.log('server error:', e);
-        });
+        .on('error', this.onerror.bind(this));
 }
 
 EditorServer.prototype.onconnection = function (ws) {
@@ -215,32 +244,11 @@ EditorServer.prototype.onconnection = function (ws) {
         data = JSON.stringify({type: 'init', id: id, scope: 'frame', buffers: bufferMeta});
     console.log('server frame connection:', data);
     ws.send(data);
-    ws.on('message', this.onmessage.bind(this, ws)).on('close', this.onclose.bind(this, ws));
-    this.frames.push(ws);
+    this.frames[id] = new RemoteFrame(ws, id, this);
 };
 
-EditorServer.prototype.onclose = function (ws) {
-    var id = this.frames.indexOf(ws);
-    console.log('server frame close:', id);
-    this.frames.splice(id, 1);
-};
-
-EditorServer.prototype.onmessage = function (ws, data) {
-    var message = JSON.parse(data);
-    console.log('server received:', data);
-    message = this['on' + message.type](message);
-    if (message['request-id']) {
-        data = JSON.stringify(message);
-        console.log('server reply:', data);
-        ws.send(data);
-    }
-};
-
-EditorServer.prototype.onpage = function (message) {
-    var pageSize = message['page-size'],
-        beginSlice = message.page * pageSize;
-    message.content = this.buffers[message.name].slice(beginSlice, beginSlice + pageSize);
-    return message;
+EditorServer.prototype.onerror = function (e) {
+    console.log('server error:', e);
 };
 
 var WebSocketServer = require('ws').Server;
