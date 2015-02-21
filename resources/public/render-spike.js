@@ -1,6 +1,6 @@
 /*jslint browser: true, regexp: true */
 /*eslint-env browser */
-/*eslint quotes: [0, "double"] */
+/*eslint quotes: [2, "single"] */
 /*eslint-disable no-console */
 
 document.addEventListener('DOMContentLoaded', function () {

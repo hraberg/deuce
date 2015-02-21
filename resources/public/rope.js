@@ -1,7 +1,7 @@
 /*jslint node: true, browser: true, regexp: true, stupid: true, nomen: true */
 /*jshint node: true, browser: true */
 /*eslint-env node, browser */
-/*eslint quotes: [0, "double"] */
+/*eslint quotes: [2, "single"] */
 /*eslint-disable no-underscore-dangle, no-redeclare */
 
 // http://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf

@@ -2,7 +2,7 @@
 /*globals Promise */
 /*jshint node: true */
 /*eslint-env node */
-/*eslint quotes: [0, "double"] */
+/*eslint quotes: [2, "single"] */
 
 'use strict';
 
@@ -324,7 +324,7 @@ lru.set(2, 'woz');
 assert.deepEqual(lru, {cache: ['woz', 'quux', 'foo'], index: [2, 4, 1], max: 3});
 assert(!lru.get(5));
 
-assert.equal('KEY 5', lru.get(5, function (k) { return "KEY " + k; }));
+assert.equal('KEY 5', lru.get(5, function (k) { return 'KEY ' + k; }));
 assert.deepEqual(lru, {cache: ['KEY 5', 'woz', 'quux'], index: [5, 2, 4], max: 3});
 
 assert.equal('KEY 5', lru.get(5));

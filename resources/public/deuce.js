@@ -1,6 +1,6 @@
 /*jslint browser: true, regexp: true */
 /*eslint-env browser */
-/*eslint quotes: [0, "double"] */
+/*eslint quotes: [2, "single"] */
 
 // This is a spike for the Deuce web UI. In the real world it won't have as much logic on the client side.
 
