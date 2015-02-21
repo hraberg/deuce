@@ -40,6 +40,7 @@ function RemoteBuffer(ws, name, length, options) {
     this.notFound = options['not-found'] || 'x';
     this.pageSize = options['page-size'] || 8 * 1024;
     this.pages = Math.round(length / this.pageSize);
+    this.missingPage = [].constructor(this.pageSize).join(this.notFound);
     this.requestedPages = {};
     this.callbacks = {};
     this.lastRequestId = 0;
@@ -89,7 +90,7 @@ RemoteBuffer.prototype.pageAt = function (index, callback) {
                       page: pageIndex, 'page-size': this.pageSize},
                      callback);
     }
-    return page;
+    return page || this.missingPage;
 };
 
 RemoteBuffer.prototype.charAt = function (index, callback) {
@@ -99,24 +100,23 @@ RemoteBuffer.prototype.charAt = function (index, callback) {
     var that = this,
         pageIndex = this.pageIndex(index),
         page = this.pageAt(index, function () { callback(that.charAt(index)); });
-    return (page && page[index - pageIndex * this.pageSize]) || this.notFound;
+    return page[index - pageIndex * this.pageSize];
 };
 
 RemoteBuffer.prototype.slice = function (beginSlice, endSlice, callback) {
     beginSlice = beginSlice || 0;
     endSlice = endSlice || this.length;
-    var i, s = '', that = this, called = false,
-        cb = callback && function () {
-            if (!called && that.cache.get(that.pageIndex(endSlice - 1))) {
-                callback(that.slice(beginSlice, endSlice));
-                called = true;
-            }
+    var i, s = '', that = this,
+        lastPageCallback = function (index) {
+            return that.pageIndex(index) === that.pageIndex(endSlice - 1)
+                && callback && function () {
+                    callback(that.slice(beginSlice, endSlice));
+                };
         },
-        missingPage = [].constructor(this.pageSize).join(this.notFound),
         firstPageSize = this.pageSize - beginSlice % this.pageSize;
-    s = (this.pageAt(beginSlice, cb) || missingPage).slice(this.pageSize - firstPageSize);
+    s = this.pageAt(beginSlice, lastPageCallback(beginSlice)).slice(this.pageSize - firstPageSize);
     for (i = beginSlice + s.length; i < endSlice; i += this.pageSize) {
-        s += this.pageAt(i, cb) || missingPage;
+        s += this.pageAt(i, lastPageCallback(i));
     }
     return s.slice(0, endSlice - beginSlice);
 };
