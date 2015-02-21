@@ -41,7 +41,7 @@ function RemoteBuffer(ws, name, length, options) {
     this.notFound = options['not-found'] || 'x';
     this.pageSize = options['page-size'] || 8 * 1024;
     this.pages = Math.round(length / this.pageSize);
-    this.missingPage = [].constructor(this.pageSize).join(this.notFound);
+    this.missingPage = [].constructor(this.pageSize + 1).join(this.notFound);
     this.requestedPages = {};
     this.callbacks = {};
     this.lastRequestId = 0;
@@ -238,6 +238,8 @@ EditorClientFrame.connect(server.url, function (frame) {
     var buffers = frame.buffers;
     assert.equal(frame.id, 0);
     assert.deepEqual(Object.keys(buffers), ['TUTORIAL']);
+    assert.equal(buffers.TUTORIAL.notFound, 'x');
+    assert.equal(buffers.TUTORIAL.charAt(0), buffers.TUTORIAL.notFound, 'charAt page miss');
     buffers.TUTORIAL.charAt(0, function (x) {
         assert.equal(x, 'E', 'charAt callback no cache');
         assert.equal(buffers.TUTORIAL.charAt(0), 'E', 'charAtSync within cache');
