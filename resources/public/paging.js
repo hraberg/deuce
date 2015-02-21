@@ -107,7 +107,7 @@ RemoteBuffer.prototype.charAt = function (index, callback) {
 };
 
 
-RemoteBuffer.prototype.charAtPromise = function (index) {
+RemoteBuffer.prototype.charAtAsync = function (index) {
     var that = this;
     return new Promise(function (resolve) {
         that.charAt(index, resolve);
@@ -139,7 +139,7 @@ RemoteBuffer.prototype.slice = function (beginSlice, endSlice, callback) {
     return s.slice(0, endSlice - beginSlice);
 };
 
-RemoteBuffer.prototype.slicePromise = function (beginSlice, endSlice) {
+RemoteBuffer.prototype.sliceAsync = function (beginSlice, endSlice) {
     var that = this;
     return new Promise(function (resolve) {
         that.slice(beginSlice, endSlice, resolve);
@@ -244,8 +244,8 @@ EditorClientFrame.connect(server.url, function (frame) {
         buffers.TUTORIAL.charAt(0, function (x) {
             assert.equal(x, 'E', 'charAtSync with cache using callback');
         });
-        buffers.TUTORIAL.charAtPromise(10000).then(function (x) {
-            assert.equal(x, '\n', 'charAtPromise no cache');
+        buffers.TUTORIAL.charAtAsync(10000).then(function (x) {
+            assert.equal(x, '\n', 'charAtAsync no cache');
         }).catch(function (e) {
             error = e;
         });
@@ -261,8 +261,8 @@ EditorClientFrame.connect(server.url, function (frame) {
         buffers.TUTORIAL.slice(0, 128, function (x) {
             assert.equal(x, 'Emacs tutorial.  See end for copying conditions.\n\nEmacs commands generally involve the CONTROL key (sometimes labeled\nCTRL or CT', 'sliceSync within cache using callback');
         });
-        buffers.TUTORIAL.slicePromise(20000, 20128).then(function (x) {
-            assert.equal(x, 'ake.\n\nIf you look near the bottom of the screen you will see a line that\nbegins with dashes, and starts with " -:---  TUTORIAL" ', 'slice no cache from');
+        buffers.TUTORIAL.sliceAsync(20000, 20128).then(function (x) {
+            assert.equal(x, 'ake.\n\nIf you look near the bottom of the screen you will see a line that\nbegins with dashes, and starts with " -:---  TUTORIAL" ', 'sliceAsync no cache');
         }).catch(function (e) {
             error = e;
         });
