@@ -107,10 +107,14 @@ RemoteBuffer.prototype.charAt = function (index, callback) {
 
 RemoteBuffer.prototype.slice = function (beginSlice, endSlice, callback) {
     beginSlice = beginSlice || 0;
+    if (beginSlice < 0) {
+        return '';
+    }
     endSlice = endSlice === undefined ? this.length : endSlice;
     if (endSlice < 0) {
         endSlice += this.length;
     }
+    endSlice = Math.min(endSlice, this.length);
     var i, s = '', that = this,
         lastPageCallback = function (index) {
             return that.pageIndex(index) === that.pageIndex(endSlice - 1)
@@ -240,7 +244,13 @@ EditorClientFrame.connect(server.url, function (frame) {
         console.log('-------');
         console.log('sliceSync within cache, negative end:', buffers.TUTORIAL.slice(64, (128 - buffers.TUTORIAL.length)));
         console.log('-------');
-        console.log('sliceSync empty:', buffers.TUTORIAL.slice(0, 0));
+        console.log('sliceSync within cache empty:', buffers.TUTORIAL.slice(0, 0));
+        console.log('-------');
+        console.log('sliceSync within cache both negative:', buffers.TUTORIAL.slice(-1, -1));
+        console.log('-------');
+        console.log('sliceSync within cache begin larger than end:', buffers.TUTORIAL.slice(64, 0));
+        console.log('-------');
+        console.log('sliceSync within cache begin larger than negative end:', buffers.TUTORIAL.slice(64, -buffers.TUTORIAL.length));
         console.log('-------');
         buffers.TUTORIAL.slice(64, 128, function (x) {
             console.log('sliceSync within cache using callback:', x);
