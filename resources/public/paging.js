@@ -89,6 +89,8 @@ RemoteBuffer.prototype.pageAt = function (index, callback) {
         this.request({type: 'page', name: this.name, scope: 'buffer',
                       page: pageIndex, 'page-size': this.pageSize},
                      callback);
+    } else if (page && callback) {
+        callback();
     }
     return page || this.missingPage;
 };
@@ -99,7 +101,7 @@ RemoteBuffer.prototype.charAt = function (index, callback) {
     }
     var that = this,
         pageIndex = this.pageIndex(index),
-        page = this.pageAt(index, function () { callback(that.charAt(index)); });
+        page = this.pageAt(index, callback && function () { callback(that.charAt(index)); });
     return page[index - pageIndex * this.pageSize];
 };
 
@@ -220,6 +222,11 @@ EditorClientFrame.connect(server.url, function (frame) {
         console.log('-------');
         console.log('charAtSync with cache', buffers.TUTORIAL.charAt(0));
         console.log('-------');
+        buffers.TUTORIAL.charAt(0, function (x) {
+            console.log('-------');
+            console.log('charAtSync with cache using callback', x);
+            console.log('-------');
+        });
     }));
     console.log('-------');
     console.log('sliceSync no cache:', buffers.TUTORIAL.slice(0, 256, function (x) {
@@ -227,6 +234,11 @@ EditorClientFrame.connect(server.url, function (frame) {
         console.log('slice:', x);
         console.log('-------');
         console.log('sliceSync within cache:', buffers.TUTORIAL.slice(64, 128));
+        console.log('-------');
+        console.log('-------');
+        buffers.TUTORIAL.slice(64, 128, function (x) {
+            console.log('sliceSync within cache using callback:', x);
+        });
         console.log('-------');
         server.wss.close();
     }));
