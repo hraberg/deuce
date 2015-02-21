@@ -214,50 +214,33 @@ EditorServer.open = function (port, buffers) {
     return new EditorServer(wss, buffers);
 };
 
+var assert = require('assert');
 var text = require('fs').readFileSync(__dirname + '/../etc/tutorials/TUTORIAL', {encoding: 'utf8'});
 var server = EditorServer.open(8080, {TUTORIAL: text});
 EditorClientFrame.connect(server.url, function (frame) {
     var buffers = frame.buffers;
-    console.log('-------');
-    console.log('frame:', frame.id);
-    console.log('-------');
-    console.log('remote buffers:', Object.keys(buffers));
-    console.log('-------');
-    console.log('charAtSync no cache:', buffers.TUTORIAL.charAt(0, function (x) {
-        console.log('-------');
-        console.log('charAt:', x);
-        console.log('-------');
-        console.log('charAtSync with cache', buffers.TUTORIAL.charAt(0));
-        console.log('-------');
+    assert.equal(frame.id, 0);
+    assert.deepEqual(Object.keys(buffers), ['TUTORIAL']);
+    buffers.TUTORIAL.charAt(0, function (x) {
+        assert.equal(x, 'E', 'charAt callback no cache');
+        assert.equal(buffers.TUTORIAL.charAt(0), 'E', 'charAtSync within cache');
         buffers.TUTORIAL.charAt(0, function (x) {
-            console.log('-------');
-            console.log('charAtSync with cache using callback', x);
-            console.log('-------');
+            assert.equal(x, 'E', 'charAtSync with cache using callback');
         });
-    }));
-    console.log('-------');
-    console.log('sliceSync no cache:', buffers.TUTORIAL.slice(0, 256, function (x) {
-        console.log('-------');
-        console.log('slice:', x);
-        console.log('-------');
-        console.log('sliceSync within cache:', buffers.TUTORIAL.slice(64, 128));
-        console.log('-------');
-        console.log('sliceSync within cache, negative end:', buffers.TUTORIAL.slice(64, (128 - buffers.TUTORIAL.length)));
-        console.log('-------');
-        console.log('sliceSync within cache empty:', buffers.TUTORIAL.slice(0, 0));
-        console.log('-------');
-        console.log('sliceSync within cache both negative:', buffers.TUTORIAL.slice(-1, -1));
-        console.log('-------');
-        console.log('sliceSync within cache begin larger than end:', buffers.TUTORIAL.slice(64, 0));
-        console.log('-------');
-        console.log('sliceSync within cache begin larger than negative end:', buffers.TUTORIAL.slice(64, -buffers.TUTORIAL.length));
-        console.log('-------');
-        buffers.TUTORIAL.slice(64, 128, function (x) {
-            console.log('sliceSync within cache using callback:', x);
+    });
+    buffers.TUTORIAL.slice(0, 256, function (x) {
+        assert.equal(x, 'Emacs tutorial.  See end for copying conditions.\n\nEmacs commands generally involve the CONTROL key (sometimes labeled\nCTRL or CTL) or the META key (sometimes labeled EDIT or ALT).  Rather than\nwrite that in full each time, we\'ll use the following abbreviat', 'slice callback, partial cache');
+        assert.equal(buffers.TUTORIAL.slice(64, 128), ' generally involve the CONTROL key (sometimes labeled\nCTRL or CT', 'sliceSync within cache');
+        assert.equal(buffers.TUTORIAL.slice(64, (128 - buffers.TUTORIAL.length)), ' generally involve the CONTROL key (sometimes labeled\nCTRL or CT', 'sliceSync within cache, negative end');
+        assert.equal(buffers.TUTORIAL.slice(0, 0), '', 'sliceSync within cache empty');
+        assert.equal(buffers.TUTORIAL.slice(-1, -1), '', 'sliceSync within cache both negative');
+        assert.equal(buffers.TUTORIAL.slice(64, 0), '', 'sliceSync within cache begin larger than end');
+        assert.equal(buffers.TUTORIAL.slice(64, -buffers.TUTORIAL.length), '', 'sliceSync within cache begin larger than negative end');
+        buffers.TUTORIAL.slice(0, 128, function (x) {
+            assert.equal(x, 'Emacs tutorial.  See end for copying conditions.\n\nEmacs commands generally involve the CONTROL key (sometimes labeled\nCTRL or CT', 'sliceSync within cache using callback');
         });
-        console.log('-------');
         server.wss.close();
-    }));
+    });
 }, {'page-size': 128});
 
 var lru = new LRU(3);
@@ -265,23 +248,22 @@ lru.set(1, 'foo');
 lru.set(2, 'bar');
 lru.set(3, 'baz');
 
-console.log(JSON.stringify(lru));
-console.log(lru.get(1));
-console.log(JSON.stringify(lru));
+assert.deepEqual(lru, {cache: ['baz', 'bar', 'foo'], index: [3, 2, 1], max: 3});
+assert.equal('foo', lru.get(1));
+assert.deepEqual(lru, {cache: ['foo', 'baz', 'bar'], index: [1, 3, 2], max: 3});
 
 lru.set(4, 'quux');
-console.log(JSON.stringify(lru));
+assert.deepEqual(lru, {cache: ['quux', 'foo', 'baz'], index: [4, 1, 3], max: 3});
 
 lru.set(2, 'woz');
-console.log(JSON.stringify(lru));
+assert.deepEqual(lru, {cache: ['woz', 'quux', 'foo'], index: [2, 4, 1], max: 3});
+assert(!lru.get(5));
 
-console.log(lru.get(5));
+assert.equal('KEY 5', lru.get(5, function (k) { return "KEY " + k; }));
+assert.deepEqual(lru, {cache: ['KEY 5', 'woz', 'quux'], index: [5, 2, 4], max: 3});
 
-console.log(lru.get(5, function (k) { return "KEY " + k; }));
-console.log(JSON.stringify(lru));
+assert.equal('KEY 5', lru.get(5));
+assert.deepEqual(lru, {cache: ['KEY 5', 'woz', 'quux'], index: [5, 2, 4], max: 3});
 
-console.log(lru.get(5));
-console.log(JSON.stringify(lru));
-
-console.log(lru.set(5, 'jobs'));
-console.log(JSON.stringify(lru));
+assert.equal('jobs', lru.set(5, 'jobs'));
+assert.deepEqual(lru, {cache: ['jobs', 'woz', 'quux'], index: [5, 2, 4], max: 3});
