@@ -243,30 +243,30 @@ EditorClientFrame.connect(server.url, function (frame) {
     assert.equal(buffers.TUTORIAL.notFound, 'x');
     assert.equal(buffers.TUTORIAL.charAt(0), buffers.TUTORIAL.notFound, 'charAt page miss');
     buffers.TUTORIAL.charAt(0, function (x) {
-        assert.equal(x, 'E', 'charAt callback no cache');
+        assert.equal(x, text.charAt(0), 'charAt callback no cache');
         assert.equal(buffers.TUTORIAL.charAt(0), 'E', 'charAtSync within cache');
         buffers.TUTORIAL.charAt(0, function (x) {
-            assert.equal(x, 'E', 'charAtSync with cache using callback');
+            assert.equal(x, text.charAt(0), 'charAtSync with cache using callback');
         });
         buffers.TUTORIAL.charAtAsync(10000).then(function (x) {
-            assert.equal(x, '\n', 'charAtAsync no cache');
+            assert.equal(x, text.charAt(10000), 'charAtAsync no cache');
         }).catch(function (e) {
             error = e;
         });
     });
     buffers.TUTORIAL.slice(0, 256, function (x) {
-        assert.equal(x, 'Emacs tutorial.  See end for copying conditions.\n\nEmacs commands generally involve the CONTROL key (sometimes labeled\nCTRL or CTL) or the META key (sometimes labeled EDIT or ALT).  Rather than\nwrite that in full each time, we\'ll use the following abbreviat', 'slice callback, partial cache');
-        assert.equal(buffers.TUTORIAL.slice(64, 128), ' generally involve the CONTROL key (sometimes labeled\nCTRL or CT', 'sliceSync within cache');
-        assert.equal(buffers.TUTORIAL.slice(64, (128 - buffers.TUTORIAL.length)), ' generally involve the CONTROL key (sometimes labeled\nCTRL or CT', 'sliceSync within cache, negative end');
+        assert.equal(x, text.slice(0, 256), 'slice callback, partial cache');
+        assert.equal(buffers.TUTORIAL.slice(64, 128), text.slice(64, 128), 'sliceSync within cache');
+        assert.equal(buffers.TUTORIAL.slice(64, 128 - buffers.TUTORIAL.length), text.slice(64, 128 - buffers.TUTORIAL.length), 'sliceSync within cache, negative end');
         assert.equal(buffers.TUTORIAL.slice(0, 0), '', 'sliceSync within cache empty');
         assert.equal(buffers.TUTORIAL.slice(-1, -1), '', 'sliceSync within cache both negative');
         assert.equal(buffers.TUTORIAL.slice(64, 0), '', 'sliceSync within cache begin larger than end');
         assert.equal(buffers.TUTORIAL.slice(64, -buffers.TUTORIAL.length), '', 'sliceSync within cache begin larger than negative end');
         buffers.TUTORIAL.slice(0, 128, function (x) {
-            assert.equal(x, 'Emacs tutorial.  See end for copying conditions.\n\nEmacs commands generally involve the CONTROL key (sometimes labeled\nCTRL or CT', 'sliceSync within cache using callback');
+            assert.equal(x, text.slice(0, 128), 'sliceSync within cache using callback');
         });
         buffers.TUTORIAL.sliceAsync(20000, 20128).then(function (x) {
-            assert.equal(x, 'ake.\n\nIf you look near the bottom of the screen you will see a line that\nbegins with dashes, and starts with " -:---  TUTORIAL" ', 'sliceAsync no cache');
+            assert.equal(x, text.slice(20000, 20128), 'sliceAsync no cache');
         }).catch(function (e) {
             error = e;
         });
