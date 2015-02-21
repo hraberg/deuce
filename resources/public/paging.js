@@ -1,4 +1,5 @@
 /*jslint node: true stupid: true nomen: true */
+/*globals Promise */
 
 'use strict';
 
@@ -105,6 +106,14 @@ RemoteBuffer.prototype.charAt = function (index, callback) {
     return page[index - pageIndex * this.pageSize];
 };
 
+
+RemoteBuffer.prototype.charAtPromise = function (index) {
+    var that = this;
+    return new Promise(function (resolve) {
+        that.charAt(index, resolve);
+    });
+};
+
 RemoteBuffer.prototype.slice = function (beginSlice, endSlice, callback) {
     beginSlice = beginSlice || 0;
     if (beginSlice < 0) {
@@ -124,10 +133,17 @@ RemoteBuffer.prototype.slice = function (beginSlice, endSlice, callback) {
         },
         firstPageSize = this.pageSize - beginSlice % this.pageSize;
     s = this.pageAt(beginSlice, lastPageCallback(beginSlice)).slice(this.pageSize - firstPageSize);
-    for (i = beginSlice + s.length; i < endSlice; i += this.pageSize) {
+    for (i = beginSlice + s.length; i < endSlice + this.pageSize % endSlice; i += this.pageSize) {
         s += this.pageAt(i, lastPageCallback(i));
     }
     return s.slice(0, endSlice - beginSlice);
+};
+
+RemoteBuffer.prototype.slicePromise = function (beginSlice, endSlice) {
+    var that = this;
+    return new Promise(function (resolve) {
+        that.slice(beginSlice, endSlice, resolve);
+    });
 };
 
 function EditorClientFrame(ws, onopen, options) {
@@ -217,6 +233,7 @@ EditorServer.open = function (port, buffers) {
 var assert = require('assert');
 var text = require('fs').readFileSync(__dirname + '/../etc/tutorials/TUTORIAL', {encoding: 'utf8'});
 var server = EditorServer.open(8080, {TUTORIAL: text});
+var error;
 EditorClientFrame.connect(server.url, function (frame) {
     var buffers = frame.buffers;
     assert.equal(frame.id, 0);
@@ -226,6 +243,11 @@ EditorClientFrame.connect(server.url, function (frame) {
         assert.equal(buffers.TUTORIAL.charAt(0), 'E', 'charAtSync within cache');
         buffers.TUTORIAL.charAt(0, function (x) {
             assert.equal(x, 'E', 'charAtSync with cache using callback');
+        });
+        buffers.TUTORIAL.charAtPromise(10000).then(function (x) {
+            assert.equal(x, '\n', 'charAtPromise no cache');
+        }).catch(function (e) {
+            error = e;
         });
     });
     buffers.TUTORIAL.slice(0, 256, function (x) {
@@ -239,8 +261,18 @@ EditorClientFrame.connect(server.url, function (frame) {
         buffers.TUTORIAL.slice(0, 128, function (x) {
             assert.equal(x, 'Emacs tutorial.  See end for copying conditions.\n\nEmacs commands generally involve the CONTROL key (sometimes labeled\nCTRL or CT', 'sliceSync within cache using callback');
         });
-        server.wss.close();
+        buffers.TUTORIAL.slicePromise(20000, 20128).then(function (x) {
+            assert.equal(x, 'ake.\n\nIf you look near the bottom of the screen you will see a line that\nbegins with dashes, and starts with " -:---  TUTORIAL" ', 'slice no cache from');
+        }).catch(function (e) {
+            error = e;
+        });
     });
+    setTimeout(function () {
+        server.wss.close();
+        if (error) {
+            throw error;
+        }
+    }, 100);
 }, {'page-size': 128});
 
 var lru = new LRU(3);
