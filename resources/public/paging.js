@@ -121,6 +121,43 @@ RemoteBuffer.prototype.slice = function (beginSlice, endSlice, callback) {
     return s.slice(0, endSlice - beginSlice);
 };
 
+function EditorClientFrame(ws, onopen, options) {
+    this.ws = ws;
+    this.onopen = onopen;
+    this.options = options;
+    var that = this;
+    ws.on('message', function (data) {
+        var message = JSON.parse(data);
+        console.log('client received:', data);
+        if (message.scope === 'frame') {
+            that['on' + message.type](message);
+        }
+        if (message.scope === 'buffer') {
+            that.buffers[message.name].handle(message);
+        }
+    }).on('close', function () {
+        console.log('frame closed:', that.id);
+    }).on('error', function (e) {
+        console.log('frame error:', e);
+    });
+}
+
+EditorClientFrame.prototype.oninit = function (message) {
+    var that = this;
+    this.id = message.id;
+    this.buffers = Object.keys(message.buffers).reduce(function (acc, k) {
+        acc[k] = new RemoteBuffer(that.ws, k, message.buffers[k].length, that.options);
+        return acc;
+    }, {});
+    this.onopen(this);
+};
+
+EditorClientFrame.connect = function (url, onopen, options) {
+    var WebSocket = require('ws'),
+        ws = new WebSocket(url);
+    return new EditorClientFrame(ws, onopen, options);
+};
+
 function EditorServer(wss, buffers) {
     this.buffers = buffers;
     this.wss = wss;
@@ -166,43 +203,6 @@ EditorServer.open = function (port, buffers) {
     var WebSocketServer = require('ws').Server,
         wss = new WebSocketServer({ port: port});
     return new EditorServer(wss, buffers);
-};
-
-function EditorClientFrame(ws, onopen, options) {
-    this.ws = ws;
-    this.onopen = onopen;
-    this.options = options;
-    var that = this;
-    ws.on('message', function (data) {
-        var message = JSON.parse(data);
-        console.log('client received:', data);
-        if (message.scope === 'frame') {
-            that['on' + message.type](message);
-        }
-        if (message.scope === 'buffer') {
-            that.buffers[message.name].handle(message);
-        }
-    }).on('close', function () {
-        console.log('frame closed:', that.id);
-    }).on('error', function (e) {
-        console.log('frame error:', e);
-    });
-}
-
-EditorClientFrame.prototype.oninit = function (message) {
-    var that = this;
-    this.id = message.id;
-    this.buffers = Object.keys(message.buffers).reduce(function (acc, k) {
-        acc[k] = new RemoteBuffer(that.ws, k, message.buffers[k].length, that.options);
-        return acc;
-    }, {});
-    this.onopen(this);
-};
-
-EditorClientFrame.connect = function (url, onopen, options) {
-    var WebSocket = require('ws'),
-        ws = new WebSocket(url);
-    return new EditorClientFrame(ws, onopen, options);
 };
 
 var text = require('fs').readFileSync(__dirname + '/../etc/tutorials/TUTORIAL', {encoding: 'utf8'});
