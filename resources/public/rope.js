@@ -1,4 +1,8 @@
-/*jslint node: true browser: true regexp: true stupid: true nomen: true */
+/*jslint node: true, browser: true, regexp: true, stupid: true, nomen: true */
+/*jshint node: true, browser: true */
+/*eslint-env node, browser */
+/*eslint quotes: [0, "double"] */
+/*eslint-disable no-underscore-dangle, no-redeclare */
 
 // http://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf
 
@@ -49,7 +53,7 @@ Rope.toRope = function (x) {
             return Rope.toRope(left).concat(Rope.toRope(right));
         });
     }
-    return x === undefined ? Rope.EMPTY :  new RopeString(x).balance();
+    return x === undefined ? Rope.EMPTY : new RopeString(x).balance();
 };
 
 mixin(Rope, String, ['match', 'indexOf']);
@@ -109,7 +113,7 @@ Rope.prototype.balanceRotate = function () {
     return this;
 };
 
-Rope.fib =  function (n) {
+Rope.fib = function (n) {
     if (n <= 1) {
         return n;
     }
@@ -129,8 +133,9 @@ Rope.fib = (function (f) {
 // based on this version in Common Lisp: https://github.com/Ramarren/ropes
 Rope.balanceFibStep = function (acc, rope) {
     var n = 0,
-        maxLength = Rope.fib(n + 2);
-    while (true) {
+        maxLength = Rope.fib(n + 2),
+        recur = true;
+    while (recur) {
         if (!acc[n] && rope.length <= maxLength) {
             acc[n] = rope;
             return acc;
@@ -370,9 +375,10 @@ function RopeServer(wss, rope) {
     });
 }
 
+var WebSocketServer = require('ws').Server;
+
 RopeServer.open = function (port, rope) {
-    var WebSocketServer = require('ws').Server,
-        wss = new WebSocketServer({ port: port});
+    var wss = new WebSocketServer({ port: port});
     return new RopeServer(wss, rope);
 };
 
@@ -422,10 +428,11 @@ RopeSocket.nextClientId = (function () {
     };
 }());
 
+var NodeWebSocket = require('ws');
+
 RopeSocket.connect = function (url) {
-    var WebSocket = require('ws'),
-        ws = new WebSocket(url),
-        rs = new RopeSocket(RopeSocket.nextClientId(),  ws);
+    var ws = new NodeWebSocket(url),
+        rs = new RopeSocket(RopeSocket.nextClientId(), ws);
     ws.on('open', function () {
         ws.send(JSON.stringify({type: 'length', client: rs.id}));
     });
@@ -452,7 +459,7 @@ RopeSocket.prototype.toString = function () {
     if (!this.hasData) {
         var message = JSON.stringify({type: 'slice',
                                       client: this.id,
-                                      data: Number.isNaN(this.end) ? [this.start] :  [this.start, this.end]});
+                                      data: Number.isNaN(this.end) ? [this.start] : [this.start, this.end]});
         console.log('client sending:', message);
         this.ws.send(message);
     }
@@ -669,11 +676,12 @@ function stress(text) {
     assert(rs.newlines, (text.match(/\r\n?|\n/gm) || []).length);
 }
 
+var Benchmark = require('benchmark').Benchmark;
+
 function benchmark(text) {
     text = new Array(1000).join(text + '\n');
 
-    var Benchmark = require('benchmark').Benchmark,
-        rope = Rope.toRope(text);
+    var rope = Rope.toRope(text);
 
     function run(s) {
         s.on('cycle', function (event) {
@@ -688,9 +696,9 @@ function benchmark(text) {
         }).run();
     }
 
-    function warnIfUnbalanced(rope) {
-        if (!rope.isBalanced()) {
-            console.log('WARN: unbalanced:', 'length:', rope.length, 'depth:', rope.depth, 'min:', Rope.fib(rope.depth + 2));
+    function warnIfUnbalanced(x) {
+        if (!x.isBalanced()) {
+            console.log('WARN: unbalanced:', 'length:', x.length, 'depth:', x.depth, 'min:', Rope.fib(x.depth + 2));
         }
     }
 
@@ -758,7 +766,8 @@ try {
 }
 
 if (Rope.openSync) {
-    var rf = Rope.openSync(__dirname + '/../etc/tutorials/TUTORIAL');
+    var path = require('path');
+    var rf = Rope.openSync(path.join(__dirname, '/../etc/tutorials/TUTORIAL'));
 
     assert.equal(rf.charAt(0), 'E');
     assert.equal(rf.charAt(-1), '');

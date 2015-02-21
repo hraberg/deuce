@@ -2,7 +2,7 @@
 /*globals Promise */
 /*jshint node: true */
 /*eslint-env node */
-/*eslint  quotes: [0, "double"] */
+/*eslint quotes: [0, "double"] */
 
 'use strict';
 
