@@ -1,4 +1,6 @@
 /*jslint browser: true, regexp: true */
+/*eslint-env browser */
+/*eslint quotes: [0, "double"] */
 
 // This is a spike for the Deuce web UI. In the real world it won't have as much logic on the client side.
 
@@ -271,11 +273,11 @@
     }
 
     function previousLine(arg) {
-        setPtUpdateRegion(ptRow() - arg,  ptCol());
+        setPtUpdateRegion(ptRow() - arg, ptCol());
     }
 
     function nextLine(arg) {
-        setPtUpdateRegion(ptRow() + arg,  ptCol());
+        setPtUpdateRegion(ptRow() + arg, ptCol());
     }
 
     function backwardWord(arg) {
@@ -500,7 +502,7 @@
     }
 
     function splitWindow(frame, window, side) {
-        var newWindow =  createWindow(nextWindowId(frame)),
+        var newWindow = createWindow(nextWindowId(frame)),
             sibling = window.cloneNode(true),
             direction;
 

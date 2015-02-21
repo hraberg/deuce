@@ -1,4 +1,7 @@
 /*jslint browser: true, regexp: true */
+/*eslint-env browser */
+/*eslint quotes: [0, "double"] */
+/*eslint-disable no-console */
 
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
@@ -27,14 +30,14 @@ document.addEventListener('DOMContentLoaded', function () {
         file = new Array(1000).join(document.querySelector('[data-filename=TUTORIAL]').textContent + '\n'),
         linesInFile = bufferLines(file),
         lineOffsets = {},
-        offset = 0,
+        currentOffset = 0,
         currentLine = 0,
         currentCol = 0,
         desiredVisibleCol = 0,
         visibleStart = 0,
         newVisibleStart = 0,
         prefixArg = 1,
-        keys = {left: 37,  up: 38, right: 39, down: 40},
+        keys = {left: 37, up: 38, right: 39, down: 40},
         mouseButton = {left: 0},
         keymap,
         keyUpTimeoutId;
@@ -172,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
             visibleCol = lineVisibleColumn(currentLine, currentCol),
             startLinePx = startLine * fontHeight;
 
-        debug('point:', 'visible start line:', startLine,  'visible row:', row,
+        debug('point:', 'visible start line:', startLine, 'visible row:', row,
               'visible col:', visibleCol, 'desired visible col:', desiredVisibleCol);
         point.style.left = (visibleCol * fontWidth + (gutterVisible ? gutterWidth : 0)) + 'px';
         point.style.top = (row * fontHeight) + 'px';
@@ -234,10 +237,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function gotoChar(n, line, keepDesiredVisibleColumn, noScroll) {
-        offset = limit(n, 0, bufferSize());
-        currentLine = line || lineAtOffset(offset);
-        currentCol = offset - offsetOfLine(currentLine);
-        debug('goto char:', 'offset:', offset, 'line:', currentLine, 'col:', currentCol);
+        currentOffset = limit(n, 0, bufferSize());
+        currentLine = line || lineAtOffset(currentOffset);
+        currentCol = currentOffset - offsetOfLine(currentLine);
+        debug('goto char:', 'offset:', currentOffset, 'line:', currentLine, 'col:', currentCol);
         if (!keepDesiredVisibleColumn) {
             desiredVisibleCol = lineVisibleColumn(currentLine, currentCol);
         }
@@ -250,7 +253,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function forwardChar(n) {
-        var newOffset = offset + n,
+        var newOffset = currentOffset + n,
             line = (linesInFile[currentLine] || ''),
             lineOffset = offsetOfLine(currentLine),
             isSameLine = newOffset >= lineOffset && newOffset < lineOffset + line.length;
@@ -336,7 +339,7 @@ document.addEventListener('DOMContentLoaded', function () {
             newLine;
         newVisibleStart = Math.floor(win.scrollTop / fontHeight);
         newLine = newVisibleStart;
-        debug('scrolling:', 'new visible start line:', newLine, 'line:', currentLine, 'offset:', offset);
+        debug('scrolling:', 'new visible start line:', newLine, 'line:', currentLine, 'offset:', currentOffset);
         if (newLine === 0) {
             debug('at top');
             newOffset = 0;
@@ -357,7 +360,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.querySelector('[name=linum-mode]').addEventListener('click', function (e) {
-        gutterVisible =  win.classList.toggle(e.target.name);
+        gutterVisible = win.classList.toggle(e.target.name);
         win.focus();
         requestRedraw(false, false);
     });

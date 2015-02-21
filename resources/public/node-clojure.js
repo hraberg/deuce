@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 /*jslint node: true, stupid: true */
+/*eslint-env node */
+/*eslint quotes: [0, "double"] */
 
 'use strict';
 
