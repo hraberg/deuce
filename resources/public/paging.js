@@ -11,7 +11,11 @@ function LRU(max) {
 
 LRU.prototype.set = function (key, value) {
     var idx = this.index.indexOf(key);
-    if (idx >= 0) {
+    if (idx === 0) {
+        this.cache[0] = value;
+        return value;
+    }
+    if (idx > 0) {
         this.index.splice(idx, 1);
         this.cache.splice(idx, 1);
     }
