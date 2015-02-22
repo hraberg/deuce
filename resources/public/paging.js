@@ -146,6 +146,14 @@ Buffer.prototype.onpage = function (message) {
     this.buffer.onpage(message);
 };
 
+function Window(buffer, isMiniBufferWindow, isLiveWindow, left, right) {
+    this.buffer = buffer;
+    this.isMiniBufferWindow = isMiniBufferWindow;
+    this.isLiveWindow = isLiveWindow;
+    this.left = left;
+    this.right = right;
+}
+
 function Frame(url, onopen, options) {
     this.ws = new WebSocket(url);
     this.onopen = onopen;
@@ -182,16 +190,37 @@ Frame.prototype.oninit = function (message) {
         acc[k] = new Buffer(new RemoteBuffer(that.ws, k, message.buffers[k].length, that.options));
         return acc;
     }, {});
+    this.onlayout(message);
     this.onopen(this);
 };
 
+Frame.prototype.onlayout = function (message) {
+    var that = this;
+    this.windows = message.windows.map(function toWindow(w) {
+        return w && new Window(that.buffers[w.buffer], w.isMiniBufferWindow, w.isLiveWindow,
+                               toWindow(w.left), toWindow(w.right));
+
+    });
+    this.selectedWindow = this.windows[message['selected-window']];
+};
+
 // server
+
+function RemoteWindow(buffer, isMiniBufferWindow, left, right) {
+    this.buffer = buffer;
+    this.isMiniBufferWindow = isMiniBufferWindow || false;
+    this.isLiveWindow = !(left && right);
+    this.left = left;
+    this.right = right;
+}
 
 function RemoteFrame(ws, id, editor) {
     this.ws = ws;
     this.id = id;
     this.editor = editor;
-    this.windows = [];
+    this.windows = [new RemoteWindow('*scratch*'),
+                    new RemoteWindow(' *Minibuf-0*', true)];
+    this.selectedWindow = 0;
     ws.on('message', this.onmessage.bind(this))
         .on('close', this.onclose.bind(this))
         .on('error', this.onerror.bind(this));
@@ -237,14 +266,17 @@ function EditorServer(buffers, options) {
 
 EditorServer.prototype.onconnection = function (ws) {
     var id = this.frames.length, buffers = this.buffers,
+        frame = new RemoteFrame(ws, id, this),
         bufferMeta = Object.keys(buffers).reduce(function (acc, k) {
             acc[k] = {length: buffers[k].length};
             return acc;
         }, {}),
-        data = JSON.stringify({type: 'init', id: id, scope: 'frame', buffers: bufferMeta});
+        data = JSON.stringify({type: 'init', id: id, scope: 'frame',
+                               buffers: bufferMeta, windows: frame.windows,
+                               'selected-window': frame.selectedWindow});
     console.log('server frame connection:', data);
     ws.send(data);
-    this.frames[id] = new RemoteFrame(ws, id, this);
+    this.frames[id] = frame;
 };
 
 EditorServer.prototype.onerror = function (e) {
@@ -255,13 +287,19 @@ var assert = require('assert'),
     path = require('path');
 
 var text = require('fs').readFileSync(path.join(__dirname, '/../etc/tutorials/TUTORIAL'), {encoding: 'utf8'});
-var rope = Rope.toRope(text);
+var tutorial = Rope.toRope(text);
 
-var server = new EditorServer({TUTORIAL: rope}, {port: 8080, path: '/ws'});
+var scratch = Rope.toRope(';; This buffer is for notes you don\'t want to save, and for Lisp evaluation.\n;; If you want to create a file, visit that file with C-x C-f,\n\n;; then enter the text in that file\'s own buffer.\n');
+
+var server = new EditorServer({TUTORIAL: tutorial,
+                               '*scratch*': scratch,
+                               ' *Minibuf-0*': Rope.EMPTY}, {port: 8080, path: '/ws'});
 var client = new Frame(server.url, function (frame) {
     var buffers = frame.buffers, TUTORIAL = buffers.TUTORIAL.buffer, error, callbacksCalled = 0;
     assert.equal(frame.id, 0);
-    assert.deepEqual(Object.keys(buffers), ['TUTORIAL']);
+    assert.equal(frame.windows.length, 2);
+    assert.equal(frame.selectedWindow, frame.windows[0]);
+    assert.deepEqual(Object.keys(buffers), ['TUTORIAL', '*scratch*', ' *Minibuf-0*']);
     assert.equal(TUTORIAL.charAt(-1), '');
     assert.equal(TUTORIAL.charAt(TUTORIAL.length), '');
     assert.equal(TUTORIAL.notFound, 'x');
