@@ -40,6 +40,8 @@ LRU.prototype.get = function (key, orElse) {
     }
 };
 
+// client
+
 function RemoteBuffer(ws, name, length, options) {
     this.ws = ws;
     this.name = name;
@@ -132,8 +134,19 @@ RemoteBuffer.prototype.sliceAsync = function (beginSlice, endSlice) {
 };
 
 var WebSocket = require('ws');
+var Rope = require('./rope').Rope;
+var RopeBuffer = require('./rope').RopeBuffer;
 
-function EditorClientFrame(url, onopen, options) {
+function Buffer(buffer) {
+    this.buffer = buffer;
+    this.bufferText = new RopeBuffer(buffer, 0, buffer.length);
+}
+
+Buffer.prototype.onpage = function (message) {
+    this.buffer.onpage(message);
+};
+
+function Frame(url, onopen, options) {
     this.ws = new WebSocket(url);
     this.onopen = onopen;
     this.options = options;
@@ -142,15 +155,15 @@ function EditorClientFrame(url, onopen, options) {
         .on('error', this.onerror.bind(this));
 }
 
-EditorClientFrame.prototype.onerror = function (e) {
+Frame.prototype.onerror = function (e) {
     console.log('client frame error:', this.id, e);
 };
 
-EditorClientFrame.prototype.onclose = function () {
+Frame.prototype.onclose = function () {
     console.log('client frame closed:', this.id);
 };
 
-EditorClientFrame.prototype.onmessage = function (data) {
+Frame.prototype.onmessage = function (data) {
     var message = JSON.parse(data),
         handler = 'on' + message.type;
     console.log('client received:', data);
@@ -162,15 +175,17 @@ EditorClientFrame.prototype.onmessage = function (data) {
     }
 };
 
-EditorClientFrame.prototype.oninit = function (message) {
+Frame.prototype.oninit = function (message) {
     var that = this;
     this.id = message.id;
     this.buffers = Object.keys(message.buffers).reduce(function (acc, k) {
-        acc[k] = new RemoteBuffer(that.ws, k, message.buffers[k].length, that.options);
+        acc[k] = new Buffer(new RemoteBuffer(that.ws, k, message.buffers[k].length, that.options));
         return acc;
     }, {});
     this.onopen(this);
 };
+
+// server
 
 function RemoteFrame(ws, id, editor) {
     this.ws = ws;
@@ -237,15 +252,14 @@ EditorServer.prototype.onerror = function (e) {
 };
 
 var assert = require('assert'),
-    path = require('path'),
-    Rope = require('./rope').Rope;
+    path = require('path');
 
 var text = require('fs').readFileSync(path.join(__dirname, '/../etc/tutorials/TUTORIAL'), {encoding: 'utf8'});
 var rope = Rope.toRope(text);
 
 var server = new EditorServer({TUTORIAL: rope}, {port: 8080, path: '/ws'});
-var client = new EditorClientFrame(server.url, function (frame) {
-    var buffers = frame.buffers, TUTORIAL = buffers.TUTORIAL, error, callbacksCalled = 0;
+var client = new Frame(server.url, function (frame) {
+    var buffers = frame.buffers, TUTORIAL = buffers.TUTORIAL.buffer, error, callbacksCalled = 0;
     assert.equal(frame.id, 0);
     assert.deepEqual(Object.keys(buffers), ['TUTORIAL']);
     assert.equal(TUTORIAL.charAt(-1), '');

@@ -31,7 +31,7 @@ function Rope(left, right) {
     this.newlines = this.left.newlines + this.right.newlines;
 }
 
-var RopeString, RopeFile;
+var RopeString, RopeBuffer;
 
 Rope.SHORT_LIMIT = 16;
 Rope.LONG_LIMIT = 1024;
@@ -42,7 +42,7 @@ Rope.EMPTY.concat = function (rope) {
 };
 
 Rope.toRope = function (x) {
-    if (x instanceof Rope || x instanceof RopeString || x instanceof RopeFile) {
+    if (x instanceof Rope || x instanceof RopeString || x instanceof RopeBuffer) {
         return x;
     }
     if (x instanceof Array) {
@@ -290,7 +290,7 @@ try {
             length = fs.fstatSync(fd).size;
             if (length > Rope.MMAP_THRESHOLD) {
                 buffer = mmap.alloc(length, mmap.PROT_READ, mmap.MAP_SHARED, fd, 0);
-                return new RopeFile(buffer, 0, length);
+                return new RopeBuffer(buffer, 0, length);
             }
             return Rope.toRope(fs.readFileSync(file, {encoding: 'utf8'}));
         } finally {
@@ -300,36 +300,40 @@ try {
 } catch (ignore) {
 }
 
-function RopeFile(buffer, start, end) {
+function RopeBuffer(buffer, start, end) {
     this.buffer = buffer;
     this.start = start;
     this.end = end;
     this.length = end - start;
     this.depth = 0;
+    this.isStringBuffer = buffer.charAt !== undefined;
 }
 
-mixin(RopeFile, String, ['match', 'indexOf']);
-mixin(RopeFile, Rope, ['concat', 'insert', 'del', 'lines', 'reduce']);
-mixin(RopeFile, RopeString, ['indexOfLine', 'lineAt']);
+mixin(RopeBuffer, String, ['match', 'indexOf']);
+mixin(RopeBuffer, Rope, ['concat', 'insert', 'del', 'lines', 'reduce']);
+mixin(RopeBuffer, RopeString, ['indexOfLine', 'lineAt']);
 
-RopeFile.prototype.toString = function () {
+RopeBuffer.prototype.toString = function () {
     return this.buffer.slice(this.start, this.end).toString();
 };
 
-RopeFile.prototype.charAt = function (index) {
+RopeBuffer.prototype.charAt = function (index) {
     if (index < 0 || index >= this.length) {
         return '';
+    }
+    if (this.isStringBuffer) {
+        return this.buffer.charAt(index + this.start);
     }
     return String.fromCharCode(this.buffer[index + this.start]);
 };
 
-Object.defineProperty(RopeFile.prototype, 'newlines', {
+Object.defineProperty(RopeBuffer.prototype, 'newlines', {
     enumerable: true,
     get: function () {
         if (this._newlines === undefined) {
-            var i, acc = 0, nl = '\n'.charCodeAt(0);
+            var i, acc = 0;
             for (i = this.start; i < this.end; i += 1) {
-                if (this.buffer[i] === nl) {
+                if (this.charAt(i) === '\n') {
                     acc += 1;
                 }
             }
@@ -339,11 +343,11 @@ Object.defineProperty(RopeFile.prototype, 'newlines', {
     }
 });
 
-RopeFile.prototype.slice = function (beginSlice, endSlice) {
-    return new RopeFile(this.buffer, (beginSlice || 0) + this.start, endSlice ? endSlice + this.start : this.end);
+RopeBuffer.prototype.slice = function (beginSlice, endSlice) {
+    return new RopeBuffer(this.buffer, (beginSlice || 0) + this.start, endSlice ? endSlice + this.start : this.end);
 };
 
-RopeFile.prototype.balance = function () {
+RopeBuffer.prototype.balance = function () {
     return this;
 };
 
@@ -352,6 +356,7 @@ var assert;
 try {
     assert = require('assert');
     module.exports.Rope = Rope;
+    module.exports.RopeBuffer = RopeBuffer;
 } catch (e) {
     assert = function (x, y) {
         if (x !== (y || x)) {
@@ -625,17 +630,17 @@ if (Rope.openSync) {
     assert.equal(rf.newlines, 1122);
     assert.equal(rf._newlines, 1122);
     assert.equal(rf.slice(6).charAt(0), 't');
-    assert.equal(rf.slice(6).constructor, RopeFile);
+    assert.equal(rf.slice(6).constructor, RopeBuffer);
     assert.equal(rf.slice(128, 256).length, 128);
     assert(/Emacs tutorial/.test(rf.toString()));
     assert.equal(rf.lines(2, 3), 'Emacs commands generally involve the CONTROL key (sometimes labeled\n');
-    assert.equal(rf.lines(2, 3).constructor, RopeFile);
+    assert.equal(rf.lines(2, 3).constructor, RopeBuffer);
 
     assert.equal(rf.insert(2000, 'HelloWorld').length, 46571 + 10);
     assert.equal(rf.insert(2000, 'HelloWorld').constructor, Rope);
     assert.equal(rf.del(2000, 3000).length, 46571 - 1000);
-    assert.equal(rf.del(2000, 3000).left.constructor, RopeFile);
-    assert.equal(rf.del(2000, 3000).right.constructor, RopeFile);
+    assert.equal(rf.del(2000, 3000).left.constructor, RopeBuffer);
+    assert.equal(rf.del(2000, 3000).right.constructor, RopeBuffer);
 
     assert.equal(Rope.toRope(rf.toString()).slice(128, 256).length, 128);
 
