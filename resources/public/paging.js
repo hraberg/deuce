@@ -268,7 +268,7 @@ var client = new EditorClientFrame(server.url, function (frame) {
     assert.equal(TUTORIAL.charAt(-1), '');
     assert.equal(TUTORIAL.charAt(TUTORIAL.length), '');
     assert.equal(TUTORIAL.notFound, 'x');
-    assert.equal(TUTORIAL.charAt(0), TUTORIAL.notFound, 'charAt page miss');
+    assert.equal(TUTORIAL.charAt(30000), TUTORIAL.notFound, 'charAt page miss');
     TUTORIAL.charAt(0, function (x) {
         assert.equal(x, text.charAt(0), 'charAt callback no cache');
         assert.equal(TUTORIAL.charAt(0), 'E', 'charAtSync within cache');
@@ -299,6 +299,7 @@ var client = new EditorClientFrame(server.url, function (frame) {
         });
     });
     setTimeout(function () {
+        assert.equal(TUTORIAL.lastRequestId, 8);
         server.wss.close();
         if (error) {
             throw error;
