@@ -231,10 +231,10 @@ RemoteFrame.prototype.onpage = function (message) {
 
 var WebSocketServer = require('ws').Server;
 
-function EditorServer(port, buffers) {
-    this.wss = new WebSocketServer({port: port});
+function EditorServer(buffers, options) {
+    this.wss = new WebSocketServer(options);
     this.buffers = buffers;
-    this.url = 'ws://' + this.wss.options.host + ':' + this.wss.options.port + '/' + this.wss.options.path;
+    this.url = 'ws://' + this.wss.options.host + ':' + this.wss.options.port + (this.wss.options.path || '');
     this.frames = [];
     this.wss.on('connection', this.onconnection.bind(this))
         .on('error', this.onerror.bind(this));
@@ -260,7 +260,7 @@ var assert = require('assert'),
     path = require('path');
 
 var text = require('fs').readFileSync(path.join(__dirname, '/../etc/tutorials/TUTORIAL'), {encoding: 'utf8'});
-var server = new EditorServer(8080, {TUTORIAL: text});
+var server = new EditorServer({TUTORIAL: text}, {port: 8080, path: '/ws'});
 var client = new EditorClientFrame(server.url, function (frame) {
     var buffers = frame.buffers, TUTORIAL = buffers.TUTORIAL, error;
     assert.equal(frame.id, 0);
