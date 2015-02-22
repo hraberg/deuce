@@ -52,10 +52,6 @@ function RemoteBuffer(ws, name, length, options) {
     this.missingPage = [].constructor(this.pageSize + 1).join(this.notFound);
 }
 
-RemoteBuffer.prototype.handle = function (message) {
-    this['on' + message.type](message);
-};
-
 RemoteBuffer.prototype.onpage = function (message) {
     this.cache.set(message.page, message.content);
     this.pageRequests[message.page].forEach(function (callback) {
@@ -163,13 +159,14 @@ EditorClientFrame.prototype.onclose = function () {
 };
 
 EditorClientFrame.prototype.onmessage = function (data) {
-    var message = JSON.parse(data);
+    var message = JSON.parse(data),
+        handler = 'on' + message.type;
     console.log('client received:', data);
     if (message.scope === 'frame') {
-        this['on' + message.type](message);
+        this[handler](message);
     }
     if (message.scope === 'buffer') {
-        this.buffers[message.name].handle(message);
+        this.buffers[message.name][handler](message);
     }
 };
 
