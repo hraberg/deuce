@@ -205,7 +205,7 @@ RemoteFrame.prototype.onmessage = function (data) {
 RemoteFrame.prototype.onpage = function (message) {
     var pageSize = message['page-size'],
         beginSlice = message.page * pageSize;
-    message.content = this.editor.buffers[message.name].slice(beginSlice, beginSlice + pageSize);
+    message.content = this.editor.buffers[message.name].slice(beginSlice, beginSlice + pageSize).toString();
     return message;
 };
 
@@ -237,10 +237,13 @@ EditorServer.prototype.onerror = function (e) {
 };
 
 var assert = require('assert'),
-    path = require('path');
+    path = require('path'),
+    Rope = require('./rope').Rope;
 
 var text = require('fs').readFileSync(path.join(__dirname, '/../etc/tutorials/TUTORIAL'), {encoding: 'utf8'});
-var server = new EditorServer({TUTORIAL: text}, {port: 8080, path: '/ws'});
+var rope = Rope.toRope(text);
+
+var server = new EditorServer({TUTORIAL: rope}, {port: 8080, path: '/ws'});
 var client = new EditorClientFrame(server.url, function (frame) {
     var buffers = frame.buffers, TUTORIAL = buffers.TUTORIAL, error, callbacksCalled = 0;
     assert.equal(frame.id, 0);

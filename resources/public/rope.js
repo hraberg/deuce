@@ -169,7 +169,7 @@ Rope.prototype.concat = function (rope) {
         return this;
     }
     if (this.length + rope.length < Rope.SHORT_LIMIT) {
-        return new RopeString(this + rope);
+        return new RopeString(this.toString() + rope.toString());
     }
     return new Rope(this, rope).balance();
 };
@@ -187,7 +187,7 @@ Rope.prototype.slice = function (beginSlice, endSlice) {
         return this;
     }
     if (beginSlice < this.weight) {
-        left = this.left.slice(beginSlice).slice(0, Math.min(endSlice, this.weight));
+        left = this.left.slice(beginSlice, Math.min(endSlice, this.weight));
     }
     if (endSlice >= this.weight) {
         right = this.right.slice(Math.max(0, beginSlice - this.weight), endSlice - this.weight);
@@ -779,6 +779,7 @@ if (Rope.openSync) {
     assert.equal(rf._newlines, 1122);
     assert.equal(rf.slice(6).charAt(0), 't');
     assert.equal(rf.slice(6).constructor, RopeFile);
+    assert.equal(rf.slice(128, 256).length, 128);
     assert(/Emacs tutorial/.test(rf.toString()));
     assert.equal(rf.lines(2, 3), 'Emacs commands generally involve the CONTROL key (sometimes labeled\n');
     assert.equal(rf.lines(2, 3).constructor, RopeFile);
@@ -789,5 +790,9 @@ if (Rope.openSync) {
     assert.equal(rf.del(2000, 3000).left.constructor, RopeFile);
     assert.equal(rf.del(2000, 3000).right.constructor, RopeFile);
 
-    benchmark(rf.toString());
+    assert.equal(Rope.toRope(rf.toString()).slice(128, 256).length, 128);
+
+    if (process.argv[1] === __filename) {
+        benchmark(rf.toString());
+    }
 }
