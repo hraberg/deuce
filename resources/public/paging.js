@@ -75,14 +75,13 @@ RemoteBuffer.prototype.pageAt = function (index, callback) {
         page = this.cache.get(pageIndex),
         requests = this.pageRequests[pageIndex];
     if (!page) {
-        if (requests) {
-            if (callback) {
-                requests.push(callback);
-            }
-        } else {
+        if (!requests) {
             this.pageRequests[pageIndex] = callback ? [callback] : [];
             this.request({type: 'page', name: this.name, scope: 'buffer',
                           page: pageIndex, 'page-size': this.pageSize});
+
+        } else if (callback) {
+            requests.push(callback);
         }
     } else if (page && callback) {
         callback();
