@@ -95,17 +95,13 @@ RemoteBuffer.prototype.charAt = function (index, callback) {
         return '';
     }
     var that = this,
-        pageIndex = this.pageIndex(index),
         page = this.pageAt(index, callback && function () { callback(that.charAt(index)); });
-    return page[index - pageIndex * this.pageSize];
+    return page[index - this.pageIndex(index) * this.pageSize];
 };
 
 
 RemoteBuffer.prototype.charAtAsync = function (index) {
-    var that = this;
-    return new Promise(function (resolve) {
-        that.charAt(index, resolve);
-    });
+    return new Promise(this.charAt.bind(this, index));
 };
 
 RemoteBuffer.prototype.slice = function (beginSlice, endSlice, callback) {
@@ -133,10 +129,7 @@ RemoteBuffer.prototype.slice = function (beginSlice, endSlice, callback) {
 };
 
 RemoteBuffer.prototype.sliceAsync = function (beginSlice, endSlice) {
-    var that = this;
-    return new Promise(function (resolve) {
-        that.slice(beginSlice, endSlice, resolve);
-    });
+    return new Promise(this.slice.bind(this, beginSlice, endSlice));
 };
 
 var WebSocket = require('ws');
