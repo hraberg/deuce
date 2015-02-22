@@ -146,12 +146,13 @@ Buffer.prototype.onpage = function (message) {
     this.buffer.onpage(message);
 };
 
-function Window(buffer, isMiniBufferWindow, isLiveWindow, left, right) {
+function Window(buffer, isMiniBufferWindow, isLiveWindow, left, right, direction) {
     this.buffer = buffer;
     this.isMiniBufferWindow = isMiniBufferWindow;
     this.isLiveWindow = isLiveWindow;
     this.left = left;
     this.right = right;
+    this.direction = direction;
 }
 
 function Frame(url, onopen, options) {
@@ -196,9 +197,9 @@ Frame.prototype.oninit = function (message) {
 
 Frame.prototype.onlayout = function (message) {
     var that = this;
-    this.windows = message.windows.map(function toWindow(w) {
-        return w && new Window(that.buffers[w.buffer], w.isMiniBufferWindow, w.isLiveWindow,
-                               toWindow(w.left), toWindow(w.right));
+    this.windows = message.windows.map(function (w) {
+        return new Window(that.buffers[w.buffer], w.isMiniBufferWindow,
+                          w.isLiveWindow, w.left, w.right, w.direction);
 
     });
     this.selectedWindow = this.windows[message['selected-window']];
@@ -206,12 +207,13 @@ Frame.prototype.onlayout = function (message) {
 
 // server
 
-function RemoteWindow(buffer, isMiniBufferWindow, left, right) {
+function RemoteWindow(buffer, isMiniBufferWindow, left, right, direction) {
     this.buffer = buffer;
     this.isMiniBufferWindow = isMiniBufferWindow || false;
     this.isLiveWindow = !(left && right);
     this.left = left;
     this.right = right;
+    this.direction = direction;
 }
 
 function RemoteFrame(ws, id, editor) {
