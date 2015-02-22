@@ -48,40 +48,25 @@ function RemoteBuffer(ws, name, length, options) {
     this.notFound = options['not-found'] || 'x';
     this.pageSize = options['page-size'] || 8 * 1024;
     this.pages = Math.round(length / this.pageSize);
+    this.pageRequests = {};
     this.missingPage = [].constructor(this.pageSize + 1).join(this.notFound);
-    this.requestedPages = {};
-    this.callbacks = {};
-    this.lastRequestId = 0;
 }
 
 RemoteBuffer.prototype.handle = function (message) {
-    var requestId = message['request-id'];
     this['on' + message.type](message);
-    if (this.callbacks[requestId]) {
-        this.callbacks[requestId]();
-        delete this.callbacks[requestId];
-    }
 };
 
 RemoteBuffer.prototype.onpage = function (message) {
     this.cache.set(message.page, message.content);
-    delete this.requestedPages[message.page];
+    this.pageRequests[message.page].forEach(function (callback) {
+        callback();
+    });
+    delete this.pageRequests[message.page];
 };
 
-RemoteBuffer.prototype.nextRequestId = function () {
-    this.lastRequestId += 1;
-    return this.lastRequestId;
-};
-
-RemoteBuffer.prototype.request = function (message, callback) {
-    var requestId = this.nextRequestId(),
-        data;
-    message['request-id'] = requestId;
-    data = JSON.stringify(message);
+RemoteBuffer.prototype.request = function (message) {
+    var data = JSON.stringify(message);
     console.log('client buffer request:', data);
-    if (callback) {
-        this.callbacks[requestId] = callback;
-    }
     this.ws.send(data);
 };
 
@@ -91,12 +76,18 @@ RemoteBuffer.prototype.pageIndex = function (index) {
 
 RemoteBuffer.prototype.pageAt = function (index, callback) {
     var pageIndex = this.pageIndex(index),
-        page = this.cache.get(pageIndex);
-    if (!page && !this.requestedPages[pageIndex]) {
-        this.requestedPages[pageIndex] = true;
-        this.request({type: 'page', name: this.name, scope: 'buffer',
-                      page: pageIndex, 'page-size': this.pageSize},
-                     callback);
+        page = this.cache.get(pageIndex),
+        requests = this.pageRequests[pageIndex];
+    if (!page) {
+        if (requests) {
+            if (callback) {
+                requests.push(callback);
+            }
+        } else {
+            this.pageRequests[pageIndex] = callback ? [callback] : [];
+            this.request({type: 'page', name: this.name, scope: 'buffer',
+                          page: pageIndex, 'page-size': this.pageSize});
+        }
     } else if (page && callback) {
         callback();
     }
@@ -215,7 +206,7 @@ RemoteFrame.prototype.onmessage = function (data) {
     var message = JSON.parse(data);
     console.log('server received:', data);
     message = this['on' + message.type](message);
-    if (message['request-id']) {
+    if (message) {
         data = JSON.stringify(message);
         console.log('server reply:', data);
         this.ws.send(data);
@@ -268,7 +259,7 @@ var client = new EditorClientFrame(server.url, function (frame) {
     assert.equal(TUTORIAL.charAt(-1), '');
     assert.equal(TUTORIAL.charAt(TUTORIAL.length), '');
     assert.equal(TUTORIAL.notFound, 'x');
-    assert.equal(TUTORIAL.charAt(30000), TUTORIAL.notFound, 'charAt page miss');
+    assert.equal(TUTORIAL.charAt(0), TUTORIAL.notFound, 'charAt page miss');
     TUTORIAL.charAt(0, function (x) {
         assert.equal(x, text.charAt(0), 'charAt callback no cache');
         assert.equal(TUTORIAL.charAt(0), 'E', 'charAtSync within cache');
@@ -299,7 +290,6 @@ var client = new EditorClientFrame(server.url, function (frame) {
         });
     });
     setTimeout(function () {
-        assert.equal(TUTORIAL.lastRequestId, 8);
         server.wss.close();
         if (error) {
             throw error;
