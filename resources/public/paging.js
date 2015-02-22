@@ -137,26 +137,16 @@ var WebSocket = require('ws');
 var Rope = require('./rope').Rope;
 var RopeBuffer = require('./rope').RopeBuffer;
 
-function Buffer(name, remoteBuffer, point, mark) {
-    this.name = name;
+function Buffer(remoteBuffer) {
     this.remoteBuffer = remoteBuffer;
     this.bufferText = new RopeBuffer(remoteBuffer, 0, remoteBuffer.length);
-    this.point = point;
-    this.point = mark;
 }
 
 Buffer.prototype.onpage = function (message) {
     this.remoteBuffer.onpage(message);
 };
 
-function Window(buffer, isMiniBufferWindow, isLiveWindow, left, right, direction) {
-    this.buffer = buffer;
-    this.isMiniBufferWindow = isMiniBufferWindow;
-    this.isLiveWindow = isLiveWindow;
-    this.left = left;
-    this.right = right;
-    this.direction = direction;
-}
+function Window() { return; }
 
 function Frame(url, onopen, options) {
     this.ws = new WebSocket(url);
@@ -182,6 +172,9 @@ Frame.prototype.onmessage = function (data) {
     if (message.scope === 'frame') {
         this[handler](message);
     }
+    if (message.scope === 'window') {
+        this.windows[message.id][handler](message);
+    }
     if (message.scope === 'buffer') {
         this.buffers[message.name][handler](message);
     }
@@ -192,8 +185,7 @@ Frame.prototype.oninit = function (message) {
     this.id = message.id;
     this.buffers = Object.keys(message.buffers).reduce(function (acc, k) {
         var buffer = message.buffers[k];
-        acc[k] = new Buffer(buffer.name, new RemoteBuffer(that.ws, k, buffer.size, that.options),
-                            buffer.point, buffer.mark);
+        acc[k] = Object.setPrototypeOf(buffer, new Buffer(new RemoteBuffer(that.ws, k, buffer.size, that.options)));
         return acc;
     }, {});
     this.onlayout(message);
@@ -202,9 +194,7 @@ Frame.prototype.oninit = function (message) {
 
 Frame.prototype.onlayout = function (message) {
     this.windows = message.windows.map(function (w) {
-        return new Window(w.buffer, w.isMiniBufferWindow,
-                          w.isLiveWindow, w.left, w.right, w.direction);
-
+        return Object.setPrototypeOf(w, new Window());
     });
     this.selectedWindow = message['selected-window'];
     this.rootWindow = message['root-window'];
