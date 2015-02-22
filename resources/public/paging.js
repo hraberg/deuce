@@ -202,7 +202,8 @@ Frame.prototype.onlayout = function (message) {
                           w.isLiveWindow, w.left, w.right, w.direction);
 
     });
-    this.selectedWindow = this.windows[message['selected-window']];
+    this.selectedWindow = message['selected-window'];
+    this.rootWindow = message['root-window'];
 };
 
 // server
@@ -223,6 +224,7 @@ function RemoteFrame(ws, id, editor) {
     this.windows = [new RemoteWindow('*scratch*'),
                     new RemoteWindow(' *Minibuf-0*', true)];
     this.selectedWindow = 0;
+    this.rootWindow = 0;
     ws.on('message', this.onmessage.bind(this))
         .on('close', this.onclose.bind(this))
         .on('error', this.onerror.bind(this));
@@ -275,7 +277,8 @@ EditorServer.prototype.onconnection = function (ws) {
         }, {}),
         data = JSON.stringify({type: 'init', id: id, scope: 'frame',
                                buffers: bufferMeta, windows: frame.windows,
-                               'selected-window': frame.selectedWindow});
+                               'selected-window': frame.selectedWindow,
+                               'root-window': frame.rootWindow});
     console.log('server frame connection:', data);
     ws.send(data);
     this.frames[id] = frame;
@@ -300,7 +303,8 @@ var client = new Frame(server.url, function (frame) {
     var buffers = frame.buffers, TUTORIAL = buffers.TUTORIAL.buffer, error, callbacksCalled = 0;
     assert.equal(frame.id, 0);
     assert.equal(frame.windows.length, 2);
-    assert.equal(frame.selectedWindow, frame.windows[0]);
+    assert.equal(frame.selectedWindow, 0);
+    assert.equal(frame.rootWindow, 0);
     assert.deepEqual(Object.keys(buffers), ['TUTORIAL', '*scratch*', ' *Minibuf-0*']);
     assert.equal(TUTORIAL.charAt(-1), '');
     assert.equal(TUTORIAL.charAt(TUTORIAL.length), '');
