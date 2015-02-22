@@ -83,7 +83,7 @@ RemoteBuffer.prototype.pageAt = function (index, callback) {
         } else if (callback) {
             requests.push(callback);
         }
-    } else if (page && callback) {
+    } else if (callback) {
         callback();
     }
     return page || this.missingPage;
@@ -242,7 +242,7 @@ var assert = require('assert'),
 var text = require('fs').readFileSync(path.join(__dirname, '/../etc/tutorials/TUTORIAL'), {encoding: 'utf8'});
 var server = new EditorServer({TUTORIAL: text}, {port: 8080, path: '/ws'});
 var client = new EditorClientFrame(server.url, function (frame) {
-    var buffers = frame.buffers, TUTORIAL = buffers.TUTORIAL, error;
+    var buffers = frame.buffers, TUTORIAL = buffers.TUTORIAL, error, callbacksCalled = 0;
     assert.equal(frame.id, 0);
     assert.deepEqual(Object.keys(buffers), ['TUTORIAL']);
     assert.equal(TUTORIAL.charAt(-1), '');
@@ -250,18 +250,22 @@ var client = new EditorClientFrame(server.url, function (frame) {
     assert.equal(TUTORIAL.notFound, 'x');
     assert.equal(TUTORIAL.charAt(0), TUTORIAL.notFound, 'charAt page miss');
     TUTORIAL.charAt(0, function (x) {
+        callbacksCalled += 1;
         assert.equal(x, text.charAt(0), 'charAt callback no cache');
         assert.equal(TUTORIAL.charAt(0), 'E', 'charAtSync within cache');
         TUTORIAL.charAt(0, function (y) {
+            callbacksCalled += 1;
             assert.equal(y, text.charAt(0), 'charAtSync with cache using callback');
         });
         TUTORIAL.charAtAsync(10000).then(function (y) {
+            callbacksCalled += 1;
             assert.equal(y, text.charAt(10000), 'charAtAsync no cache');
         }).catch(function (e) {
             error = e;
         });
     });
     TUTORIAL.slice(0, 256, function (x) {
+        callbacksCalled += 1;
         assert.equal(x, text.slice(0, 256), 'slice callback, partial cache');
         assert.equal(TUTORIAL.slice(64, 128), text.slice(64, 128), 'sliceSync within cache');
         assert.equal(TUTORIAL.slice(64, 128 - TUTORIAL.length), text.slice(64, 128 - TUTORIAL.length), 'sliceSync within cache, negative end');
@@ -270,9 +274,11 @@ var client = new EditorClientFrame(server.url, function (frame) {
         assert.equal(TUTORIAL.slice(64, 0), '', 'sliceSync within cache begin larger than end');
         assert.equal(TUTORIAL.slice(64, -TUTORIAL.length), '', 'sliceSync within cache begin larger than negative end');
         TUTORIAL.slice(0, 128, function (y) {
+            callbacksCalled += 1;
             assert.equal(y, text.slice(0, 128), 'sliceSync within cache using callback');
         });
         TUTORIAL.sliceAsync(20000, 20128).then(function (y) {
+            callbacksCalled += 1;
             assert.equal(y, text.slice(20000, 20128), 'sliceAsync no cache');
         }).catch(function (e) {
             error = e;
@@ -280,6 +286,7 @@ var client = new EditorClientFrame(server.url, function (frame) {
     });
     setTimeout(function () {
         server.wss.close();
+        assert.equal(callbacksCalled, 6);
         if (error) {
             throw error;
         }
