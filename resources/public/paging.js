@@ -137,16 +137,16 @@ var WebSocket = require('ws');
 var Rope = require('./rope').Rope;
 var RopeBuffer = require('./rope').RopeBuffer;
 
-function Buffer(name, buffer, point, mark) {
+function Buffer(name, remoteBuffer, point, mark) {
     this.name = name;
-    this.buffer = buffer;
-    this.bufferText = new RopeBuffer(buffer, 0, buffer.length);
+    this.remoteBuffer = remoteBuffer;
+    this.bufferText = new RopeBuffer(remoteBuffer, 0, remoteBuffer.length);
     this.point = point;
     this.point = mark;
 }
 
 Buffer.prototype.onpage = function (message) {
-    this.buffer.onpage(message);
+    this.remoteBuffer.onpage(message);
 };
 
 function Window(buffer, isMiniBufferWindow, isLiveWindow, left, right, direction) {
@@ -317,7 +317,7 @@ var server = new EditorServer([new ServerBuffer('TUTORIAL', tutorial),
                                new ServerBuffer('*scratch*', scratch),
                                new ServerBuffer(' *Minibuf-0*', Rope.EMPTY)], {port: 8080, path: '/ws'});
 var client = new Frame(server.url, function (frame) {
-    var buffers = frame.buffers, TUTORIAL = buffers.TUTORIAL.buffer, error, callbacksCalled = 0;
+    var buffers = frame.buffers, TUTORIAL = buffers.TUTORIAL.remoteBuffer, error, callbacksCalled = 0;
     assert.equal(frame.id, 0);
     assert.equal(frame.windows.length, 2);
     assert.equal(frame.selectedWindow, 0);
