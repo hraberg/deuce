@@ -152,9 +152,7 @@ BufferText.prototype.deleteRegion = function (start, end) {
 
 function Buffer(remoteBuffer, text) {
     this.remoteBuffer = remoteBuffer;
-    this.text = text;
-    this._revisions = [this.text];
-    this._currentRevision = this._revisions.length - 1;
+    this.newRevision(text);
 }
 
 Buffer.prototype.onpage = function (message) {
@@ -172,22 +170,22 @@ Buffer.prototype.checkConditions = function (message, what) {
 
 Buffer.prototype.newRevision = function (text) {
     this.text = text;
-    this.zv = text.beg.length;
-    this._revisions = this._revisions.slice(0, this._currentRevision);
+    this.size = text.beg.length;
+    this._revisions = (this._revisions || []).slice(0, this._currentRevision);
     this._revisions.push(this.text);
     this._currentRevision = this._revisions.length + 1;
 };
 
 Buffer.prototype.ongotoChar = function (message) {
-    this.pt = message.pt;
+    this.pt = message.position;
 };
 
 Buffer.prototype.oninsert = function (message) {
-    this.newRevision(this.text.insert(this.pt, message.args));
+    this.newRevision(this.text.insert(this.pt - 1, message.args));
 };
 
 Buffer.prototype.ondeleteRegion = function (message) {
-    this.newRevision(this.text.deleteRegion(message, message));
+    this.newRevision(this.text.deleteRegion(message.start - 1, message.end - 1));
 };
 
 Buffer.prototype.onundo = function () {
@@ -253,7 +251,7 @@ Frame.prototype.oninit = function (message) {
         var buffer = message.buffers[k],
             remoteBuffer = new RemoteBuffer(that, k, buffer.size, that.options);
         Object.setPrototypeOf(buffer.text, new BufferText(new RopeBuffer(remoteBuffer, 0, remoteBuffer.length)));
-        acc[k] = Object.setPrototypeOf(buffer, new Buffer(remoteBuffer));
+        acc[k] = Object.setPrototypeOf(buffer, new Buffer(remoteBuffer, buffer.text));
         return acc;
     }, {});
     this.onlayout(message);
@@ -370,13 +368,11 @@ ServerBufferText.prototype.deleteRegion = function (start, end) {
 
 function ServerBuffer(name, text, pt, begv, zv, mark) {
     this.name = name;
-    this.text = new ServerBufferText(text);
-    this.pt = pt || 0;
-    this.begv = begv || 0;
-    this.zv = zv || this.text.beg.length;
-    this.mark = mark || 0;
-    this._revisions = [this.text];
-    this._currentRevision = this._revisions.length - 1;
+    this.newRevision(new ServerBufferText(text));
+    this.begv = begv || 1;
+    this.zv = zv || this.zv;
+    this.pt = pt || 1;
+    this.mark = mark;
 }
 
 ServerBuffer.prototype.limitToRegion = function (position) {
@@ -384,37 +380,42 @@ ServerBuffer.prototype.limitToRegion = function (position) {
 };
 
 ServerBuffer.prototype.newRevision = function (text) {
+    var isNarrowed = this.text && this.text.beg.length + 1 !== this.zv;
     this.text = text;
-    this.zv = text.beg.length;
-    this._revisions = this._revisions.slice(0, this._currentRevision);
+    this.zv = isNarrowed ? this.zv : this.text.beg.length + 1;
+    this.size = this.text.beg.length;
+    this._revisions = (this._revisions || []).slice(0, this._currentRevision);
     this._revisions.push(this.text);
-    this._currentRevision = this._revisions.length + 1;
+    this._currentRevision = this._revisions.length - 1;
 };
 
 ServerBuffer.prototype.gotoChar = function (position) {
     var previousPt = this.pt;
     this.pt = this.limitToRegion(position);
-    this.server.broadcast({type: 'gotoChar', scope: 'buffer', name: this.name, pt: this.pt,
+    this.server.broadcast({type: 'gotoChar', scope: 'buffer', name: this.name,
                            pre: {pt: previousPt},
+                           position: position,
                            post: {pt: this.pt}});
+    return this.pt;
 };
 
 ServerBuffer.prototype.insert = function (args) {
     var previousPt = this.pt;
     this.newRevision(this.text.insert(previousPt, args));
-    this.server.broadcast({type: 'insert', scope: 'buffer', name: this.name, args: args,
+    this.server.broadcast({type: 'insert', scope: 'buffer', name: this.name,
                            pre: {pt: previousPt},
-                           post: {_currentRevision: this._currentRevision, zv: this.zv}});
+                           args: args,
+                           post: {_currentRevision: this._currentRevision, size: this.size}});
     this.gotoChar(previousPt + args.length);
 };
 
 ServerBuffer.prototype.deleteRegion = function (start, end) {
     start = this.limitToRegion(start || this.pt);
-    end = this.limitToRegion(end || this.pt);
-    this.newRevision(this.text.deleteRegion(start, end));
+    end = this.limitToRegion(end || this.mark || this.pt);
+    this.newRevision(this.text.deleteRegion(start - 1, end - 1));
     this.server.broadcast({type: 'deleteRegion', scope: 'buffer', name: this.name,
                            start: start, end: end,
-                           post: {_currentRevision: this._currentRevision, zv: this.zv}});
+                           post: {_currentRevision: this._currentRevision, size: this.size}});
 };
 
 ServerBuffer.prototype.undo = function (arg) {
@@ -424,7 +425,7 @@ ServerBuffer.prototype.undo = function (arg) {
         this.text = this._revisions[this._currentRevision];
         this.zv = this.text.beg.length;
         this.server.broadcast({type: 'undo', scope: 'buffer', name: this.name,
-                               post: {_currentRevision: this._currentRevision, zv: this.zv}});
+                               post: {_currentRevision: this._currentRevision, size: this.size}});
         this.undo(arg - 1);
     }
 };
@@ -436,7 +437,7 @@ ServerBuffer.prototype.redo = function (arg) {
         this.text = this._revisions[this._currentRevision];
         this.zv = this.text.beg.length;
         this.server.broadcast({type: 'redo', scope: 'buffer', name: this.name,
-                               post: {_currentRevision: this._currentRevision, zv: this.zv}});
+                               post: {_currentRevision: this._currentRevision, size: this.size}});
         this.redo(arg - 1);
     }
 };
@@ -470,7 +471,7 @@ EditorServer.prototype.onconnection = function (ws) {
         frame = new ServerFrame(ws, name, this),
         bufferMeta = Object.keys(buffers).reduce(function (acc, k) {
             var buffer = buffers[k];
-            acc[k] = {name: buffer.name, size: buffer.text.beg.length,
+            acc[k] = {name: buffer.name, size: buffer.size,
                       text: {modiff: buffer.text.modiff, saveModiff: buffer.text.saveModiff, markers: buffer.text.markers},
                       begv: buffer.begv, zv: buffer.zv,
                       pt: buffer.pt, mark: buffer.mark};
@@ -513,7 +514,7 @@ var client = new Frame(server.url, function (frame) {
     assert.equal(frame.selectedWindow, frame.windows[1]);
     assert.equal(frame.rootWindow, frame.windows[1]);
     assert.deepEqual(Object.keys(buffers), ['TUTORIAL', '*scratch*', ' *Minibuf-0*']);
-    assert.equal(buffers.TUTORIAL.pt, 0);
+    assert.equal(buffers.TUTORIAL.pt, 1);
     assert.equal(TUTORIAL.charAt(-1), '');
     assert.equal(TUTORIAL.charAt(TUTORIAL.length), '');
     assert.equal(TUTORIAL.notFound, 'x');
