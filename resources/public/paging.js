@@ -155,10 +155,6 @@ function Buffer(remoteBuffer, text) {
     this.newRevision(text);
 }
 
-Buffer.prototype.onpage = function (message) {
-    this.remoteBuffer.onpage(message);
-};
-
 Buffer.prototype.checkConditions = function (message, what) {
     var that = this;
     (message[what] || []).forEach(function (p) {
@@ -173,11 +169,21 @@ Buffer.prototype.newRevision = function (text) {
     this.size = text.beg.length;
     this._revisions = (this._revisions || []).slice(0, this._currentRevision);
     this._revisions.push(this.text);
-    this._currentRevision = this._revisions.length + 1;
+    this._currentRevision = this._revisions.length - 1;
 };
 
 Buffer.prototype.ongotoChar = function (message) {
     this.pt = message.position;
+};
+
+Buffer.prototype.onnarrowToRegion = function (message) {
+    this.begv = message.begv;
+    this.zv = message.zv;
+};
+
+Buffer.prototype.onwiden = function () {
+    this.begv = null;
+    this.zv = null;
 };
 
 Buffer.prototype.oninsert = function (message) {
@@ -198,6 +204,10 @@ Buffer.prototype.onredo = function () {
     this._currentRevision = this._currentRevision + 1;
     this.text = this._revisions[this._currentRevision];
     this.size = this.text.beg.length;
+};
+
+Buffer.prototype.onpage = function (message) {
+    this.remoteBuffer.onpage(message);
 };
 
 function Window() { return; }
@@ -369,24 +379,45 @@ ServerBufferText.prototype.deleteRegion = function (start, end) {
 function ServerBuffer(name, text, pt, begv, zv, mark) {
     this.name = name;
     this.newRevision(new ServerBufferText(text));
-    this.begv = begv || 1;
-    this.zv = zv || this.zv;
+    this.begv = begv || null;
+    this.zv = zv || null;
     this.pt = pt || 1;
-    this.mark = mark;
+    this.mark = mark || null;
 }
 
 ServerBuffer.prototype.limitToRegion = function (position) {
-    return Math.max(this.begv, Math.min(position, this.zv));
+    return Math.max(this.begv || 1, Math.min(position, this.zv || this.size));
 };
 
 ServerBuffer.prototype.newRevision = function (text) {
-    var isNarrowed = this.text && this.text.beg.length + 1 !== this.zv;
     this.text = text;
-    this.zv = isNarrowed ? this.zv : this.text.beg.length + 1;
     this.size = this.text.beg.length;
     this._revisions = (this._revisions || []).slice(0, this._currentRevision);
     this._revisions.push(this.text);
     this._currentRevision = this._revisions.length - 1;
+};
+
+ServerBuffer.prototype.narrowToRegion = function (start, end) {
+    var previousBegv = this.begv, previousZv = this.zv;
+    start = this.limitToRegion(start || this.pt);
+    end = this.limitToRegion(end || this.mark || this.pt);
+    this.begv = start;
+    this.zv = end;
+    this.server.broadcast({type: 'narrowToRegion', scope: 'buffer', name: this.name,
+                           pre: {begv: previousBegv, zv: previousZv},
+                           start: start, end: end,
+                           post: {begv: this.begv, zv: this.zv}});
+    return this.pt;
+};
+
+ServerBuffer.prototype.widen = function () {
+    var previousBegv = this.begv, previousZv = this.zv;
+    this.begv = null;
+    this.zv = null;
+    this.server.broadcast({type: 'widen', scope: 'buffer', name: this.name,
+                           pre: {begv: previousBegv, zv: previousZv},
+                           post: {begv: this.begv, zv: this.zv}});
+    return this.pt;
 };
 
 ServerBuffer.prototype.gotoChar = function (position) {
@@ -423,7 +454,7 @@ ServerBuffer.prototype.undo = function (arg) {
     if (arg > 0 && this._currentRevision > 0) {
         this._currentRevision = this._currentRevision - 1;
         this.text = this._revisions[this._currentRevision];
-        this.zv = this.text.beg.length;
+        this.size = this.text.beg.length;
         this.server.broadcast({type: 'undo', scope: 'buffer', name: this.name,
                                post: {_currentRevision: this._currentRevision, size: this.size}});
         this.undo(arg - 1);
@@ -435,7 +466,7 @@ ServerBuffer.prototype.redo = function (arg) {
     if (arg > 0 && this._revisions.length - 1 > this._currentRevision) {
         this._currentRevision = this._currentRevision + 1;
         this.text = this._revisions[this._currentRevision];
-        this.zv = this.text.beg.length;
+        this.size = this.text.beg.length;
         this.server.broadcast({type: 'redo', scope: 'buffer', name: this.name,
                                post: {_currentRevision: this._currentRevision, size: this.size}});
         this.redo(arg - 1);
@@ -515,6 +546,11 @@ var client = new Frame(server.url, function (frame) {
     assert.equal(frame.rootWindow, frame.windows[1]);
     assert.deepEqual(Object.keys(buffers), ['TUTORIAL', '*scratch*', ' *Minibuf-0*']);
     assert.equal(buffers.TUTORIAL.pt, 1);
+    assert.equal(buffers.TUTORIAL.mark, null);
+    assert.equal(buffers.TUTORIAL.begv, null);
+    assert.equal(buffers.TUTORIAL.zv, null);
+    assert.equal(buffers.TUTORIAL.size, tutorial.length);
+    assert.equal(buffers.TUTORIAL._currentRevision, 0);
     assert.equal(TUTORIAL.charAt(-1), '');
     assert.equal(TUTORIAL.charAt(TUTORIAL.length), '');
     assert.equal(TUTORIAL.notFound, 'x');
