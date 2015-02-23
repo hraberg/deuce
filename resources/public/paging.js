@@ -42,8 +42,8 @@ LRU.prototype.get = function (key, orElse) {
 
 // client
 
-function RemoteBuffer(ws, name, length, options) {
-    this.ws = ws;
+function RemoteBuffer(frame, name, length, options) {
+    this.frame = frame;
     this.name = name;
     this.length = length;
     this.cache = new LRU(options.cacheSize || 10);
@@ -62,12 +62,6 @@ RemoteBuffer.prototype.onpage = function (message) {
     delete this.pageRequests[message.page];
 };
 
-RemoteBuffer.prototype.request = function (message) {
-    var data = JSON.stringify(message);
-    console.log('client %s request:', message.scope, data);
-    this.ws.send(data);
-};
-
 RemoteBuffer.prototype.pageIndex = function (index) {
     return Math.floor(index / this.pageSize);
 };
@@ -79,9 +73,8 @@ RemoteBuffer.prototype.pageAt = function (index, callback) {
     if (!page) {
         if (!requests) {
             this.pageRequests[pageIndex] = callback ? [callback] : [];
-            this.request({type: 'page', name: this.name, scope: 'buffer',
-                          page: pageIndex, pageSize: this.pageSize});
-
+            this.frame.send({type: 'page', name: this.name, scope: 'buffer',
+                             page: pageIndex, pageSize: this.pageSize});
         } else if (callback) {
             requests.push(callback);
         }
@@ -161,6 +154,12 @@ function Frame(url, onopen, options) {
         .on('error', this.onerror.bind(this));
 }
 
+Frame.prototype.send = function (message, what) {
+    var data = JSON.stringify(message);
+    console.log('client %s %s:', message.scope, what || 'request', data);
+    this.ws.send(data);
+};
+
 Frame.prototype.onerror = function (e) {
     console.log('client frame error:', this.name, e);
 };
@@ -189,7 +188,7 @@ Frame.prototype.oninit = function (message) {
     this.name = message.name;
     this.buffers = Object.keys(message.buffers).reduce(function (acc, k) {
         var buffer = message.buffers[k];
-        acc[k] = Object.setPrototypeOf(buffer, new Buffer(new RemoteBuffer(that.ws, k, buffer.size, that.options)));
+        acc[k] = Object.setPrototypeOf(buffer, new Buffer(new RemoteBuffer(that, k, buffer.size, that.options)));
         return acc;
     }, {});
     this.onlayout(message);
@@ -265,20 +264,23 @@ ServerFrame.prototype.onclose = function () {
     console.log('server frame closed:', this.name);
 };
 
+ServerFrame.prototype.send = function (message, what) {
+    if (message) {
+        var data = JSON.stringify(message);
+        console.log('server %s %s:', message.scope, what || 'reply', data);
+        this.ws.send(data);
+    }
+};
+
 ServerFrame.prototype.onmessage = function (data) {
     var message = JSON.parse(data),
         handler = 'on' + message.type;
     console.log('server %s received:', message.scope, data);
     if (message.scope === 'frame') {
-        message = this[handler](message);
+        this.send(this[handler](message));
     }
     if (message.scope === 'buffer') {
-        message = this.editor.buffers[message.name][handler](message);
-    }
-    if (message) {
-        data = JSON.stringify(message);
-        console.log('server %s reply:', message.scope, data);
-        this.ws.send(data);
+        this.send(this.editor.buffers[message.name][handler](message));
     }
 };
 
@@ -334,10 +336,8 @@ EditorServer.prototype.onconnection = function (ws) {
                    buffers: bufferMeta,
                    rootWindow: frame.rootWindow,
                    minibufferWindow: frame.minibufferWindow,
-                   selectedWindow: frame.selectedWindow},
-        data = JSON.stringify(message);
-    console.log('server %s connection:', message.scope, data);
-    ws.send(data);
+                   selectedWindow: frame.selectedWindow};
+    frame.send(message, 'connection');
     this.frames[name] = frame;
 };
 
@@ -403,10 +403,10 @@ var client = new Frame(server.url, function (frame) {
     });
     setTimeout(function () {
         server.wss.close();
-        assert.equal(callbacksCalled, 6);
         if (error) {
             throw error;
         }
+        assert.equal(callbacksCalled, 6);
     }, 100);
 }, {pageSize: 128});
 assert(client.ws.url, server.url);
