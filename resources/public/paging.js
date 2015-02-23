@@ -294,6 +294,16 @@ function ServerBufferText(beg, modiff, saveModiff, markers) {
     this.markers = markers || [];
 }
 
+ServerBufferText.prototype.insert = function (pt, args) {
+    return new ServerBufferText(this.beg.insert(pt, args), this.modiff + 1,
+                                this.saveModiff, this.markers);
+};
+
+ServerBufferText.prototype.deleteRegion = function (start, end) {
+    return new ServerBufferText(this.beg.del(start, end), this.modiff + 1,
+                                this.saveModiff, this.markers);
+};
+
 function ServerBuffer(name, text, pt, begv, zv, mark) {
     this.name = name;
     this.text = new ServerBufferText(text);
@@ -315,28 +325,26 @@ ServerBuffer.prototype.gotoChar = function (position) {
     this.server.broadcast({type: 'gotoChar', scope: 'buffer', name: this.name, pt: this.pt, before: {pt: previousPt}});
 };
 
-ServerBuffer.prototype.insert = function (args) {
-    var pt = this.pt;
-    this.text = new ServerBufferText(this.text.beg.insert(pt, args), this.text.modiff + 1,
-                                     this.text.saveModiff, this.text.markers);
-    this.zv = this.text.beg.length;
+ServerBuffer.prototype.newRevision = function (text) {
+    this.text = text;
+    this.zv = text.beg.length;
     this._revisions = this._revisions.slice(0, this._currentRevision);
     this._revisions.push(this.text);
     this._currentRevision = this._revisions.length + 1;
+};
+
+ServerBuffer.prototype.insert = function (args) {
+    var previousPt = this.pt;
+    this.newRevision(this.text.insert(previousPt, args));
     this.server.broadcast({type: 'insert', scope: 'buffer', name: this.name, args: args,
-                           before: {pt: pt}, after: {modiff: this.text.modiff, zv: this.zv}});
-    this.gotoChar(pt + args.length);
+                           before: {pt: previousPt}, after: {modiff: this.text.modiff, zv: this.zv}});
+    this.gotoChar(previousPt + args.length);
 };
 
 ServerBuffer.prototype.deleteRegion = function (start, end) {
     start = this.limitToRegion(start || this.pt);
     end = this.limitToRegion(end || this.pt);
-    this.text = new ServerBufferText(this.text.beg.del(start, end), this.text.modiff + 1,
-                                     this.text.saveModiff, this.text.markers);
-    this.zv = this.text.beg.length;
-    this._revisions = this._revisions.slice(0, this._currentRevision);
-    this._revisions.push(this.text);
-    this._currentRevision = this._revisions.length + 1;
+    this.newRevision(this.text.deleteRegion(start, end));
     this.server.broadcast({type: 'deleteRegion', scope: 'buffer', name: this.name,
                            start: start, end: end,
                            after: {modiff: this.text.modiff, zv: this.zv}});
