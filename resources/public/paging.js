@@ -46,9 +46,9 @@ function RemoteBuffer(ws, name, length, options) {
     this.ws = ws;
     this.name = name;
     this.length = length;
-    this.cache = new LRU(options['cache-size'] || 10);
-    this.notFound = options['not-found'] || 'x';
-    this.pageSize = options['page-size'] || 8 * 1024;
+    this.cache = new LRU(options.cacheSize || 10);
+    this.notFound = options.notFound || 'x';
+    this.pageSize = options.pageSize || 8 * 1024;
     this.pages = Math.round(length / this.pageSize);
     this.pageRequests = {};
     this.missingPage = [].constructor(this.pageSize + 1).join(this.notFound);
@@ -80,7 +80,7 @@ RemoteBuffer.prototype.pageAt = function (index, callback) {
         if (!requests) {
             this.pageRequests[pageIndex] = callback ? [callback] : [];
             this.request({type: 'page', name: this.name, scope: 'buffer',
-                          page: pageIndex, 'page-size': this.pageSize});
+                          page: pageIndex, pageSize: this.pageSize});
 
         } else if (callback) {
             requests.push(callback);
@@ -139,7 +139,7 @@ var RopeBuffer = require('./rope').RopeBuffer;
 
 function Buffer(remoteBuffer) {
     this.remoteBuffer = remoteBuffer;
-    this.bufferText = new RopeBuffer(remoteBuffer, 0, remoteBuffer.length);
+    this.text = new RopeBuffer(remoteBuffer, 0, remoteBuffer.length);
 }
 
 Buffer.prototype.onpage = function (message) {
@@ -158,11 +158,11 @@ function Frame(url, onopen, options) {
 }
 
 Frame.prototype.onerror = function (e) {
-    console.log('client frame error:', this.id, e);
+    console.log('client frame error:', this.name, e);
 };
 
 Frame.prototype.onclose = function () {
-    console.log('client frame closed:', this.id);
+    console.log('client frame closed:', this.name);
 };
 
 Frame.prototype.onmessage = function (data) {
@@ -173,7 +173,7 @@ Frame.prototype.onmessage = function (data) {
         this[handler](message);
     }
     if (message.scope === 'window') {
-        this.windows[message.id][handler](message);
+        this.windows[message.sequenceNumber][handler](message);
     }
     if (message.scope === 'buffer') {
         this.buffers[message.name][handler](message);
@@ -182,7 +182,7 @@ Frame.prototype.onmessage = function (data) {
 
 Frame.prototype.oninit = function (message) {
     var that = this;
-    this.id = message.id;
+    this.name = message.name;
     this.buffers = Object.keys(message.buffers).reduce(function (acc, k) {
         var buffer = message.buffers[k];
         acc[k] = Object.setPrototypeOf(buffer, new Buffer(new RemoteBuffer(that.ws, k, buffer.size, that.options)));
@@ -193,44 +193,75 @@ Frame.prototype.oninit = function (message) {
 };
 
 Frame.prototype.onlayout = function (message) {
-    this.windows = message.windows.map(function (w) {
-        return Object.setPrototypeOf(w, new Window());
-    });
-    this.selectedWindow = message['selected-window'];
-    this.rootWindow = message['root-window'];
+    var windows = {};
+    function toWindow(w) {
+        if (w) {
+            if (windows[w.sequenceNumber]) {
+                return windows[w.sequenceNumber];
+            }
+            var window = Object.setPrototypeOf(w, new Window());
+            window.next = toWindow(window.next);
+            window.prev = toWindow(window.prev);
+            window.hchild = toWindow(window.hchild);
+            window.vchild = toWindow(window.vchild);
+            window.parent = toWindow(window.parent);
+            windows[window.sequenceNumber] = window;
+            return window;
+        }
+    }
+    this.rootWindow = toWindow(message.rootWindow);
+    this.minibufferWindow = toWindow(message.minibufferWindow);
+    this.selectedWindow = toWindow(message.selectedWindow);
+    this.windows = windows;
 };
 
 // server
 
-function ServerWindow(buffer, isMiniBufferWindow, left, right, direction) {
+function ServerWindow(buffer, isMini, next, prev, hchild, vchild, parent, leftCol, topLine,
+                      normalLines, normalCols, start, pointm) {
+    this.sequenceNumber = ServerWindow.nextSequenceNumber();
     this.buffer = buffer;
-    this.isMiniBufferWindow = isMiniBufferWindow || false;
-    this.isLiveWindow = !(left && right);
-    this.left = left;
-    this.right = right;
-    this.direction = direction;
+    this.isMini = isMini || false;
+    this.next = next;
+    this.prev = prev;
+    this.hchild = hchild;
+    this.vchild = vchild;
+    this.parent = parent;
+    this.leftCol = leftCol || 0;
+    this.topLine = topLine || 0;
+    this.normalLines = normalLines;
+    this.normalCols = normalCols;
+    this.start = start || 0;
+    this.pointm = pointm || 0;
 }
 
-function ServerFrame(ws, id, editor) {
+ServerWindow.nextSequenceNumber = (function () {
+    var sequenceNumber = 0;
+    return function () {
+        sequenceNumber += 1;
+        return sequenceNumber;
+    };
+}());
+
+function ServerFrame(ws, name, editor) {
     this.ws = ws;
-    this.id = id;
+    this.name = name;
     this.editor = editor;
-    this.windows = [new ServerWindow('*scratch*'),
-                    new ServerWindow(' *Minibuf-0*', true)];
-    this.selectedWindow = 0;
-    this.rootWindow = 0;
+    this.rootWindow = new ServerWindow('*scratch*');
+    this.minibufferWindow = new ServerWindow(' *Minibuf-0*', true);
+    this.selectedWindow = this.rootWindow;
     ws.on('message', this.onmessage.bind(this))
         .on('close', this.onclose.bind(this))
         .on('error', this.onerror.bind(this));
 }
 
 ServerFrame.prototype.onerror = function (e) {
-    console.log('server frame error:', this.id, e);
+    console.log('server frame error:', this.name, e);
 };
 
 ServerFrame.prototype.onclose = function () {
-    delete this.editor.frames[this.id];
-    console.log('server frame closed:', this.id);
+    delete this.editor.frames[this.name];
+    console.log('server frame closed:', this.name);
 };
 
 ServerFrame.prototype.onmessage = function (data) {
@@ -245,16 +276,16 @@ ServerFrame.prototype.onmessage = function (data) {
 };
 
 ServerFrame.prototype.onpage = function (message) {
-    var pageSize = message['page-size'],
+    var pageSize = message.pageSize,
         beginSlice = message.page * pageSize,
-        bufferText = this.editor.buffers[message.name].bufferText;
-    message.content = bufferText.slice(beginSlice, beginSlice + pageSize).toString();
+        text = this.editor.buffers[message.name].text;
+    message.content = text.slice(beginSlice, beginSlice + pageSize).toString();
     return message;
 };
 
-function ServerBuffer(name, bufferText, point, mark) {
+function ServerBuffer(name, text, point, mark) {
     this.name = name;
-    this.bufferText = bufferText;
+    this.text = text;
     this.point = point || 0;
     this.mark = mark || 0;
 }
@@ -274,21 +305,22 @@ function EditorServer(buffers, options) {
 }
 
 EditorServer.prototype.onconnection = function (ws) {
-    var id = this.frames.length, buffers = this.buffers,
-        frame = new ServerFrame(ws, id, this),
+    var name = this.frames.length, buffers = this.buffers,
+        frame = new ServerFrame(ws, name, this),
         bufferMeta = Object.keys(buffers).reduce(function (acc, k) {
             var buffer = buffers[k];
-            acc[k] = {name: buffer.name, size: buffer.bufferText.length,
+            acc[k] = {name: buffer.name, size: buffer.text.length,
                       point: buffer.point, mark: buffer.mark};
             return acc;
         }, {}),
-        data = JSON.stringify({type: 'init', id: id, scope: 'frame',
-                               buffers: bufferMeta, windows: frame.windows,
-                               'selected-window': frame.selectedWindow,
-                               'root-window': frame.rootWindow});
+        data = JSON.stringify({type: 'init', name: name, scope: 'frame',
+                               buffers: bufferMeta,
+                               rootWindow: frame.rootWindow,
+                               minibufferWindow: frame.minibufferWindow,
+                               selectedWindow: frame.selectedWindow});
     console.log('server frame connection:', data);
     ws.send(data);
-    this.frames[id] = frame;
+    this.frames[name] = frame;
 };
 
 EditorServer.prototype.onerror = function (e) {
@@ -298,20 +330,18 @@ EditorServer.prototype.onerror = function (e) {
 var assert = require('assert'),
     path = require('path');
 
-var text = require('fs').readFileSync(path.join(__dirname, '/../etc/tutorials/TUTORIAL'), {encoding: 'utf8'});
-var tutorial = Rope.toRope(text);
+var tutorial = require('fs').readFileSync(path.join(__dirname, '/../etc/tutorials/TUTORIAL'), {encoding: 'utf8'});
+var scratch = ';; This buffer is for notes you don\'t want to save, and for Lisp evaluation.\n;; If you want to create a file, visit that file with C-x C-f,\n\n;; then enter the text in that file\'s own buffer.\n';
 
-var scratch = Rope.toRope(';; This buffer is for notes you don\'t want to save, and for Lisp evaluation.\n;; If you want to create a file, visit that file with C-x C-f,\n\n;; then enter the text in that file\'s own buffer.\n');
-
-var server = new EditorServer([new ServerBuffer('TUTORIAL', tutorial),
-                               new ServerBuffer('*scratch*', scratch),
+var server = new EditorServer([new ServerBuffer('TUTORIAL', Rope.toRope(tutorial)),
+                               new ServerBuffer('*scratch*', Rope.toRope(scratch)),
                                new ServerBuffer(' *Minibuf-0*', Rope.EMPTY)], {port: 8080, path: '/ws'});
 var client = new Frame(server.url, function (frame) {
     var buffers = frame.buffers, TUTORIAL = buffers.TUTORIAL.remoteBuffer, error, callbacksCalled = 0;
-    assert.equal(frame.id, 0);
-    assert.equal(frame.windows.length, 2);
-    assert.equal(frame.selectedWindow, 0);
-    assert.equal(frame.rootWindow, 0);
+    assert.equal(frame.name, 0);
+    assert.equal(Object.keys(frame.windows).length, 2);
+    assert.equal(frame.selectedWindow, frame.windows[1]);
+    assert.equal(frame.rootWindow, frame.windows[1]);
     assert.deepEqual(Object.keys(buffers), ['TUTORIAL', '*scratch*', ' *Minibuf-0*']);
     assert.equal(buffers.TUTORIAL.point, 0);
     assert.equal(TUTORIAL.charAt(-1), '');
@@ -320,35 +350,35 @@ var client = new Frame(server.url, function (frame) {
     assert.equal(TUTORIAL.charAt(0), TUTORIAL.notFound, 'charAt page miss');
     TUTORIAL.charAt(0, function (x) {
         callbacksCalled += 1;
-        assert.equal(x, text.charAt(0), 'charAt callback no cache');
+        assert.equal(x, tutorial.charAt(0), 'charAt callback no cache');
         assert.equal(TUTORIAL.charAt(0), 'E', 'charAtSync within cache');
         TUTORIAL.charAt(0, function (y) {
             callbacksCalled += 1;
-            assert.equal(y, text.charAt(0), 'charAtSync with cache using callback');
+            assert.equal(y, tutorial.charAt(0), 'charAtSync with cache using callback');
         });
         TUTORIAL.charAtAsync(10000).then(function (y) {
             callbacksCalled += 1;
-            assert.equal(y, text.charAt(10000), 'charAtAsync no cache');
+            assert.equal(y, tutorial.charAt(10000), 'charAtAsync no cache');
         }).catch(function (e) {
             error = e;
         });
     });
     TUTORIAL.slice(0, 256, function (x) {
         callbacksCalled += 1;
-        assert.equal(x, text.slice(0, 256), 'slice callback, partial cache');
-        assert.equal(TUTORIAL.slice(64, 128), text.slice(64, 128), 'sliceSync within cache');
-        assert.equal(TUTORIAL.slice(64, 128 - TUTORIAL.length), text.slice(64, 128 - TUTORIAL.length), 'sliceSync within cache, negative end');
+        assert.equal(x, tutorial.slice(0, 256), 'slice callback, partial cache');
+        assert.equal(TUTORIAL.slice(64, 128), tutorial.slice(64, 128), 'sliceSync within cache');
+        assert.equal(TUTORIAL.slice(64, 128 - TUTORIAL.length), tutorial.slice(64, 128 - TUTORIAL.length), 'sliceSync within cache, negative end');
         assert.equal(TUTORIAL.slice(0, 0), '', 'sliceSync within cache empty');
         assert.equal(TUTORIAL.slice(-1, -1), '', 'sliceSync within cache both negative');
         assert.equal(TUTORIAL.slice(64, 0), '', 'sliceSync within cache begin larger than end');
         assert.equal(TUTORIAL.slice(64, -TUTORIAL.length), '', 'sliceSync within cache begin larger than negative end');
         TUTORIAL.slice(0, 128, function (y) {
             callbacksCalled += 1;
-            assert.equal(y, text.slice(0, 128), 'sliceSync within cache using callback');
+            assert.equal(y, tutorial.slice(0, 128), 'sliceSync within cache using callback');
         });
         TUTORIAL.sliceAsync(20000, 20128).then(function (y) {
             callbacksCalled += 1;
-            assert.equal(y, text.slice(20000, 20128), 'sliceAsync no cache');
+            assert.equal(y, tutorial.slice(20000, 20128), 'sliceAsync no cache');
         }).catch(function (e) {
             error = e;
         });
@@ -360,7 +390,7 @@ var client = new Frame(server.url, function (frame) {
             throw error;
         }
     }, 100);
-}, {'page-size': 128});
+}, {pageSize: 128});
 assert(client.ws.url, server.url);
 
 var lru = new LRU(3);
