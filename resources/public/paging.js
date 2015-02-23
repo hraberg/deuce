@@ -156,7 +156,7 @@ function Buffer(remoteBuffer, text) {
 }
 
 Buffer.prototype.checkConditions = function (message, what) {
-    var that = this, conditions = message[what] || [];
+    var that = this, conditions = message[what] || {};
     Object.keys(conditions).forEach(function (k) {
         if (conditions[k] !== that[k]) {
             throw new Error(what + '-condition not met: ' + k + ' was ' + that[k] + ' expected ' + conditions[k]);
