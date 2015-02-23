@@ -3,6 +3,7 @@
 /*jshint node: true */
 /*eslint-env node */
 /*eslint quotes: [2, "single"] */
+/*eslint-disable no-underscore-dangle */
 
 'use strict';
 
@@ -134,9 +135,9 @@ function BufferText(beg) {
     this.beg = beg;
 }
 
-function Buffer(remoteBuffer) {
+function Buffer(remoteBuffer, text) {
     this.remoteBuffer = remoteBuffer;
-    this.text = new BufferText(new RopeBuffer(remoteBuffer, 0, remoteBuffer.length));
+    this.text = text;
 }
 
 Buffer.prototype.onpage = function (message) {
@@ -187,8 +188,10 @@ Frame.prototype.oninit = function (message) {
     var that = this;
     this.name = message.name;
     this.buffers = Object.keys(message.buffers).reduce(function (acc, k) {
-        var buffer = message.buffers[k];
-        acc[k] = Object.setPrototypeOf(buffer, new Buffer(new RemoteBuffer(that, k, buffer.size, that.options)));
+        var buffer = message.buffers[k],
+            remoteBuffer = new RemoteBuffer(that, k, buffer.size, that.options);
+        Object.setPrototypeOf(buffer.text, new BufferText(new RopeBuffer(remoteBuffer, 0, remoteBuffer.length)));
+        acc[k] = Object.setPrototypeOf(buffer, new Buffer(remoteBuffer));
         return acc;
     }, {});
     this.onlayout(message);
@@ -298,12 +301,76 @@ function ServerBuffer(name, text, pt, begv, zv, mark) {
     this.begv = begv || 0;
     this.zv = zv || this.text.beg.length;
     this.mark = mark || 0;
+    this._revisions = [this.text];
+    this._currentRevision = this._revisions.length - 1;
 }
+
+ServerBuffer.prototype.limitToRegion = function (position) {
+    return Math.max(this.begv, Math.min(position, this.zv));
+};
+
+ServerBuffer.prototype.gotoChar = function (position) {
+    var previousPt = this.pt;
+    this.pt = this.limitToRegion(position);
+    this.server.broadcast({type: 'gotoChar', scope: 'buffer', name: this.name, pt: this.pt, before: {pt: previousPt}});
+};
+
+ServerBuffer.prototype.insert = function (args) {
+    var pt = this.pt;
+    this.text = new ServerBufferText(this.text.beg.insert(pt, args), this.text.modiff + 1,
+                                     this.text.saveModiff, this.text.markers);
+    this.zv = this.text.beg.length;
+    this._revisions = this._revisions.slice(0, this._currentRevision);
+    this._revisions.push(this.text);
+    this._currentRevision = this._revisions.length + 1;
+    this.server.broadcast({type: 'insert', scope: 'buffer', name: this.name, args: args,
+                           before: {pt: pt}, after: {modiff: this.text.modiff, zv: this.zv}});
+    this.gotoChar(pt + args.length);
+};
+
+ServerBuffer.prototype.deleteRegion = function (start, end) {
+    start = this.limitToRegion(start || this.pt);
+    end = this.limitToRegion(end || this.pt);
+    this.text = new ServerBufferText(this.text.beg.del(start, end), this.text.modiff + 1,
+                                     this.text.saveModiff, this.text.markers);
+    this.zv = this.text.beg.length;
+    this._revisions = this._revisions.slice(0, this._currentRevision);
+    this._revisions.push(this.text);
+    this._currentRevision = this._revisions.length + 1;
+    this.server.broadcast({type: 'deleteRegion', scope: 'buffer', name: this.name,
+                           start: start, end: end,
+                           after: {modiff: this.text.modiff, zv: this.zv}});
+};
+
+ServerBuffer.prototype.undo = function (arg) {
+    arg = arg === undefined ? 1 : arg;
+    if (arg > 0 && this._currentRevision > 0) {
+        this._currentRevision = this._currentRevision - 1;
+        this.text = this._revisions[this._currentRevision];
+        this.zv = this.text.beg.length;
+        this.server.broadcast({type: 'undo', scope: 'buffer', name: this.name,
+                               after: {modiff: this.text.modiff, zv: this.zv}});
+        this.undo(arg - 1);
+    }
+};
+
+ServerBuffer.prototype.redo = function (arg) {
+    arg = arg === undefined ? 1 : arg;
+    if (arg > 0 && this._revisions.length - 1 > this._currentRevision) {
+        this._currentRevision = this._currentRevision + 1;
+        this.text = this._revisions[this._currentRevision];
+        this.zv = this.text.beg.length;
+        this.server.broadcast({type: 'redo', scope: 'buffer', name: this.name,
+                               after: {modiff: this.text.modiff, zv: this.zv}});
+        this.redo(arg - 1);
+    }
+};
 
 ServerBuffer.prototype.onpage = function (message) {
     var pageSize = message.pageSize,
-        beginSlice = message.page * pageSize;
-    message.content = this.text.beg.slice(beginSlice, beginSlice + pageSize).toString();
+        beginSlice = message.page * pageSize,
+        savedVersion = this._revisions[this.text.saveModiff];
+    message.content = savedVersion.beg.slice(beginSlice, beginSlice + pageSize).toString();
     return message;
 };
 
@@ -311,8 +378,10 @@ var WebSocketServer = require('ws').Server;
 
 function EditorServer(buffers, options) {
     this.wss = new WebSocketServer(options);
+    var that = this;
     this.buffers = buffers.reduce(function (acc, buffer) {
         acc[buffer.name] = buffer;
+        buffer.server = that;
         return acc;
     }, {});
     this.url = 'ws://' + this.wss.options.host + ':' + this.wss.options.port + (this.wss.options.path || '');
@@ -343,6 +412,14 @@ EditorServer.prototype.onconnection = function (ws) {
 
 EditorServer.prototype.onerror = function (e) {
     console.log('server error:', e);
+};
+
+EditorServer.prototype.broadcast = function (message, what) {
+    var data = JSON.stringify(message);
+    console.log('server %s %s:', message.scope, what || 'broadcast', data);
+    this.frames.forEach(function (frame) {
+        frame.ws.send(data);
+    });
 };
 
 var assert = require('assert'),
