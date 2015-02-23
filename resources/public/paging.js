@@ -143,11 +143,11 @@ BufferText.prototype.nextModificationEvent = function (beg) {
 };
 
 BufferText.prototype.insert = function (pt, args) {
-    return this.nextModificationEvent(this.beg.insert(pt, args));
+    return this.nextModificationEvent(this.beg.insert(pt - 1, args));
 };
 
 BufferText.prototype.deleteRegion = function (start, end) {
-    return this.nextModificationEvent(this.beg.del(start, end));
+    return this.nextModificationEvent(this.beg.del(start - 1, end - 1));
 };
 
 function Buffer(remoteBuffer, text) {
@@ -187,11 +187,11 @@ Buffer.prototype.onwiden = function () {
 };
 
 Buffer.prototype.oninsert = function (message) {
-    this.newRevision(this.text.insert(this.pt - 1, message.args));
+    this.newRevision(this.text.insert(this.pt, message.args));
 };
 
 Buffer.prototype.ondeleteRegion = function (message) {
-    this.newRevision(this.text.deleteRegion(message.start - 1, message.end - 1));
+    this.newRevision(this.text.deleteRegion(message.start, message.end));
 };
 
 Buffer.prototype.onundo = function () {
@@ -369,11 +369,11 @@ ServerBufferText.prototype.nextModificationEvent = function (beg) {
 };
 
 ServerBufferText.prototype.insert = function (pt, args) {
-    return this.nextModificationEvent(this.beg.insert(pt, args));
+    return this.nextModificationEvent(this.beg.insert(pt - 1, args));
 };
 
 ServerBufferText.prototype.deleteRegion = function (start, end) {
-    return this.nextModificationEvent(this.beg.del(start, end));
+    return this.nextModificationEvent(this.beg.del(start - 1, end - 1));
 };
 
 function ServerBuffer(name, text, pt, begv, zv, mark) {
@@ -443,7 +443,7 @@ ServerBuffer.prototype.insert = function (args) {
 ServerBuffer.prototype.deleteRegion = function (start, end) {
     start = this.limitToRegion(start || this.pt);
     end = this.limitToRegion(end || this.mark || this.pt);
-    this.newRevision(this.text.deleteRegion(start - 1, end - 1));
+    this.newRevision(this.text.deleteRegion(start, end));
     this.server.broadcast({type: 'deleteRegion', scope: 'buffer', name: this.name,
                            start: start, end: end,
                            post: {_currentRevision: this._currentRevision, size: this.size}});
