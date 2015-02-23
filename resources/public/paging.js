@@ -387,7 +387,12 @@ ServerBuffer.prototype.newRevision = function (pt, text) {
 };
 
 ServerBuffer.prototype.narrowToRegion = function (start, end) {
-    var previousBegv = this.begv, previousZv = this.zv;
+    var previousBegv = this.begv, previousZv = this.zv, tmp;
+    if (start && end && end < start) {
+        tmp = start;
+        start = end;
+        end = tmp;
+    }
     this.begv = start ? this.limitToRegion(start) : null;
     this.zv = end ? this.limitToRegion(end) : null;
     this.server.broadcast({type: 'narrowToRegion', scope: 'buffer', name: this.name,
@@ -436,6 +441,11 @@ ServerBuffer.prototype.insert = function (args) {
 ServerBuffer.prototype.deleteRegion = function (start, end) {
     start = this.limitToRegion(start || this.pt);
     end = this.limitToRegion(end || this.mark || this.pt);
+    if (end < start) {
+        var tmp = end;
+        end = start;
+        start = tmp;
+    }
     this.newRevision(this.pt, this.text.deleteRegion(start, end));
     this.server.broadcast({type: 'deleteRegion', scope: 'buffer', name: this.name,
                            start: start, end: end,
