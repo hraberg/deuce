@@ -64,7 +64,7 @@ RemoteBuffer.prototype.onpage = function (message) {
 
 RemoteBuffer.prototype.request = function (message) {
     var data = JSON.stringify(message);
-    console.log('client buffer request:', data);
+    console.log('client %s request:', message.scope, data);
     this.ws.send(data);
 };
 
@@ -172,7 +172,7 @@ Frame.prototype.onclose = function () {
 Frame.prototype.onmessage = function (data) {
     var message = JSON.parse(data),
         handler = 'on' + message.type;
-    console.log('client received:', data);
+    console.log('client %s received:', message.scope, data);
     if (message.scope === 'frame') {
         this[handler](message);
     }
@@ -266,22 +266,20 @@ ServerFrame.prototype.onclose = function () {
 };
 
 ServerFrame.prototype.onmessage = function (data) {
-    var message = JSON.parse(data);
-    console.log('server received:', data);
-    message = this['on' + message.type](message);
+    var message = JSON.parse(data),
+        handler = 'on' + message.type;
+    console.log('server %s received:', message.scope, data);
+    if (message.scope === 'frame') {
+        message = this[handler](message);
+    }
+    if (message.scope === 'buffer') {
+        message = this.editor.buffers[message.name][handler](message);
+    }
     if (message) {
         data = JSON.stringify(message);
-        console.log('server reply:', data);
+        console.log('server %s reply:', message.scope, data);
         this.ws.send(data);
     }
-};
-
-ServerFrame.prototype.onpage = function (message) {
-    var pageSize = message.pageSize,
-        beginSlice = message.page * pageSize,
-        text = this.editor.buffers[message.name].text;
-    message.content = text.beg.slice(beginSlice, beginSlice + pageSize).toString();
-    return message;
 };
 
 function ServerBufferText(beg, modiff, saveModiff, markers) {
@@ -299,6 +297,13 @@ function ServerBuffer(name, text, pt, begv, zv, mark) {
     this.zv = zv || this.text.beg.length;
     this.mark = mark || 0;
 }
+
+ServerBuffer.prototype.onpage = function (message) {
+    var pageSize = message.pageSize,
+        beginSlice = message.page * pageSize;
+    message.content = this.text.beg.slice(beginSlice, beginSlice + pageSize).toString();
+    return message;
+};
 
 var WebSocketServer = require('ws').Server;
 
@@ -325,12 +330,13 @@ EditorServer.prototype.onconnection = function (ws) {
                       pt: buffer.pt, mark: buffer.mark};
             return acc;
         }, {}),
-        data = JSON.stringify({type: 'init', name: name, scope: 'frame',
-                               buffers: bufferMeta,
-                               rootWindow: frame.rootWindow,
-                               minibufferWindow: frame.minibufferWindow,
-                               selectedWindow: frame.selectedWindow});
-    console.log('server frame connection:', data);
+        message = {type: 'init', name: name, scope: 'frame',
+                   buffers: bufferMeta,
+                   rootWindow: frame.rootWindow,
+                   minibufferWindow: frame.minibufferWindow,
+                   selectedWindow: frame.selectedWindow},
+        data = JSON.stringify(message);
+    console.log('server %s connection:', message.scope, data);
     ws.send(data);
     this.frames[name] = frame;
 };
