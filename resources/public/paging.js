@@ -399,13 +399,11 @@ ServerBuffer.prototype.newRevision = function (text) {
 
 ServerBuffer.prototype.narrowToRegion = function (start, end) {
     var previousBegv = this.begv, previousZv = this.zv;
-    start = this.limitToRegion(start || this.pt);
-    end = this.limitToRegion(end || this.mark || this.pt);
-    this.begv = start;
-    this.zv = end;
+    this.begv = this.limitToRegion(start || this.pt);
+    this.zv = this.limitToRegion(end || this.mark || this.pt);
     this.server.broadcast({type: 'narrowToRegion', scope: 'buffer', name: this.name,
                            pre: {begv: previousBegv, zv: previousZv},
-                           start: start, end: end,
+                           start: this.begv, end: this.zv,
                            post: {begv: this.begv, zv: this.zv}});
     return this.pt;
 };
@@ -425,7 +423,7 @@ ServerBuffer.prototype.gotoChar = function (position) {
     this.pt = this.limitToRegion(position);
     this.server.broadcast({type: 'gotoChar', scope: 'buffer', name: this.name,
                            pre: {pt: previousPt},
-                           position: position,
+                           position: this.pt,
                            post: {pt: this.pt}});
     return this.pt;
 };
