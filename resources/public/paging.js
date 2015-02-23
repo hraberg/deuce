@@ -195,12 +195,6 @@ Buffer.prototype.onundo = function () {
     this.size = this.text.beg.length;
 };
 
-Buffer.prototype.onredo = function () {
-    this._currentRevision = this._currentRevision + 1;
-    this.text = this._revisions[this._currentRevision];
-    this.size = this.text.beg.length;
-};
-
 Buffer.prototype.onpage = function (message) {
     this.remoteBuffer.onpage(message);
 };
@@ -457,18 +451,6 @@ ServerBuffer.prototype.undo = function (arg) {
         this.server.broadcast({type: 'undo', scope: 'buffer', name: this.name,
                                post: {_currentRevision: this._currentRevision, size: this.size}});
         this.undo(arg - 1);
-    }
-};
-
-ServerBuffer.prototype.redo = function (arg) {
-    arg = arg === undefined ? 1 : arg;
-    if (arg > 0 && this._revisions.length - 1 > this._currentRevision) {
-        this._currentRevision = this._currentRevision + 1;
-        this.text = this._revisions[this._currentRevision];
-        this.size = this.text.beg.length;
-        this.server.broadcast({type: 'redo', scope: 'buffer', name: this.name,
-                               post: {_currentRevision: this._currentRevision, size: this.size}});
-        this.redo(arg - 1);
     }
 };
 
