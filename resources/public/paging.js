@@ -191,13 +191,13 @@ Buffer.prototype.ondeleteRegion = function (message) {
 Buffer.prototype.onundo = function () {
     this._currentRevision = this._currentRevision - 1;
     this.text = this._revisions[this._currentRevision];
-    this.zv = this.text.beg.length;
+    this.size = this.text.beg.length;
 };
 
 Buffer.prototype.onredo = function () {
     this._currentRevision = this._currentRevision + 1;
     this.text = this._revisions[this._currentRevision];
-    this.zv = this.text.beg.length;
+    this.size = this.text.beg.length;
 };
 
 function Window() { return; }
