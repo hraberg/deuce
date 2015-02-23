@@ -367,22 +367,22 @@ ServerBufferText.prototype.deleteRegion = function (start, end) {
 
 function ServerBuffer(name, text, pt, begv, zv, mark) {
     this.name = name;
-    this.newRevision(new ServerBufferText(text));
     this.begv = begv || null;
     this.zv = zv || null;
     this.pt = pt || 1;
     this.mark = mark || null;
+    this.newRevision(this.pt, new ServerBufferText(text));
 }
 
 ServerBuffer.prototype.limitToRegion = function (position) {
     return Math.max(this.begv || 1, Math.min(position, this.zv || this.size));
 };
 
-ServerBuffer.prototype.newRevision = function (text) {
+ServerBuffer.prototype.newRevision = function (pt, text) {
     this.text = text;
     this.size = this.text.beg.length;
     this._revisions = (this._revisions || []).slice(0, this._currentRevision);
-    this._revisions.push(this.text);
+    this._revisions.push({text: this.text, pt: pt});
     this._currentRevision = this._revisions.length - 1;
 };
 
@@ -424,19 +424,19 @@ ServerBuffer.prototype.backwardChar = function (n) {
 };
 
 ServerBuffer.prototype.insert = function (args) {
-    var previousPt = this.pt;
-    this.newRevision(this.text.insert(previousPt, args));
+    var previousPt = this.pt, nextPt = this.limitToRegion(previousPt + args.length);
+    this.newRevision(nextPt, this.text.insert(previousPt, args));
     this.server.broadcast({type: 'insert', scope: 'buffer', name: this.name,
                            pre: {pt: previousPt},
                            args: args,
                            post: {_currentRevision: this._currentRevision, size: this.size}});
-    this.gotoChar(previousPt + args.length);
+    this.gotoChar(nextPt);
 };
 
 ServerBuffer.prototype.deleteRegion = function (start, end) {
     start = this.limitToRegion(start || this.pt);
     end = this.limitToRegion(end || this.mark || this.pt);
-    this.newRevision(this.text.deleteRegion(start, end));
+    this.newRevision(this.pt, this.text.deleteRegion(start, end));
     this.server.broadcast({type: 'deleteRegion', scope: 'buffer', name: this.name,
                            start: start, end: end,
                            post: {_currentRevision: this._currentRevision, size: this.size}});
@@ -446,10 +446,11 @@ ServerBuffer.prototype.undo = function (arg) {
     arg = arg === undefined ? 1 : arg;
     if (arg > 0 && this._currentRevision > 0) {
         this._currentRevision = this._currentRevision - 1;
-        this.text = this._revisions[this._currentRevision];
+        this.text = this._revisions[this._currentRevision].text;
         this.size = this.text.beg.length;
         this.server.broadcast({type: 'undo', scope: 'buffer', name: this.name,
                                post: {_currentRevision: this._currentRevision, size: this.size}});
+        this.gotoChar(this._revisions[this._currentRevision].pt);
         this.undo(arg - 1);
     }
 };
@@ -457,7 +458,7 @@ ServerBuffer.prototype.undo = function (arg) {
 ServerBuffer.prototype.onpage = function (message) {
     var pageSize = message.pageSize,
         beginSlice = message.page * pageSize,
-        savedVersion = this._revisions[this.text.saveModiff];
+        savedVersion = this._revisions[this.text.saveModiff].text;
     message.content = savedVersion.beg.slice(beginSlice, beginSlice + pageSize).toString();
     return message;
 };
