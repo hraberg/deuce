@@ -143,7 +143,7 @@ function BufferText(beg) {
 
 function Buffer(remoteBuffer) {
     this.remoteBuffer = remoteBuffer;
-    this.beg = new BufferText(new RopeBuffer(remoteBuffer, 0, remoteBuffer.length));
+    this.text = new BufferText(new RopeBuffer(remoteBuffer, 0, remoteBuffer.length));
 }
 
 Buffer.prototype.onpage = function (message) {
