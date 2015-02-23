@@ -137,9 +137,13 @@ var WebSocket = require('ws');
 var Rope = require('./rope').Rope;
 var RopeBuffer = require('./rope').RopeBuffer;
 
+function BufferText(beg) {
+    this.beg = beg;
+}
+
 function Buffer(remoteBuffer) {
     this.remoteBuffer = remoteBuffer;
-    this.text = new RopeBuffer(remoteBuffer, 0, remoteBuffer.length);
+    this.beg = new BufferText(new RopeBuffer(remoteBuffer, 0, remoteBuffer.length));
 }
 
 Buffer.prototype.onpage = function (message) {
@@ -200,12 +204,10 @@ Frame.prototype.onlayout = function (message) {
                 return windows[w.sequenceNumber];
             }
             var window = Object.setPrototypeOf(w, new Window());
-            window.next = toWindow(window.next);
-            window.prev = toWindow(window.prev);
-            window.hchild = toWindow(window.hchild);
-            window.vchild = toWindow(window.vchild);
-            window.parent = toWindow(window.parent);
             windows[window.sequenceNumber] = window;
+            ['next', 'prev', 'hchild', 'vchild', 'parent'].forEach(function (p) {
+                window[p] = toWindow(window[p]);
+            });
             return window;
         }
     }
@@ -279,14 +281,23 @@ ServerFrame.prototype.onpage = function (message) {
     var pageSize = message.pageSize,
         beginSlice = message.page * pageSize,
         text = this.editor.buffers[message.name].text;
-    message.content = text.slice(beginSlice, beginSlice + pageSize).toString();
+    message.content = text.beg.slice(beginSlice, beginSlice + pageSize).toString();
     return message;
 };
 
-function ServerBuffer(name, text, point, mark) {
+function ServerBufferText(beg, modiff, saveModiff, markers) {
+    this.beg = beg;
+    this.modiff = modiff || 0;
+    this.saveModiff = saveModiff || 0;
+    this.markers = markers || [];
+}
+
+function ServerBuffer(name, text, pt, begv, zv, mark) {
     this.name = name;
-    this.text = text;
-    this.point = point || 0;
+    this.text = new ServerBufferText(text);
+    this.pt = pt || 0;
+    this.begv = begv || 0;
+    this.zv = zv || this.text.beg.length;
     this.mark = mark || 0;
 }
 
@@ -309,8 +320,10 @@ EditorServer.prototype.onconnection = function (ws) {
         frame = new ServerFrame(ws, name, this),
         bufferMeta = Object.keys(buffers).reduce(function (acc, k) {
             var buffer = buffers[k];
-            acc[k] = {name: buffer.name, size: buffer.text.length,
-                      point: buffer.point, mark: buffer.mark};
+            acc[k] = {name: buffer.name, size: buffer.text.beg.length,
+                      text: {modiff: buffer.text.modiff, saveModiff: buffer.text.saveModiff, markers: buffer.text.markers},
+                      begv: buffer.begv, zv: buffer.zv,
+                      pt: buffer.pt, mark: buffer.mark};
             return acc;
         }, {}),
         data = JSON.stringify({type: 'init', name: name, scope: 'frame',
@@ -343,7 +356,7 @@ var client = new Frame(server.url, function (frame) {
     assert.equal(frame.selectedWindow, frame.windows[1]);
     assert.equal(frame.rootWindow, frame.windows[1]);
     assert.deepEqual(Object.keys(buffers), ['TUTORIAL', '*scratch*', ' *Minibuf-0*']);
-    assert.equal(buffers.TUTORIAL.point, 0);
+    assert.equal(buffers.TUTORIAL.pt, 0);
     assert.equal(TUTORIAL.charAt(-1), '');
     assert.equal(TUTORIAL.charAt(TUTORIAL.length), '');
     assert.equal(TUTORIAL.notFound, 'x');
