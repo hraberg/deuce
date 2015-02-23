@@ -418,6 +418,11 @@ ServerBuffer.prototype.widen = function () {
     return this.pt;
 };
 
+ServerBuffer.prototype.lookingAt = function (regexp) {
+    return this.text.beg.charAt(this.pt - 1).match(regexp) ||
+        this.text.beg.slice(this.pt - 1).match(regexp);
+};
+
 ServerBuffer.prototype.gotoChar = function (position) {
     var previousPt = this.pt;
     this.pt = this.limitToRegion(position);
