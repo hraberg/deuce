@@ -181,11 +181,6 @@ Buffer.prototype.onnarrowToRegion = function (message) {
     this.zv = message.zv;
 };
 
-Buffer.prototype.onwiden = function () {
-    this.begv = null;
-    this.zv = null;
-};
-
 Buffer.prototype.oninsert = function (message) {
     this.newRevision(this.text.insert(this.pt, message.args));
 };
@@ -399,23 +394,16 @@ ServerBuffer.prototype.newRevision = function (text) {
 
 ServerBuffer.prototype.narrowToRegion = function (start, end) {
     var previousBegv = this.begv, previousZv = this.zv;
-    this.begv = this.limitToRegion(start || this.pt);
-    this.zv = this.limitToRegion(end || this.mark || this.pt);
+    this.begv = start ? this.limitToRegion(start) : null;
+    this.zv = end ? this.limitToRegion(end) : null;
     this.server.broadcast({type: 'narrowToRegion', scope: 'buffer', name: this.name,
                            pre: {begv: previousBegv, zv: previousZv},
                            start: this.begv, end: this.zv,
                            post: {begv: this.begv, zv: this.zv}});
-    return this.pt;
 };
 
 ServerBuffer.prototype.widen = function () {
-    var previousBegv = this.begv, previousZv = this.zv;
-    this.begv = null;
-    this.zv = null;
-    this.server.broadcast({type: 'widen', scope: 'buffer', name: this.name,
-                           pre: {begv: previousBegv, zv: previousZv},
-                           post: {begv: this.begv, zv: this.zv}});
-    return this.pt;
+    return this.narrowToRegion(null, null);
 };
 
 ServerBuffer.prototype.lookingAt = function (regexp) {
