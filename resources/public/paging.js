@@ -198,17 +198,16 @@ Frame.prototype.oninit = function (message) {
 
 Frame.prototype.onlayout = function (message) {
     var windows = {};
-    function toWindow(w) {
-        if (w) {
-            if (windows[w.sequenceNumber]) {
-                return windows[w.sequenceNumber];
+    function toWindow(window) {
+        if (window) {
+            if (windows[window.sequenceNumber]) {
+                return windows[window.sequenceNumber];
             }
-            var window = Object.setPrototypeOf(w, new Window());
-            windows[window.sequenceNumber] = window;
-            ['next', 'prev', 'hchild', 'vchild', 'parent'].forEach(function (p) {
-                window[p] = toWindow(window[p]);
-            });
-            return window;
+            windows[window.sequenceNumber] = Object.setPrototypeOf(window, new Window());
+            return ['next', 'prev', 'hchild', 'vchild', 'parent'].reduce(function (w, p) {
+                w[p] = toWindow(w[p]);
+                return w;
+            }, window);
         }
     }
     this.rootWindow = toWindow(message.rootWindow);
