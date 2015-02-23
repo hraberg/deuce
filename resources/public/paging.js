@@ -433,6 +433,14 @@ ServerBuffer.prototype.gotoChar = function (position) {
     return this.pt;
 };
 
+ServerBuffer.prototype.forwardChar = function (n) {
+    return this.gotoChar(this.pt + n);
+};
+
+ServerBuffer.prototype.backwardChar = function (n) {
+    return this.gotoChar(this.pt - n);
+};
+
 ServerBuffer.prototype.insert = function (args) {
     var previousPt = this.pt;
     this.newRevision(this.text.insert(previousPt, args));
