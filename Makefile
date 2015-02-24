@@ -91,7 +91,7 @@ jslint: $(deuce_javascript) $(node_modules)
 		$(foreach linter, $(shell grep -o "[je]s[lh]int" $(js) | uniq), $(node_modules)/.bin/$(linter) $(js) || exit;))
 
 csslint: $(deuce_css) $(node_modules)
-	$(node_modules)/.bin/$@ --ignore=adjoining-classes $(deuce_css)
+	$(node_modules)/.bin/$@ $(deuce_css)
 
 lint: jslint csslint
 

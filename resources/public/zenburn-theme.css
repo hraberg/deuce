@@ -1,3 +1,4 @@
+/*csslint adjoining-classes: false */
 .frame { font-size: 14pt; font-family: "Courier", monospace; }
 .menu-bar { background-color: #3f3f3f; color: #dcdccc; border-bottom: 1px solid #2b2b2b; }
 .window { background-color: #3f3f3f; color: #dcdccc; }

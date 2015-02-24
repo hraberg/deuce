@@ -1,3 +1,4 @@
+/*csslint adjoining-classes: false */
 .frame { display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; position: fixed; font-family: monospace; white-space: pre; left: 0; right: 0; top: 0; bottom: 0; }
 .menu-bar { display: none; }
 .menu-bar-mode .menu-bar { display: block; }
