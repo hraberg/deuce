@@ -86,14 +86,13 @@ $(node_modules): resources/public/package.json
 	(cd $(@D) && npm install)
 	touch $@
 
-jslint: $(deuce_javascript) $(node_modules)
-	$(foreach js, $(deuce_javascript), \
-		$(foreach linter, $(shell grep -o "[je]s[lh]int" $(js) | uniq), $(node_modules)/.bin/$(linter) $(js) || exit;))
+eslint: $(deuce_javascript) $(node_modules)
+	$(node_modules)/.bin/$@ $(deuce_javascript)
 
 csslint: $(deuce_css) $(node_modules)
 	$(node_modules)/.bin/$@ $(deuce_css)
 
-lint: jslint csslint
+lint: eslint csslint
 
 nw: $(node_modules)
 	$(nwbuild) -r resources/public
@@ -101,7 +100,7 @@ nw: $(node_modules)
 nwbuild: $(node_modules)
 	$(nwbuild) -p linux64,osx64,win64 -o target/nwbuild resources/public
 
-nwtest: jslint
+nwtest: eslint
 	$(foreach f, $(nw_tests),node $(f) || exit;)
 
 run: target/deuce
@@ -136,4 +135,4 @@ $(deuce_stubs): emacs/src/TAGS-TEMACS
 
 stubs: $(deuce_stubs)
 
-.PHONY: test emacs-tests zile-tests emacs-smoke smoke clean stubs dist run run-dev all jslint csslint lint nw nwbuild nwtest
+.PHONY: test emacs-tests zile-tests emacs-smoke smoke clean stubs dist run run-dev all eslint csslint lint nw nwbuild nwtest
