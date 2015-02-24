@@ -6,6 +6,7 @@
 /.lein*
 /checkouts
 \#*
+.#*
 *~
 TAGS
 target
@@ -13,3 +14,4 @@ target
 .nrepl-port
 node_modules
 .tern-port
+flycheck_*
