@@ -85,7 +85,7 @@ smoke: target/deuce
 	$< $(smoke_test_args)
 
 $(node_modules): resources/public/package.json
-	(cd $(@D) && npm prune; npm install)
+	(cd $(@D) && npm prune; npm install; npm outdated --depth 0)
 	touch $@
 
 eslint: $(deuce_javascript) $(node_modules)

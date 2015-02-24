@@ -15,9 +15,9 @@
         "toolbar": false
     },
     "devDependencies": {
-        "eslint": "0.14.1",
+        "eslint": "0.15.0",
         "csslint": "0.10.0",
-        "node-webkit-builder": "1.0.8",
+        "node-webkit-builder": "1.0.10",
         "java": "0.4.6",
         "mmap.js": "0.2.1",
         "ws": "0.7.1",
