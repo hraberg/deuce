@@ -19,7 +19,7 @@ resources_to_ignore=! -iname "flycheck_*" ! -iname ".\#*" ! -path "*/node_module
 deuce_javascript=$(shell find resources/public -iname "*.js" $(resources_to_ignore))
 deuce_css=$(shell find resources/public -iname "*.css" $(resources_to_ignore))
 
-nw_version=0.12.0-alpha2
+nw_version=0.12.0-alpha3
 node_modules=resources/public/node_modules
 node=node --harmony
 nwbuild=$(node) $(node_modules)/.bin/nwbuild -v $(nw_version)
