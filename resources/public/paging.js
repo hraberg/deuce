@@ -115,8 +115,7 @@ RemoteBuffer.prototype.slice = (beginSlice, endSlice, callback) => {
 RemoteBuffer.prototype.sliceAsync = (beginSlice, endSlice) =>
     new Promise(this.slice.bind(this, beginSlice, endSlice));
 
-const WebSocket = require('ws'),
-      Rope = require('./rope').Rope,
+const Rope = require('./rope').Rope,
       RopeBuffer = require('./rope').RopeBuffer;
 
 function BufferText(beg, modiff, saveModiff, markers) {
@@ -446,8 +445,6 @@ ServerBuffer.prototype.onpage = (message) => {
     return message;
 };
 
-const WebSocketServer = require('ws').Server;
-
 function EditorServer(wss, buffers) {
     this.wss = wss;
     let that = this;
@@ -493,7 +490,9 @@ EditorServer.prototype.broadcast = (message, what) => {
 };
 
 const assert = require('assert'),
-      path = require('path');
+      path = require('path'),
+      WebSocket = require('ws'),
+      WebSocketServer = require('ws').Server;
 
 let tutorial = require('fs').readFileSync(path.join(__dirname, '/../etc/tutorials/TUTORIAL'), {encoding: 'utf8'}),
     scratch = ';; This buffer is for notes you don\'t want to save, and for Lisp evaluation.\n;; If you want to create a file, visit that file with C-x C-f,\n\n;; then enter the text in that file\'s own buffer.\n';
