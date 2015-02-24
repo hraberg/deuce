@@ -22,5 +22,17 @@
         "mmap.js": "0.2.1",
         "ws": "0.7.1",
         "benchmark": "1.0.0"
+    },
+    "eslintConfig": {
+        "ecmaFeatures": {
+            "arrowFunctions": true,
+            "blockBindings": true,
+            "generators": true
+        },
+        "rules": {
+            "quotes": [2, "single"],
+            "no-underscore-dangle": false,
+            "no-redeclare": false
+        }
     }
 }

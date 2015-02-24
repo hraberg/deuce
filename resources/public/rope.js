@@ -1,8 +1,6 @@
 /*jslint node: true, browser: true, regexp: true, stupid: true, nomen: true */
 /*jshint node: true, browser: true */
 /*eslint-env node, browser */
-/*eslint quotes: [2, "single"] */
-/*eslint-disable no-underscore-dangle, no-redeclare */
 
 // http://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf
 
@@ -36,12 +34,11 @@ var RopeString, RopeBuffer;
 Rope.SHORT_LIMIT = 16;
 Rope.LONG_LIMIT = 1024;
 Rope.LINES_PATTERN = /^.*(\r\n?|\n)/gm;
-Rope.EMPTY = new RopeString('');
-Rope.EMPTY.concat = function (rope) {
-    return Rope.toRope(rope);
-};
 
-Rope.toRope = function (x) {
+Rope.EMPTY = new RopeString('');
+Rope.EMPTY.concat = (rope) => Rope.toRope(rope);
+
+Rope.toRope = (x) => {
     if (x instanceof Rope || x instanceof RopeString || x instanceof RopeBuffer) {
         return x;
     }
@@ -49,7 +46,7 @@ Rope.toRope = function (x) {
         if (x.length === 0) {
             return Rope.EMPTY;
         }
-        return x.reduce(function (left, right) {
+        return x.reduce((left, right) => {
             return Rope.toRope(left).concat(Rope.toRope(right));
         });
     }
@@ -58,52 +55,50 @@ Rope.toRope = function (x) {
 
 mixin(Rope, String, ['match', 'indexOf']);
 
-Rope.prototype.toString = function () {
-    return this.left.toString() + this.right.toString();
-};
+Rope.prototype.toString = () =>
+    this.left.toString() + this.right.toString();
 
-Rope.prototype.charAt = function (index) {
+Rope.prototype.charAt = (index) => {
     if (index < this.weight) {
         return this.left.charAt(index);
     }
     return this.right.charAt(index - this.weight);
 };
 
-Rope.prototype.lineAt = function (index) {
+Rope.prototype.lineAt = (index) => {
     if (index < this.weight) {
         return this.left.lineAt(index);
     }
-    var line = this.right.lineAt(index - this.weight);
+    let line = this.right.lineAt(index - this.weight);
     return line === -1 ? -1 : line + this.left.newlines;
 };
 
-Rope.prototype.indexOfLine = function (line) {
+Rope.prototype.indexOfLine = (line) => {
     if (line <= this.left.newlines) {
         return this.left.indexOfLine(line);
     }
-    var index = this.right.indexOfLine(line - this.left.newlines);
+    let index = this.right.indexOfLine(line - this.left.newlines);
     return index === -1 ? -1 : index + this.weight;
 };
 
-Rope.prototype.isBalanced = function () {
-    return this.length >= Rope.fib(this.depth + 2);
-};
+Rope.prototype.isBalanced = () =>
+    this.length >= Rope.fib(this.depth + 2);
 
-Rope.prototype.rotateLeft = function () {
+Rope.prototype.rotateLeft = () => {
     if (this.right instanceof Rope) {
         return new Rope(new Rope(this.left, this.right.left), this.right.right);
     }
     return this;
 };
 
-Rope.prototype.rotateRight = function () {
+Rope.prototype.rotateRight = () => {
     if (this.left instanceof Rope) {
         return new Rope(this.left.left, new Rope(this.left.right, this.right));
     }
     return this;
 };
 
-Rope.prototype.balanceRotate = function () {
+Rope.prototype.balanceRotate = () => {
     if (this.left.depth > this.right.depth) {
         return this.rotateRight();
     }
@@ -113,26 +108,26 @@ Rope.prototype.balanceRotate = function () {
     return this;
 };
 
-Rope.fib = function (n) {
+Rope.fib = (n) => {
     if (n <= 1) {
         return n;
     }
     return Rope.fib(n - 1) + Rope.fib(n - 2);
 };
 
-Rope.fib = (function (f) {
-    var memo = [];
-    return function (n) {
+Rope.fib = ((f) => {
+    let memo = [];
+    return (n) => {
         if (memo[n] === undefined) {
             memo[n] = f(n);
         }
         return memo[n];
     };
-}(Rope.fib));
+})(Rope.fib);
 
 // based on this version in Common Lisp: https://github.com/Ramarren/ropes
-Rope.balanceFibStep = function (acc, rope) {
-    var n = 0,
+Rope.balanceFibStep = (acc, rope) => {
+    let n = 0,
         maxLength = Rope.fib(n + 2),
         recur = true;
     while (recur) {
@@ -150,11 +145,11 @@ Rope.balanceFibStep = function (acc, rope) {
     }
 };
 
-Rope.prototype.balanceFib = function (force, postConditions) {
+Rope.prototype.balanceFib = (force, postConditions) => {
     if (this.isBalanced() && !force) {
         return this;
     }
-    var balanced = Rope.toRope(this.reduce(Rope.balanceFibStep, []).reverse());
+    let balanced = Rope.toRope(this.reduce(Rope.balanceFibStep, []).reverse());
     if (postConditions && balanced.toString() !== this.toString()) {
         throw new Error('not same after balancing: \'' + this.toString().slice(0, 64) +
                         '\' ' + this.length + ' \'' + balanced.toString().slice(0, 64) + '\' ' + balanced.length);
@@ -162,9 +157,9 @@ Rope.prototype.balanceFib = function (force, postConditions) {
     return balanced;
 };
 
-Rope.prototype.balance = Rope.prototype.balanceRotate;
+Rope.prototype.balance = Rope.prototype.balanceFib;
 
-Rope.prototype.concat = function (rope) {
+Rope.prototype.concat = (rope) => {
     if (rope === Rope.EMPTY || !rope) {
         return this;
     }
@@ -174,9 +169,12 @@ Rope.prototype.concat = function (rope) {
     return new Rope(this, rope).balance();
 };
 
-Rope.prototype.slice = function (beginSlice, endSlice) {
-    var left, right;
+Rope.prototype.slice = (beginSlice, endSlice) => {
+    let left, right;
     endSlice = endSlice === undefined ? this.length : endSlice;
+    if (beginSlice < 0) {
+        beginSlice += this.length;
+    }
     if (endSlice < 0) {
         endSlice += this.length;
     }
@@ -198,23 +196,19 @@ Rope.prototype.slice = function (beginSlice, endSlice) {
     return left || right;
 };
 
-Rope.prototype.lines = function (startLine, endLine) {
-    return this.slice(this.indexOfLine(startLine), endLine ? this.indexOfLine(endLine) : this.length);
-};
+Rope.prototype.lines = (startLine, endLine) =>
+    this.slice(this.indexOfLine(startLine), endLine ? this.indexOfLine(endLine) : this.length);
 
-Rope.prototype.insert = function (offset, str) {
-    return this.slice(0, offset).concat(str).concat(this.slice(offset));
-};
+Rope.prototype.insert = (offset, str) =>
+    this.slice(0, offset).concat(str).concat(this.slice(offset));
 
-Rope.prototype.del = function (start, end) {
-    return this.slice(0, start).concat(this.slice(end));
-};
+Rope.prototype.del = (start, end) =>
+    this.slice(0, start).concat(this.slice(end));
 
-Rope.prototype.reduce = function (f, acc) {
-    var todo = [this],
-        next;
+Rope.prototype.reduce = (f, acc) => {
+    let todo = [this];
     while (todo.length > 0) {
-        next = todo.pop();
+        let next = todo.pop();
         if (next instanceof Rope) {
             todo.push(next.right);
             todo.push(next.left);
@@ -236,7 +230,7 @@ mixin(RopeString, Rope, ['concat', 'insert', 'del', 'lines', 'reduce']);
 
 Object.defineProperty(RopeString.prototype, 'newlines', {
     enumerable: true,
-    get: function () {
+    get: () => {
         if (this._newlines === undefined) {
             this._newlines = (this.match(Rope.LINES_PATTERN) || []).length;
         }
@@ -244,52 +238,53 @@ Object.defineProperty(RopeString.prototype, 'newlines', {
     }
 });
 
-RopeString.prototype.toString = function () {
-    return this.s;
-};
+RopeString.prototype.toString = () => this.s;
 
-RopeString.prototype.slice = function (beginSlice, endSlice) {
+RopeString.prototype.slice = (beginSlice, endSlice) => {
     return new RopeString(this.s.slice(beginSlice, endSlice)).balance();
 };
 
-RopeString.prototype.lineAt = function (index) {
+RopeString.prototype.lineAt = (index) => {
     if (index < 0 || index > this.length) {
         return -1;
     }
     return (this.toString().slice(0, index).match(Rope.LINES_PATTERN) || []).length;
 };
 
-RopeString.prototype.indexOfLine = function (line) {
+RopeString.prototype.indexOfLine = (line) => {
     if (line < 0 || line > this.newlines) {
         return -1;
     }
     return this.match(Rope.LINES_PATTERN).slice(0, line).join('').length;
 };
 
-RopeString.prototype.balance = function () {
+RopeString.prototype.isBalanced = () =>
+    this.length < Rope.LONG_LIMIT;
+
+RopeString.prototype.balance = () => {
     if (this.length === 0) {
         return Rope.EMPTY;
     }
-    if (this.length < Rope.LONG_LIMIT) {
+    if (this.isBalanced()) {
         return this;
     }
-    var middle = Math.floor(this.length / 2);
+    let middle = Math.floor(this.length / 2);
     return this.slice(0, middle).concat(this.slice(middle, this.length));
 };
 
 // Assumes ASCII.
 
 try {
-    var fs = require('fs'),
-        mmap = require('mmap.js');
+    const fs = require('fs'),
+          mmap = require('mmap.js');
 
     Rope.MMAP_THRESHOLD = 16 * 1024;
-    Rope.openSync = function (file) {
-        var fd = fs.openSync(file, 'r'), length, buffer;
+    Rope.openSync = (file) => {
+        let fd = fs.openSync(file, 'r');
         try {
-            length = fs.fstatSync(fd).size;
+            let length = fs.fstatSync(fd).size;
             if (length > Rope.MMAP_THRESHOLD) {
-                buffer = mmap.alloc(length, mmap.PROT_READ, mmap.MAP_SHARED, fd, 0);
+                let buffer = mmap.alloc(length, mmap.PROT_READ, mmap.MAP_SHARED, fd, 0);
                 return new RopeBuffer(buffer, 0, length);
             }
             return Rope.toRope(fs.readFileSync(file, {encoding: 'utf8'}));
@@ -313,11 +308,10 @@ mixin(RopeBuffer, String, ['match', 'indexOf']);
 mixin(RopeBuffer, Rope, ['concat', 'insert', 'del', 'lines', 'reduce']);
 mixin(RopeBuffer, RopeString, ['indexOfLine', 'lineAt']);
 
-RopeBuffer.prototype.toString = function () {
-    return this.buffer.slice(this.start, this.end).toString();
-};
+RopeBuffer.prototype.toString = () =>
+    this.buffer.slice(this.start, this.end).toString();
 
-RopeBuffer.prototype.charAt = function (index) {
+RopeBuffer.prototype.charAt = (index) => {
     if (index < 0 || index >= this.length) {
         return '';
     }
@@ -329,10 +323,10 @@ RopeBuffer.prototype.charAt = function (index) {
 
 Object.defineProperty(RopeBuffer.prototype, 'newlines', {
     enumerable: true,
-    get: function () {
+    get: () => {
         if (this._newlines === undefined) {
-            var i, acc = 0;
-            for (i = this.start; i < this.end; i += 1) {
+            let acc = 0;
+            for (let i = this.start; i < this.end; i += 1) {
                 if (this.charAt(i) === '\n') {
                     acc += 1;
                 }
@@ -343,30 +337,28 @@ Object.defineProperty(RopeBuffer.prototype, 'newlines', {
     }
 });
 
-RopeBuffer.prototype.slice = function (beginSlice, endSlice) {
-    return new RopeBuffer(this.buffer, (beginSlice || 0) + this.start, endSlice ? endSlice + this.start : this.end);
-};
+RopeBuffer.prototype.slice = (beginSlice, endSlice) =>
+    new RopeBuffer(this.buffer, (beginSlice || 0) + this.start, endSlice ? endSlice + this.start : this.end);
 
-RopeBuffer.prototype.balance = function () {
-    return this;
-};
 
-var assert;
+RopeBuffer.prototype.balance = () => this;
+
+let assert;
 
 try {
     assert = require('assert');
     module.exports.Rope = Rope;
     module.exports.RopeBuffer = RopeBuffer;
 } catch (e) {
-    assert = function (x, y) {
+    assert = (x, y) => {
         if (x !== (y || x)) {
             throw new Error(x + ' == ' + y);
         }
     };
-    assert.equal = function (x, y) {
+    assert.equal = (x, y) => {
         assert(''.concat(x), ''.concat(y));
     };
-    assert.deepEqual = function (x, y) {
+    assert.deepEqual = (x, y) => {
         assert.equal(JSON.stringify(x), JSON.stringify(y));
     };
 }
@@ -375,7 +367,7 @@ assert.equal(Rope.fib(10), 55);
 assert.equal(Rope.fib(20), 6765);
 assert.equal(Rope.fib(100), 354224848179262000000);
 
-var r = new Rope('Hello', 'World');
+let r = new Rope('Hello', 'World');
 assert.equal(r.length, 10);
 assert.equal(r.toString(), 'HelloWorld');
 assert.equal(r + r, 'HelloWorldHelloWorld');
@@ -441,17 +433,17 @@ assert.equal(new Rope('Hello\n', 'World\n').concat('Space').lines(1, 2), 'World\
 assert.equal(new RopeString('Hello\nWorld\n').lines(0, 1), 'Hello\n');
 assert.equal(new RopeString('Hello\nWorld\n').lines(1), 'World\n');
 
-assert.deepEqual(new Rope('Hello\n', 'World\n').concat('Space').reduce(function (acc, x) {
+assert.deepEqual(new Rope('Hello\n', 'World\n').concat('Space').reduce((acc, x) => {
     acc.push(x.toString());
     return acc;
 }, []), ['Hello\n', 'World\n', 'Space']);
 
-assert.deepEqual(new RopeString('HelloWorld').reduce(function (acc, x) {
+assert.deepEqual(new RopeString('HelloWorld').reduce((acc, x) => {
     acc.push(x.toString());
     return acc;
 }, []), ['HelloWorld']);
 
-var rb = new Rope('a', new Rope('bc', new Rope('d', 'ef')));
+let rb = new Rope('a', new Rope('bc', new Rope('d', 'ef')));
 assert.equal(rb.depth, 3);
 assert.equal(rb.length, 6);
 assert(rb.isBalanced());
@@ -467,120 +459,65 @@ assert.equal(rb, 'abcdef');
 
 rb = new Rope('The qui', new Rope('ck b', new Rope('rown', new Rope(' fox ju', new Rope('mps o', new Rope('ver the', new Rope(' lazy ', new Rope('do', 'g.'))))))));
 assert(!rb.isBalanced());
-var rbr = rb.balanceRotate();
+let rbr = rb.balanceRotate();
 assert.equal(rbr, 'The quick brown fox jumps over the lazy dog.');
 assert(rbr.isBalanced());
 
-var rbf = rb.balanceFib();
+let rbf = rb.balanceFib();
 assert.equal(rbf, 'The quick brown fox jumps over the lazy dog.');
 assert(rbf.isBalanced());
 
-function stress(text) {
-    text = new Array(1000).join(text + '\n');
-    var rs = Rope.toRope(text), i, idx;
-    console.log(rs.length, rs.depth, rs.newlines);
-    console.time('slice str');
-    console.log(text.slice(Math.floor(text.length / 2)).length);
-    console.log(text.length, 0, (text.match(/\r\n?|\n/gm) || []).length);
-    console.timeEnd('slice str');
-    console.time('slice');
-    console.log(rs.slice(Math.floor(rs.length / 2)).length);
-    console.timeEnd('slice');
-    for (i = 0; i < 10; i += 1) {
-        console.time('insert');
-        idx = Math.floor(rs.length / 2);
-        rs = rs.insert(idx, 'HelloWorld');
-        console.log(rs.length, rs.depth, rs.lineAt(idx));
-        console.timeEnd('insert');
-        console.time('insert str');
-        text = text.slice(0, idx) + 'HelloWorld' + text.slice(idx);
-        console.log(text.length, 0, (text.slice(0, idx).match(/\r\n?|\n/gm) || []).length);
-        console.timeEnd('insert str');
-        console.time('delete');
-        idx = Math.floor(rs.length / 2);
-        rs = rs.del(idx, idx + 1000);
-        console.log(rs.length, rs.depth, rs.lineAt(idx));
-        console.timeEnd('delete');
-        console.time('delete str');
-        text = text.slice(0, idx) + text.slice(idx + 1000);
-        console.log(text.length, 0, (text.slice(0, idx).match(/\r\n?|\n/gm) || []).length);
-        console.timeEnd('delete str');
-
-        console.time('newlines');
-        console.log(rs.length, rs.depth, rs.newlines);
-        console.timeEnd('newlines');
-
-        console.time('newlines str');
-        console.log(text.length, 0, (text.match(/\r\n?|\n/gm) || []).length);
-        console.timeEnd('newlines str');
-
-        console.time('toString');
-        console.log(rs.toString().length);
-        console.timeEnd('toString');
-
-        console.time('toString str');
-        console.log(text.toString().length);
-        console.timeEnd('toString str');
-
-        assert.equal(rs.length, text.length);
-    }
-    assert(rs.toString() === text);
-    assert(rs.newlines, (text.match(/\r\n?|\n/gm) || []).length);
-}
-
-var Benchmark = require('benchmark').Benchmark;
+const Benchmark = require('benchmark').Benchmark;
 
 function benchmark(text) {
     text = new Array(1000).join(text + '\n');
 
-    var rope = Rope.toRope(text);
-
+    let rope = Rope.toRope(text);
     function run(s) {
         s.on('cycle', function (event) {
             console.log(this.name, String(event.target));
         }).on('error', function (event) {
             console.log(String(event));
         }).on('complete', function () {
-            var ratio = Math.round(1000 * (this.filter('fastest').pluck('hz')[0] / this.filter('slowest').pluck('hz')[0])) / 1000;
+            let ratio = Math.round(1000 * (this.filter('fastest').pluck('hz')[0] / this.filter('slowest').pluck('hz')[0])) / 1000;
             console.log(this.filter('fastest').pluck('name') + ' is ' + Benchmark.formatNumber(ratio) + ' times faster');
             console.log('Rope', rope.length, rope.depth, rope.newlines);
             console.log('String', text.length, 0, (text.match(/\r\n?|\n/gm) || []).length);
         }).run();
     }
-
     function warnIfUnbalanced(x) {
         if (!x.isBalanced()) {
             console.log('WARN: unbalanced:', 'length:', x.length, 'depth:', x.depth, 'min:', Rope.fib(x.depth + 2));
         }
     }
 
-    run(new Benchmark.Suite('newlines').add('Rope', function () {
+    run(new Benchmark.Suite('newlines').add('Rope', () => {
         var idx = Math.floor(Math.random() * rope.length);
         return rope.slice(idx).newlines;
-    }).add('String', function () {
+    }).add('String', () => {
         var idx = Math.floor(Math.random() * text.length);
         return (text.slice(idx).match(/\r\n?|\n/gm) || []).length;
     }));
 
-    run(new Benchmark.Suite('charAt').add('Rope', function () {
+    run(new Benchmark.Suite('charAt').add('Rope', () => {
         var idx = Math.floor(Math.random() * rope.length);
         rope.charAt(idx);
-    }).add('String', function () {
+    }).add('String', () => {
         var idx = Math.floor(Math.random() * text.length);
         text.charAt(idx);
     }));
 
-    run(new Benchmark.Suite('lineAt').add('Rope', function () {
+    run(new Benchmark.Suite('lineAt').add('Rope', () => {
         var start = Math.floor(Math.random() * rope.length),
             idx = Math.floor(Math.random() * (rope.length - start));
         rope.slice(start).lineAt(idx);
-    }).add('String', function () {
+    }).add('String', () => {
         var start = Math.floor(Math.random() * text.length),
             idx = Math.floor(Math.random() * (text.length - start));
         return (text.slice(start).slice(0, idx).match(/\r\n?|\n/gm) || []).length;
     }));
 
-    run(new Benchmark.Suite('del').add('Rope', function () {
+    run(new Benchmark.Suite('del').add('Rope', () => {
         var prev = rope,
             start = Math.floor(Math.random() * rope.length),
             length = Math.floor(Math.random() * 1024);
@@ -589,13 +526,13 @@ function benchmark(text) {
         assert.equal(rope.constructor, Rope);
         assert.equal(rope.length, prev.length - length);
         warnIfUnbalanced(rope);
-    }).add('String', function () {
+    }).add('String', () => {
         var start = Math.floor(Math.random() * text.length),
             length = Math.floor(Math.random() * 1024);
         text = text.slice(0, start).concat(text.slice(Math.min(text.length, start + length)));
     }));
 
-    run(new Benchmark.Suite('insert').add('Rope', function () {
+    run(new Benchmark.Suite('insert').add('Rope', () => {
         var prev = rope,
             start = Math.floor(Math.random() * rope.length),
             length = Math.floor(Math.random() * 1024);
@@ -603,23 +540,16 @@ function benchmark(text) {
         assert.equal(rope.constructor, Rope);
         assert.equal(rope.length, prev.length + length);
         warnIfUnbalanced(rope);
-    }).add('String', function () {
+    }).add('String', () => {
         var start = Math.floor(Math.random() * text.length),
             length = Math.floor(Math.random() * 1024);
         text = text.slice(0, start).concat([].constructor(length + 1).join('x')).concat(text.slice(start));
     }));
 }
 
-try {
-    window.setTimeout(function () {
-        stress(document.querySelector('[data-filename=TUTORIAL]').textContent);
-    }, 10000);
-} catch (ignore) {
-}
-
 if (Rope.openSync) {
-    var path = require('path');
-    var rf = Rope.openSync(path.join(__dirname, '/../etc/tutorials/TUTORIAL'));
+    const path = require('path');
+    let rf = Rope.openSync(path.join(__dirname, '/../etc/tutorials/TUTORIAL'));
 
     assert.equal(rf.charAt(0), 'E');
     assert.equal(rf.charAt(-1), '');

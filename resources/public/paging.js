@@ -2,8 +2,6 @@
 /*globals Promise */
 /*jshint node: true */
 /*eslint-env node */
-/*eslint quotes: [2, "single"] */
-/*eslint-disable no-underscore-dangle */
 
 'use strict';
 
@@ -13,8 +11,8 @@ function LRU(max) {
     this.max = max;
 }
 
-LRU.prototype.set = function (key, value) {
-    var idx = this.index.indexOf(key);
+LRU.prototype.set = (key, value) => {
+    let idx = this.index.indexOf(key);
     if (idx === 0) {
         this.cache[0] = value;
         return value;
@@ -30,8 +28,8 @@ LRU.prototype.set = function (key, value) {
     return value;
 };
 
-LRU.prototype.get = function (key, orElse) {
-    var value = this.cache[this.index.indexOf(key)];
+LRU.prototype.get = (key, orElse) => {
+    let value = this.cache[this.index.indexOf(key)];
     if (value === undefined) {
         if (orElse) {
             return this.set(key, orElse.call ? orElse(key) : orElse);
@@ -55,20 +53,17 @@ function RemoteBuffer(frame, name, length, options) {
     this.missingPage = [].constructor(this.pageSize + 1).join(this.notFound);
 }
 
-RemoteBuffer.prototype.onpage = function (message) {
+RemoteBuffer.prototype.onpage = (message) => {
     this.cache.set(message.page, message.content);
-    this.pageRequests[message.page].forEach(function (callback) {
-        callback();
-    });
+    this.pageRequests[message.page].forEach(callback => callback());
     delete this.pageRequests[message.page];
 };
 
-RemoteBuffer.prototype.pageIndex = function (index) {
-    return Math.floor(index / this.pageSize);
-};
+RemoteBuffer.prototype.pageIndex = (index) =>
+    Math.floor(index / this.pageSize);
 
-RemoteBuffer.prototype.pageAt = function (index, callback) {
-    var pageIndex = this.pageIndex(index),
+RemoteBuffer.prototype.pageAt = (index, callback) => {
+    let pageIndex = this.pageIndex(index),
         page = this.cache.get(pageIndex),
         requests = this.pageRequests[pageIndex];
     if (!page) {
@@ -85,21 +80,21 @@ RemoteBuffer.prototype.pageAt = function (index, callback) {
     return page || this.missingPage;
 };
 
-RemoteBuffer.prototype.charAt = function (index, callback) {
+RemoteBuffer.prototype.charAt = (index, callback) => {
     if (index < 0 || index >= this.length) {
         return '';
     }
-    var that = this,
-        page = this.pageAt(index, callback && function () { callback(that.charAt(index)); });
+    let that = this,
+        recall = () => callback(that.charAt(index)),
+        page = this.pageAt(index, callback && recall);
     return page[index - this.pageIndex(index) * this.pageSize];
 };
 
 
-RemoteBuffer.prototype.charAtAsync = function (index) {
-    return new Promise(this.charAt.bind(this, index));
-};
+RemoteBuffer.prototype.charAtAsync = (index) =>
+    new Promise(this.charAt.bind(this, index));
 
-RemoteBuffer.prototype.slice = function (beginSlice, endSlice, callback) {
+RemoteBuffer.prototype.slice = (beginSlice, endSlice, callback) => {
     beginSlice = beginSlice || 0;
     if (beginSlice < 0) {
         return '';
@@ -109,27 +104,23 @@ RemoteBuffer.prototype.slice = function (beginSlice, endSlice, callback) {
         endSlice += this.length;
     }
     endSlice = Math.min(endSlice, this.length);
-    var i, s = '', that = this,
-        lastPageCallback = function (index) {
-            return that.pageIndex(index) === that.pageIndex(endSlice - 1) && callback && function () {
-                callback(that.slice(beginSlice, endSlice));
-            };
-        },
+    let s = '', that = this,
+        recall = () => callback(that.slice(beginSlice, endSlice)),
+        lastPageCallback = (index) => that.pageIndex(index) === that.pageIndex(endSlice - 1) && callback && recall,
         firstPageSize = this.pageSize - beginSlice % this.pageSize;
     s = this.pageAt(beginSlice, lastPageCallback(beginSlice)).slice(this.pageSize - firstPageSize);
-    for (i = beginSlice + s.length; i < endSlice + this.pageSize % endSlice; i += this.pageSize) {
+    for (let i = beginSlice + s.length; i < endSlice + this.pageSize % endSlice; i += this.pageSize) {
         s += this.pageAt(i, lastPageCallback(i));
     }
     return s.slice(0, endSlice - beginSlice);
 };
 
-RemoteBuffer.prototype.sliceAsync = function (beginSlice, endSlice) {
-    return new Promise(this.slice.bind(this, beginSlice, endSlice));
-};
+RemoteBuffer.prototype.sliceAsync = (beginSlice, endSlice) =>
+    new Promise(this.slice.bind(this, beginSlice, endSlice));
 
-var WebSocket = require('ws');
-var Rope = require('./rope').Rope;
-var RopeBuffer = require('./rope').RopeBuffer;
+const WebSocket = require('ws'),
+      Rope = require('./rope').Rope,
+      RopeBuffer = require('./rope').RopeBuffer;
 
 function BufferText(beg, modiff, saveModiff, markers) {
     this.beg = beg;
@@ -138,33 +129,31 @@ function BufferText(beg, modiff, saveModiff, markers) {
     this.markers = markers;
 }
 
-BufferText.prototype.nextModificationEvent = function (beg) {
-    return new BufferText(beg, this.modiff + 1, this.saveModiff, this.markers);
-};
+BufferText.prototype.nextModificationEvent = (beg) =>
+    new BufferText(beg, this.modiff + 1, this.saveModiff, this.markers);
 
-BufferText.prototype.insert = function (pt, args) {
-    return this.nextModificationEvent(this.beg.insert(pt - 1, args));
-};
+BufferText.prototype.insert = (pt, args) =>
+    this.nextModificationEvent(this.beg.insert(pt - 1, args));
 
-BufferText.prototype.deleteRegion = function (start, end) {
-    return this.nextModificationEvent(this.beg.del(start - 1, end - 1));
-};
+BufferText.prototype.deleteRegion = (start, end) =>
+    this.nextModificationEvent(this.beg.del(start - 1, end - 1));
+
 
 function Buffer(remoteBuffer, text) {
     this.remoteBuffer = remoteBuffer;
     this.newRevision(text);
 }
 
-Buffer.prototype.checkConditions = function (message, what) {
-    var that = this, conditions = message[what] || {};
-    Object.keys(conditions).forEach(function (k) {
+Buffer.prototype.checkConditions = (message, what) => {
+    let that = this, conditions = message[what] || {};
+    Object.keys(conditions).forEach(k => {
         if (conditions[k] !== that[k]) {
             throw new Error(what + '-condition not met: ' + k + ' was ' + that[k] + ' expected ' + conditions[k]);
         }
     });
 };
 
-Buffer.prototype.newRevision = function (text) {
+Buffer.prototype.newRevision = (text) => {
     this.text = text;
     this.size = text.beg.length;
     this._revisions = (this._revisions || []).slice(0, this._currentRevision);
@@ -172,32 +161,28 @@ Buffer.prototype.newRevision = function (text) {
     this._currentRevision = this._revisions.length - 1;
 };
 
-Buffer.prototype.ongotoChar = function (message) {
+Buffer.prototype.ongotoChar = (message) =>
     this.pt = message.position;
-};
 
-Buffer.prototype.onnarrowToRegion = function (message) {
+Buffer.prototype.onnarrowToRegion = (message) => {
     this.begv = message.begv;
     this.zv = message.zv;
 };
 
-Buffer.prototype.oninsert = function (message) {
+Buffer.prototype.oninsert = (message) =>
     this.newRevision(this.text.insert(this.pt, message.args));
-};
 
-Buffer.prototype.ondeleteRegion = function (message) {
+Buffer.prototype.ondeleteRegion = (message) =>
     this.newRevision(this.text.deleteRegion(message.start, message.end));
-};
 
-Buffer.prototype.onundo = function () {
+Buffer.prototype.onundo = () => {
     this._currentRevision = this._currentRevision - 1;
     this.text = this._revisions[this._currentRevision];
     this.size = this.text.beg.length;
 };
 
-Buffer.prototype.onpage = function (message) {
+Buffer.prototype.onpage = (message) =>
     this.remoteBuffer.onpage(message);
-};
 
 function Window() { return; }
 
@@ -210,24 +195,21 @@ function Frame(url, onopen, options) {
         .on('error', this.onerror.bind(this));
 }
 
-Frame.prototype.send = function (message, what) {
-    var data = JSON.stringify(message);
+Frame.prototype.send = (message, what) => {
+    let data = JSON.stringify(message);
     console.log('client %s %s:', message.scope, what || 'request', data);
     this.ws.send(data);
 };
 
-Frame.prototype.onerror = function (e) {
+Frame.prototype.onerror = (e) =>
     console.log('client frame error:', this.name, e);
-};
 
-Frame.prototype.onclose = function () {
+Frame.prototype.onclose = () =>
     console.log('client frame closed:', this.name);
-};
 
-Frame.prototype.onmessage = function (data) {
-    var message = JSON.parse(data),
-        handler = 'on' + message.type,
-        buffer;
+Frame.prototype.onmessage = (data) => {
+    let message = JSON.parse(data),
+        handler = 'on' + message.type;
     console.log('client %s received:', message.scope, data);
     if (message.scope === 'frame') {
         this[handler](message);
@@ -236,18 +218,18 @@ Frame.prototype.onmessage = function (data) {
         this.windows[message.sequenceNumber][handler](message);
     }
     if (message.scope === 'buffer') {
-        buffer = this.buffers[message.name];
+        let buffer = this.buffers[message.name];
         buffer.checkConditions(message, 'pre');
         buffer[handler](message);
         buffer.checkConditions(message, 'post');
     }
 };
 
-Frame.prototype.oninit = function (message) {
-    var that = this;
+Frame.prototype.oninit = (message) => {
+    let that = this;
     this.name = message.name;
-    this.buffers = Object.keys(message.buffers).reduce(function (acc, k) {
-        var buffer = message.buffers[k],
+    this.buffers = Object.keys(message.buffers).reduce((acc, k) => {
+        let buffer = message.buffers[k],
             remoteBuffer = new RemoteBuffer(that, k, buffer.size, that.options);
         Object.setPrototypeOf(buffer.text, new BufferText(new RopeBuffer(remoteBuffer, 0, remoteBuffer.length)));
         acc[k] = Object.setPrototypeOf(buffer, new Buffer(remoteBuffer, buffer.text));
@@ -257,20 +239,20 @@ Frame.prototype.oninit = function (message) {
     this.onopen(this);
 };
 
-Frame.prototype.onlayout = function (message) {
-    var windows = {};
-    function toWindow(window) {
-        if (window) {
-            if (windows[window.sequenceNumber]) {
-                return windows[window.sequenceNumber];
+Frame.prototype.onlayout = (message) => {
+    let windows = {},
+        toWindow = (window) => {
+            if (window) {
+                if (windows[window.sequenceNumber]) {
+                    return windows[window.sequenceNumber];
+                }
+                windows[window.sequenceNumber] = Object.setPrototypeOf(window, new Window());
+                return ['next', 'prev', 'hchild', 'vchild', 'parent'].reduce((w, p) => {
+                    w[p] = toWindow(w[p]);
+                    return w;
+                }, window);
             }
-            windows[window.sequenceNumber] = Object.setPrototypeOf(window, new Window());
-            return ['next', 'prev', 'hchild', 'vchild', 'parent'].reduce(function (w, p) {
-                w[p] = toWindow(w[p]);
-                return w;
-            }, window);
-        }
-    }
+        };
     this.rootWindow = toWindow(message.rootWindow);
     this.minibufferWindow = toWindow(message.minibufferWindow);
     this.selectedWindow = toWindow(message.selectedWindow);
@@ -297,13 +279,13 @@ function ServerWindow(buffer, isMini, next, prev, hchild, vchild, parent, leftCo
     this.pointm = pointm || 0;
 }
 
-ServerWindow.nextSequenceNumber = (function () {
-    var sequenceNumber = 0;
-    return function () {
+ServerWindow.nextSequenceNumber = (() => {
+    let sequenceNumber = 0;
+    return () => {
         sequenceNumber += 1;
         return sequenceNumber;
     };
-}());
+})();
 
 function ServerFrame(ws, name, editor) {
     this.ws = ws;
@@ -317,25 +299,25 @@ function ServerFrame(ws, name, editor) {
         .on('error', this.onerror.bind(this));
 }
 
-ServerFrame.prototype.onerror = function (e) {
+ServerFrame.prototype.onerror = (e) =>
     console.log('server frame error:', this.name, e);
-};
 
-ServerFrame.prototype.onclose = function () {
+
+ServerFrame.prototype.onclose = () => {
     delete this.editor.frames[this.name];
     console.log('server frame closed:', this.name);
 };
 
-ServerFrame.prototype.send = function (message, what) {
+ServerFrame.prototype.send = (message, what) => {
     if (message) {
-        var data = JSON.stringify(message);
+        let data = JSON.stringify(message);
         console.log('server %s %s:', message.scope, what || 'reply', data);
         this.ws.send(data);
     }
 };
 
-ServerFrame.prototype.onmessage = function (data) {
-    var message = JSON.parse(data),
+ServerFrame.prototype.onmessage = (data) => {
+    let message = JSON.parse(data),
         handler = 'on' + message.type;
     console.log('server %s received:', message.scope, data);
     if (message.scope === 'frame') {
@@ -353,17 +335,16 @@ function ServerBufferText(beg, modiff, saveModiff, markers) {
     this.markers = markers || [];
 }
 
-ServerBufferText.prototype.nextModificationEvent = function (beg) {
-    return new ServerBufferText(beg, this.modiff + 1, this.saveModiff, this.markers);
-};
+ServerBufferText.prototype.nextModificationEvent = (beg) =>
+    new ServerBufferText(beg, this.modiff + 1, this.saveModiff, this.markers);
 
-ServerBufferText.prototype.insert = function (pt, args) {
-    return this.nextModificationEvent(this.beg.insert(pt - 1, args));
-};
 
-ServerBufferText.prototype.deleteRegion = function (start, end) {
-    return this.nextModificationEvent(this.beg.del(start - 1, end - 1));
-};
+ServerBufferText.prototype.insert = (pt, args) =>
+    this.nextModificationEvent(this.beg.insert(pt - 1, args));
+
+ServerBufferText.prototype.deleteRegion = (start, end) =>
+    this.nextModificationEvent(this.beg.del(start - 1, end - 1));
+
 
 function ServerBuffer(name, text, pt, begv, zv, mark) {
     this.name = name;
@@ -374,11 +355,10 @@ function ServerBuffer(name, text, pt, begv, zv, mark) {
     this.newRevision(this.pt, new ServerBufferText(text));
 }
 
-ServerBuffer.prototype.limitToRegion = function (position) {
-    return Math.max(this.begv || 1, Math.min(position, this.zv || this.size));
-};
+ServerBuffer.prototype.limitToRegion = (position) =>
+    Math.max(this.begv || 1, Math.min(position, this.zv || this.size));
 
-ServerBuffer.prototype.newRevision = function (pt, text) {
+ServerBuffer.prototype.newRevision = (pt, text) => {
     this.text = text;
     this.size = this.text.beg.length;
     this._revisions = (this._revisions || []).slice(0, this._currentRevision);
@@ -386,10 +366,10 @@ ServerBuffer.prototype.newRevision = function (pt, text) {
     this._currentRevision = this._revisions.length - 1;
 };
 
-ServerBuffer.prototype.narrowToRegion = function (start, end) {
-    var previousBegv = this.begv, previousZv = this.zv, tmp;
+ServerBuffer.prototype.narrowToRegion = (start, end) => {
+    let previousBegv = this.begv, previousZv = this.zv;
     if (start && end && end < start) {
-        tmp = start;
+        let tmp = start;
         start = end;
         end = tmp;
     }
@@ -401,17 +381,15 @@ ServerBuffer.prototype.narrowToRegion = function (start, end) {
                            post: {begv: this.begv, zv: this.zv}});
 };
 
-ServerBuffer.prototype.widen = function () {
-    return this.narrowToRegion(null, null);
-};
+ServerBuffer.prototype.widen = () =>
+    this.narrowToRegion(null, null);
 
-ServerBuffer.prototype.lookingAt = function (regexp) {
-    return this.text.beg.charAt(this.pt - 1).match(regexp) ||
-        this.text.beg.slice(this.pt - 1).match(regexp);
-};
 
-ServerBuffer.prototype.gotoChar = function (position) {
-    var previousPt = this.pt;
+ServerBuffer.prototype.lookingAt = (regexp) =>
+    this.text.beg.charAt(this.pt - 1).match(regexp) || this.text.beg.slice(this.pt - 1).match(regexp);
+
+ServerBuffer.prototype.gotoChar = (position) => {
+    let previousPt = this.pt;
     this.pt = this.limitToRegion(position);
     this.server.broadcast({type: 'gotoChar', scope: 'buffer', name: this.name,
                            pre: {pt: previousPt},
@@ -420,16 +398,14 @@ ServerBuffer.prototype.gotoChar = function (position) {
     return this.pt;
 };
 
-ServerBuffer.prototype.forwardChar = function (n) {
-    return this.gotoChar(this.pt + n);
-};
+ServerBuffer.prototype.forwardChar = (n) =>
+    this.gotoChar(this.pt + n);
 
-ServerBuffer.prototype.backwardChar = function (n) {
-    return this.gotoChar(this.pt - n);
-};
+ServerBuffer.prototype.backwardChar = (n) =>
+    this.gotoChar(this.pt - n);
 
-ServerBuffer.prototype.insert = function (args) {
-    var previousPt = this.pt, nextPt = this.limitToRegion(previousPt + args.length);
+ServerBuffer.prototype.insert = (args) => {
+    let previousPt = this.pt, nextPt = this.limitToRegion(previousPt + args.length);
     this.newRevision(nextPt, this.text.insert(previousPt, args));
     this.server.broadcast({type: 'insert', scope: 'buffer', name: this.name,
                            pre: {pt: previousPt},
@@ -438,11 +414,11 @@ ServerBuffer.prototype.insert = function (args) {
     this.gotoChar(nextPt);
 };
 
-ServerBuffer.prototype.deleteRegion = function (start, end) {
+ServerBuffer.prototype.deleteRegion = (start, end) => {
     start = this.limitToRegion(start || this.pt);
     end = this.limitToRegion(end || this.mark || this.pt);
     if (end < start) {
-        var tmp = end;
+        let tmp = end;
         end = start;
         start = tmp;
     }
@@ -452,7 +428,7 @@ ServerBuffer.prototype.deleteRegion = function (start, end) {
                            post: {_currentRevision: this._currentRevision, size: this.size}});
 };
 
-ServerBuffer.prototype.undo = function (arg) {
+ServerBuffer.prototype.undo = (arg) => {
     arg = arg === undefined ? 1 : arg;
     if (arg > 0 && this._currentRevision > 0) {
         this._currentRevision = this._currentRevision - 1;
@@ -465,20 +441,20 @@ ServerBuffer.prototype.undo = function (arg) {
     }
 };
 
-ServerBuffer.prototype.onpage = function (message) {
-    var pageSize = message.pageSize,
+ServerBuffer.prototype.onpage = (message) => {
+    let pageSize = message.pageSize,
         beginSlice = message.page * pageSize,
         savedVersion = this._revisions[this.text.saveModiff].text;
     message.content = savedVersion.beg.slice(beginSlice, beginSlice + pageSize).toString();
     return message;
 };
 
-var WebSocketServer = require('ws').Server;
+const WebSocketServer = require('ws').Server;
 
 function EditorServer(buffers, options) {
     this.wss = new WebSocketServer(options);
-    var that = this;
-    this.buffers = buffers.reduce(function (acc, buffer) {
+    let that = this;
+    this.buffers = buffers.reduce((acc, buffer) => {
         acc[buffer.name] = buffer;
         buffer.server = that;
         return acc;
@@ -489,11 +465,11 @@ function EditorServer(buffers, options) {
         .on('error', this.onerror.bind(this));
 }
 
-EditorServer.prototype.onconnection = function (ws) {
-    var name = this.frames.length, buffers = this.buffers,
+EditorServer.prototype.onconnection = (ws) => {
+    let name = this.frames.length, buffers = this.buffers,
         frame = new ServerFrame(ws, name, this),
-        bufferMeta = Object.keys(buffers).reduce(function (acc, k) {
-            var buffer = buffers[k];
+        bufferMeta = Object.keys(buffers).reduce((acc, k) => {
+            let buffer = buffers[k];
             acc[k] = {name: buffer.name, size: buffer.size,
                       text: {modiff: buffer.text.modiff, saveModiff: buffer.text.saveModiff, markers: buffer.text.markers},
                       begv: buffer.begv, zv: buffer.zv,
@@ -509,29 +485,27 @@ EditorServer.prototype.onconnection = function (ws) {
     this.frames[name] = frame;
 };
 
-EditorServer.prototype.onerror = function (e) {
+EditorServer.prototype.onerror = (e) =>
     console.log('server error:', e);
-};
 
-EditorServer.prototype.broadcast = function (message, what) {
-    var data = JSON.stringify(message);
+
+EditorServer.prototype.broadcast = (message, what) => {
+    let data = JSON.stringify(message);
     console.log('server %s %s:', message.scope, what || 'broadcast', data);
-    this.frames.forEach(function (frame) {
-        frame.ws.send(data);
-    });
+    this.frames.forEach(frame => frame.ws.send(data));
 };
 
-var assert = require('assert'),
-    path = require('path');
+const assert = require('assert'),
+      path = require('path');
 
-var tutorial = require('fs').readFileSync(path.join(__dirname, '/../etc/tutorials/TUTORIAL'), {encoding: 'utf8'});
-var scratch = ';; This buffer is for notes you don\'t want to save, and for Lisp evaluation.\n;; If you want to create a file, visit that file with C-x C-f,\n\n;; then enter the text in that file\'s own buffer.\n';
+let tutorial = require('fs').readFileSync(path.join(__dirname, '/../etc/tutorials/TUTORIAL'), {encoding: 'utf8'}),
+    scratch = ';; This buffer is for notes you don\'t want to save, and for Lisp evaluation.\n;; If you want to create a file, visit that file with C-x C-f,\n\n;; then enter the text in that file\'s own buffer.\n';
 
-var server = new EditorServer([new ServerBuffer('TUTORIAL', Rope.toRope(tutorial)),
+let server = new EditorServer([new ServerBuffer('TUTORIAL', Rope.toRope(tutorial)),
                                new ServerBuffer('*scratch*', Rope.toRope(scratch)),
                                new ServerBuffer(' *Minibuf-0*', Rope.EMPTY)], {port: 8080, path: '/ws'});
-var client = new Frame(server.url, function (frame) {
-    var buffers = frame.buffers, TUTORIAL = buffers.TUTORIAL.remoteBuffer, error, callbacksCalled = 0;
+let client = new Frame(server.url, frame => {
+    let buffers = frame.buffers, TUTORIAL = buffers.TUTORIAL.remoteBuffer, error, callbacksCalled = 0;
     assert.equal(frame.name, 0);
     assert.equal(Object.keys(frame.windows).length, 2);
     assert.equal(frame.selectedWindow, frame.windows[1]);
@@ -547,22 +521,20 @@ var client = new Frame(server.url, function (frame) {
     assert.equal(TUTORIAL.charAt(TUTORIAL.length), '');
     assert.equal(TUTORIAL.notFound, 'x');
     assert.equal(TUTORIAL.charAt(0), TUTORIAL.notFound, 'charAt page miss');
-    TUTORIAL.charAt(0, function (x) {
+    TUTORIAL.charAt(0, x => {
         callbacksCalled += 1;
         assert.equal(x, tutorial.charAt(0), 'charAt callback no cache');
         assert.equal(TUTORIAL.charAt(0), 'E', 'charAtSync within cache');
-        TUTORIAL.charAt(0, function (y) {
+        TUTORIAL.charAt(0, y => {
             callbacksCalled += 1;
             assert.equal(y, tutorial.charAt(0), 'charAtSync with cache using callback');
         });
-        TUTORIAL.charAtAsync(10000).then(function (y) {
+        TUTORIAL.charAtAsync(10000).then(y => {
             callbacksCalled += 1;
             assert.equal(y, tutorial.charAt(10000), 'charAtAsync no cache');
-        }).catch(function (e) {
-            error = e;
-        });
+        }).catch(e => error = e);
     });
-    TUTORIAL.slice(0, 256, function (x) {
+    TUTORIAL.slice(0, 256, x => {
         callbacksCalled += 1;
         assert.equal(x, tutorial.slice(0, 256), 'slice callback, partial cache');
         assert.equal(TUTORIAL.slice(64, 128), tutorial.slice(64, 128), 'sliceSync within cache');
@@ -571,18 +543,16 @@ var client = new Frame(server.url, function (frame) {
         assert.equal(TUTORIAL.slice(-1, -1), '', 'sliceSync within cache both negative');
         assert.equal(TUTORIAL.slice(64, 0), '', 'sliceSync within cache begin larger than end');
         assert.equal(TUTORIAL.slice(64, -TUTORIAL.length), '', 'sliceSync within cache begin larger than negative end');
-        TUTORIAL.slice(0, 128, function (y) {
+        TUTORIAL.slice(0, 128, y => {
             callbacksCalled += 1;
             assert.equal(y, tutorial.slice(0, 128), 'sliceSync within cache using callback');
         });
-        TUTORIAL.sliceAsync(20000, 20128).then(function (y) {
+        TUTORIAL.sliceAsync(20000, 20128).then(y => {
             callbacksCalled += 1;
             assert.equal(y, tutorial.slice(20000, 20128), 'sliceAsync no cache');
-        }).catch(function (e) {
-            error = e;
-        });
+        }).catch(e => error = e);
     });
-    setTimeout(function () {
+    setTimeout(() => {
         server.wss.close();
         if (error) {
             throw error;
@@ -592,7 +562,7 @@ var client = new Frame(server.url, function (frame) {
 }, {pageSize: 128});
 assert(client.ws.url, server.url);
 
-var lru = new LRU(3);
+let lru = new LRU(3);
 
 lru.set(1, 'foo');
 lru.set(2, 'bar');
@@ -609,7 +579,7 @@ lru.set(2, 'woz');
 assert.deepEqual(lru, {cache: ['woz', 'quux', 'foo'], index: [2, 4, 1], max: 3});
 assert(!lru.get(5));
 
-assert.equal('KEY 5', lru.get(5, function (k) { return 'KEY ' + k; }));
+assert.equal('KEY 5', lru.get(5, k => 'KEY ' + k));
 assert.deepEqual(lru, {cache: ['KEY 5', 'woz', 'quux'], index: [5, 2, 4], max: 3});
 
 assert.equal('KEY 5', lru.get(5));

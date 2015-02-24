@@ -20,7 +20,8 @@ deuce_css=$(shell find resources/public -iname "*.css" ! -path "*/node_modules/*
 
 nw_version=0.12.0-alpha2
 node_modules=resources/public/node_modules
-nwbuild=node $(node_modules)/.bin/nwbuild -v $(nw_version)
+node=node --harmony
+nwbuild=$(node) $(node_modules)/.bin/nwbuild -v $(nw_version)
 nw_tests=$(shell grep -l "require('assert')" $(deuce_javascript))
 
 smoke_test_args=-Q --batch --eval "(print (emacs-version))"
@@ -101,7 +102,7 @@ nwbuild: $(node_modules)
 	$(nwbuild) -p linux64,osx64,win64 -o target/nwbuild resources/public
 
 nwtest: eslint
-	$(foreach f, $(nw_tests),node $(f) || exit;)
+	$(foreach f, $(nw_tests),$(node) $(f) || exit;)
 
 run: target/deuce
 	$<
