@@ -1,7 +1,4 @@
-/*jslint node: true, stupid: true, nomen: true */
-/*globals Promise */
-/*jshint node: true */
-/*eslint-env node */
+/*jshint node: true, esnext: true  */
 
 'use strict';
 

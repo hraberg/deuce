@@ -1,6 +1,4 @@
-/*jslint node: true, browser: true, regexp: true, stupid: true, nomen: true */
-/*jshint node: true, browser: true */
-/*eslint-env node, browser */
+/*jshint node: true, esnext: true */
 
 // http://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf
 

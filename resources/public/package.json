@@ -33,6 +33,9 @@
             "quotes": [2, "single"],
             "no-underscore-dangle": false,
             "no-redeclare": false
+        },
+        "env": {
+            "node": true
         }
     }
 }
