@@ -183,8 +183,8 @@ Buffer.prototype.onpage = (message) =>
 
 function Window() { return; }
 
-function Frame(url, onopen, options) {
-    this.ws = new WebSocket(url);
+function Frame(ws, onopen, options) {
+    this.ws = ws;
     this.onopen = onopen;
     this.options = options;
     this.ws.on('message', this.onmessage.bind(this))
@@ -448,8 +448,8 @@ ServerBuffer.prototype.onpage = (message) => {
 
 const WebSocketServer = require('ws').Server;
 
-function EditorServer(buffers, options) {
-    this.wss = new WebSocketServer(options);
+function EditorServer(wss, buffers) {
+    this.wss = wss;
     let that = this;
     this.buffers = buffers.reduce((acc, buffer) => {
         acc[buffer.name] = buffer;
@@ -498,10 +498,11 @@ const assert = require('assert'),
 let tutorial = require('fs').readFileSync(path.join(__dirname, '/../etc/tutorials/TUTORIAL'), {encoding: 'utf8'}),
     scratch = ';; This buffer is for notes you don\'t want to save, and for Lisp evaluation.\n;; If you want to create a file, visit that file with C-x C-f,\n\n;; then enter the text in that file\'s own buffer.\n';
 
-let server = new EditorServer([new ServerBuffer('TUTORIAL', Rope.toRope(tutorial)),
+let server = new EditorServer(new WebSocketServer({port: 8080, path: '/ws'}),
+                              [new ServerBuffer('TUTORIAL', Rope.toRope(tutorial)),
                                new ServerBuffer('*scratch*', Rope.toRope(scratch)),
-                               new ServerBuffer(' *Minibuf-0*', Rope.EMPTY)], {port: 8080, path: '/ws'});
-let client = new Frame(server.url, frame => {
+                               new ServerBuffer(' *Minibuf-0*', Rope.EMPTY)]);
+let client = new Frame(new WebSocket(server.url), frame => {
     let buffers = frame.buffers, TUTORIAL = buffers.TUTORIAL.remoteBuffer, error, callbacksCalled = 0;
     assert.equal(frame.name, 0);
     assert.equal(Object.keys(frame.windows).length, 2);
