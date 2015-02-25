@@ -15,7 +15,7 @@ deuce_uberjar=target/deuce-$(deuce_version)-standalone.jar
 deuce_stubs=src-$(emacs_version)-stubs
 deuce_source_files=$(shell find src -iname "*.clj")
 
-resources_to_ignore=! -iname "flycheck_*" ! -iname ".\#*" ! -path "*/node_modules/*"
+resources_to_ignore=! -iname "flycheck_*" ! -iname ".\#*" ! -path "*/node_modules/*" ! -path "*bundle.js"
 deuce_javascript=$(shell find resources/public -iname "*.js" $(resources_to_ignore))
 deuce_css=$(shell find resources/public -iname "*.css" $(resources_to_ignore))
 
