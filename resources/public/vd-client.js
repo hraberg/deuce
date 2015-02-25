@@ -2,7 +2,8 @@
 
 'use strict';
 
-const diff = require('virtual-dom/diff'),
+const h = require('virtual-dom/h'),
+      diff = require('virtual-dom/diff'),
       patch = require('virtual-dom/patch'),
       VNode = require('virtual-dom/vnode/vnode'),
       VText = require('virtual-dom/vnode/vtext'),
@@ -18,6 +19,19 @@ function clientSideRender(s) {
     return '<div style=\"text-align:center;line-height:' + (100 + count) +
         'px;border:1px solid red;width:' + (100 + count) + 'px;height:' +
         (100 + count) + 'px;\">' + count + '</div>';
+}
+
+function clientSideVirtualDomRender(s) {
+    let count = s.count;
+    return h('div', {
+        style: {
+            textAlign: 'center',
+            lineHeight: (100 + count) + 'px',
+            border: '1px solid red',
+            width: (100 + count) + 'px',
+            height: (100 + count) + 'px'
+        }
+    }, [String(count)]);
 }
 
 function clientSideMithrilRender(s) {
@@ -47,6 +61,7 @@ let useVirtualDom = false,
     useDiffDom = false,
     useMithril = false,
     useJSON = (false && useVirtualDom) || useMithril,
+    useVirtualDomRender = false && useVirtualDom && useJSON,
     html,
     tree,
     state = {},
@@ -107,7 +122,7 @@ function onpatchJSON(oldRevision, diffs) {
             throw new Error('failed to apply patch' + JSON.stringify(diffs));
         }
         console.time('patch state');
-        html = clientSideRender(state);
+        html = undefined;
         console.timeEnd('patch state');
         revision = oldRevision + 1;
     }
@@ -119,8 +134,16 @@ function render(serverTime) {
         requestAnimationFrame(() => {
             console.time('redraw');
             if (useVirtualDom) {
+                let newTree;
                 console.time('patch vdom');
-                let newTree = convertHTML(html);
+                if (useVirtualDomRender) {
+                    newTree = clientSideVirtualDomRender(state);
+                } else {
+                    if (useJSON) {
+                        html = clientSideRender(state);
+                    }
+                    newTree = convertHTML(html);
+                }
                 rootNode = patch(rootNode, diff(tree, newTree));
                 tree = newTree;
                 console.timeEnd('patch vdom');
@@ -142,6 +165,7 @@ function render(serverTime) {
             }
             pendingRefresh = false;
             console.timeEnd('redraw');
+            console.timeEnd('client time');
             console.log('latency:', Date.now() - serverTime, 'ms');
         });
     }
@@ -152,11 +176,14 @@ let handlers = {r: onrefresh, c: onpatchChars,
 
 function onmessage(data) {
     console.log('client received:', data.data.length, data.data);
+    console.time('client time');
     console.time('parse');
-    let message = JSON.parse(data.data);
+    let message = JSON.parse(data.data),
+        serverTime = message[message.length - 1];
     console.timeEnd('parse');
+    console.log('server time:', Date.now() - serverTime, 'ms');
     handlers[message[0]].apply(null, message.slice(1));
-    render(message[message.length - 1]);
+    render(serverTime);
 }
 
 let url = 'ws://127.0.0.1:8080',
