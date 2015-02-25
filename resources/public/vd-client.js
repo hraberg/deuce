@@ -66,7 +66,7 @@ function onpatch (oldRevision, diffs) {
     console.timeEnd('patch');
 }
 
-function render () {
+function render (serverTime) {
     if (useVirtualDom) {
         console.time('htmlToVdom');
         let newTree = convertHTML(html);
@@ -87,6 +87,7 @@ function render () {
             }
             pendingRefresh = false;
             console.timeEnd('redraw');
+            console.log('latency:', Date.now() - serverTime, 'ms');
         });
     }
 }
@@ -97,7 +98,7 @@ function onmessage (data) {
     let message = JSON.parse(data.data);
     console.timeEnd('parse');
     ({r: onrefresh, p: onpatch})[message[0]].apply(null, message.slice(1));
-    render();
+    render(message[message.length - 1]);
 }
 
 let url = 'ws://127.0.0.1:8080',

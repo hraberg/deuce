@@ -29,7 +29,7 @@ ws.createServer({port: 8080}, (ws) => {
                 if (err) {
                     throw (err);
                 }
-                let data = serialize(['r', revision, html, fs.fstatSync(fd).mtime]);
+                let data = serialize(['r', revision, html, fs.fstatSync(fd).mtime, Date.now()]);
                 console.log(' refresh:', data);
                 ws.send(data);
             });
@@ -58,7 +58,8 @@ function toSimpleDiff(d) {
 
 setInterval(() => {
     state += 1;
-    let newHtml = render(state);
+    let startTime = Date.now(),
+        newHtml = render(state);
     console.log('rendered:', newHtml);
 
     console.time('    diff');
@@ -66,7 +67,7 @@ setInterval(() => {
     console.timeEnd('    diff');
 
     if (connections.length > 0) {
-        let data = serialize(['p', revision, diffs]);
+        let data = serialize(['p', revision, diffs, startTime]);
         console.log(' sending:', data);
         connections.forEach((ws) => ws.send(data));
     }
