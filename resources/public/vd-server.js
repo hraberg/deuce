@@ -15,10 +15,9 @@ let serialize = JSON.stringify,
 
 const LINES_PATTERN = /^.*((\r\n|\n|\r)|$)/gm;
 
-function toDom(doc, h) {
-    let body = doc.createElement('body');
-    body.innerHTML = h;
-    return body;
+function toDom(root, h) {
+    root.innerHTML = h;
+    return root;
 }
 
 function render(count) {
@@ -30,7 +29,7 @@ function render(count) {
 let state = 0,
     document = jsdom(),
     html = render(state),
-    tree = toDom(document, html),
+    tree = toDom(document.createElement('body'), html),
     lines = (html.match(LINES_PATTERN) || []),
     revision = 0,
     connections = [],
@@ -97,7 +96,7 @@ setInterval(() => {
                 if (!domData) {
                     let diffs, newTree;
                     console.time('    diff');
-                    newTree = toDom(document, newHtml);
+                    newTree = toDom(document.createElement('body'), newHtml);
                     diffs = dd.diff(tree, newTree);
                     console.timeEnd('    diff');
                     domData = serialize(['d', revision, diffs, startTime]);
