@@ -30,6 +30,9 @@
         "eslint": "0.15.0",
         "csslint": "0.10.0"
     },
+    "scripts": {
+        "vd": "browserify -d vd-client.js > vd-client-bundle.js && node --harmony vd-server.js"
+    },
     "eslintConfig": {
         "ecmaFeatures": {
             "arrowFunctions": true,

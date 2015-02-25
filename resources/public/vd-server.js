@@ -1,7 +1,7 @@
 'use strict';
 
 // The example from https://github.com/Matt-Esch/virtual-dom split into a server rendering / client patching spike.
-// virtual-dom isn't really used well, as all patching is done in text and the tree is then recrated client side.
+// virtual-dom isn't really used well, as all patching is done in text and the tree is then recreated client side.
 
 const diff = require('diff'),
       ws = require('ws'),
