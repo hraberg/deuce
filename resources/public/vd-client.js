@@ -10,7 +10,7 @@ const diff = require('virtual-dom/diff'),
 
 const convertHTML = htmlToVdom({VNode: VNode, VText: VText});
 
-function applySimpleDiffs(ds, s) {
+function applySimpleCharDiffs(ds, s) {
     let acc = '';
     for (let i = 0, idx = 0; i < ds.length; i += 1) {
         let d = ds[i];
@@ -29,20 +29,28 @@ function applySimpleDiffs(ds, s) {
 function applySimpleLineDiffs(rootElement, ds) {
     let template = document.createElement('template');
     for (let i = 0, idx = 0; i < ds.length; i += 1) {
-        let d = ds[i];
-        if (typeof d === 'string') {
-            template.innerHTML = d;
-            if (rootElement.childElementCount === 0) {
-                rootElement.appendChild(template.content);
+        let d = ds[i], node = rootElement.childNodes[idx];
+        if (Array.isArray(d)) {
+            let line = ((node && node.outerHTML) || '');
+            template.innerHTML = applySimpleCharDiffs(d, line);
+            if (node) {
+                rootElement.replaceChild(template.content, node);
             } else {
-                rootElement.insertBefore(template.content, rootElement.childNodes[idx]);
+                rootElement.appendChild(template.content);
+            }
+        } else if (typeof d === 'string') {
+            template.innerHTML = d;
+            if (node) {
+                rootElement.insertBefore(template.content, node);
+            } else {
+                rootElement.appendChild(template.content);
             }
             idx += d.split(/\n/gm).length;
         } else if (d > 0) {
             idx += d;
         } else if (d < 0) {
             while (d < 0) {
-                rootElement.childNodes[idx].remove();
+                node.remove();
                 d += 1;
             }
         }
@@ -87,7 +95,7 @@ function patchCommon(oldRevision) {
 function onpatchChars(oldRevision, diffs) {
     patchCommon(oldRevision);
     console.time('patch chars');
-    html = applySimpleDiffs(diffs, html || rootNode.innerHTML);
+    html = applySimpleCharDiffs(diffs, html || rootNode.innerHTML);
     revision = oldRevision + 1;
     console.timeEnd('patch chars');
 }

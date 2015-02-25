@@ -17,8 +17,11 @@ function render(count) {
         (100 + count) + 'px;\">' + count + '</div>';
 }
 
+const LINES_PATTERN = /^.*((\r\n|\n|\r)|$)/gm;
+
 let state = 0,
     html = render(state),
+    lines = (html.match(LINES_PATTERN) || []),
     revision = 0,
     connections = [];
 
@@ -57,9 +60,9 @@ function toSimpleCharDiff(d) {
     return d.value.length;
 }
 
-function toSimpleLineDiff(d) {
+function toSimpleLineDiff(d, idx) {
     if (d.added) {
-        return d.value;
+        return lines[idx] ? diff.diffChars(lines[idx], d.value).map(toSimpleCharDiff) : d.value;
     }
     if (d.removed) {
         return -d.count;
@@ -77,21 +80,28 @@ setInterval(() => {
     console.timeEnd('    diff');
 
     if (connections.length > 0) {
-        let lines, chars;
+        let lineData, charData;
         connections.forEach((c) => {
             let data;
             if (c.lines) {
-                if (!lines) {
-                    let diffs = diff.diffLines(html, newHtml).map(toSimpleLineDiff);
-                    lines = serialize(['l', revision, diffs, startTime]);
+                if (!lineData) {
+                    let diffs = [], lastLineDiff;
+                    diff.diffLines(html, newHtml).forEach((d, idx) => {
+                        let lineDiff = toSimpleLineDiff(d, idx);
+                        if (!(Array.isArray(lastLineDiff) && lineDiff === -1)) {
+                            diffs.push(lineDiff);
+                        }
+                        lastLineDiff = lineDiff;
+                    });
+                    lineData = serialize(['l', revision, diffs, startTime]);
                 }
-                data = lines;
+                data = lineData;
             } else {
-                if (!chars) {
+                if (!charData) {
                     let diffs = diff.diffChars(html, newHtml).map(toSimpleCharDiff);
-                    chars = serialize(['c', revision, diffs, startTime]);
+                    charData = serialize(['c', revision, diffs, startTime]);
                 }
-                data = chars;
+                data = charData;
             }
             console.log(' sending:', data);
             c.ws.send(data);
@@ -100,4 +110,5 @@ setInterval(() => {
 
     revision = revision + 1;
     html = newHtml;
+    lines = (html.match(LINES_PATTERN) || []);
 }, 1000);
