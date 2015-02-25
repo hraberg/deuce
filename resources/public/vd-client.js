@@ -26,7 +26,31 @@ function applySimpleDiffs(ds, s) {
     return acc;
 }
 
-let useVirtualDom = true,
+function applySimpleLineDiffs(rootElement, ds) {
+    let template = document.createElement('template');
+    for (let i = 0, idx = 0; i < ds.length; i += 1) {
+        let d = ds[i];
+        if (typeof d === 'string') {
+            template.innerHTML = d;
+            if (rootElement.childElementCount === 0) {
+                rootElement.appendChild(template.content);
+            } else {
+                rootElement.insertBefore(template.content, rootElement.childNodes[idx]);
+            }
+            idx += d.split(/\n/gm).length;
+        } else if (d > 0) {
+            idx += d;
+        } else if (d < 0) {
+            while (d < 0) {
+                rootElement.childNodes[idx].remove();
+                d += 1;
+            }
+        }
+    }
+    return rootElement;
+}
+
+let useVirtualDom = false,
     html,
     tree,
     revision,
@@ -41,13 +65,13 @@ function onrefresh(newRevision, newHtml, newClientCompileTime) {
     }
     if (clientCompileTime !== newClientCompileTime) {
         console.log('new client version, reloading app');
-        setTimeout(() => window.location.reload(), 1000);
+        window.location.reload();
     }
     html = newHtml;
     revision = newRevision;
 }
 
-function onpatch(oldRevision, diffs) {
+function patchCommon(oldRevision) {
     if (revision === undefined) {
         console.log('got patch before full refresh, ignoring.');
         return;
@@ -58,10 +82,21 @@ function onpatch(oldRevision, diffs) {
         ws.send(JSON.stringify(['r']));
         return;
     }
-    console.time('patch');
-    html = applySimpleDiffs(diffs, html);
+}
+
+function onpatchChars(oldRevision, diffs) {
+    patchCommon(oldRevision);
+    console.time('patch chars');
+    html = applySimpleDiffs(diffs, html || rootNode.innerHTML);
     revision = oldRevision + 1;
-    console.timeEnd('patch');
+    console.timeEnd('patch chars');
+}
+
+function onpatchLines(oldRevision, diffs) {
+    patchCommon(oldRevision);
+    pendingPatches.push(diffs);
+    html = undefined;
+    revision = oldRevision + 1;
 }
 
 function render(serverTime) {
@@ -81,7 +116,16 @@ function render(serverTime) {
                     rootNode = patch(rootNode, pendingPatches.shift());
                 }
             } else {
-                rootNode.innerHTML = html;
+                if (html) {
+                    rootNode.innerHTML = html;
+                }
+                if (pendingPatches.length > 0) {
+                    console.time('patch lines');
+                    while (pendingPatches.length > 0) {
+                        rootNode = applySimpleLineDiffs(rootNode, pendingPatches.shift());
+                    }
+                    console.timeEnd('patch lines');
+                }
             }
             pendingRefresh = false;
             console.timeEnd('redraw');
@@ -95,7 +139,7 @@ function onmessage(data) {
     console.time('parse');
     let message = JSON.parse(data.data);
     console.timeEnd('parse');
-    ({r: onrefresh, p: onpatch})[message[0]].apply(null, message.slice(1));
+    ({r: onrefresh, c: onpatchChars, l: onpatchLines})[message[0]].apply(null, message.slice(1));
     render(message[message.length - 1]);
 }
 
@@ -112,7 +156,7 @@ function connect() {
     }
     console.log('connecting to', url);
 
-    ws = new WebSocket(url);
+    ws = new WebSocket(url + '?lines=' + !useVirtualDom);
     ws.onmessage = onmessage;
     ws.onopen = (e) => {
         console.log('connection opened:', e);
@@ -136,7 +180,8 @@ window.addEventListener('error', (e) => {
     if (ws) {
         console.log('error, reloading app:', e);
         ws.close();
-        setTimeout(() => window.location.reload(), 2000);
+        ws = {};
+        setTimeout(() => window.location.reload(), maxReconnectInterval);
     }
 });
 

@@ -22,7 +22,7 @@ let state = 0,
     connections = [];
 
 ws.createServer({port: 8080}, (ws) => {
-    connections.push(ws);
+    connections.push({ws: ws, lines: /lines=true/.test(ws.upgradeReq.url)});
     let id = connections.length - 1,
         onrefresh = () => {
             fs.open('vd-client-bundle.js', 'r', (err, fd) => {
@@ -46,7 +46,7 @@ ws.createServer({port: 8080}, (ws) => {
     onrefresh();
 });
 
-function toSimpleDiff(d) {
+function toSimpleCharDiff(d) {
     if (d.added) {
         return d.value;
     }
@@ -56,6 +56,16 @@ function toSimpleDiff(d) {
     return d.value.length;
 }
 
+function toSimpleLineDiff(d) {
+    if (d.added) {
+        return d.value;
+    }
+    if (d.removed) {
+        return -d.count;
+    }
+    return d.count;
+}
+
 setInterval(() => {
     state += 1;
     let startTime = Date.now(),
@@ -63,13 +73,28 @@ setInterval(() => {
     console.log('rendered:', newHtml);
 
     console.time('    diff');
-    let diffs = diff.diffChars(html, newHtml).map(toSimpleDiff);
     console.timeEnd('    diff');
 
     if (connections.length > 0) {
-        let data = serialize(['p', revision, diffs, startTime]);
-        console.log(' sending:', data);
-        connections.forEach((ws) => ws.send(data));
+        let lines, chars;
+        connections.forEach((c) => {
+            let data;
+            if (c.lines) {
+                if (!lines) {
+                    let diffs = diff.diffLines(html, newHtml).map(toSimpleLineDiff);
+                    lines = serialize(['l', revision, diffs, startTime]);
+                }
+                data = lines;
+            } else {
+                if (!chars) {
+                    let diffs = diff.diffChars(html, newHtml).map(toSimpleCharDiff);
+                    chars = serialize(['c', revision, diffs, startTime]);
+                }
+                data = chars;
+            }
+            console.log(' sending:', data);
+            c.ws.send(data);
+        });
     }
 
     revision = revision + 1;
