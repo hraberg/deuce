@@ -6,9 +6,11 @@
 const diff = require('diff'),
       ws = require('ws'),
       fs = require('fs'),
+      url = require('url'),
       path = require('path'),
       jsdom = require('jsdom').jsdom,
-      DiffDom = require('diff-dom');
+      DiffDom = require('diff-dom'),
+      jsonpatch = require('fast-json-patch');
 
 let serialize = JSON.stringify,
     deserialize = JSON.parse;
@@ -20,13 +22,14 @@ function toDom(root, h) {
     return root;
 }
 
-function render(count) {
+function render(s) {
+    let count = s.count;
     return '<div style=\"text-align:center;line-height:' + (100 + count) +
         'px;border:1px solid red;width:' + (100 + count) + 'px;height:' +
         (100 + count) + 'px;\">' + count + '</div>';
 }
 
-let state = 0,
+let state = {count: 0},
     document = jsdom(),
     html = render(state),
     tree = toDom(document.createElement('body'), html),
@@ -36,16 +39,18 @@ let state = 0,
     dd = new DiffDom();
 
 ws.createServer({port: 8080}, (ws) => {
+    let parameters = url.parse(ws.upgradeReq.url, true).query;
     connections.push({ws: ws,
-                      lines: /lines=true/.test(ws.upgradeReq.url),
-                      dom: /dom=true/.test(ws.upgradeReq.url)});
+                      lines: JSON.parse(parameters.lines),
+                      dom: JSON.parse(parameters.dom),
+                      json: JSON.parse(parameters.json)});
     let id = connections.length - 1,
         onrefresh = () => {
             fs.open(path.join(__dirname, 'vd-client-bundle.js'), 'r', (err, fd) => {
                 if (err) {
                     throw (err);
                 }
-                let data = serialize(['r', revision, html, fs.fstatSync(fd).mtime, Date.now()]);
+                let data = serialize(['r', revision, html, state, fs.fstatSync(fd).mtime, Date.now()]);
                 console.log(' refresh:', data);
                 ws.send(data);
             });
@@ -83,22 +88,26 @@ function toSimpleLineDiff(d, idx) {
 }
 
 setInterval(() => {
-    state += 1;
     let startTime = Date.now(),
-        newHtml = render(state);
+        newState = {count: state.count + 1},
+        newHtml = render(newState);
     console.log('rendered:', newHtml);
 
     if (connections.length > 0) {
-        let lineData, charData, domData;
+        let lineData, charData, domData, jsonData;
         connections.forEach((c) => {
             let data;
-            if (c.dom) {
+            console.time('    diff');
+            if (c.json) {
+                if (!jsonData) {
+                    jsonData = serialize(['j', revision, jsonpatch.compare(state, newState), startTime]);
+                }
+                data = jsonData;
+            } else if (c.dom) {
                 if (!domData) {
                     let diffs, newTree;
-                    console.time('    diff');
                     newTree = toDom(document.createElement('body'), newHtml);
                     diffs = dd.diff(tree, newTree);
-                    console.timeEnd('    diff');
                     domData = serialize(['d', revision, diffs, startTime]);
                     tree = newTree;
                 }
@@ -114,25 +123,24 @@ setInterval(() => {
                         }
                         lastLineDiff = lineDiff;
                     });
-                    console.timeEnd('    diff');
                     lineData = serialize(['l', revision, diffs, startTime]);
                 }
                 data = lineData;
             } else {
                 if (!charData) {
-                    console.time('    diff');
                     let diffs = diff.diffChars(html, newHtml).map(toSimpleCharDiff);
-                    console.timeEnd('    diff');
                     charData = serialize(['c', revision, diffs, startTime]);
                 }
                 data = charData;
             }
+            console.timeEnd('    diff');
             console.log(' sending:', data);
             c.ws.send(data);
         });
     }
 
     revision = revision + 1;
+    state = newState;
     html = newHtml;
     lines = (html.match(LINES_PATTERN) || []);
 }, 1000);

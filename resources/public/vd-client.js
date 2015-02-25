@@ -7,9 +7,17 @@ const diff = require('virtual-dom/diff'),
       VNode = require('virtual-dom/vnode/vnode'),
       VText = require('virtual-dom/vnode/vtext'),
       htmlToVdom = require('html-to-vdom'),
-      DiffDom = require('diff-dom');
+      DiffDom = require('diff-dom'),
+      jsonpatch = require('fast-json-patch');
 
 const convertHTML = htmlToVdom({VNode: VNode, VText: VText});
+
+function clientSideRender(s) {
+    let count = s.count;
+    return '<div style=\"text-align:center;line-height:' + (100 + count) +
+        'px;border:1px solid red;width:' + (100 + count) + 'px;height:' +
+        (100 + count) + 'px;\">' + count + '</div>';
+}
 
 function applySimpleCharDiffs(ds, s) {
     let acc = '';
@@ -60,10 +68,12 @@ function applySimpleLineDiffs(rootElement, ds) {
     return rootElement;
 }
 
-let useVirtualDom = false,
-    useDiffDom = true,
+let useVirtualDom = true,
+    useDiffDom = false,
+    useJSON = false && useVirtualDom,
     html,
     tree,
+    state = {},
     revision,
     rootNode,
     pendingRefresh,
@@ -73,7 +83,7 @@ let useVirtualDom = false,
     clientCompileTime,
     dd = new DiffDom();
 
-function onrefresh(newRevision, newHtml, newClientCompileTime) {
+function onrefresh(newRevision, newHtml, newState, newClientCompileTime) {
     if (!clientCompileTime) {
         clientCompileTime = newClientCompileTime;
     }
@@ -81,6 +91,7 @@ function onrefresh(newRevision, newHtml, newClientCompileTime) {
         console.log('new client version, reloading app');
         window.location.reload();
     }
+    state = newState;
     html = newHtml;
     revision = newRevision;
 }
@@ -88,36 +99,50 @@ function onrefresh(newRevision, newHtml, newClientCompileTime) {
 function patchCommon(oldRevision) {
     if (revision === undefined) {
         console.log('got patch before full refresh, ignoring.');
-        return;
+        return false;
     }
     if (oldRevision !== revision) {
         console.log('out of sync with server, requesting refresh:', oldRevision, revision);
         revision = undefined;
         ws.send(JSON.stringify(['r']));
-        return;
+        return false;
     }
+    return true;
 }
 
 function onpatchChars(oldRevision, diffs) {
-    patchCommon(oldRevision);
-    console.time('patch chars');
-    html = applySimpleCharDiffs(diffs, html || rootNode.innerHTML);
-    revision = oldRevision + 1;
-    console.timeEnd('patch chars');
+    if (patchCommon(oldRevision)) {
+        console.time('patch chars');
+        html = applySimpleCharDiffs(diffs, html || rootNode.innerHTML);
+        revision = oldRevision + 1;
+        console.timeEnd('patch chars');
+    }
 }
 
 function onpatchLines(oldRevision, diffs) {
-    patchCommon(oldRevision);
-    pendingLinePatches.push(diffs);
-    html = undefined;
-    revision = oldRevision + 1;
+    if (patchCommon(oldRevision)) {
+        pendingLinePatches.push(diffs);
+        html = undefined;
+        revision = oldRevision + 1;
+    }
 }
 
 function onpatchDom(oldRevision, diffs) {
-    patchCommon(oldRevision);
-    pendingDomPatches.push(diffs);
-    html = undefined;
-    revision = oldRevision + 1;
+    if (patchCommon(oldRevision)) {
+        pendingDomPatches.push(diffs);
+        html = undefined;
+        revision = oldRevision + 1;
+    }
+}
+
+function onpatchJSON(oldRevision, diffs) {
+    if (patchCommon(oldRevision)) {
+        if (!jsonpatch.apply(state, diffs)) {
+            throw new Error('failed to apply patch' + JSON.stringify(diffs));
+        }
+        html = clientSideRender(state);
+        revision = oldRevision + 1;
+    }
 }
 
 function render(serverTime) {
@@ -162,12 +187,16 @@ function render(serverTime) {
     }
 }
 
+let handlers = {r: onrefresh,
+                c: onpatchChars, l: onpatchLines,
+                d: onpatchDom, j: onpatchJSON};
+
 function onmessage(data) {
     console.log('client received:', data.data.length, data.data);
     console.time('parse');
     let message = JSON.parse(data.data);
     console.timeEnd('parse');
-    ({r: onrefresh, c: onpatchChars, l: onpatchLines, d: onpatchDom})[message[0]].apply(null, message.slice(1));
+    handlers[message[0]].apply(null, message.slice(1));
     render(message[message.length - 1]);
 }
 
@@ -184,7 +213,7 @@ function connect() {
     }
     console.log('connecting to', url);
 
-    ws = new WebSocket(url + '?lines=' + !(useVirtualDom || useDiffDom) + '&dom=' + useDiffDom);
+    ws = new WebSocket(url + '?lines=' + !(useVirtualDom || useDiffDom) + '&dom=' + useDiffDom + '&json=' + useJSON);
     ws.onmessage = onmessage;
     ws.onopen = (e) => {
         console.log('connection opened:', e);
