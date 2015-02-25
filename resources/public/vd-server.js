@@ -29,8 +29,7 @@ ws.createServer({port: 8080}, (ws) => {
                 if (err) {
                     throw (err);
                 }
-                let data = serialize({type: 'refresh', html: html, revision: revision,
-                                      clientCompileTime: fs.fstatSync(fd).mtime});
+                let data = serialize(['r', revision, html, fs.fstatSync(fd).mtime]);
                 console.log(' refresh:', data);
                 ws.send(data);
             });
@@ -41,7 +40,7 @@ ws.createServer({port: 8080}, (ws) => {
     });
     ws.on('message', (data) => {
         let message = deserialize(data);
-        ({refresh: onrefresh})[message.type](message);
+        ({r: onrefresh})[message[0]].apply(null, message.slice(1));
     });
     console.log('new client:', id);
     onrefresh();
@@ -59,20 +58,19 @@ function toSimpleDiff(d) {
 
 setInterval(() => {
     state += 1;
-    let newHtml = render(state),
-        newRevision = revision + 1;
+    let newHtml = render(state);
     console.log('rendered:', newHtml);
 
     console.time('    diff');
-    let patch = diff.diffChars(html, newHtml).map(toSimpleDiff);
+    let diffs = diff.diffChars(html, newHtml).map(toSimpleDiff);
     console.timeEnd('    diff');
 
     if (connections.length > 0) {
-        let data = serialize({type: 'patch', diff: patch, from: revision, to: newRevision});
+        let data = serialize(['p', revision, diffs]);
         console.log(' sending:', data);
         connections.forEach((ws) => ws.send(data));
     }
 
-    revision = newRevision;
+    revision = revision + 1;
     html = newHtml;
 }, 1000);

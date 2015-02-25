@@ -37,32 +37,32 @@ let useVirtualDom = true,
     pendingPatches = [],
     clientCompileTime;
 
-function onrefresh (message) {
+function onrefresh (newRevision, newHtml, newClientCompileTime) {
     if (!clientCompileTime) {
-        clientCompileTime = message.clientCompileTime;
+        clientCompileTime = newClientCompileTime;
     }
-    if (clientCompileTime !== message.clientCompileTime) {
+    if (clientCompileTime !== newClientCompileTime) {
         console.log('new client version, reloading app');
         setTimeout(() => window.location.reload(), 1000);
     }
-    html = message.html;
-    revision = message.revision;
+    html = newHtml;
+    revision = newRevision;
 }
 
-function onpatch (message) {
+function onpatch (oldRevision, diffs) {
     if (revision === undefined) {
         console.log('got patch before full refresh, ignoring.');
         return;
     }
-    if (message.from !== revision) {
-        console.log('out of sync with server, requesting refresh:', message.from, revision);
+    if (oldRevision !== revision) {
+        console.log('out of sync with server, requesting refresh:', oldRevision, revision);
         revision = undefined;
-        ws.send(JSON.stringify({'type': 'refresh'}));
+        ws.send(JSON.stringify(['r']));
         return;
     }
     console.time('patch');
-    html = applySimpleDiffs(message.diff, html);
-    revision = message.to;
+    html = applySimpleDiffs(diffs, html);
+    revision = oldRevision + 1;
     console.timeEnd('patch');
 }
 
@@ -96,7 +96,7 @@ function onmessage (data) {
     console.time('parse');
     let message = JSON.parse(data.data);
     console.timeEnd('parse');
-    ({refresh: onrefresh, patch: onpatch})[message.type](message);
+    ({r: onrefresh, p: onpatch})[message[0]].apply(null, message.slice(1));
     render();
 }
 
@@ -119,7 +119,10 @@ function connect() {
         console.log('connection opened:', e);
         reconnectInterval = initialReconnectInterval;
     };
-    ws.onerror = (e) => console.log('connection error:', e);
+    ws.onerror = (e) => {
+        console.log('connection error:', e);
+        ws.close();
+    };
     ws.onclose = (e) => {
         console.log('connection closed:', e);
         console.log('retrying in:', reconnectInterval, 'ms.');
@@ -129,6 +132,14 @@ function connect() {
         reconnectInterval = Math.min(maxReconnectInterval, reconnectInterval);
     };
 }
+
+window.addEventListener('error', (e) => {
+    if (ws) {
+        console.log('error, reloading app:', e);
+        ws.close();
+        setTimeout(() => window.location.reload(), 2000);
+    }
+});
 
 document.addEventListener('DOMContentLoaded', () => {
     if (useVirtualDom) {
