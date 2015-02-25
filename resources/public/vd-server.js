@@ -76,8 +76,6 @@ setInterval(() => {
         newHtml = render(state);
     console.log('rendered:', newHtml);
 
-    console.time('    diff');
-    console.timeEnd('    diff');
 
     if (connections.length > 0) {
         let lineData, charData;
@@ -86,6 +84,7 @@ setInterval(() => {
             if (c.lines) {
                 if (!lineData) {
                     let diffs = [], lastLineDiff;
+                    console.time('    diff');
                     diff.diffLines(html, newHtml).forEach((d, idx) => {
                         let lineDiff = toSimpleLineDiff(d, idx);
                         if (!(Array.isArray(lastLineDiff) && lineDiff === -1)) {
@@ -93,12 +92,15 @@ setInterval(() => {
                         }
                         lastLineDiff = lineDiff;
                     });
+                    console.timeEnd('    diff');
                     lineData = serialize(['l', revision, diffs, startTime]);
                 }
                 data = lineData;
             } else {
                 if (!charData) {
+                    console.time('    diff');
                     let diffs = diff.diffChars(html, newHtml).map(toSimpleCharDiff);
+                    console.timeEnd('    diff');
                     charData = serialize(['c', revision, diffs, startTime]);
                 }
                 data = charData;
