@@ -24,7 +24,8 @@
         "html-to-vdom": "0.5.4",
         "jsdom": "4.0.1",
         "diff-dom": "1.0.0",
-        "fast-json-patch": "0.5.1"
+        "fast-json-patch": "0.5.1",
+        "mithril": "0.1.30"
     },
     "devDependencies": {
         "browserify": "9.0.3",

@@ -7,6 +7,7 @@ const diff = require('virtual-dom/diff'),
       VNode = require('virtual-dom/vnode/vnode'),
       VText = require('virtual-dom/vnode/vtext'),
       htmlToVdom = require('html-to-vdom'),
+      m = require('mithril'),
       DiffDom = require('diff-dom'),
       jsonpatch = require('fast-json-patch');
 
@@ -17,6 +18,13 @@ function clientSideRender(s) {
     return '<div style=\"text-align:center;line-height:' + (100 + count) +
         'px;border:1px solid red;width:' + (100 + count) + 'px;height:' +
         (100 + count) + 'px;\">' + count + '</div>';
+}
+
+function clientSideMithrilRender(s) {
+    let count = s.count;
+    return m('div[style=text-align:center;line-height:' + (100 + count) +
+             'px;border:1px solid red;width:' + (100 + count) + 'px;height:' + (100 + count) + 'px]',
+             String(count));
 }
 
 function applySimpleCharDiffs(ds, s) {
@@ -35,42 +43,10 @@ function applySimpleCharDiffs(ds, s) {
     return acc;
 }
 
-function applySimpleLineDiffs(rootElement, ds) {
-    let template = document.createElement('template');
-    for (let i = 0, idx = 0; i < ds.length; i += 1) {
-        let d = ds[i], node = rootElement.childNodes[idx];
-        if (Array.isArray(d)) {
-            let line = ((node && node.outerHTML) || '');
-            template.innerHTML = applySimpleCharDiffs(d, line);
-            if (node) {
-                rootElement.replaceChild(template.content, node);
-            } else {
-                rootElement.appendChild(template.content);
-            }
-            idx += 1;
-        } else if (typeof d === 'string') {
-            template.innerHTML = d;
-            if (node) {
-                rootElement.insertBefore(template.content, node);
-            } else {
-                rootElement.appendChild(template.content);
-            }
-            idx += d.split(/\n/gm).length;
-        } else if (d > 0) {
-            idx += d;
-        } else if (d < 0) {
-            while (d < 0) {
-                node.remove();
-                d += 1;
-            }
-        }
-    }
-    return rootElement;
-}
-
-let useVirtualDom = true,
+let useVirtualDom = false,
     useDiffDom = false,
-    useJSON = false && useVirtualDom,
+    useMithril = false,
+    useJSON = (false && useVirtualDom) || useMithril,
     html,
     tree,
     state = {},
@@ -78,8 +54,6 @@ let useVirtualDom = true,
     rootNode,
     pendingRefresh,
     pendingDomPatches = [],
-    pendingVDomPatches = [],
-    pendingLinePatches = [],
     clientCompileTime,
     dd = new DiffDom();
 
@@ -119,14 +93,6 @@ function onpatchChars(oldRevision, diffs) {
     }
 }
 
-function onpatchLines(oldRevision, diffs) {
-    if (patchCommon(oldRevision)) {
-        pendingLinePatches.push(diffs);
-        html = undefined;
-        revision = oldRevision + 1;
-    }
-}
-
 function onpatchDom(oldRevision, diffs) {
     if (patchCommon(oldRevision)) {
         pendingDomPatches.push(diffs);
@@ -140,37 +106,31 @@ function onpatchJSON(oldRevision, diffs) {
         if (!jsonpatch.apply(state, diffs)) {
             throw new Error('failed to apply patch' + JSON.stringify(diffs));
         }
+        console.time('patch state');
         html = clientSideRender(state);
+        console.timeEnd('patch state');
         revision = oldRevision + 1;
     }
 }
 
 function render(serverTime) {
-    if (useVirtualDom) {
-        let newTree = convertHTML(html);
-        pendingVDomPatches.push(diff(tree, newTree));
-        tree = newTree;
-    }
     if (!pendingRefresh) {
         pendingRefresh = true;
         requestAnimationFrame(() => {
             console.time('redraw');
             if (useVirtualDom) {
                 console.time('patch vdom');
-                while (pendingVDomPatches.length > 0) {
-                    rootNode = patch(rootNode, pendingVDomPatches.shift());
-                }
+                let newTree = convertHTML(html);
+                rootNode = patch(rootNode, diff(tree, newTree));
+                tree = newTree;
                 console.timeEnd('patch vdom');
+            } else if (useMithril) {
+                console.time('patch mithril');
+                m.render(rootNode, clientSideMithrilRender(state));
+                console.timeEnd('patch mithril');
             } else {
                 if (html) {
                     rootNode.innerHTML = html;
-                }
-                if (pendingLinePatches.length > 0) {
-                    console.time('patch lines');
-                    while (pendingLinePatches.length > 0) {
-                        rootNode = applySimpleLineDiffs(rootNode, pendingLinePatches.shift());
-                    }
-                    console.timeEnd('patch lines');
                 }
                 if (pendingDomPatches.length > 0) {
                     console.time('patch dom');
@@ -187,8 +147,7 @@ function render(serverTime) {
     }
 }
 
-let handlers = {r: onrefresh,
-                c: onpatchChars, l: onpatchLines,
+let handlers = {r: onrefresh, c: onpatchChars,
                 d: onpatchDom, j: onpatchJSON};
 
 function onmessage(data) {
@@ -213,7 +172,7 @@ function connect() {
     }
     console.log('connecting to', url);
 
-    ws = new WebSocket(url + '?lines=' + !(useVirtualDom || useDiffDom) + '&dom=' + useDiffDom + '&json=' + useJSON);
+    ws = new WebSocket(url + '?dom=' + useDiffDom + '&json=' + useJSON);
     ws.onmessage = onmessage;
     ws.onopen = (e) => {
         console.log('connection opened:', e);

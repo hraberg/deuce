@@ -15,8 +15,6 @@ const diff = require('diff'),
 let serialize = JSON.stringify,
     deserialize = JSON.parse;
 
-const LINES_PATTERN = /^.*((\r\n|\n|\r)|$)/gm;
-
 function toDom(root, h) {
     root.innerHTML = h;
     return root;
@@ -33,7 +31,6 @@ let state = {count: 0},
     document = jsdom(),
     html = render(state),
     tree = toDom(document.createElement('body'), html),
-    lines = (html.match(LINES_PATTERN) || []),
     revision = 0,
     connections = [],
     dd = new DiffDom();
@@ -41,7 +38,6 @@ let state = {count: 0},
 ws.createServer({port: 8080}, (ws) => {
     let parameters = url.parse(ws.upgradeReq.url, true).query;
     connections.push({ws: ws,
-                      lines: JSON.parse(parameters.lines),
                       dom: JSON.parse(parameters.dom),
                       json: JSON.parse(parameters.json)});
     let id = connections.length - 1,
@@ -77,16 +73,6 @@ function toSimpleCharDiff(d) {
     return d.value.length;
 }
 
-function toSimpleLineDiff(d, idx) {
-    if (d.added) {
-        return lines[idx] ? diff.diffChars(lines[idx], d.value).map(toSimpleCharDiff) : d.value;
-    }
-    if (d.removed) {
-        return -d.count;
-    }
-    return d.count;
-}
-
 setInterval(() => {
     let startTime = Date.now(),
         newState = {count: state.count + 1},
@@ -94,7 +80,7 @@ setInterval(() => {
     console.log('rendered:', newHtml);
 
     if (connections.length > 0) {
-        let lineData, charData, domData, jsonData;
+        let charData, domData, jsonData;
         connections.forEach((c) => {
             let data;
             console.time('    diff');
@@ -112,20 +98,6 @@ setInterval(() => {
                     tree = newTree;
                 }
                 data = domData;
-            } else if (c.lines) {
-                if (!lineData) {
-                    let diffs = [], lastLineDiff;
-                    console.time('    diff');
-                    diff.diffLines(html, newHtml).forEach((d, idx) => {
-                        let lineDiff = toSimpleLineDiff(d, idx);
-                        if (!(Array.isArray(lastLineDiff) && lineDiff === -1)) {
-                            diffs.push(lineDiff);
-                        }
-                        lastLineDiff = lineDiff;
-                    });
-                    lineData = serialize(['l', revision, diffs, startTime]);
-                }
-                data = lineData;
             } else {
                 if (!charData) {
                     let diffs = diff.diffChars(html, newHtml).map(toSimpleCharDiff);
@@ -142,5 +114,4 @@ setInterval(() => {
     revision = revision + 1;
     state = newState;
     html = newHtml;
-    lines = (html.match(LINES_PATTERN) || []);
 }, 1000);
