@@ -38,6 +38,7 @@ function applySimpleLineDiffs(rootElement, ds) {
             } else {
                 rootElement.appendChild(template.content);
             }
+            idx += 1;
         } else if (typeof d === 'string') {
             template.innerHTML = d;
             if (node) {
