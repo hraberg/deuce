@@ -5,7 +5,8 @@
 
 const diff = require('diff'),
       ws = require('ws'),
-      fs = require('fs');
+      fs = require('fs'),
+      path = require('path');
 
 let serialize = JSON.stringify,
     deserialize = JSON.parse;
@@ -25,7 +26,7 @@ ws.createServer({port: 8080}, (ws) => {
     connections.push({ws: ws, lines: /lines=true/.test(ws.upgradeReq.url)});
     let id = connections.length - 1,
         onrefresh = () => {
-            fs.open('vd-client-bundle.js', 'r', (err, fd) => {
+            fs.open(path.join(__dirname, 'vd-client-bundle.js'), 'r', (err, fd) => {
                 if (err) {
                     throw (err);
                 }
