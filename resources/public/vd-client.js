@@ -1,7 +1,5 @@
 /*eslint-env browser */
 
-// browserify vd-client.js > vd-client-bundle.js
-
 'use strict';
 
 const diff = require('virtual-dom/diff'),
@@ -37,7 +35,7 @@ let useVirtualDom = true,
     pendingPatches = [],
     clientCompileTime;
 
-function onrefresh (newRevision, newHtml, newClientCompileTime) {
+function onrefresh(newRevision, newHtml, newClientCompileTime) {
     if (!clientCompileTime) {
         clientCompileTime = newClientCompileTime;
     }
@@ -49,7 +47,7 @@ function onrefresh (newRevision, newHtml, newClientCompileTime) {
     revision = newRevision;
 }
 
-function onpatch (oldRevision, diffs) {
+function onpatch(oldRevision, diffs) {
     if (revision === undefined) {
         console.log('got patch before full refresh, ignoring.');
         return;
@@ -66,7 +64,7 @@ function onpatch (oldRevision, diffs) {
     console.timeEnd('patch');
 }
 
-function render (serverTime) {
+function render(serverTime) {
     if (useVirtualDom) {
         console.time('htmlToVdom');
         let newTree = convertHTML(html);
@@ -92,7 +90,7 @@ function render (serverTime) {
     }
 }
 
-function onmessage (data) {
+function onmessage(data) {
     console.log('client received:', data.data.length, data.data);
     console.time('parse');
     let message = JSON.parse(data.data);
