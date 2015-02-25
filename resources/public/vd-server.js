@@ -6,10 +6,20 @@
 const diff = require('diff'),
       ws = require('ws'),
       fs = require('fs'),
-      path = require('path');
+      path = require('path'),
+      jsdom = require('jsdom').jsdom,
+      DiffDom = require('diff-dom');
 
 let serialize = JSON.stringify,
     deserialize = JSON.parse;
+
+const LINES_PATTERN = /^.*((\r\n|\n|\r)|$)/gm;
+
+function toDom(doc, h) {
+    let body = doc.createElement('body');
+    body.innerHTML = h;
+    return body;
+}
 
 function render(count) {
     return '<div style=\"text-align:center;line-height:' + (100 + count) +
@@ -17,16 +27,19 @@ function render(count) {
         (100 + count) + 'px;\">' + count + '</div>';
 }
 
-const LINES_PATTERN = /^.*((\r\n|\n|\r)|$)/gm;
-
 let state = 0,
+    document = jsdom(),
     html = render(state),
+    tree = toDom(document, html),
     lines = (html.match(LINES_PATTERN) || []),
     revision = 0,
-    connections = [];
+    connections = [],
+    dd = new DiffDom();
 
 ws.createServer({port: 8080}, (ws) => {
-    connections.push({ws: ws, lines: /lines=true/.test(ws.upgradeReq.url)});
+    connections.push({ws: ws,
+                      lines: /lines=true/.test(ws.upgradeReq.url),
+                      dom: /dom=true/.test(ws.upgradeReq.url)});
     let id = connections.length - 1,
         onrefresh = () => {
             fs.open(path.join(__dirname, 'vd-client-bundle.js'), 'r', (err, fd) => {
@@ -76,12 +89,22 @@ setInterval(() => {
         newHtml = render(state);
     console.log('rendered:', newHtml);
 
-
     if (connections.length > 0) {
-        let lineData, charData;
+        let lineData, charData, domData;
         connections.forEach((c) => {
             let data;
-            if (c.lines) {
+            if (c.dom) {
+                if (!domData) {
+                    let diffs, newTree;
+                    console.time('    diff');
+                    newTree = toDom(document, newHtml);
+                    diffs = dd.diff(tree, newTree);
+                    console.timeEnd('    diff');
+                    domData = serialize(['d', revision, diffs, startTime]);
+                    tree = newTree;
+                }
+                data = domData;
+            } else if (c.lines) {
                 if (!lineData) {
                     let diffs = [], lastLineDiff;
                     console.time('    diff');

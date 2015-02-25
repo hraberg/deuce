@@ -6,7 +6,8 @@ const diff = require('virtual-dom/diff'),
       patch = require('virtual-dom/patch'),
       VNode = require('virtual-dom/vnode/vnode'),
       VText = require('virtual-dom/vnode/vtext'),
-      htmlToVdom = require('html-to-vdom');
+      htmlToVdom = require('html-to-vdom'),
+      DiffDom = require('diff-dom');
 
 const convertHTML = htmlToVdom({VNode: VNode, VText: VText});
 
@@ -60,13 +61,17 @@ function applySimpleLineDiffs(rootElement, ds) {
 }
 
 let useVirtualDom = false,
+    useDiffDom = true,
     html,
     tree,
     revision,
     rootNode,
     pendingRefresh,
-    pendingPatches = [],
-    clientCompileTime;
+    pendingDomPatches = [],
+    pendingVDomPatches = [],
+    pendingLinePatches = [],
+    clientCompileTime,
+    dd = new DiffDom();
 
 function onrefresh(newRevision, newHtml, newClientCompileTime) {
     if (!clientCompileTime) {
@@ -103,17 +108,22 @@ function onpatchChars(oldRevision, diffs) {
 
 function onpatchLines(oldRevision, diffs) {
     patchCommon(oldRevision);
-    pendingPatches.push(diffs);
+    pendingLinePatches.push(diffs);
+    html = undefined;
+    revision = oldRevision + 1;
+}
+
+function onpatchDom(oldRevision, diffs) {
+    patchCommon(oldRevision);
+    pendingDomPatches.push(diffs);
     html = undefined;
     revision = oldRevision + 1;
 }
 
 function render(serverTime) {
     if (useVirtualDom) {
-        console.time('htmlToVdom');
         let newTree = convertHTML(html);
-        console.timeEnd('htmlToVdom');
-        pendingPatches.push(diff(tree, newTree));
+        pendingVDomPatches.push(diff(tree, newTree));
         tree = newTree;
     }
     if (!pendingRefresh) {
@@ -121,19 +131,28 @@ function render(serverTime) {
         requestAnimationFrame(() => {
             console.time('redraw');
             if (useVirtualDom) {
-                while (pendingPatches.length > 0) {
-                    rootNode = patch(rootNode, pendingPatches.shift());
+                console.time('patch vdom');
+                while (pendingVDomPatches.length > 0) {
+                    rootNode = patch(rootNode, pendingVDomPatches.shift());
                 }
+                console.timeEnd('patch vdom');
             } else {
                 if (html) {
                     rootNode.innerHTML = html;
                 }
-                if (pendingPatches.length > 0) {
+                if (pendingLinePatches.length > 0) {
                     console.time('patch lines');
-                    while (pendingPatches.length > 0) {
-                        rootNode = applySimpleLineDiffs(rootNode, pendingPatches.shift());
+                    while (pendingLinePatches.length > 0) {
+                        rootNode = applySimpleLineDiffs(rootNode, pendingLinePatches.shift());
                     }
                     console.timeEnd('patch lines');
+                }
+                if (pendingDomPatches.length > 0) {
+                    console.time('patch dom');
+                    while (pendingDomPatches.length > 0) {
+                        dd.apply(rootNode, pendingDomPatches.shift());
+                    }
+                    console.timeEnd('patch dom');
                 }
             }
             pendingRefresh = false;
@@ -148,7 +167,7 @@ function onmessage(data) {
     console.time('parse');
     let message = JSON.parse(data.data);
     console.timeEnd('parse');
-    ({r: onrefresh, c: onpatchChars, l: onpatchLines})[message[0]].apply(null, message.slice(1));
+    ({r: onrefresh, c: onpatchChars, l: onpatchLines, d: onpatchDom})[message[0]].apply(null, message.slice(1));
     render(message[message.length - 1]);
 }
 
@@ -165,7 +184,7 @@ function connect() {
     }
     console.log('connecting to', url);
 
-    ws = new WebSocket(url + '?lines=' + !useVirtualDom);
+    ws = new WebSocket(url + '?lines=' + !(useVirtualDom || useDiffDom) + '&dom=' + useDiffDom);
     ws.onmessage = onmessage;
     ws.onopen = (e) => {
         console.log('connection opened:', e);
