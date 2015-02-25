@@ -12,6 +12,77 @@ const diff = require('diff'),
       DiffDom = require('diff-dom'),
       jsonpatch = require('fast-json-patch');
 
+/*
+
+potential view model as JSON;
+
+{"frame":
+    {"height":40,
+     "width":139,
+     "menu-bar":["File","Edit","Options","Tools","Buffers","Help"],
+     "windows":[
+        {"height":39,
+         "width":134,
+         "start":1,
+         "end":400,
+         "point":10,
+         "line-number-at-start":1,
+         "line-number-at-end":30,
+         "live-p":true,
+         "selected":true,
+         "buffer":
+            {"name":"*scratch*",
+             "point":10,
+             "mark":null,
+             "min":1,
+             "max":1400,
+             "line-number-at-point":4,
+             "current-column":10,
+             "major-mode":"fundametal-mode",
+             "minor-modes":["paredit-mode"],
+             "current":true,
+             "text":[";; This buffer ..\n",";; If you want\n"]},
+         "mode-line":"-:-- *scratch    Top ----"},
+        {"height":1,
+         "width":134,
+         "start":1,
+         "end":400,
+         "point":1,
+         "line-number-at-start":1,
+         "line-number-at-end":1,
+         "mini-p":true,
+         "buffer":
+            {"name":" *Minibuf-0*",
+             "point":1,
+             "mark":null,
+             "text":[""]}}]}}
+
+same view model, as custom elements:
+
+<frame-d height="40" width="134">
+  <menu-bar-d>
+    <menu-d>File</menu-d>
+    <menu-d>Edit</menu-d>
+    <menu-d>Options</menu-d>
+    <menu-d>Tools</menu-d>
+    <menu-d>Buffers</menu-d>
+    <menu-d>Help</menu-d>
+  </menu-bar-d>
+  <window-d height="39" width="134" start="1" end="400" point="10"
+            line-number-at-start="1" line-number-at-end="30"
+            live-p selected>
+    <buffer-d name="*scratch*" point="10" mark="" min="1" max="1300"
+              line-number-at-point="4" current-column="10"
+              major-mode="fundamental-mode" minor-modes="paredit-mode" current>
+      <line-d number="1"></line-d>
+    </buffer-d>
+    <mode-line-d height="1"></mode-line-d>
+  </window-d>
+  <window-d height="1" width="134" mini-p></window-d>
+</frame-d>
+
+*/
+
 let serialize = JSON.stringify,
     deserialize = JSON.parse;
 
