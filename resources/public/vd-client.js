@@ -59,9 +59,9 @@ function applySimpleCharDiffs(ds, s) {
 
 let useVirtualDom = false,
     useDiffDom = false,
-    useMithril = false,
-    useJSON = (false && useVirtualDom) || (false && useMithril),
-    useStateDiff = (false && useVirtualDom) || (false && useMithril),
+    useJSON = false,
+    useStateDiff = false,
+    useMithril = false && (useJSON || useStateDiff),
     useVirtualDomRender = false && useVirtualDom && (useJSON || useStateDiff),
     html,
     tree,
@@ -168,16 +168,18 @@ function render(serverTime) {
                 console.time('patch mithril');
                 m.render(rootNode, clientSideMithrilRender(state));
                 console.timeEnd('patch mithril');
+            } else if (pendingDomPatches.length > 0) {
+                console.time('patch dom');
+                while (pendingDomPatches.length > 0) {
+                    dd.apply(rootNode, pendingDomPatches.shift());
+                }
+                console.timeEnd('patch dom');
             } else {
+                if (useJSON || useStateDiff) {
+                    html = clientSideRender(state);
+                }
                 if (html) {
                     rootNode.innerHTML = html;
-                }
-                if (pendingDomPatches.length > 0) {
-                    console.time('patch dom');
-                    while (pendingDomPatches.length > 0) {
-                        dd.apply(rootNode, pendingDomPatches.shift());
-                    }
-                    console.timeEnd('patch dom');
                 }
             }
             pendingRefresh = false;
