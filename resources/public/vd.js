@@ -28,10 +28,46 @@ function e(tag, key) {
             if (attributes[k] === undefined) {
                 element.removeAttribute(k);
             } else {
-                element.setAttribute(k, attributes[k]);
+                if (k === 'style') {
+                    Object.keys(attributes.style).forEach((s) => {
+                        if (attributes.style[s] !== undefined) {
+                            element.style[s] = attributes.style[s];
+                        } else {
+                            element.style[s] = null;
+                        }
+                        if (virtualElement.attributes.style) {
+                            delete virtualElement.attributes.style[s];
+                        }
+                    });
+                    Object.keys(virtualElement.attributes.style || {}).forEach((s) => {
+                        element.style.removeProperty(s);
+                    });
+                } else if (k === 'data') {
+                    Object.keys(attributes.data).forEach((d) => {
+                        if (attributes.data[d] !== undefined) {
+                            element.dataset[d] = attributes.data[d];
+                        } else {
+                            delete element.dataset[d];
+                        }
+                        if (virtualElement.attributes.data) {
+                            delete virtualElement.attributes.data[d];
+                        }
+                    });
+                    Object.keys(virtualElement.attributes.data || {}).forEach((d) => {
+                        delete element.dataset[d];
+                    });
+                } else {
+                    element.setAttribute(k, attributes[k]);
+                }
             }
             delete virtualElement.attributes[k];
         });
+
+        if (!attributes.data) {
+            Object.keys(element.dataset).forEach((d) => {
+                delete element.dataset[d];
+            });
+        }
 
         Object.keys(virtualElement.attributes).forEach((k) => {
             element.removeAttribute(k);
@@ -75,7 +111,17 @@ function e(tag, key) {
         element.key = key;
 
         Object.keys(attributes).forEach((k) => {
-            element.setAttribute(k, attributes[k]);
+            if (k === 'style') {
+                Object.keys(attributes.style).forEach((s) => {
+                    element.style[s] = attributes.style[s];
+                });
+            } else if (k === 'data') {
+                Object.keys(attributes.data).forEach((d) => {
+                    element.dataset[d] = attributes.data[d];
+                });
+            } else {
+                element.setAttribute(k, attributes[k]);
+            }
         });
 
         children = children.map((c) => {
@@ -107,10 +153,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let state = {count: 1},
         render = (s) => {
             if (s.count % 2 === 0) {
-                return e('span', 1, {'foo': 'bar'},
-                         e('b', 2, 'Another Tag'), 'Hello World ' + s.count);
+                return e('span', 1, {foo: 'bar'},
+                         e('b', 2, {style: {color: 'red'}}, 'Another Tag'), 'Hello World ' + s.count);
             }
-            return e('span', 1, {'data-count': s.count},
+            return e('span', 1, {data: {count: s.count}},
                      'Hello World ' + s.count, e('b', 2, 'Another Tag'));
         };
 
