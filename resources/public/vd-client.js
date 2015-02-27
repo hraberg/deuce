@@ -60,11 +60,13 @@ function applySimpleCharDiffs(ds, s) {
 let useVirtualDom = false,
     useDiffDom = false,
     useMithril = false,
-    useJSON = (false && useVirtualDom) || useMithril,
-    useVirtualDomRender = false && useVirtualDom && useJSON,
+    useJSON = (false && useVirtualDom) || (false && useMithril),
+    useStateDiff = (false && useVirtualDom) || (false && useMithril),
+    useVirtualDomRender = false && useVirtualDom && (useJSON || useStateDiff),
     html,
     tree,
     state = {},
+    serializedState = JSON.stringify(state),
     revision,
     rootNode,
     pendingRefresh,
@@ -81,6 +83,7 @@ function onrefresh(newRevision, newHtml, newState, newClientCompileTime) {
         window.location.reload();
     }
     state = newState;
+    serializedState = JSON.stringify(state);
     html = newHtml;
     revision = newRevision;
 }
@@ -118,12 +121,26 @@ function onpatchDom(oldRevision, diffs) {
 
 function onpatchJSON(oldRevision, diffs) {
     if (patchCommon(oldRevision)) {
-        if (!jsonpatch.apply(state, diffs)) {
-            throw new Error('failed to apply patch' + JSON.stringify(diffs));
+        console.time('patch json');
+        try {
+            if (!jsonpatch.apply(state, diffs)) {
+                throw new Error('failed to apply patch' + JSON.stringify(diffs));
+            }
+        } finally {
+            console.timeEnd('patch json');
         }
-        console.time('patch state');
         html = undefined;
+        revision = oldRevision + 1;
+    }
+}
+
+function onpatchState(oldRevision, diffs) {
+    if (patchCommon(oldRevision)) {
+        console.time('patch state');
+        serializedState = applySimpleCharDiffs(diffs, serializedState);
+        state = JSON.parse(serializedState);
         console.timeEnd('patch state');
+        html = undefined;
         revision = oldRevision + 1;
     }
 }
@@ -139,7 +156,7 @@ function render(serverTime) {
                 if (useVirtualDomRender) {
                     newTree = clientSideVirtualDomRender(state);
                 } else {
-                    if (useJSON) {
+                    if (useJSON || useStateDiff) {
                         html = clientSideRender(state);
                     }
                     newTree = convertHTML(html);
@@ -172,7 +189,7 @@ function render(serverTime) {
 }
 
 let handlers = {r: onrefresh, c: onpatchChars,
-                d: onpatchDom, j: onpatchJSON};
+                d: onpatchDom, j: onpatchJSON, s: onpatchState};
 
 function onmessage(data) {
     console.log('client received:', data.data.length, data.data);
@@ -199,7 +216,7 @@ function connect() {
     }
     console.log('connecting to', url);
 
-    ws = new WebSocket(url + '?dom=' + useDiffDom + '&json=' + useJSON);
+    ws = new WebSocket(url + '?dom=' + useDiffDom + '&json=' + useJSON + '&state=' + useStateDiff);
     ws.onmessage = onmessage;
     ws.onopen = (e) => {
         console.log('connection opened:', e);

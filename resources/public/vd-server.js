@@ -107,9 +107,10 @@ function render(s) {
 }
 
 let state = {count: 0},
+    serializedState,
     document = jsdom(),
-    html = render(state),
-    tree = toDom(document.createElement('body'), html),
+    html,
+    tree,
     revision = 0,
     connections = [],
     dd = new DiffDom();
@@ -118,13 +119,17 @@ ws.createServer({port: 8080}, (ws) => {
     let parameters = url.parse(ws.upgradeReq.url, true).query;
     connections.push({ws: ws,
                       dom: JSON.parse(parameters.dom),
-                      json: JSON.parse(parameters.json)});
+                      json: JSON.parse(parameters.json),
+                      state: JSON.parse(parameters.state)});
     let id = connections.length - 1,
         onrefresh = () => {
             fs.open(path.join(__dirname, 'vd-client-bundle.js'), 'r', (err, fd) => {
                 if (err) {
                     throw (err);
                 }
+                html = render(state);
+                tree = toDom(document.createElement('body'), html);
+                serializedState = serialize(state);
                 let data = serialize(['r', revision, html, state, fs.fstatSync(fd).mtime, Date.now()]);
                 console.log(' refresh:', data);
                 ws.send(data);
@@ -154,12 +159,10 @@ function toSimpleCharDiff(d) {
 
 setInterval(() => {
     let startTime = Date.now(),
-        newState = {count: state.count + 1},
-        newHtml = render(newState);
-    console.log('rendered:', newHtml);
+        newState = {count: state.count + 1};
 
     if (connections.length > 0) {
-        let charData, domData, jsonData;
+        let charData, domData, jsonData, stateData;
         connections.forEach((c) => {
             let data;
             console.time('    diff');
@@ -170,17 +173,31 @@ setInterval(() => {
                 data = jsonData;
             } else if (c.dom) {
                 if (!domData) {
-                    let diffs, newTree;
-                    newTree = toDom(document.createElement('body'), newHtml);
+                    let diffs,
+                        newHtml = render(newState),
+                        newTree = toDom(document.createElement('body'), newHtml);
+                    console.log('rendered:', newHtml);
                     diffs = dd.diff(tree, newTree);
                     domData = serialize(['d', revision, diffs, startTime]);
                     tree = newTree;
+                    html = newHtml;
                 }
                 data = domData;
+            } else if (c.state) {
+                if (!stateData) {
+                    let newSerializedState = serialize(newState),
+                        diffs = diff.diffChars(serializedState, newSerializedState).map(toSimpleCharDiff);
+                    stateData = serialize(['s', revision, diffs, startTime]);
+                    serializedState = newSerializedState;
+                }
+                data = stateData;
             } else {
                 if (!charData) {
-                    let diffs = diff.diffChars(html, newHtml).map(toSimpleCharDiff);
+                    let newHtml = render(newState),
+                        diffs = diff.diffChars(html, newHtml).map(toSimpleCharDiff);
+                    console.log('rendered:', newHtml);
                     charData = serialize(['c', revision, diffs, startTime]);
+                    html = newHtml;
                 }
                 data = charData;
             }
@@ -192,5 +209,4 @@ setInterval(() => {
 
     revision = revision + 1;
     state = newState;
-    html = newHtml;
 }, 1000);

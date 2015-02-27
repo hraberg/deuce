@@ -32,12 +32,12 @@
         "watchify": "2.4.0",
         "node-webkit-builder": "1.0.10",
         "benchmark": "1.0.0",
-        "eslint": "0.15.0",
+        "eslint": "0.15.1",
         "csslint": "0.10.0"
     },
     "scripts": {
-        "vdw": "watchify -d vd-client.js -o vd-client-bundle.js",
-        "vd": "browserify -d vd-client.js > vd-client-bundle.js && node --harmony vd-server.js"
+        "vd-watch": "watchify -d vd-client.js -o vd-client-bundle.js",
+        "vd-server": "node --harmony vd-server.js"
     },
     "eslintConfig": {
         "ecmaFeatures": {
