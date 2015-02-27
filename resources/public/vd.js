@@ -57,7 +57,8 @@ function e(tag, key) {
                         delete element.dataset[d];
                     });
                 } else {
-                    element.setAttribute(k, attributes[k]);
+                    let attr = attributes[k];
+                    element.setAttribute(k, Array.isArray(attr) ? attr.join(' ') : attr);
                 }
             }
             delete virtualElement.attributes[k];
@@ -120,7 +121,8 @@ function e(tag, key) {
                     element.dataset[d] = attributes.data[d];
                 });
             } else {
-                element.setAttribute(k, attributes[k]);
+                let attr = attributes[k];
+                element.setAttribute(k, Array.isArray(attr) ? attr.join(' ') : attr);
             }
         });
 
@@ -153,10 +155,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let state = {count: 1},
         render = (s) => {
             if (s.count % 2 === 0) {
-                return e('span', 1, {foo: 'bar'},
+                return e('span', 1, {foo: 'bar', class: ['foo', 'bar']},
                          e('b', 2, {style: {color: 'red'}}, 'Another Tag'), 'Hello World ' + s.count);
             }
-            return e('span', 1, {data: {count: s.count}},
+            return e('span', 1, {data: {count: s.count}, class: ['foo']},
                      'Hello World ' + s.count, e('b', 2, 'Another Tag'));
         };
 
