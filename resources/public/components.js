@@ -30,7 +30,7 @@ DeuceElement.resize = () => {
 let DeucePoint = Object.create(DeuceElement);
 
 DeucePoint.attachedCallback = () => {
-    let pointStyle = window.getComputedStyle(this);
+    let pointStyle = this.querySelector('::shadow span').getBoundingClientRect();
     this.fontWidth = parseFloat(pointStyle.width);
     this.fontHeight = parseFloat(pointStyle.height);
     DeuceElement.attachedCallback.call(this);
