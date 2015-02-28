@@ -20,6 +20,13 @@ DeuceElement.attachedCallback = () => {
     }
 };
 
+DeuceElement.resize = () => {
+    let point = this.querySelector('::shadow point-d'),
+        rect = this.getBoundingClientRect();
+    this.setAttribute('width', Math.round(rect.width / point.fontWidth));
+    this.setAttribute('height', Math.round(rect.height / point.fontHeight));
+};
+
 let DeucePoint = Object.create(DeuceElement);
 
 DeucePoint.attachedCallback = () => {
@@ -66,20 +73,14 @@ let DeuceWindow = Object.create(DeuceElement);
 
 DeuceWindow.attachedCallback = () => {
     this.buffer = this.querySelector('buffer-d');
-    let win = this;
-    this.onresize = () => {
-        let point = win.buffer.point,
-            rect = win.getBoundingClientRect();
-        win.setAttribute('width', Math.round(rect.width / point.fontWidth));
-        win.setAttribute('height', Math.round(rect.height / point.fontHeight));
-    };
-    window.addEventListener('resize', this.onresize);
-    setTimeout(this.onresize);
+    this.resize = this.resize.bind(this);
+    window.addEventListener('resize', this.resize);
+    setTimeout(this.resize);
     DeuceElement.attachedCallback.call(this);
 };
 
 DeuceWindow.detachedCallback = () => {
-    window.removeEventListener('resize', this.onresize);
+    window.removeEventListener('resize', this.resize);
 };
 
 DeuceWindow.attributeChangedCallback = (attrName) => {
@@ -105,20 +106,14 @@ let DeuceFrame = Object.create(DeuceElement);
 DeuceFrame.attachedCallback = () => {
     this.rootWindow = this.querySelector('window-d:not([mini-p])');
     this.minibufferWindow = this.querySelector('window-d[mini-p]');
-    let frame = this;
-    this.onresize = () => {
-        let point = frame.rootWindow.buffer.point,
-            rect = frame.getBoundingClientRect();
-        frame.setAttribute('width', Math.round(rect.width / point.fontWidth));
-        frame.setAttribute('height', Math.round(rect.height / point.fontHeight));
-    };
-    window.addEventListener('resize', this.onresize);
-    setTimeout(this.onresize);
+    this.resize = this.resize.bind(this);
+    window.addEventListener('resize', this.resize);
+    setTimeout(this.resize);
     DeuceElement.attachedCallback.call(this);
 };
 
 DeuceFrame.detachedCallback = () => {
-    window.removeEventListener('resize', this.onresize);
+    window.removeEventListener('resize', this.resize);
 };
 
 let tagPrototypes = {'buffer-d': DeuceBuffer, 'point-d': DeucePoint, 'window-d': DeuceWindow, 'frame-d': DeuceFrame};
@@ -126,6 +121,6 @@ let tagPrototypes = {'buffer-d': DeuceBuffer, 'point-d': DeucePoint, 'window-d':
 document.addEventListener('DOMContentLoaded', () => {
     [].slice.call(document.querySelectorAll('template[data-tag]')).forEach((template) => {
         let tag = template.dataset.tag;
-        document.registerElement(tag, {prototype: Object.create(tagPrototypes[tag] || DeuceElement)});
+        document.registerElement(tag, {prototype: tagPrototypes[tag] || Object.create(DeuceElement)});
     });
 });
