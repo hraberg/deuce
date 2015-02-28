@@ -63,8 +63,14 @@ DeuceWindow.attachedCallback = () => {
 
 DeuceWindow.attributeChangedCallback = (attrName) => {
     if (attrName === 'line-number-at-start') {
-        let lineNumberAtStart = parseInt(this.attributes['line-number-at-start'].value, 10), win = this;
-        win.scrollTo(lineNumberAtStart - 1);
+        let lineNumberAtStart = parseInt(this.attributes['line-number-at-start'].value, 10);
+        this.scrollTo(lineNumberAtStart - 1);
+    }
+    if (attrName === 'width' || attrName === 'height') {
+        let width = parseInt(this.attributes.width.value, 10),
+            height = parseInt(this.attributes.height.value, 10);
+        this.style.width = (width * this.buffer.point.fontWidth) + 'px';
+        this.style.height = (height * this.buffer.point.fontHeight) + 'px';
     }
 };
 
@@ -76,7 +82,33 @@ DeuceWindow.scrollTo = (visibleLine) => {
     }
 };
 
-let tagPrototypes = {'buffer-d': DeuceBuffer, 'point-d': DeucePoint, 'window-d': DeuceWindow};
+let DeuceFrame = Object.create(DeuceElement);
+
+DeuceFrame.attachedCallback = () => {
+    this.rootWindow = this.querySelector('window-d:not([mini-p])');
+    this.minibufferWindow = this.querySelector('window-d[mini-p]');
+    let frame = this, onresize = () => {
+        let point = frame.rootWindow.buffer.point;
+        frame.setAttribute('width', Math.round(window.innerWidth / point.fontWidth));
+        frame.setAttribute('height', Math.round(window.innerHeight / point.fontHeight));
+    };
+    window.addEventListener('resize', onresize);
+    setTimeout(onresize);
+    DeuceElement.attachedCallback.call(this);
+};
+
+DeuceFrame.attributeChangedCallback = (attrName) => {
+    if (attrName === 'width' || attrName === 'height') {
+        let width = parseInt(this.getAttribute('width'), 10),
+            height = parseInt(this.getAttribute('height'), 10);
+        if (![width, height].some(Number.isNaN)) {
+            this.style.width = (width * this.rootWindow.buffer.point.fontWidth) + 'px';
+            this.style.height = (height * this.rootWindow.buffer.point.fontHeight) + 'px';
+        }
+    }
+};
+
+let tagPrototypes = {'buffer-d': DeuceBuffer, 'point-d': DeucePoint, 'window-d': DeuceWindow, 'frame-d': DeuceFrame};
 
 document.addEventListener('DOMContentLoaded', () => {
     [].slice.call(document.querySelectorAll('template[data-tag]')).forEach((template) => {
