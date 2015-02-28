@@ -90,18 +90,6 @@ DeuceWindow.attributeChangedCallback = (attrName) => {
             this.scrollTo(lineNumberAtStart - firstLineInClientBuffer);
         }
     }
-    if (attrName === 'width') {
-        let width = parseInt(this.getAttribute('width'), 10);
-        if (!Number.isNaN(width)) {
-            this.style.width = (width * this.buffer.point.fontWidth) + 'px';
-        }
-    }
-    if (attrName === 'height') {
-        let height = parseInt(this.getAttribute('height'), 10);
-        if (!Number.isNaN(height)) {
-            this.style.height = (height * this.buffer.point.fontHeight) + 'px';
-        }
-    }
 };
 
 DeuceWindow.scrollTo = (visibleLine) => {
@@ -131,21 +119,6 @@ DeuceFrame.attachedCallback = () => {
 
 DeuceFrame.detachedCallback = () => {
     window.removeEventListener('resize', this.onresize);
-};
-
-DeuceFrame.attributeChangedCallback = (attrName) => {
-    if (attrName === 'width') {
-        let width = parseInt(this.getAttribute('width'), 10);
-        if (!Number.isNaN(width)) {
-            this.style.width = (width * this.rootWindow.buffer.point.fontWidth) + 'px';
-        }
-    }
-    if (attrName === 'height') {
-        let height = parseInt(this.getAttribute('height'), 10);
-        if (!Number.isNaN(height)) {
-            this.style.height = (height * this.rootWindow.buffer.point.fontHeight) + 'px';
-        }
-    }
 };
 
 let tagPrototypes = {'buffer-d': DeuceBuffer, 'point-d': DeucePoint, 'window-d': DeuceWindow, 'frame-d': DeuceFrame};
