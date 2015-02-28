@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>deuce</title>
+    <script type="text/javascript" src="components.js"></script>
+
+    <style>
+    </style>
+
+    <template data-tag="frame-d">
+      <style>
+        :host { display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; position: fixed; font-family: monospace; left: 0; right: 0; top: 0; bottom: 0; }
+      </style>
+      <content></content>
+    </template>
+
+    <template data-tag="menu-bar-d">
+      <style>
+        :host { display: none; }
+        :host-context(frame-d[minor-modes~=menu-bar-mode]) { display: block; }
+        :host { padding: 0; margin: 0; background-color: black; color: white; box-shadow: 0 0 4px 2px #ddd; }
+      </style>
+      <content></content>
+    </template>
+
+    <template data-tag="menu-d">
+      <style>
+        :host { display: inline-block; padding: 0; margin: 0; }
+        :host > button { background-color: inherit; color: inherit; font-family: inherit; margin: 0; padding: 0; border: none; }
+      </style>
+      <button>
+        <content></content>
+      </button>
+    </template>
+
+    <template data-tag="window-d">
+      <style>
+        :host { display: -webkit-flex; display: flex; -webkit-flex-wrap: nowrap; flex-wrap: nowrap; order: 0; -webkit-flex: 1 1 auto; flex: 1 1 auto; }
+        :host([live-p]) { position: relative; }
+        :host([mini-p]) { -webkit-flex: 0 1 auto; flex: 0 1 auto; height: 1.2em; }
+        :host([mini-p]) ::content buffer-d { bottom: 0; }
+        :host([selected][live-p]) ::content buffer-d::shadow point-d { background: black; background: rgba(0, 0, 0, 0.2); }
+        ::content strong { font-weight: normal; text-shadow: 1px 0 0; }
+      </style>
+      <content></content>
+    </template>
+
+    <template data-tag="point-d">
+      <style>
+        :host { z-index: 1; position: absolute; border: 1px solid; margin-top: -2px; border: 1px solid darkgray; }
+        :host > span { white-space: pre; }
+        :host-context(frame-d[minor-modes~=blink-cursor-mode]):host-context(window-d[selected][live-p]) { -webkit-animation: blink-cursor-mode 1s steps(1) infinite; -moz-animation: blink-cursor-mode 1s steps(1) infinite; animation: blink-cursor-mode 1s steps(1) infinite; }
+        @-webkit-keyframes blink-cursor-mode { 0% { opacity: 0; } 50% { opacity: 1; } }
+        @keyframes blink-cursor-mode { 0% { opacity: 0; } 50% { opacity: 1; } }
+      </style>
+      <span> </span>
+    </template>
+
+    <template data-tag="buffer-d">
+      <style>
+        :host { position: absolute; overflow: hidden; width: 100%; top: 0; bottom: 1.2em; }
+        :host([major-mode=minibuffer-inactive-mode]) point-d { display: none; }
+      </style>
+      <div>
+        <point-d></point-d>
+        <content></content>
+      </div>
+    </template>
+
+    <template data-tag="line-d">
+      <style>
+        :host div { white-space: pre; }
+      </style>
+      <div><content></content></div>
+    </template>
+
+    <template data-tag="mode-line-d">
+      <style>
+        :host { position: absolute; bottom: 0; width: 100%; overflow: hidden; }
+      </style>
+      <line-d><content></content></line-d>
+    </template>
+
+  </head>
+  <body>
+    <frame-d minor-modes="blink-cursor-mode menu-bar-mode">
+      <menu-bar-d>
+        <menu-d>File</menu-d>
+        <menu-d>Edit</menu-d>
+        <menu-d>Options</menu-d>
+        <menu-d>Tools</menu-d>
+        <menu-d>Buffers</menu-d>
+        <menu-d>Help</menu-d>
+      </menu-bar-d>
+      <window-d selected live-p>
+        <buffer-d major-mode="lisp-interaction-mode" current>
+          <line-d>;; This buffer is for notes you don't want to save, and for Lisp evaluation.</line-d>
+          <line-d>;; If you want to create a file, visit that file with C-x C-f,</line-d>
+          <line-d>;; then enter the text in that file's own buffer.</line-d>
+          <line-d></line-d>
+        </buffer-d>
+        <mode-line-d>-UUU:----F1  <strong>*scratch*</strong>      All L1     (Lisp Interaction) ------------------------------------------------------------------------------------------------------------------------</mode-line-d>
+      </window-d>
+      <window-d live-p mini-p>
+        <buffer-d major-mode="minibuffer-inactive-mode">
+          <line-d>Welcome to GNU Emacs</line-d>
+        </buffer-d>
+      </window-d>
+    </frame-d>
+  </body>
+</html>
