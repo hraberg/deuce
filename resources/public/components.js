@@ -11,14 +11,13 @@ DeuceElement.createdCallback = () => {
 };
 
 DeuceElement.attachedCallback = () => {
-    let element = this;
-    setTimeout(() => [].slice.call(element.attributes).forEach((attr) => {
-        let value = attr.value,
-           attributeChangedCallback = element.attributeChangedCallback;
-        if (attributeChangedCallback) {
-            attributeChangedCallback.call(element, attr.name, value, value);
-        }
-    }));
+    if (this.attributeChangedCallback) {
+        let element = this;
+        setTimeout(() => [].slice.call(element.attributes).forEach((attr) => {
+            let value = attr.value;
+            element.attributeChangedCallback(attr.name, value, value);
+        }));
+    }
 };
 
 let DeucePoint = Object.create(DeuceElement);
