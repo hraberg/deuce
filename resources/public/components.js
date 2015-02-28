@@ -49,15 +49,15 @@ DeuceBuffer.attachedCallback = () => {
 
 DeuceBuffer.attributeChangedCallback = (attrName) => {
     if (attrName === 'current-column' || attrName === 'line-number-at-point') {
-        let column = parseInt(this.attributes['current-column'].value, 10),
-            firstLineInClientBuffer = parseInt(this.querySelector('line-d').attributes.number.value, 10),
-            lineNumberAtPoint = parseInt(this.attributes['line-number-at-point'].value, 10),
-            lineNumberAtStart = parseInt(this.win.attributes['line-number-at-start'].value, 10),
+        let column = parseInt(this.getAttribute('current-column'), 10),
+            firstLineInClientBuffer = parseInt(this.querySelector('line-d').getAttribute('number'), 10),
+            lineNumberAtPoint = parseInt(this.getAttribute('line-number-at-point'), 10),
+            lineNumberAtStart = parseInt(this.win.getAttribute('line-number-at-start'), 10),
             visibleLine = (lineNumberAtPoint - (firstLineInClientBuffer - lineNumberAtStart)) - lineNumberAtStart;
         this.point.moveTo(column, visibleLine);
     }
     if (attrName === 'line-number-at-point-max') {
-        let lineNumberAtPointMax = parseInt(this.attributes['line-number-at-point-max'].value, 10);
+        let lineNumberAtPointMax = parseInt(this.getAttribute('line-number-at-point-max'), 10);
         this.scrollBuffer.style.height = (lineNumberAtPointMax * this.point.fontHeight) + 'px';
     }
 };
@@ -71,15 +71,15 @@ DeuceWindow.attachedCallback = () => {
 
 DeuceWindow.attributeChangedCallback = (attrName) => {
     if (attrName === 'line-number-at-start') {
-        let firstLineInClientBuffer = parseInt(this.buffer.querySelector('line-d').attributes.number.value, 10),
-            lineNumberAtStart = parseInt(this.attributes['line-number-at-start'].value, 10);
+        let firstLineInClientBuffer = parseInt(this.buffer.querySelector('line-d').getAttribute('number'), 10),
+            lineNumberAtStart = parseInt(this.getAttribute('line-number-at-start'), 10);
         if (![lineNumberAtStart, firstLineInClientBuffer].some(Number.isNaN)) {
             this.scrollTo(lineNumberAtStart - firstLineInClientBuffer);
         }
     }
     if (attrName === 'width' || attrName === 'height') {
-        let width = parseInt(this.attributes.width.value, 10),
-            height = parseInt(this.attributes.height.value, 10);
+        let width = parseInt(this.getAttribute('width'), 10),
+            height = parseInt(this.getAttribute('height'), 10);
         if (![width, height].some(Number.isNaN)) {
             this.style.width = (width * this.buffer.point.fontWidth) + 'px';
             this.style.height = (height * this.buffer.point.fontHeight) + 'px';
