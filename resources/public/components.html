@@ -24,11 +24,9 @@
     <template data-tag="menu-d">
       <style>
         :host { display: inline-block; padding: 0; margin: 0; }
-        :host > button { background-color: inherit; color: inherit; font-family: inherit; margin: 0; padding: 0; border: none; }
+        :host > button { background-color: inherit; color: inherit; font-family: inherit; margin: 0; padding: 0; border: none; white-space: pre; }
       </style>
-      <button>
-        <content></content>
-      </button>
+      <button><content></content> </button>
     </template>
 
     <template data-tag="window-d">
@@ -81,30 +79,5 @@
 
   </head>
   <body>
-    <frame-d minor-modes="blink-cursor-mode menu-bar-mode">
-      <menu-bar-d>
-        <menu-d>File</menu-d>
-        <menu-d>Edit</menu-d>
-        <menu-d>Options</menu-d>
-        <menu-d>Tools</menu-d>
-        <menu-d>Buffers</menu-d>
-        <menu-d>Help</menu-d>
-      </menu-bar-d>
-      <window-d selected live-p line-number-at-start="1">
-        <buffer-d major-mode="lisp-interaction-mode" current line-number-at-point="5" current-column="0" line-number-at-point-max="5">
-          <line-d number="1">;; This buffer is for notes you don't want to save, and for Lisp evaluation.</line-d>
-          <line-d number="2">;; If you want to create a file, visit that file with C-x C-f,</line-d>
-          <line-d number="3">;; then enter the text in that file's own buffer.</line-d>
-          <line-d number="4"></line-d>
-          <line-d number="5"></line-d>
-        </buffer-d>
-        <mode-line-d>-UUU:----F1  <strong>*scratch*</strong>      All L1     (Lisp Interaction) ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</mode-line-d>
-      </window-d>
-      <window-d live-p mini-p line-number-at-start="1">
-        <buffer-d major-mode="minibuffer-inactive-mode" line-number-at-point="1" current-column="0" line-number-at-point-max="1">
-          <line-d number="1">Welcome to GNU Emacs</line-d>
-        </buffer-d>
-      </window-d>
-    </frame-d>
   </body>
 </html>
