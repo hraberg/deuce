@@ -163,7 +163,7 @@ DeuceFrame.fromModel = (state) => {
     let frame = document.createElement('frame-d');
     Object.keys(state).forEach((a) => {
         if (a === 'minor-modes') {
-            frame.setAttribute(a, (state[a] || []).join(' '));
+            frame.setAttribute(a, state[a].join(' '));
         } else if (a === 'menu-bar') {
             let menuBar = document.createElement('menu-bar-d');
             state[a].forEach((m) => {
@@ -173,7 +173,7 @@ DeuceFrame.fromModel = (state) => {
             });
             frame.appendChild(menuBar);
         } else if (a === 'windows') {
-            (state[a] || []).forEach((w) => {
+            state[a].forEach((w) => {
                 frame.appendChild(DeuceWindow.fromModel(w));
             });
         } else {
