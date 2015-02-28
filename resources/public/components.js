@@ -66,7 +66,20 @@ let DeuceWindow = Object.create(DeuceElement);
 
 DeuceWindow.attachedCallback = () => {
     this.buffer = this.querySelector('buffer-d');
+    let win = this;
+    this.onresize = () => {
+        let point = win.buffer.point,
+            rect = win.getBoundingClientRect();
+        win.setAttribute('width', Math.round(rect.width / point.fontWidth));
+        win.setAttribute('height', Math.round(rect.height / point.fontHeight));
+    };
+    window.addEventListener('resize', this.onresize);
+    setTimeout(this.onresize);
     DeuceElement.attachedCallback.call(this);
+};
+
+DeuceWindow.detachedCallback = () => {
+    window.removeEventListener('resize', this.onresize);
 };
 
 DeuceWindow.attributeChangedCallback = (attrName) => {
@@ -77,11 +90,15 @@ DeuceWindow.attributeChangedCallback = (attrName) => {
             this.scrollTo(lineNumberAtStart - firstLineInClientBuffer);
         }
     }
-    if (attrName === 'width' || attrName === 'height') {
-        let width = parseInt(this.getAttribute('width'), 10),
-            height = parseInt(this.getAttribute('height'), 10);
-        if (![width, height].some(Number.isNaN)) {
+    if (attrName === 'width') {
+        let width = parseInt(this.getAttribute('width'), 10);
+        if (!Number.isNaN(width)) {
             this.style.width = (width * this.buffer.point.fontWidth) + 'px';
+        }
+    }
+    if (attrName === 'height') {
+        let height = parseInt(this.getAttribute('height'), 10);
+        if (!Number.isNaN(height)) {
             this.style.height = (height * this.buffer.point.fontHeight) + 'px';
         }
     }
@@ -100,22 +117,32 @@ let DeuceFrame = Object.create(DeuceElement);
 DeuceFrame.attachedCallback = () => {
     this.rootWindow = this.querySelector('window-d:not([mini-p])');
     this.minibufferWindow = this.querySelector('window-d[mini-p]');
-    let frame = this, onresize = () => {
-        let point = frame.rootWindow.buffer.point;
-        frame.setAttribute('width', Math.round(window.innerWidth / point.fontWidth));
-        frame.setAttribute('height', Math.round(window.innerHeight / point.fontHeight));
+    let frame = this;
+    this.onresize = () => {
+        let point = frame.rootWindow.buffer.point,
+            rect = frame.getBoundingClientRect();
+        frame.setAttribute('width', Math.round(rect.width / point.fontWidth));
+        frame.setAttribute('height', Math.round(rect.height / point.fontHeight));
     };
-    window.addEventListener('resize', onresize);
-    setTimeout(onresize);
+    window.addEventListener('resize', this.onresize);
+    setTimeout(this.onresize);
     DeuceElement.attachedCallback.call(this);
 };
 
+DeuceFrame.detachedCallback = () => {
+    window.removeEventListener('resize', this.onresize);
+};
+
 DeuceFrame.attributeChangedCallback = (attrName) => {
-    if (attrName === 'width' || attrName === 'height') {
-        let width = parseInt(this.getAttribute('width'), 10),
-            height = parseInt(this.getAttribute('height'), 10);
-        if (![width, height].some(Number.isNaN)) {
+    if (attrName === 'width') {
+        let width = parseInt(this.getAttribute('width'), 10);
+        if (!Number.isNaN(width)) {
             this.style.width = (width * this.rootWindow.buffer.point.fontWidth) + 'px';
+        }
+    }
+    if (attrName === 'height') {
+        let height = parseInt(this.getAttribute('height'), 10);
+        if (!Number.isNaN(height)) {
             this.style.height = (height * this.rootWindow.buffer.point.fontHeight) + 'px';
         }
     }
