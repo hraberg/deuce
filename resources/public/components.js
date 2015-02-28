@@ -77,12 +77,14 @@ DeuceBuffer.fromModel = (state, lineNumberAtStart) => {
     let buffer = document.createElement('buffer-d');
     Object.keys(state).forEach((a) => {
         if (a === 'text') {
+            let fragment = document.createDocumentFragment();
             state[a].forEach((l, idx) => {
                 let line = document.createElement('line-d');
                 line.setAttribute('number', idx + lineNumberAtStart);
                 line.innerHTML = l;
-                buffer.appendChild(line);
+                fragment.appendChild(line);
             });
+            buffer.appendChild(fragment);
         } else if (a === 'minor-modes') {
             buffer.setAttribute(a, state[a].join(' '));
         } else {
@@ -165,17 +167,21 @@ DeuceFrame.fromModel = (state) => {
         if (a === 'minor-modes') {
             frame.setAttribute(a, state[a].join(' '));
         } else if (a === 'menu-bar') {
-            let menuBar = document.createElement('menu-bar-d');
+            let menuBar = document.createElement('menu-bar-d'),
+                fragment = document.createDocumentFragment();
             state[a].forEach((m) => {
                 let menu = document.createElement('menu-d');
                 menu.innerHTML = m;
-                menuBar.appendChild(menu);
+                fragment.appendChild(menu);
             });
+            menuBar.appendChild(fragment);
             frame.appendChild(menuBar);
         } else if (a === 'windows') {
+            let fragment = document.createDocumentFragment();
             state[a].forEach((w) => {
-                frame.appendChild(DeuceWindow.fromModel(w));
+                fragment.appendChild(DeuceWindow.fromModel(w));
             });
+            frame.appendChild(fragment);
         } else {
             frame.setAttribute(a, state[a]);
         }
@@ -223,6 +229,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         'text': ['Welcome to GNU Emacs']}}]}};
 
     if (state.frame) {
-        document.body.appendChild(DeuceFrame.fromModel(state.frame));
+        let json = JSON.stringify(state);
+        console.time('frame init');
+        document.body.appendChild(DeuceFrame.fromModel(JSON.parse(json).frame));
+        console.timeEnd('frame init');
     }
 });
