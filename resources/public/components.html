@@ -5,9 +5,6 @@
     <title>deuce</title>
     <script type="text/javascript" src="components.js"></script>
 
-    <style>
-    </style>
-
     <template data-tag="frame-d">
       <style>
         :host { display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; position: fixed; font-family: monospace; left: 0; right: 0; top: 0; bottom: 0; }
@@ -39,9 +36,6 @@
         :host { display: -webkit-flex; display: flex; -webkit-flex-wrap: nowrap; flex-wrap: nowrap; order: 0; -webkit-flex: 1 1 auto; flex: 1 1 auto; }
         :host([live-p]) { position: relative; }
         :host([mini-p]) { -webkit-flex: 0 1 auto; flex: 0 1 auto; height: 1.2em; }
-        :host([mini-p]) ::content buffer-d { bottom: 0; }
-        :host([selected][live-p]) ::content buffer-d::shadow point-d { background: black; background: rgba(0, 0, 0, 0.2); }
-        ::content strong { font-weight: normal; text-shadow: 1px 0 0; }
       </style>
       <content></content>
     </template>
@@ -50,6 +44,7 @@
       <style>
         :host { z-index: 1; position: absolute; border: 1px solid; margin-top: -2px; border: 1px solid darkgray; }
         :host > span { white-space: pre; }
+        :host-context([selected][live-p]) { background: black; background: rgba(0, 0, 0, 0.2); }
         :host-context(frame-d[minor-modes~=blink-cursor-mode]):host-context(window-d[selected][live-p]) { -webkit-animation: blink-cursor-mode 1s steps(1) infinite; -moz-animation: blink-cursor-mode 1s steps(1) infinite; animation: blink-cursor-mode 1s steps(1) infinite; }
         @-webkit-keyframes blink-cursor-mode { 0% { opacity: 0; } 50% { opacity: 1; } }
         @keyframes blink-cursor-mode { 0% { opacity: 0; } 50% { opacity: 1; } }
@@ -59,18 +54,19 @@
 
     <template data-tag="buffer-d">
       <style>
-        :host { position: absolute; overflow: hidden; width: 100%; top: 0; bottom: 1.2em; }
+        :host { position: absolute; width: 100%; top: 0; bottom: 1.2em; overflow: auto; outline: 0; }
+        :host-context([mini-p]) { bottom: 0; }
         :host([major-mode=minibuffer-inactive-mode]) point-d { display: none; }
       </style>
-      <div>
-        <point-d></point-d>
-        <content></content>
-      </div>
+      <point-d></point-d>
+      <content></content>
+      <div class="scroll-buffer"></div>
     </template>
 
     <template data-tag="line-d">
       <style>
         :host div { white-space: pre; }
+        ::content strong { font-weight: normal; text-shadow: 1px 0 0; }
       </style>
       <div><content></content></div>
     </template>
