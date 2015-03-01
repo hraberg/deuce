@@ -178,8 +178,6 @@ Buffer.prototype.undo = (arg) => {
         this._currentRevision = this._currentRevision - 1;
         this.text = this._revisions[this._currentRevision].text;
         this.size = this.text.beg.length;
-        this.server.broadcast({type: 'undo', scope: 'buffer', name: this.name,
-                               post: {_currentRevision: this._currentRevision, size: this.size}});
         this.gotoChar(this._revisions[this._currentRevision].pt);
         this.undo(arg - 1);
     }
