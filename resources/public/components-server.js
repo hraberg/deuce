@@ -35,8 +35,11 @@ Window.nextSequenceNumber = (() => {
 })();
 
 Window.prototype.toViewModel = (frame) => {
-    return {'sequence-number': this.sequenceNumber, 'mini-p': this.isMini, 'live-p': this.buffer !== undefined,
-            selected: this === frame.selectedWindow, buffer: this.buffer ? this.buffer.toViewModel(frame, this) : undefined,
+    return {'sequence-number': this.sequenceNumber,
+            'mini-p': this.isMini,
+            'live-p': this.buffer !== undefined,
+            'selected': this === frame.selectedWindow,
+            'buffer': this.buffer ? this.buffer.toViewModel(frame, this) : undefined,
             'line-number-at-start': this.buffer ? this.buffer.lineNumberAtPos(this.start) : undefined,
             'mode-line': (this.isMini || !this.buffer) ? undefined : this.formatModeLine(frame)};
 };
@@ -63,7 +66,9 @@ function Frame(name, menuBar, minorModes, rootWindow, minibufferWindow, buffers)
 }
 
 Frame.prototype.toViewModel = () => {
-    return {name: this.name, 'menu-bar': this.menuBar, 'minor-modes': this.minorModes,
+    return {'name': this.name,
+            'menu-bar': this.menuBar,
+            'minor-modes': this.minorModes,
             'root-window': this.rootWindow.toViewModel(this),
             'minibuffer-window': this.minibufferWindow.toViewModel(this)};
 };
@@ -97,7 +102,6 @@ function Buffer(name, text, pt, majorMode, minorModes, begv, zv, mark, modeLineF
     this.modeLineFormat = modeLineFormat || '';
 }
 
-
 // These calculations will be backed by the rope.
 // Total (characters) and normal (percentages) lines/columns will need dimension info from the client.
 Buffer.prototype.toViewModel = (frame, window) => {
@@ -105,10 +109,14 @@ Buffer.prototype.toViewModel = (frame, window) => {
         lines = text.split('\n'),
         linesUptoPoint = text.slice(0, this.pt).split('\n'),
         col = (this.pt - (linesUptoPoint.slice(0, -1).join('\n').length) - 1) || 0;
-    return {name: this.name, current: frame.selectedWindow === window,
-            'major-mode': this.majorMode, 'minor-modes': this.minorModes,
-            'line-number-at-point-max': lines.length, 'line-number-at-point': this.lineNumberAtPos(),
-            'current-column': col, text: lines.slice(this.lineNumberAtPos(window.start) - 1, window.totallLines)};
+    return {'name': this.name,
+            'current': frame.selectedWindow === window,
+            'major-mode': this.majorMode,
+            'minor-modes': this.minorModes,
+            'line-number-at-point-max': lines.length,
+            'line-number-at-point': this.lineNumberAtPos(),
+            'current-column': col,
+            'text': lines.slice(this.lineNumberAtPos(window.start) - 1, window.totallLines)};
 };
 
 Buffer.prototype.lineNumberAtPos = (pos) => {
