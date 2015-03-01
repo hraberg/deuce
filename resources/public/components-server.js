@@ -50,7 +50,9 @@ ws.createServer({port: 8080}, (ws) => {
                 serializedState = JSON.stringify(state);
                 let data = JSON.stringify(['r', revision, state, fs.fstatSync(fd).mtime, Date.now()]);
                 console.log(' refresh:', data);
-                ws.send(data);
+                if (ws.readyState === ws.OPEN) {
+                    ws.send(data);
+                }
             });
         };
     ws.on('close', () => {
@@ -78,7 +80,7 @@ function toSimpleCharDiff(d) {
 setInterval(() => {
     let startTime = Date.now(),
         newState = state;
-    newState.frame.windows[1].buffer.text[0] = new Date().toString();
+    newState.frame.windows[1].buffer.text[0] = new Date().toString() + ' ' + Date.now();
 
     if (connections.length > 0) {
         let stateData;
@@ -96,7 +98,9 @@ setInterval(() => {
 
             console.timeEnd('    diff');
             console.log(' sending:', data);
-            c.ws.send(data);
+            if (c.ws.readyState === ws.OPEN) {
+                c.ws.send(data);
+            }
         });
     }
 
