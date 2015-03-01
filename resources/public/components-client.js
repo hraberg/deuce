@@ -1,17 +1,35 @@
 /*eslint-env browser */
-/*globals virtualDom */
+/*globals virtualDom m */
 
 'use strict';
 
 let h = virtualDom.h;
+
+let usedRenderer = () => {
+    return h === m ? 'mithril' : 'vdom';
+};
+
+let attrs = (properties) => {
+    if (usedRenderer() === 'vdom') {
+        return properties;
+    }
+    let attributes = properties.attributes;
+    if (attributes) {
+        Object.keys(attributes).forEach((k) => {
+            properties[k] = attributes[k];
+        });
+    }
+    delete properties.attributes;
+    return properties;
+};
 
 let attributeFromModel = (value) => {
     return Array.isArray(value) ? value.join(' ') : String(value);
 };
 
 let lineFromModel = (bufferName, lineNumberAtStart, line, idx) => {
-    return h('line-d', {key: 'line-' + bufferName + '-' + idx,
-                        attributes: {number: (idx + lineNumberAtStart)}, innerHTML: line});
+    return h('line-d', attrs({key: 'line-' + bufferName + '-' + idx,
+                              attributes: {number: (idx + lineNumberAtStart)}, innerHTML: line}));
 };
 
 let bufferFromModel = (state, lineNumberAtStart) => {
@@ -26,7 +44,7 @@ let bufferFromModel = (state, lineNumberAtStart) => {
             properties.attributes[a] = attributeFromModel(state[a]);
         }
     });
-    return h('buffer-d', properties, children);
+    return h('buffer-d', attrs(properties), children);
 };
 
 let windowFromModel = (state) => {
@@ -37,12 +55,12 @@ let windowFromModel = (state) => {
         if (a === 'buffer') {
             children.push(bufferFromModel(state[a], lineNumberAtStart));
         } else if (a === 'mode-line') {
-            children.push(h('mode-line-d', {key: 'mode-line-' + properties.key, innerHTML: state[a]}));
+            children.push(h('mode-line-d', attrs({key: 'mode-line-' + properties.key, innerHTML: state[a]})));
         } else {
             properties.attributes[a] = String(state[a]);
         }
     });
-    return h('window-d', properties, children);
+    return h('window-d', attrs(properties), children);
 };
 
 let frameFromModel = (state) => {
@@ -50,7 +68,7 @@ let frameFromModel = (state) => {
         children = [];
     Object.keys(state).forEach((a) => {
         if (a === 'menu-bar') {
-            children.push(h('menu-bar-d', {key: 'menu-bar-' - properties.key},
+            children.push(h('menu-bar-d', attrs({key: 'menu-bar-' - properties.key}),
                             state[a].map((menu) => h('menu-d', {key: 'menu-' + menu}, menu))));
         } else if (a === 'windows') {
             state[a].map(windowFromModel).forEach((w) => children.push(w));
@@ -58,7 +76,7 @@ let frameFromModel = (state) => {
             properties.attributes[a] = attributeFromModel(state[a]);
         }
     });
-    return h('frame-d', properties, children);
+    return h('frame-d', attrs(properties), children);
 };
 
 function applySimpleCharDiffs(ds, s) {
@@ -79,9 +97,9 @@ function applySimpleCharDiffs(ds, s) {
 
 let state = {},
     serializedState = JSON.stringify(state),
-    tree,
     revision,
     rootNode,
+    vdomTree,
     pendingRefresh,
     clientCompileTime;
 
@@ -95,10 +113,15 @@ function onrefresh(newRevision, newState, newClientCompileTime) {
     }
     state = newState;
     serializedState = JSON.stringify(state);
-    tree = frameFromModel(state.frame);
-    rootNode = virtualDom.create(tree);
-    document.body.innerHTML = '';
-    document.body.appendChild(rootNode);
+
+    if (usedRenderer() === 'mithril') {
+        rootNode = document.body;
+    } else {
+        vdomTree = frameFromModel(state.frame);
+        rootNode = virtualDom.create(vdomTree);
+        document.body.innerHTML = '';
+        document.body.appendChild(rootNode);
+    }
 
     revision = newRevision;
 }
@@ -135,15 +158,19 @@ function render(serverTime) {
             pendingRefresh = false;
 
             if (state.frame) {
-                let newTree = frameFromModel(state.frame),
-                    patches = virtualDom.diff(tree, newTree);
-                rootNode = virtualDom.patch(rootNode, patches);
-                tree = newTree;
+                if (usedRenderer() === 'mithril') {
+                    m.render(rootNode, frameFromModel(state.frame));
+                } else {
+                    let newTree = frameFromModel(state.frame),
+                        patches = virtualDom.diff(vdomTree, newTree);
+                    rootNode = virtualDom.patch(rootNode, patches);
+                    vdomTree = newTree;
+                }
             }
 
             console.timeEnd('redraw');
             console.timeEnd('client time');
-            console.log('latency:', Date.now() - serverTime, 'ms');
+            console.log('latency:', Date.now() - serverTime, 'ms', usedRenderer());
         });
     }
 }
