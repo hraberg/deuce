@@ -72,28 +72,6 @@ DeuceBuffer.attributeChangedCallback = (attrName) => {
     }
 };
 
-DeuceBuffer.fromModel = (state, lineNumberAtStart) => {
-    lineNumberAtStart = lineNumberAtStart || 1;
-    let buffer = document.createElement('buffer-d');
-    Object.keys(state).forEach((a) => {
-        if (a === 'text') {
-            let fragment = document.createDocumentFragment();
-            state[a].forEach((l, idx) => {
-                let line = document.createElement('line-d');
-                line.setAttribute('number', idx + lineNumberAtStart);
-                line.innerHTML = l;
-                fragment.appendChild(line);
-            });
-            buffer.appendChild(fragment);
-        } else if (a === 'minor-modes') {
-            buffer.setAttribute(a, state[a].join(' '));
-        } else {
-            buffer.setAttribute(a, state[a]);
-        }
-    });
-    return buffer;
-};
-
 let DeuceWindow = Object.create(DeuceElement);
 
 DeuceWindow.attachedCallback = () => {
@@ -129,23 +107,6 @@ DeuceWindow.scrollTo = (visibleLine) => {
     }
 };
 
-DeuceWindow.fromModel = (state) => {
-    let win = document.createElement('window-d'),
-    lineNumberAtStart = parseInt(state['line-number-at-start'], 10);
-    Object.keys(state).forEach((a) => {
-        if (a === 'buffer') {
-            win.appendChild(DeuceBuffer.fromModel(state[a], lineNumberAtStart));
-        } else if (a === 'mode-line') {
-            let modeLine = document.createElement('mode-line-d');
-            modeLine.innerHTML = state[a];
-            win.appendChild(modeLine);
-        } else {
-            win.setAttribute(a, state[a]);
-        }
-    });
-    return win;
-};
-
 let DeuceFrame = Object.create(DeuceElement);
 
 DeuceFrame.attachedCallback = () => {
@@ -159,34 +120,6 @@ DeuceFrame.attachedCallback = () => {
 
 DeuceFrame.detachedCallback = () => {
     window.removeEventListener('resize', this.resize);
-};
-
-DeuceFrame.fromModel = (state) => {
-    let frame = document.createElement('frame-d');
-    Object.keys(state).forEach((a) => {
-        if (a === 'minor-modes') {
-            frame.setAttribute(a, state[a].join(' '));
-        } else if (a === 'menu-bar') {
-            let menuBar = document.createElement('menu-bar-d'),
-                fragment = document.createDocumentFragment();
-            state[a].forEach((m) => {
-                let menu = document.createElement('menu-d');
-                menu.innerHTML = m;
-                fragment.appendChild(menu);
-            });
-            menuBar.appendChild(fragment);
-            frame.appendChild(menuBar);
-        } else if (a === 'windows') {
-            let fragment = document.createDocumentFragment();
-            state[a].forEach((w) => {
-                fragment.appendChild(DeuceWindow.fromModel(w));
-            });
-            frame.appendChild(fragment);
-        } else {
-            frame.setAttribute(a, state[a]);
-        }
-    });
-    return frame;
 };
 
 let tagPrototypes = {'buffer-d': DeuceBuffer, 'point-d': DeucePoint, 'window-d': DeuceWindow, 'frame-d': DeuceFrame};

@@ -111,7 +111,7 @@ let state,
     revision,
     rootNode,
     vdomTree,
-    frameRequestedAt,
+    pendingRefresh,
     clientCompileTime;
 
 function onrefresh(newRevision, newState, newClientCompileTime) {
@@ -165,12 +165,13 @@ function onpatch(oldRevision, diffs) {
 }
 
 function render(serverTime) {
-    if (!frameRequestedAt) {
-        frameRequestedAt = Date.now();
+    if (!pendingRefresh) {
+        pendingRefresh = true;
+        console.time('frame waiting time');
         requestAnimationFrame(() => {
-            console.log('frame wait time:', Date.now() - frameRequestedAt, 'ms');
+            console.timeEnd('frame waiting time');
             console.time('redraw');
-            frameRequestedAt = undefined;
+            pendingRefresh = false;
 
             if (state.frame) {
                 if (usedRenderer() === 'mithril') {
