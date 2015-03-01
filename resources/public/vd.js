@@ -6,8 +6,19 @@ let DeuceVDom = (() => {
     let existingElements = {},
         accessedElements = {};
 
-    let text = (s) => {
-        return {text: s, element: document.createTextNode(s), _type: 'text'};
+    let text = (s, key) => {
+        let virtualElement = existingElements[key];
+        if (!virtualElement) {
+            virtualElement = {text: s, key: key, element: document.createTextNode(s), _type: 'text'};
+        } else if (virtualElement.text !== s) {
+            virtualElement.text = s;
+            virtualElement.element.data = s;
+        }
+
+        if (key) {
+            accessedElements[key] = virtualElement;
+        }
+        return virtualElement;
     };
 
     let e = (tag) => {
@@ -85,10 +96,10 @@ let DeuceVDom = (() => {
 
             if (!attributes.innerHTML) {
                 let oldIndex = 0;
-                children = children.map((newChild) => {
+                children = children.map((newChild, idx) => {
                     let isString = typeof newChild === 'string',
                         oldChild = virtualElement.children[oldIndex],
-                        newVirtualChild = () => isString ? text(newChild) : newChild;
+                        newVirtualChild = () => isString ? text(newChild, key + '-text-' + idx) : newChild;
 
                     if (oldChild && (newChild.key && newChild.key !== oldChild.key ||
                                      isString && newChild !== oldChild.text)) {
@@ -101,7 +112,7 @@ let DeuceVDom = (() => {
 
                     } else {
                         if (isString) {
-                            newChild = newChild === oldChild.text ? oldChild : text(newChild);
+                            newChild = newChild === oldChild.text ? oldChild : text(newChild, key + '-text-' + idx);
                         }
                         oldIndex += 1;
                     }
@@ -138,8 +149,8 @@ let DeuceVDom = (() => {
             });
 
             if (!attributes.innerHTML) {
-                children = children.map((c) => {
-                    return typeof c === 'string' ? text(c) : c;
+                children = children.map((c, idx) => {
+                    return typeof c === 'string' ? text(c, key + '-text-' + idx) : c;
                 });
                 children.forEach((c) => element.appendChild(c.element));
             }
