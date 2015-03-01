@@ -1,16 +1,16 @@
 /*eslint-env browser */
-/*globals virtualDom m */
+/*globals virtualDom m DeuceVDom */
 
 'use strict';
 
 let h = virtualDom.h;
 
 let usedRenderer = () => {
-    return h === m ? 'mithril' : 'vdom';
+    return h === m ? 'mithril' : h === DeuceVDom.e ? 'deuce-vdom' : 'virtual-dom';
 };
 
 let attrs = (properties) => {
-    if (usedRenderer() === 'vdom') {
+    if (usedRenderer() === 'virtual-dom') {
         return properties;
     }
     let attributes = properties.attributes;
@@ -116,6 +116,9 @@ function onrefresh(newRevision, newState, newClientCompileTime) {
 
     if (usedRenderer() === 'mithril') {
         rootNode = document.body;
+    } else if (usedRenderer() === 'deuce-vdom') {
+        document.body.innerHTML = '';
+        document.body.appendChild(DeuceVDom.redraw(() => frameFromModel(state.frame)).element);
     } else {
         vdomTree = frameFromModel(state.frame);
         rootNode = virtualDom.create(vdomTree);
@@ -160,6 +163,8 @@ function render(serverTime) {
             if (state.frame) {
                 if (usedRenderer() === 'mithril') {
                     m.render(rootNode, frameFromModel(state.frame));
+                } else if (usedRenderer() === 'deuce-vdom') {
+                    DeuceVDom.redraw(() => frameFromModel(state.frame));
                 } else {
                     let newTree = frameFromModel(state.frame),
                         patches = virtualDom.diff(vdomTree, newTree);
