@@ -6,21 +6,21 @@
 let DEBUG = false,
     h = virtualDom.h;
 
-let debug = () => {
+function debug() {
     if (DEBUG) {
         console.debug.apply(console, [].slice.call(arguments));
     }
-};
+}
 
 let renderers = new Map([[m, 'mithril'],
                          [DeuceVDom.e, 'deuce-vdom'],
                          [virtualDom.h, 'virtual-dom']]);
 
-let usedRenderer = () => {
+function usedRenderer() {
     return renderers.get(h);
-};
+}
 
-let attrs = (properties) => {
+function attrs(properties) {
     if (usedRenderer() === 'virtual-dom') {
         return properties;
     }
@@ -32,63 +32,63 @@ let attrs = (properties) => {
     }
     delete properties.attributes;
     return properties;
-};
+}
 
-let attributeFromModel = (value) => {
+function attributeFromModel(value) {
     return Array.isArray(value) ? value.join(' ') : String(value);
-};
+}
 
-let lineFromModel = (bufferName, lineNumberAtStart, line, idx) => {
+function lineFromModel(bufferName, lineNumberAtStart, line, idx) {
     return h('line-d', attrs({key: 'line-' + bufferName + '-' + idx,
                               attributes: {number: (idx + lineNumberAtStart)}, innerHTML: line}));
-};
+}
 
-let bufferFromModel = (state, lineNumberAtStart) => {
-    let properties = {key: 'buffer-' + state.name, attributes: {}},
+function bufferFromModel(buffer, lineNumberAtStart) {
+    let properties = {key: 'buffer-' + buffer.name, attributes: {}},
         children = [];
     lineNumberAtStart = lineNumberAtStart || 1;
-    Object.keys(state).forEach((a) => {
+    Object.keys(buffer).forEach((a) => {
         if (a === 'text') {
-            state[a].map((line, idx) => lineFromModel(state.name, lineNumberAtStart, line, idx))
+            buffer[a].map((line, idx) => lineFromModel(buffer.name, lineNumberAtStart, line, idx))
                 .forEach((line) => children.push(line));
         } else {
-            properties.attributes[a] = attributeFromModel(state[a]);
+            properties.attributes[a] = attributeFromModel(buffer[a]);
         }
     });
     return h('buffer-d', attrs(properties), children);
-};
+}
 
-let windowFromModel = (state) => {
-    let properties = {key: 'window-' + state['sequence-number'], attributes: {}},
+function windowFromModel(win) {
+    let properties = {key: 'window-' + win['sequence-number'], attributes: {}},
         children = [],
-        lineNumberAtStart = parseInt(state['line-number-at-start'], 10);
-    Object.keys(state).forEach((a) => {
+        lineNumberAtStart = parseInt(win['line-number-at-start'], 10);
+    Object.keys(win).forEach((a) => {
         if (a === 'buffer') {
-            children.push(bufferFromModel(state[a], lineNumberAtStart));
+            children.push(bufferFromModel(win[a], lineNumberAtStart));
         } else if (a === 'mode-line') {
-            children.push(h('mode-line-d', attrs({key: 'mode-line-' + properties.key, innerHTML: state[a]})));
+            children.push(h('mode-line-d', attrs({key: 'mode-line-' + properties.key, innerHTML: win[a]})));
         } else {
-            properties.attributes[a] = String(state[a]);
+            properties.attributes[a] = String(win[a]);
         }
     });
     return h('window-d', attrs(properties), children);
-};
+}
 
-let frameFromModel = (state) => {
+function frameFromModel(frame) {
     let properties = {key: 'frame-0', attributes: {}},
         children = [];
-    Object.keys(state).forEach((a) => {
+    Object.keys(frame).forEach((a) => {
         if (a === 'menu-bar') {
             children.push(h('menu-bar-d', attrs({key: 'menu-bar-' - properties.key}),
-                            state[a].map((menu) => h('menu-d', {key: 'menu-' + menu}, menu))));
+                            frame[a].map((menu) => h('menu-d', {key: 'menu-' + menu}, menu))));
         } else if (a === 'windows') {
-            state[a].map(windowFromModel).forEach((w) => children.push(w));
+            frame[a].map(windowFromModel).forEach((w) => children.push(w));
         } else {
-            properties.attributes[a] = attributeFromModel(state[a]);
+            properties.attributes[a] = attributeFromModel(frame[a]);
         }
     });
     return h('frame-d', attrs(properties), children);
-};
+}
 
 function applySimpleCharDiffs(ds, s) {
     let acc = '';
