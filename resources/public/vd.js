@@ -84,7 +84,6 @@ let DeuceVDom = (() => {
             virtualElement.attributes = attributes;
 
             if (!attributes.innerHTML) {
-
                 let oldIndex = 0;
                 children = children.map((newChild) => {
                     let isString = typeof newChild === 'string',
@@ -154,13 +153,11 @@ let DeuceVDom = (() => {
     };
 
     let redraw = (render) => {
-        console.time('render');
         try {
             return render();
         } finally {
             existingElements = accessedElements;
             accessedElements = {};
-            console.timeEnd('render');
         }
     };
 

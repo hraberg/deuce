@@ -3,7 +3,14 @@
 
 'use strict';
 
-let h = virtualDom.h;
+let DEBUG = false,
+    h = virtualDom.h;
+
+let debug = () => {
+    if (DEBUG) {
+        console.debug.apply(console, [].slice.call(arguments));
+    }
+};
 
 let usedRenderer = () => {
     return h === m ? 'mithril' : h === DeuceVDom.e ? 'deuce-vdom' : 'virtual-dom';
@@ -108,7 +115,7 @@ function onrefresh(newRevision, newState, newClientCompileTime) {
         clientCompileTime = newClientCompileTime;
     }
     if (clientCompileTime !== newClientCompileTime) {
-        console.log('new client version, reloading app');
+        debug('new client version, reloading app');
         window.location.reload();
     }
     state = newState;
@@ -131,11 +138,11 @@ function onrefresh(newRevision, newState, newClientCompileTime) {
 
 function patchCommon(oldRevision) {
     if (revision === undefined) {
-        console.log('got patch before full refresh, ignoring.');
+        console.error('got patch before full refresh, ignoring.');
         return false;
     }
     if (oldRevision !== revision) {
-        console.log('out of sync with server, requesting refresh:', oldRevision, revision);
+        console.error('out of sync with server, requesting refresh:', oldRevision, revision);
         revision = undefined;
         ws.send(JSON.stringify(['r']));
         return false;
@@ -145,10 +152,8 @@ function patchCommon(oldRevision) {
 
 function onpatch(oldRevision, diffs) {
     if (patchCommon(oldRevision)) {
-        console.time('patch state');
         serializedState = applySimpleCharDiffs(diffs, serializedState);
         state = JSON.parse(serializedState);
-        console.timeEnd('patch state');
         revision = oldRevision + 1;
     }
 }
@@ -183,12 +188,10 @@ function render(serverTime) {
 let handlers = {r: onrefresh, s: onpatch};
 
 function onmessage(data) {
-    console.log('client received:', data.data.length, data.data);
+    debug('client received:', data.data.length, data.data);
     console.time('client time');
-    console.time('parse');
     let message = JSON.parse(data.data),
         serverTime = message[message.length - 1];
-    console.timeEnd('parse');
     console.log('server time:', Date.now() - serverTime, 'ms');
     handlers[message[0]].apply(null, message.slice(1));
     render(serverTime);
@@ -205,21 +208,21 @@ function connect() {
     if (ws) {
         return;
     }
-    console.log('connecting to', url);
+    debug('connecting to', url);
 
     ws = new WebSocket(url);
     ws.onmessage = onmessage;
     ws.onopen = (e) => {
-        console.log('connection opened:', e);
+        debug('connection opened:', e);
         reconnectInterval = initialReconnectInterval;
     };
     ws.onerror = (e) => {
-        console.log('connection error:', e);
+        console.error('connection error:', e);
         ws.close();
     };
     ws.onclose = (e) => {
-        console.log('connection closed:', e);
-        console.log('retrying in:', reconnectInterval, 'ms.');
+        debug('connection closed:', e);
+        debug('retrying in:', reconnectInterval, 'ms.');
         ws = undefined;
         window.setTimeout(connect, reconnectInterval);
         reconnectInterval *= reconnectBackoffRatio;
@@ -229,7 +232,7 @@ function connect() {
 
 window.addEventListener('error', (e) => {
     if (ws) {
-        console.log('error, reloading app:', e);
+        console.error('error, reloading app:', e);
         ws.close();
         ws = {};
         setTimeout(() => window.location.reload(), maxReconnectInterval);
