@@ -196,42 +196,4 @@ document.addEventListener('DOMContentLoaded', () => {
         let tag = template.dataset.tag;
         document.registerElement(tag, {prototype: tagPrototypes[tag] || Object.create(DeuceElement)});
     });
-
-    let state = {'frame':
-                 {'menu-bar': ['File', 'Edit', 'Options', 'Tools', 'Buffers', 'Help'],
-                  'minor-modes': ['blink-cursor-mode', 'menu-bar-mode'],
-                  'windows': [
-                      {'sequence-number': 0,
-                       'line-number-at-start': 1,
-                       'live-p': true,
-                       'selected': true,
-                       'buffer':
-                       {'name': '*scratch*',
-                        'line-number-at-point-max': 5,
-                        'line-number-at-point': 5,
-                        'current-column': 0,
-                        'major-mode': 'lisp-interaction-mode',
-                        'minor-modes': [],
-                        'current': true,
-                        'text': [';; This buffer is for notes you don\'t want to save, and for Lisp evaluation.', ';; If you want to create a file, visit that file with C-x C-f,', ';; then enter the text in that file\'s own buffer.', '', '']},
-                       'mode-line': '-UUU:----F1  <strong>*scratch*</strong>      All L1     (Lisp Interaction) ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------'},
-                      {'sequence-number': 1,
-                       'line-number-at-start': 1,
-                       'live-p': true,
-                       'mini-p': true,
-                       'buffer':
-                       {'name': ' *Minibuf-0*',
-                        'line-number-at-point-max': 1,
-                        'line-number-at-point': 1,
-                        'current-column': 0,
-                        'major-mode': 'minibuffer-inactive-mode',
-                        'minor-modes': [],
-                        'text': ['Welcome to GNU Emacs']}}]}};
-
-    if (state.frame) {
-        let json = JSON.stringify(state);
-        console.time('frame init');
-        document.body.appendChild(DeuceFrame.fromModel(JSON.parse(json).frame));
-        console.timeEnd('frame init');
-    }
 });
