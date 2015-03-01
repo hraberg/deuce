@@ -20,15 +20,15 @@
       <style>
         :host { display: none; }
         :host-context(frame-d[minor-modes~=menu-bar-mode]) { display: block; }
-        :host { padding: 0; margin: 0; background-color: black; color: white; box-shadow: 0 0 4px 2px #ddd; }
+        :host { background-color: black; color: white; }
       </style>
       <content></content>
     </template>
 
     <template data-tag="menu-d">
       <style>
-        :host { display: inline-block; padding: 0; margin: 0; }
-        :host > button { background-color: inherit; color: inherit; font-family: inherit; margin: 0; padding: 0; border: none; white-space: pre; }
+        :host { display: inline-block; }
+        :host > button { background-color: inherit; color: inherit; font-family: inherit; padding: 0; border: none; white-space: pre; }
       </style>
       <button><content></content> </button>
     </template>
@@ -44,7 +44,7 @@
 
     <template data-tag="point-d">
       <style>
-        :host { z-index: 1; position: absolute; border: 1px solid; margin-top: -2px; border: 1px solid darkgray; }
+        :host { position: absolute; border: 1px solid; margin-top: -2px; border: 1px solid darkgray; }
         :host > span { white-space: pre; }
         :host-context([selected][live-p]) { background: black; background: rgba(0, 0, 0, 0.2); }
         :host-context(frame-d[minor-modes~=blink-cursor-mode]):host-context(window-d[selected][live-p]) { -webkit-animation: blink-cursor-mode 1s steps(1) infinite; -moz-animation: blink-cursor-mode 1s steps(1) infinite; animation: blink-cursor-mode 1s steps(1) infinite; }
@@ -76,7 +76,7 @@
 
     <template data-tag="mode-line-d">
       <style>
-        :host { position: absolute; bottom: 0; width: 100%; overflow: hidden; }
+        :host { position: absolute; bottom: 0; width: 100%; overflow: hidden; background-color: #ccc; }
       </style>
       <line-d><content></content></line-d>
     </template>
