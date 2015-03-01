@@ -51,7 +51,7 @@ function bufferFromModel(buffer, lineNumberAtStart) {
         if (a === 'text') {
             buffer[a].map((line, idx) => lineFromModel(buffer.name, lineNumberAtStart, line, idx))
                 .forEach((line) => children.push(line));
-        } else {
+        } else if (buffer[a] !== false) {
             properties.attributes[a] = attributeFromModel(buffer[a]);
         }
     });
@@ -67,7 +67,7 @@ function windowFromModel(win) {
             children.push(bufferFromModel(win[a], lineNumberAtStart));
         } else if (a === 'mode-line') {
             children.push(h('mode-line-d', attrs({key: 'mode-line-' + properties.key, innerHTML: win[a]})));
-        } else {
+        } else if (win[a] !== false) {
             properties.attributes[a] = String(win[a]);
         }
     });
@@ -75,15 +75,15 @@ function windowFromModel(win) {
 }
 
 function frameFromModel(frame) {
-    let properties = {key: 'frame-0', attributes: {}},
+    let properties = {key: 'frame-' + frame.name, attributes: {}},
         children = [];
     Object.keys(frame).forEach((a) => {
         if (a === 'menu-bar') {
             children.push(h('menu-bar-d', attrs({key: 'menu-bar-' - properties.key}),
                             frame[a].map((menu) => h('menu-d', {key: 'menu-' + menu}, menu))));
-        } else if (a === 'windows') {
-            frame[a].map(windowFromModel).forEach((w) => children.push(w));
-        } else {
+        } else if (a === 'root-window' || a === 'minibuffer-window') {
+            children.push(windowFromModel(frame[a]));
+        } else if (frame[a] !== false) {
             properties.attributes[a] = attributeFromModel(frame[a]);
         }
     });

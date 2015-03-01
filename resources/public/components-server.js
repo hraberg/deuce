@@ -5,36 +5,201 @@ const diff = require('diff'),
       fs = require('fs'),
       path = require('path');
 
-let state = {'frame':
-             {'menu-bar': ['File', 'Edit', 'Options', 'Tools', 'Buffers', 'Help'],
-              'minor-modes': ['blink-cursor-mode', 'menu-bar-mode'],
-              'windows': [
-                  {'sequence-number': 0,
-                   'line-number-at-start': 1,
-                   'live-p': true,
-                   'selected': true,
-                   'buffer':
-                   {'name': '*scratch*',
-                    'line-number-at-point-max': 5,
-                    'line-number-at-point': 5,
-                    'current-column': 0,
-                    'major-mode': 'lisp-interaction-mode',
-                    'minor-modes': [],
-                    'current': true,
-                    'text': [';; This buffer is for notes you don\'t want to save, and for Lisp evaluation.', ';; If you want to create a file, visit that file with C-x C-f,', ';; then enter the text in that file\'s own buffer.', '', '']},
-                   'mode-line': '-UUU:----F1  <strong style=\"opacity:0.5;\">*scratch*</strong>      All L1     (Lisp Interaction) ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------'},
-                  {'sequence-number': 1,
-                   'line-number-at-start': 1,
-                   'live-p': true,
-                   'mini-p': true,
-                   'buffer':
-                   {'name': ' *Minibuf-0*',
-                    'line-number-at-point-max': 1,
-                    'line-number-at-point': 1,
-                    'current-column': 0,
-                    'major-mode': 'minibuffer-inactive-mode',
-                    'minor-modes': [],
-                    'text': ['Welcome to GNU Emacs']}}]}},
+// These fields are based on Emacs/Deuce, we might not need them all.
+function Window(buffer, isMini, next, prev, hchild, vchild, parent, leftCol, topLine,
+                totallLines, totalCols, normalLines, normalCols, start, pointm) {
+    this.sequenceNumber = Window.nextSequenceNumber();
+    this.buffer = buffer;
+    this.isMini = isMini || false;
+    this.next = next;
+    this.prev = prev;
+    this.hchild = hchild;
+    this.vchild = vchild;
+    this.parent = parent;
+    this.leftCol = leftCol || 0;
+    this.topLine = topLine || 0;
+    this.totalLines = totallLines;
+    this.totalCols = totalCols;
+    this.normalLines = normalLines;
+    this.normalCols = normalCols;
+    this.start = start || 1;
+    this.pointm = pointm || 1;
+}
+
+Window.nextSequenceNumber = (() => {
+    let sequenceNumber = 0;
+    return () => {
+        sequenceNumber += 1;
+        return sequenceNumber;
+    };
+})();
+
+Window.prototype.toViewModel = (frame) => {
+    return {'sequence-number': this.sequenceNumber, 'mini-p': this.isMini, 'live-p': this.buffer !== undefined,
+            selected: this === frame.selectedWindow, buffer: this.buffer ? this.buffer.toViewModel(frame, this) : undefined,
+            'line-number-at-start': this.buffer ? this.buffer.lineNumberAtPos(this.start) : undefined,
+            'mode-line': (this.isMini || !this.buffer) ? undefined : this.formatModeLine(frame)};
+};
+
+// Fake, doesn't attempt to take the buffer's mode-line-format into account.
+Window.prototype.formatModeLine = (frame) => {
+    let humanize = (s) => s.split('-').map((s) => s[0].toUpperCase() + s.slice(1)).join(' ');
+    return '-UUU:----' + frame.name +
+        '  <strong style=\"opacity:0.5;\">' + this.buffer.name + '</strong>' +
+        '      All L' + this.buffer.lineNumberAtPos() +
+        '     (' + humanize(this.buffer.majorMode) + ') ' +
+        [].constructor(256).join('-');
+};
+
+// The Frame doesn't really own the buffers.
+function Frame(name, menuBar, minorModes, rootWindow, minibufferWindow, buffers) {
+    this.name = name;
+    this.menuBar = menuBar;
+    this.minorModes = minorModes;
+    this.rootWindow = rootWindow;
+    this.minibufferWindow = minibufferWindow;
+    this.selectedWindow = this.rootWindow;
+    this.buffers = buffers;
+}
+
+Frame.prototype.toViewModel = () => {
+    return {name: this.name, 'menu-bar': this.menuBar, 'minor-modes': this.minorModes,
+            'root-window': this.rootWindow.toViewModel(this),
+            'minibuffer-window': this.minibufferWindow.toViewModel(this)};
+};
+
+// beg should be a rope here, but isn't yet,
+function BufferText(beg, modiff, saveModiff, markers) {
+    this.beg = beg;
+    this.modiff = modiff || 0;
+    this.saveModiff = saveModiff || 0;
+    this.markers = markers || [];
+}
+
+BufferText.prototype.nextModificationEvent = (beg) =>
+    new BufferText(beg, this.modiff + 1, this.saveModiff, this.markers);
+
+BufferText.prototype.insert = (pt, args) =>
+    this.nextModificationEvent(this.beg.insert(pt - 1, args));
+
+BufferText.prototype.deleteRegion = (start, end) =>
+    this.nextModificationEvent(this.beg.del(start - 1, end - 1));
+
+function Buffer(name, text, pt, majorMode, minorModes, begv, zv, mark, modeLineFormat) {
+    this.name = name;
+    this.begv = begv || null;
+    this.zv = zv || null;
+    this.pt = pt || 1;
+    this.mark = mark || null;
+    this.newRevision(this.pt, new BufferText(text));
+    this.majorMode = majorMode || 'fundamental-mode';
+    this.minorModes = minorModes || [];
+    this.modeLineFormat = modeLineFormat || '';
+}
+
+
+// These calculations will be backed by the rope.
+// Total (characters) and normal (percentages) lines/columns will need dimension info from the client.
+Buffer.prototype.toViewModel = (frame, window) => {
+    let text = this.text.beg.toString(),
+        lines = text.split('\n'),
+        linesUptoPoint = text.slice(0, this.pt).split('\n'),
+        col = (this.pt - (linesUptoPoint.slice(0, -1).join('\n').length) - 1) || 0;
+    return {name: this.name, current: frame.selectedWindow === window,
+            'major-mode': this.majorMode, 'minor-modes': this.minorModes,
+            'line-number-at-point-max': lines.length, 'line-number-at-point': this.lineNumberAtPos(),
+            'current-column': col, text: lines.slice(this.lineNumberAtPos(window.start) - 1, window.totallLines)};
+};
+
+Buffer.prototype.lineNumberAtPos = (pos) => {
+    let text = this.text.beg.toString();
+    return text.slice(0, pos || this.pt).split('\n').length;
+};
+
+Buffer.prototype.limitToRegion = (position) =>
+    Math.max(this.begv || 1, Math.min(position, this.zv || this.size));
+
+Buffer.prototype.newRevision = (pt, text) => {
+    this.text = text;
+    this.size = this.text.beg.length;
+    this._revisions = (this._revisions || []).slice(0, this._currentRevision);
+    this._revisions.push({text: this.text, pt: pt});
+    this._currentRevision = this._revisions.length - 1;
+};
+
+Buffer.prototype.narrowToRegion = (start, end) => {
+    if (start && end && end < start) {
+        let tmp = start;
+        start = end;
+        end = tmp;
+    }
+    this.begv = start ? this.limitToRegion(start) : null;
+    this.zv = end ? this.limitToRegion(end) : null;
+};
+
+Buffer.prototype.widen = () =>
+    this.narrowToRegion(null, null);
+
+
+Buffer.prototype.lookingAt = (regexp) =>
+    this.text.beg.charAt(this.pt - 1).match(regexp) || this.text.beg.slice(this.pt - 1).match(regexp);
+
+Buffer.prototype.gotoChar = (position) => {
+    this.pt = this.limitToRegion(position);
+    return this.pt;
+};
+
+Buffer.prototype.forwardChar = (n) =>
+    this.gotoChar(this.pt + n);
+
+Buffer.prototype.backwardChar = (n) =>
+    this.gotoChar(this.pt - n);
+
+Buffer.prototype.insert = (args) => {
+    let previousPt = this.pt, nextPt = this.limitToRegion(previousPt + args.length);
+    this.newRevision(nextPt, this.text.insert(previousPt, args));
+    this.gotoChar(nextPt);
+};
+
+Buffer.prototype.deleteRegion = (start, end) => {
+    start = this.limitToRegion(start || this.pt);
+    end = this.limitToRegion(end || this.mark || this.pt);
+    if (end < start) {
+        let tmp = end;
+        end = start;
+        start = tmp;
+    }
+    this.newRevision(this.pt, this.text.deleteRegion(start, end));
+};
+
+Buffer.prototype.undo = (arg) => {
+    arg = arg === undefined ? 1 : arg;
+    if (arg > 0 && this._currentRevision > 0) {
+        this._currentRevision = this._currentRevision - 1;
+        this.text = this._revisions[this._currentRevision].text;
+        this.size = this.text.beg.length;
+        this.server.broadcast({type: 'undo', scope: 'buffer', name: this.name,
+                               post: {_currentRevision: this._currentRevision, size: this.size}});
+        this.gotoChar(this._revisions[this._currentRevision].pt);
+        this.undo(arg - 1);
+    }
+};
+
+let scratch = [';; This buffer is for notes you don\'t want to save, and for Lisp evaluation.',
+               ';; If you want to create a file, visit that file with C-x C-f,',
+               ';; then enter the text in that file\'s own buffer.',
+               '',
+               ''].join('\n'),
+    initalBuffers = {'*scratch*': new Buffer('*scratch*', scratch, scratch.length, 'lisp-interaction-mode'),
+                     ' *Minibuf-0*': new Buffer(' *Minibuf-0*', 'Welcome to GNU Emacs', 1, 'minibuffer-inactive-mode')},
+    frame = new Frame('F1',
+                      ['File', 'Edit', 'Options', 'Tools', 'Buffers', 'Help'],
+                      ['blink-cursor-mode', 'menu-bar-mode'],
+                      new Window(initalBuffers['*scratch*']),
+                      new Window(initalBuffers[' *Minibuf-0*'], true),
+                      initalBuffers),
+
+    state = {frame: frame.toViewModel()},
     serializedState,
     revision = 0,
     connections = [];
@@ -77,10 +242,13 @@ function toSimpleCharDiff(d) {
     return d.value.length;
 }
 
-setInterval(() => {
+// This fn will be called after a command has been excuted.
+function updateClients() {
     let startTime = Date.now(),
-        newState = state;
-    newState.frame.windows[1].buffer.text[0] = new Date().toString() + ' ' + Date.now();
+        newState = {frame: frame.toViewModel()};
+
+    // Hack to see that we're running for now.
+    newState.frame['minibuffer-window'].buffer.text[0] = new Date().toString() + ' ' + Date.now();
 
     if (connections.length > 0) {
         let stateData;
@@ -106,4 +274,8 @@ setInterval(() => {
 
     revision = revision + 1;
     state = newState;
-}, 1000);
+
+}
+
+// Fake command loop.
+setInterval(updateClients, 1000);

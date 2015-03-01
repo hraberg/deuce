@@ -56,7 +56,8 @@
 
     <template data-tag="buffer-d">
       <style>
-        :host { position: absolute; width: 100%; top: 0; bottom: 1.2em; overflow: auto; outline: 0; }
+        :host { position: absolute; width: 100%; top: 0; bottom: 1.2em; overflow: hidden; outline: 0; }
+        :host-context(frame-d[minor-modes~=scroll-bar-mode]) { overflow: scroll; }
         :host-context([mini-p]) { bottom: 0; }
         :host([major-mode=minibuffer-inactive-mode]) point-d { visibility: hidden; }
         .scroll-buffer { position: absolute; width: 100%; }
