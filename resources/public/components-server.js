@@ -198,10 +198,10 @@ let scratch = [';; This buffer is for notes you don\'t want to save, and for Lis
                ''].join('\n'),
     initalBuffers = {'*scratch*': new Buffer('*scratch*', scratch, scratch.length, 'lisp-interaction-mode'),
                      ' *Minibuf-0*': new Buffer(' *Minibuf-0*', 'Welcome to GNU Emacs', 1, 'minibuffer-inactive-mode')},
-    connections = [];
+    connections = new Map();
 
 ws.createServer({port: 8080}, (ws) => {
-    let id = connections.length + 1,
+    let id = connections.size + 1,
         frame = new Frame('F' + id,
                           ['File', 'Edit', 'Options', 'Tools', 'Buffers', 'Help'],
                           ['blink-cursor-mode', 'menu-bar-mode'],
@@ -209,7 +209,7 @@ ws.createServer({port: 8080}, (ws) => {
                           new Window(initalBuffers[' *Minibuf-0*'], true),
                           initalBuffers),
         client = {ws: ws, frame: frame, revision: 0};
-    connections.push(client);
+    connections.set(id, client);
     let onrefresh = () => {
             fs.open(path.join(__dirname, 'components.js'), 'r', (err, fd) => {
                 if (err) {
@@ -226,7 +226,7 @@ ws.createServer({port: 8080}, (ws) => {
         };
     ws.on('close', () => {
         console.log('disconnect:', id);
-        connections.splice(id - 1, 1);
+        connections.delete(id);
     });
     ws.on('message', (data) => {
         let message = JSON.parse(data);
@@ -249,28 +249,26 @@ function toSimpleCharDiff(d) {
 // This fn will be called after a command has been excuted.
 function updateClients() {
     let startTime = Date.now();
-    if (connections.length > 0) {
-        connections.forEach((client) => {
-            let newState = {frame: client.frame.toViewModel()};
+    connections.forEach((client) => {
+        let newState = {frame: client.frame.toViewModel()};
 
-            // Hack to see that we're running for now.
-            newState.frame['minibuffer-window'].buffer.text[0] = new Date().toString() + ' ' + Date.now();
+        // Hack to see that we're running for now.
+        newState.frame['minibuffer-window'].buffer.text[0] = new Date().toString() + ' ' + Date.now();
 
-            console.time('    diff');
-            let newSerializedState = JSON.stringify(newState),
-            diffs = diff.diffChars(client.serializedState, newSerializedState).map(toSimpleCharDiff);
-            let data = JSON.stringify(['s', client.revision, diffs, startTime]);
-            client.serializedState = newSerializedState;
+        console.time('    diff');
+        let newSerializedState = JSON.stringify(newState),
+        diffs = diff.diffChars(client.serializedState, newSerializedState).map(toSimpleCharDiff);
+        let data = JSON.stringify(['s', client.revision, diffs, startTime]);
+        client.serializedState = newSerializedState;
 
-            console.timeEnd('    diff');
-            console.log(' sending:', data);
-            if (client.ws.readyState === ws.OPEN) {
-                client.ws.send(data);
-            }
-            client.revision += 1;
-            client.state = newState;
-        });
-    }
+        console.timeEnd('    diff');
+        console.log(' sending:', data);
+        if (client.ws.readyState === ws.OPEN) {
+            client.ws.send(data);
+        }
+        client.revision += 1;
+        client.state = newState;
+    });
 }
 
 // Fake command loop.
