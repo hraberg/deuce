@@ -106,12 +106,12 @@ function applySimpleCharDiffs(ds, s) {
     return acc;
 }
 
-let state = {},
-    serializedState = JSON.stringify(state),
+let state,
+    serializedState,
     revision,
     rootNode,
     vdomTree,
-    pendingRefresh,
+    frameRequestedAt,
     clientCompileTime;
 
 function onrefresh(newRevision, newState, newClientCompileTime) {
@@ -125,17 +125,19 @@ function onrefresh(newRevision, newState, newClientCompileTime) {
     state = newState;
     serializedState = JSON.stringify(state);
 
-    if (usedRenderer() === 'mithril') {
-        rootNode = document.body;
-    } else if (usedRenderer() === 'deuce-vdom') {
-        document.body.innerHTML = '';
-        document.body.appendChild(DeuceVDom.redraw(() => frameFromModel(state.frame)).element);
-    } else {
-        vdomTree = frameFromModel(state.frame);
-        rootNode = virtualDom.create(vdomTree);
-        document.body.innerHTML = '';
-        document.body.appendChild(rootNode);
-    }
+    requestAnimationFrame(() => {
+        if (usedRenderer() === 'mithril') {
+            rootNode = document.body;
+        } else if (usedRenderer() === 'deuce-vdom') {
+            document.body.innerHTML = '';
+            document.body.appendChild(DeuceVDom.redraw(() => frameFromModel(state.frame)).element);
+        } else {
+            vdomTree = frameFromModel(state.frame);
+            rootNode = virtualDom.create(vdomTree);
+            document.body.innerHTML = '';
+            document.body.appendChild(rootNode);
+        }
+    });
 
     revision = newRevision;
 }
@@ -163,11 +165,12 @@ function onpatch(oldRevision, diffs) {
 }
 
 function render(serverTime) {
-    if (!pendingRefresh) {
-        pendingRefresh = true;
+    if (!frameRequestedAt) {
+        frameRequestedAt = Date.now();
         requestAnimationFrame(() => {
+            console.log('frame wait time:', Date.now() - frameRequestedAt, 'ms');
             console.time('redraw');
-            pendingRefresh = false;
+            frameRequestedAt = undefined;
 
             if (state.frame) {
                 if (usedRenderer() === 'mithril') {
@@ -194,10 +197,12 @@ let handlers = {r: onrefresh, s: onpatch};
 function onmessage(data) {
     debug('client received:', data.data.length, data.data);
     console.time('client time');
+    console.time('onmessage');
     let message = JSON.parse(data.data),
         serverTime = message[message.length - 1];
     console.log('server time:', Date.now() - serverTime, 'ms');
     handlers[message[0]].apply(null, message.slice(1));
+    console.timeEnd('onmessage');
     render(serverTime);
 }
 
