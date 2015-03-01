@@ -54,7 +54,7 @@ Window.prototype.formatModeLine = (frame) => {
         [].constructor(256).join('-');
 };
 
-// The Frame doesn't really own the buffers.
+// The Frame doesn't really own the buffers. The menu-bar is really a function of the active keymap / modes.
 function Frame(name, menuBar, minorModes, rootWindow, minibufferWindow, buffers) {
     this.name = name;
     this.menuBar = menuBar;
