@@ -234,6 +234,10 @@ function connect() {
         debug('connection closed:', e);
         debug('retrying in:', reconnectInterval, 'ms.');
         ws = undefined;
+
+        let minibuffer = document.querySelector('window-d[mini-p] buffer-d line-d');
+        (minibuffer || document.body).innerHTML = '<span style=\'color: red;\'>NO CONNECTION</span>';
+
         window.setTimeout(connect, reconnectInterval);
         reconnectInterval *= reconnectBackoffRatio;
         reconnectInterval = Math.min(maxReconnectInterval, reconnectInterval);
