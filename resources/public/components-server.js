@@ -198,28 +198,26 @@ let scratch = [';; This buffer is for notes you don\'t want to save, and for Lis
                ''].join('\n'),
     initalBuffers = {'*scratch*': new Buffer('*scratch*', scratch, scratch.length, 'lisp-interaction-mode'),
                      ' *Minibuf-0*': new Buffer(' *Minibuf-0*', 'Welcome to GNU Emacs', 1, 'minibuffer-inactive-mode')},
-    frame = new Frame('F1',
-                      ['File', 'Edit', 'Options', 'Tools', 'Buffers', 'Help'],
-                      ['blink-cursor-mode', 'menu-bar-mode'],
-                      new Window(initalBuffers['*scratch*']),
-                      new Window(initalBuffers[' *Minibuf-0*'], true),
-                      initalBuffers),
-
-    state = {frame: frame.toViewModel()},
-    serializedState,
-    revision = 0,
     connections = [];
 
 ws.createServer({port: 8080}, (ws) => {
-    connections.push({ws: ws});
-    let id = connections.length - 1,
-        onrefresh = () => {
+    let id = connections.length + 1,
+        frame = new Frame('F' + id,
+                          ['File', 'Edit', 'Options', 'Tools', 'Buffers', 'Help'],
+                          ['blink-cursor-mode', 'menu-bar-mode'],
+                          new Window(initalBuffers['*scratch*']),
+                          new Window(initalBuffers[' *Minibuf-0*'], true),
+                          initalBuffers),
+        client = {ws: ws, frame: frame, revision: 0};
+    connections.push(client);
+    let onrefresh = () => {
             fs.open(path.join(__dirname, 'components.js'), 'r', (err, fd) => {
                 if (err) {
                     throw (err);
                 }
-                serializedState = JSON.stringify(state);
-                let data = JSON.stringify(['r', revision, state, fs.fstatSync(fd).mtime, Date.now()]);
+                client.state = {frame: frame.toViewModel()};
+                client.serializedState = JSON.stringify(client.state);
+                let data = JSON.stringify(['r', client.revision, client.state, fs.fstatSync(fd).mtime, Date.now()]);
                 console.log(' refresh:', data);
                 if (ws.readyState === ws.OPEN) {
                     ws.send(data);
@@ -228,7 +226,7 @@ ws.createServer({port: 8080}, (ws) => {
         };
     ws.on('close', () => {
         console.log('disconnect:', id);
-        connections.splice(id, 1);
+        connections.splice(id - 1, 1);
     });
     ws.on('message', (data) => {
         let message = JSON.parse(data);
@@ -250,37 +248,29 @@ function toSimpleCharDiff(d) {
 
 // This fn will be called after a command has been excuted.
 function updateClients() {
-    let startTime = Date.now(),
-        newState = {frame: frame.toViewModel()};
-
-    // Hack to see that we're running for now.
-    newState.frame['minibuffer-window'].buffer.text[0] = new Date().toString() + ' ' + Date.now();
-
+    let startTime = Date.now();
     if (connections.length > 0) {
-        let stateData;
-        connections.forEach((c) => {
-            let data;
-            console.time('    diff');
+        connections.forEach((client) => {
+            let newState = {frame: client.frame.toViewModel()};
 
-            if (!stateData) {
-                let newSerializedState = JSON.stringify(newState),
-                diffs = diff.diffChars(serializedState, newSerializedState).map(toSimpleCharDiff);
-                stateData = JSON.stringify(['s', revision, diffs, startTime]);
-                serializedState = newSerializedState;
-            }
-            data = stateData;
+            // Hack to see that we're running for now.
+            newState.frame['minibuffer-window'].buffer.text[0] = new Date().toString() + ' ' + Date.now();
+
+            console.time('    diff');
+            let newSerializedState = JSON.stringify(newState),
+            diffs = diff.diffChars(client.serializedState, newSerializedState).map(toSimpleCharDiff);
+            let data = JSON.stringify(['s', client.revision, diffs, startTime]);
+            client.serializedState = newSerializedState;
 
             console.timeEnd('    diff');
             console.log(' sending:', data);
-            if (c.ws.readyState === ws.OPEN) {
-                c.ws.send(data);
+            if (client.ws.readyState === ws.OPEN) {
+                client.ws.send(data);
             }
+            client.revision += 1;
+            client.state = newState;
         });
     }
-
-    revision = revision + 1;
-    state = newState;
-
 }
 
 // Fake command loop.
