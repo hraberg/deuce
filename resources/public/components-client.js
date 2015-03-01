@@ -12,8 +12,12 @@ let debug = () => {
     }
 };
 
+let renderers = new Map([[m, 'mithril'],
+                         [DeuceVDom.e, 'deuce-vdom'],
+                         [virtualDom.h, 'virtual-dom']]);
+
 let usedRenderer = () => {
-    return h === m ? 'mithril' : h === DeuceVDom.e ? 'deuce-vdom' : 'virtual-dom';
+    return renderers.get(h);
 };
 
 let attrs = (properties) => {
