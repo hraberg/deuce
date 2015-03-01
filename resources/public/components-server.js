@@ -257,8 +257,8 @@ function updateClients() {
 
         console.time('    diff');
         let newSerializedState = JSON.stringify(newState),
-        diffs = diff.diffChars(client.serializedState, newSerializedState).map(toSimpleCharDiff);
-        let data = JSON.stringify(['s', client.revision, diffs, startTime]);
+            diffs = diff.diffChars(client.serializedState, newSerializedState).map(toSimpleCharDiff),
+            data = JSON.stringify(['s', client.revision, diffs, startTime]);
         client.serializedState = newSerializedState;
 
         console.timeEnd('    diff');
