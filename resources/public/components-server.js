@@ -131,7 +131,7 @@ Buffer.prototype.lineNumberAtPos = (pos) => {
 };
 
 Buffer.prototype.limitToRegion = (position) =>
-    Math.max(this.begv || 1, Math.min(position, this.zv || this.size));
+    Math.max(this.begv || 1, Math.min(position, (this.zv || this.size) + 1));
 
 Buffer.prototype.newRevision = (pt, text) => {
     this.text = text;
@@ -164,10 +164,10 @@ Buffer.prototype.gotoChar = (position) => {
 };
 
 Buffer.prototype.forwardChar = (n) =>
-    this.gotoChar(this.pt + n);
+    this.gotoChar(this.pt + (n || 1));
 
 Buffer.prototype.backwardChar = (n) =>
-    this.gotoChar(this.pt - n);
+    this.gotoChar(this.pt - (n || 1));
 
 Buffer.prototype.insert = (args) => {
     let previousPt = this.pt, nextPt = this.limitToRegion(previousPt + args.length);
@@ -186,14 +186,35 @@ Buffer.prototype.deleteRegion = (start, end) => {
     this.newRevision(this.pt, this.text.deleteRegion(start, end));
 };
 
+Buffer.prototype.deleteForwardChar = (n) => {
+    this.deleteRegion(this.pt, this.pt + (n || 1));
+};
+
+Buffer.prototype.deleteBackwardChar = (n) => {
+    this.backwardChar(n);
+    this.deleteForwardChar(n);
+};
+
+Buffer.prototype.newline = (n) => {
+    n = n || 1;
+    while (n > 0) {
+        this.insert('\n');
+        n -= 1;
+    }
+};
+
+Buffer.prototype.selfInsertCommand = (arg) => {
+    this.insert(arg);
+};
+
 Buffer.prototype.undo = (arg) => {
     arg = arg === undefined ? 1 : arg;
-    if (arg > 0 && this._currentRevision > 0) {
+    while (arg > 0 && this._currentRevision > 0) {
         this._currentRevision = this._currentRevision - 1;
         this.text = this._revisions[this._currentRevision].text;
         this.size = this.text.beg.length;
         this.gotoChar(this._revisions[this._currentRevision].pt);
-        this.undo(arg - 1);
+        arg -= 1;
     }
 };
 
@@ -246,6 +267,28 @@ ws.createServer({port: 8080}, (ws) => {
         onkey = (key) => {
             client.events.push(key);
             console.log('     key:', key);
+            let currentBuffer = client.frame.selectedWindow.buffer;
+            if (key === 'left') {
+                currentBuffer.backwardChar();
+            }
+            if (key === 'right') {
+                currentBuffer.forwardChar();
+            }
+            if (key === 'return') {
+                currentBuffer.newline();
+            }
+            if (key === 'delete') {
+                currentBuffer.deleteForwardChar();
+            }
+            if (key === 'backspace') {
+                currentBuffer.deleteBackwardChar();
+            }
+            if (key === 'C-/') {
+                currentBuffer.undo();
+            }
+            if (key.length === 1) {
+                currentBuffer.selfInsertCommand(key);
+            }
             updateClient(client);
         };
     ws.on('close', () => {
