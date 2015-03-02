@@ -1,4 +1,5 @@
 /*eslint-env browser */
+/*global ws */
 
 'use strict';
 
@@ -99,6 +100,14 @@ DeuceWindow.attributeChangedCallback = (attrName) => {
     }
 };
 
+DeuceWindow.resize = () => {
+    DeuceElement.resize.call(this);
+    if (ws) {
+        ws.send(JSON.stringify(['zw', this.getAttribute('sequence-number'),
+                                this.getAttribute('width'), this.getAttribute('height')]));
+    }
+};
+
 DeuceWindow.scrollTo = (visibleLine) => {
     let negativeY = this.buffer.point.fontHeight * -visibleLine;
     if (!Number.isNaN(negativeY)) {
@@ -120,6 +129,14 @@ DeuceFrame.attachedCallback = () => {
 
 DeuceFrame.detachedCallback = () => {
     window.removeEventListener('resize', this.resize);
+};
+
+DeuceFrame.resize = () => {
+    DeuceElement.resize.call(this);
+    if (ws) {
+        ws.send(JSON.stringify(['zf', this.getAttribute('name'),
+                                this.getAttribute('width'), this.getAttribute('height')]));
+    }
 };
 
 let tagPrototypes = {'buffer-d': DeuceBuffer, 'point-d': DeucePoint, 'window-d': DeuceWindow, 'frame-d': DeuceFrame};

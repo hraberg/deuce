@@ -55,7 +55,7 @@ Window.prototype.formatModeLine = (frame) => {
 };
 
 // The Frame doesn't really own the buffers. The menu-bar is really a function of the active keymap / modes.
-function Frame(name, menuBar, minorModes, rootWindow, minibufferWindow, buffers) {
+function Frame(name, menuBar, minorModes, rootWindow, minibufferWindow, buffers, width, height) {
     this.name = name;
     this.menuBar = menuBar;
     this.minorModes = minorModes;
@@ -63,6 +63,11 @@ function Frame(name, menuBar, minorModes, rootWindow, minibufferWindow, buffers)
     this.minibufferWindow = minibufferWindow;
     this.selectedWindow = this.rootWindow;
     this.buffers = buffers;
+    this.width = width || 0;
+    this.height = height || 0;
+    this.windows = {};
+    this.windows[rootWindow.sequenceNumber] = rootWindow;
+    this.windows[minibufferWindow.sequenceNumber] = minibufferWindow;
 }
 
 Frame.prototype.toViewModel = () => {
@@ -224,6 +229,17 @@ ws.createServer({port: 8080}, (ws) => {
                 }
             });
         },
+        onframesize = (id, width, height) => {
+            console.log('    size: frame', id, width, height);
+            client.frame.width = width;
+            client.frame.height = height;
+        },
+        onwindowsize = (id, width, height) => {
+            console.log('    size: window', id, width, height);
+            let win = client.frame.windows[id];
+            win.totalCols = width;
+            win.totalLines = height;
+        },
         onkey = (key) => {
             client.events.push(key);
             console.log('     key:', key);
@@ -234,8 +250,13 @@ ws.createServer({port: 8080}, (ws) => {
         connections.delete(id);
     });
     ws.on('message', (data) => {
-        let message = JSON.parse(data);
-        ({r: onrefresh, k: onkey})[message[0]].apply(null, message.slice(1));
+        let message = JSON.parse(data),
+            handler = ({r: onrefresh, k: onkey, zf: onframesize, zw: onwindowsize})[message[0]];
+        if (handler) {
+            handler.apply(null, message.slice(1));
+        } else {
+            console.error('unknown message:', message);
+        }
     });
     console.log('new client:', id);
     onrefresh();

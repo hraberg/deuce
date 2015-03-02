@@ -207,8 +207,10 @@ function onmessage(data) {
     render(serverTime);
 }
 
+// Hack to make this global for now so the components can use it.
+var ws;
+
 let url = 'ws://127.0.0.1:8080',
-    ws,
     initialReconnectInterval = 1000,
     maxReconnectInterval = initialReconnectInterval * 5,
     reconnectInterval = initialReconnectInterval,
