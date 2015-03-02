@@ -68,7 +68,7 @@ function windowFromModel(win) {
         } else if (a === 'mode-line') {
             children.push(h('mode-line-d', attrs({key: 'mode-line-' + properties.key, innerHTML: win[a]})));
         } else if (win[a] !== false) {
-            properties.attributes[a] = String(win[a]);
+            properties.attributes[a] = attributeFromModel(win[a]);
         }
     });
     return h('window-d', attrs(properties), children);
