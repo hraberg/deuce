@@ -100,14 +100,6 @@ DeuceWindow.attributeChangedCallback = (attrName) => {
     }
 };
 
-DeuceWindow.resize = () => {
-    DeuceElement.resize.call(this);
-    if (ws) {
-        ws.send(JSON.stringify(['zw', this.getAttribute('sequence-number'),
-                                parseInt(this.getAttribute('width'), 10), parseInt(this.getAttribute('height', 10))]));
-    }
-};
-
 DeuceWindow.scrollTo = (visibleLine) => {
     let negativeY = this.buffer.point.fontHeight * -visibleLine;
     if (!Number.isNaN(negativeY)) {
@@ -129,14 +121,6 @@ DeuceFrame.attachedCallback = () => {
 
 DeuceFrame.detachedCallback = () => {
     window.removeEventListener('resize', this.resize);
-};
-
-DeuceFrame.resize = () => {
-    DeuceElement.resize.call(this);
-    if (ws) {
-        ws.send(JSON.stringify(['zf', this.getAttribute('name'),
-                                parseInt(this.getAttribute('width'), 10), parseInt(this.getAttribute('height', 10))]));
-    }
 };
 
 let tagPrototypes = {'buffer-d': DeuceBuffer, 'point-d': DeucePoint, 'window-d': DeuceWindow, 'frame-d': DeuceFrame};

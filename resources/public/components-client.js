@@ -1,5 +1,5 @@
 /*eslint-env browser */
-/*globals virtualDom m DeuceVDom */
+/*globals virtualDom m DeuceVDom DeuceFrame DeuceWindow DeuceElement */
 
 'use strict';
 
@@ -207,10 +207,8 @@ function onmessage(data) {
     render(serverTime);
 }
 
-// Hack to make this global for now so the components can use it.
-var ws;
-
-let url = 'ws://127.0.0.1:8080',
+let ws,
+    url = 'ws://127.0.0.1:8080',
     initialReconnectInterval = 1000,
     maxReconnectInterval = initialReconnectInterval * 5,
     reconnectInterval = initialReconnectInterval,
@@ -329,3 +327,19 @@ document.addEventListener('keypress', (e) => {
 });
 
 document.addEventListener('DOMContentLoaded', connect);
+
+DeuceFrame.resize = () => {
+    DeuceElement.resize.call(this);
+    if (ws) {
+        ws.send(JSON.stringify(['zf', this.getAttribute('name'),
+                                parseInt(this.getAttribute('width'), 10), parseInt(this.getAttribute('height', 10))]));
+    }
+};
+
+DeuceWindow.resize = () => {
+    DeuceElement.resize.call(this);
+    if (ws) {
+        ws.send(JSON.stringify(['zw', this.getAttribute('sequence-number'),
+                                parseInt(this.getAttribute('width'), 10), parseInt(this.getAttribute('height', 10))]));
+    }
+};
