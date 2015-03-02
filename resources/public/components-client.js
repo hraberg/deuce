@@ -150,7 +150,7 @@ function patchCommon(oldRevision) {
     if (oldRevision !== revision) {
         console.error('out of sync with server, requesting refresh:', oldRevision, revision);
         revision = undefined;
-        ws.send(JSON.stringify(['r']));
+        send('r');
         return false;
     }
     return true;
@@ -213,6 +213,12 @@ let ws,
     maxReconnectInterval = initialReconnectInterval * 5,
     reconnectInterval = initialReconnectInterval,
     reconnectBackoffRatio = 1.2;
+
+function send() {
+    if (ws) {
+        ws.send(JSON.stringify([].slice.call(arguments)));
+    }
+}
 
 function connect() {
     if (ws) {
@@ -296,9 +302,7 @@ function keyEventToString (mods, key) {
 function sendKeyEvent (mods, key) {
     let eventString = keyEventToString(mods, key);
     console.log('key:', eventString);
-    if (ws) {
-        ws.send(JSON.stringify(['k', eventString]));
-    }
+    send('k', eventString);
 }
 
 document.addEventListener('keydown', (e) => {
@@ -329,11 +333,9 @@ document.addEventListener('keypress', (e) => {
 document.addEventListener('DOMContentLoaded', connect);
 
 function sendSizeEvent (type, idAttr, element) {
-    if (ws) {
-        ws.send(JSON.stringify([type, element.getAttribute(idAttr),
-                                parseInt(element.getAttribute('width'), 10),
-                                parseInt(element.getAttribute('height', 10))]));
-    }
+    send(type, element.getAttribute(idAttr),
+         parseInt(element.getAttribute('width'), 10),
+         parseInt(element.getAttribute('height', 10)));
 }
 
 DeuceFrame.resize = () => {

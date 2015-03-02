@@ -296,8 +296,7 @@ function updateClient(client) {
     console.log(' sending:', data);
     if (client.ws.readyState === ws.OPEN) {
         client.ws.send(data);
+        client.revision += 1;
+        client.state = newState;
     }
-
-    client.revision += 1;
-    client.state = newState;
 }
