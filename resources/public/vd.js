@@ -23,13 +23,17 @@ let DeuceVDom = (() => {
 
     let e = (tag) => {
         let attributes = {},
-            children;
+            children,
+            args = [].constructor(arguments.length);
+        for (let i = 0; i < arguments.length; i += 1) {
+            args[i] = arguments[i];
+        }
 
-        if (typeof arguments[1] === 'object' && !arguments[1]._type) {
-            attributes = arguments[1];
-            children = [].slice.call(arguments).slice(2) || [];
+        if (typeof args[1] === 'object' && !args[1]._type) {
+            attributes = args[1];
+            children = [].slice.call(args).slice(2) || [];
         } else {
-            children = [].slice.call(arguments).slice(1) || [];
+            children = [].slice.call(args).slice(1) || [];
         }
         if (Array.isArray(children[children.length - 1])) {
             children = children.slice(0, children.length - 1).concat(children[children.length - 1]);

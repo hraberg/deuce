@@ -130,7 +130,8 @@ function onrefresh(newRevision, newState, newClientCompileTime) {
             rootNode = document.body;
         } else if (usedRenderer() === 'deuce-vdom') {
             document.body.innerHTML = '';
-            document.body.appendChild(DeuceVDom.redraw(() => frameFromModel(state.frame)).element);
+            rootNode = DeuceVDom.redraw(() => frameFromModel(state.frame)).element;
+            document.body.appendChild(rootNode);
         } else {
             vdomTree = frameFromModel(state.frame);
             rootNode = virtualDom.create(vdomTree);
