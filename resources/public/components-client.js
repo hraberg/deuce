@@ -282,34 +282,27 @@ function keyEventToString (mods, key) {
     return mods.concat([key]).join('-');
 }
 
-function sendKeyEvent (event) {
-    console.log('key:', keyEventToString(event[0], event[1]));
+function sendKeyEvent (mods, key) {
+    let eventString = keyEventToString(mods, key);
+    console.log('key:', eventString);
     if (ws) {
-        ws.send(JSON.stringify(['k', event]));
+        ws.send(JSON.stringify(['k', eventString]));
     }
 }
 
-window.addEventListener('keydown', (e) => {
-    let event;
+document.addEventListener('keydown', (e) => {
     if (keyCodeToEmacs[e.keyCode]) {
-        event = [modifiers(e), keyCodeToEmacs[e.keyCode]];
-
-    } else if ((e.ctrlKey || e.altKey) && !modifierKeyCodes[e.keyCode]) {
-        event = [modifiers(e), String.fromCharCode(e.keyCode).toLowerCase()];
-    }
-    if (event) {
         e.preventDefault();
-        sendKeyEvent(event);
+        sendKeyEvent(modifiers(e), keyCodeToEmacs[e.keyCode]);
+    } else if ((e.ctrlKey || e.altKey) && !modifierKeyCodes[e.keyCode]) {
+        e.preventDefault();
+        sendKeyEvent(modifiers(e), String.fromCharCode(e.keyCode).toLowerCase());
     }
 });
 
-window.addEventListener('keypress', (e) => {
-    let key = String.fromCharCode(e.charCode),
-        event = [modifiers(e, true), key];
+document.addEventListener('keypress', (e) => {
     e.preventDefault();
-    sendKeyEvent(event);
+    sendKeyEvent(modifiers(e, true), String.fromCharCode(e.charCode));
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-    connect();
-});
+document.addEventListener('DOMContentLoaded', connect);

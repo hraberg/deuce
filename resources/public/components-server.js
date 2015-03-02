@@ -208,7 +208,7 @@ ws.createServer({port: 8080}, (ws) => {
                           new Window(initalBuffers['*scratch*']),
                           new Window(initalBuffers[' *Minibuf-0*'], true),
                           initalBuffers),
-        client = {ws: ws, frame: frame, revision: 0};
+        client = {ws: ws, frame: frame, revision: 0, events: []};
     connections.set(id, client);
     let onrefresh = () => {
             fs.open(path.join(__dirname, 'components.js'), 'r', (err, fd) => {
@@ -223,6 +223,11 @@ ws.createServer({port: 8080}, (ws) => {
                     ws.send(data);
                 }
             });
+        },
+        onkey = (key) => {
+            client.events.push(key);
+            console.log('     key:', key);
+            updateClient(client);
         };
     ws.on('close', () => {
         console.log('disconnect:', id);
@@ -230,7 +235,7 @@ ws.createServer({port: 8080}, (ws) => {
     });
     ws.on('message', (data) => {
         let message = JSON.parse(data);
-        ({r: onrefresh})[message[0]].apply(null, message.slice(1));
+        ({r: onrefresh, k: onkey})[message[0]].apply(null, message.slice(1));
     });
     console.log('new client:', id);
     onrefresh();
@@ -246,30 +251,29 @@ function toSimpleCharDiff(d) {
     return d.value.length;
 }
 
+
 // This fn will be called after a command has been excuted.
-function updateClients() {
-    let startTime = Date.now();
-    connections.forEach((client) => {
-        let newState = {frame: client.frame.toViewModel()};
+function updateClient(client) {
+    let startTime = Date.now(),
+        newState = {frame: client.frame.toViewModel()},
+        recentEvents = client.events.slice(-10);
 
-        // Hack to see that we're running for now.
-        newState.frame['minibuffer-window'].buffer.text[0] = new Date().toString() + ' ' + Date.now();
+    // Hack to see that we're running for now.
+    newState.frame['minibuffer-window'].buffer.text[0] = new Date().toString() + ' last event at: ' + Date.now() +
+        ' last ' + recentEvents.length + ' events: ' + recentEvents.join(' ');
 
-        console.time('    diff');
-        let newSerializedState = JSON.stringify(newState),
-            diffs = diff.diffChars(client.serializedState, newSerializedState).map(toSimpleCharDiff),
-            data = JSON.stringify(['s', client.revision, diffs, startTime]);
-        client.serializedState = newSerializedState;
+    console.time('    diff');
+    let newSerializedState = JSON.stringify(newState),
+        diffs = diff.diffChars(client.serializedState, newSerializedState).map(toSimpleCharDiff),
+        data = JSON.stringify(['s', client.revision, diffs, startTime]);
+    client.serializedState = newSerializedState;
 
-        console.timeEnd('    diff');
-        console.log(' sending:', data);
-        if (client.ws.readyState === ws.OPEN) {
-            client.ws.send(data);
-        }
-        client.revision += 1;
-        client.state = newState;
-    });
+    console.timeEnd('    diff');
+    console.log(' sending:', data);
+    if (client.ws.readyState === ws.OPEN) {
+        client.ws.send(data);
+    }
+
+    client.revision += 1;
+    client.state = newState;
 }
-
-// Fake command loop.
-setInterval(updateClients, 1000);
