@@ -115,7 +115,6 @@ Buffer.prototype.toViewModel = (frame, win) => {
         lineNumberAtStart = this.lineNumberAtPos(win.start),
         lineNumberAtEnd = lineNumberAtStart + win.totalLines - 1,
         lines = text.lines(lineNumberAtStart - 1, lineNumberAtEnd - 1).toString().split(/(?:\r\n?|\n)/gm);
-    console.log(lineNumberAtStart, lineNumberAtEnd, lines);
     return {'name': this.name,
             'current': frame.selectedWindow === win,
             'major-mode': this.majorMode,
