@@ -3,7 +3,8 @@
 const diff = require('diff'),
       ws = require('ws'),
       fs = require('fs'),
-      path = require('path');
+      path = require('path'),
+      Rope = require('./rope').Rope;
 
 // These fields are based on Emacs/Deuce, we might not need them all.
 function Window(buffer, isMini, next, prev, hchild, vchild, parent, leftCol, topLine,
@@ -78,7 +79,6 @@ Frame.prototype.toViewModel = () => {
             'minibuffer-window': this.minibufferWindow.toViewModel(this)};
 };
 
-// beg should be a rope here, but isn't yet,
 function BufferText(beg, modiff, saveModiff, markers) {
     this.beg = beg;
     this.modiff = modiff || 0;
@@ -107,26 +107,27 @@ function Buffer(name, text, pt, majorMode, minorModes, begv, zv, mark, modeLineF
     this.modeLineFormat = modeLineFormat || '';
 }
 
-// These calculations will be backed by the rope.
-// Total (characters) and normal (percentages) lines/columns will need dimension info from the client.
-Buffer.prototype.toViewModel = (frame, window) => {
-    let text = this.text.beg.toString(),
-        lines = text.split('\n'),
-        linesUptoPoint = text.slice(0, this.pt).split('\n'),
-        col = (this.pt - (linesUptoPoint.slice(0, -1).join('\n').length) - 1) || 0;
+Buffer.prototype.toViewModel = (frame, win) => {
+    let text = this.text.beg,
+        lineNumberAtPointMax = text.newlines + 1,
+        lineNumberAtPoint = this.lineNumberAtPos(),
+        col = this.pt - (text.indexOfLine(lineNumberAtPoint - 1) + 1),
+        lineNumberAtStart = this.lineNumberAtPos(win.start),
+        lineNumberAtEnd = lineNumberAtStart + win.totalLines,
+        lines = text.lines(lineNumberAtStart - 1, lineNumberAtEnd - 1).toString().split(/(?:\r\n?|\n)/gm);
     return {'name': this.name,
-            'current': frame.selectedWindow === window,
+            'current': frame.selectedWindow === win,
             'major-mode': this.majorMode,
             'minor-modes': this.minorModes,
-            'line-number-at-point-max': lines.length,
-            'line-number-at-point': this.lineNumberAtPos(),
+            'line-number-at-point-max': lineNumberAtPointMax,
+            'line-number-at-point': lineNumberAtPoint,
             'current-column': col,
-            'text': lines.slice(this.lineNumberAtPos(window.start) - 1, window.totallLines)};
+            'text': lines};
 };
 
 Buffer.prototype.lineNumberAtPos = (pos) => {
-    let text = this.text.beg.toString();
-    return text.slice(0, pos || this.pt).split('\n').length;
+    pos = (pos || this.pt);
+    return this.text.beg.lineAt((pos || this.pt) - 1) + 1;
 };
 
 Buffer.prototype.limitToRegion = (position) =>
@@ -201,8 +202,10 @@ let scratch = [';; This buffer is for notes you don\'t want to save, and for Lis
                ';; then enter the text in that file\'s own buffer.',
                '',
                ''].join('\n'),
-    initalBuffers = {'*scratch*': new Buffer('*scratch*', scratch, scratch.length, 'lisp-interaction-mode'),
-                     ' *Minibuf-0*': new Buffer(' *Minibuf-0*', 'Welcome to GNU Emacs', 1, 'minibuffer-inactive-mode')},
+    initalBuffers = {'*scratch*': new Buffer('*scratch*', Rope.toRope(scratch),
+                                             scratch.length + 1, 'lisp-interaction-mode'),
+                     ' *Minibuf-0*': new Buffer(' *Minibuf-0*', Rope.toRope('Welcome to GNU Emacs'),
+                                                1, 'minibuffer-inactive-mode')},
     connections = new Map();
 
 ws.createServer({port: 8080}, (ws) => {

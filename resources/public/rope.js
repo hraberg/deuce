@@ -253,7 +253,7 @@ RopeString.prototype.indexOfLine = (line) => {
     if (line < 0 || line > this.newlines) {
         return -1;
     }
-    return this.match(Rope.LINES_PATTERN).slice(0, line).join('').length;
+    return (this.match(Rope.LINES_PATTERN) || []).slice(0, line).join('').length;
 };
 
 RopeString.prototype.isBalanced = () =>

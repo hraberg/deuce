@@ -104,7 +104,7 @@ DeuceWindow.resize = () => {
     DeuceElement.resize.call(this);
     if (ws) {
         ws.send(JSON.stringify(['zw', this.getAttribute('sequence-number'),
-                                this.getAttribute('width'), this.getAttribute('height')]));
+                                parseInt(this.getAttribute('width'), 10), parseInt(this.getAttribute('height', 10))]));
     }
 };
 
@@ -135,7 +135,7 @@ DeuceFrame.resize = () => {
     DeuceElement.resize.call(this);
     if (ws) {
         ws.send(JSON.stringify(['zf', this.getAttribute('name'),
-                                this.getAttribute('width'), this.getAttribute('height')]));
+                                parseInt(this.getAttribute('width'), 10), parseInt(this.getAttribute('height', 10))]));
     }
 };
 
