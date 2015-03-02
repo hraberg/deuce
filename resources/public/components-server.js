@@ -113,8 +113,9 @@ Buffer.prototype.toViewModel = (frame, win) => {
         lineNumberAtPoint = this.lineNumberAtPos(),
         col = this.pt - (text.indexOfLine(lineNumberAtPoint - 1) + 1),
         lineNumberAtStart = this.lineNumberAtPos(win.start),
-        lineNumberAtEnd = lineNumberAtStart + win.totalLines,
+        lineNumberAtEnd = lineNumberAtStart + win.totalLines - 1,
         lines = text.lines(lineNumberAtStart - 1, lineNumberAtEnd - 1).toString().split(/(?:\r\n?|\n)/gm);
+    console.log(lineNumberAtStart, lineNumberAtEnd, lines);
     return {'name': this.name,
             'current': frame.selectedWindow === win,
             'major-mode': this.majorMode,
@@ -278,18 +279,18 @@ function toSimpleCharDiff(d) {
 
 // This fn will be called after a command has been excuted.
 function updateClient(client) {
-    let startTime = Date.now(),
+    let startTime = new Date(),
         newState = {frame: client.frame.toViewModel()},
         recentEvents = client.events.slice(-10);
 
     // Hack to see that we're running for now.
-    newState.frame['minibuffer-window'].buffer.text[0] = new Date().toString() + ' last event at: ' + Date.now() +
+    newState.frame['minibuffer-window'].buffer.text[0] += ' ' + startTime + ' last event at: ' + startTime.getTime() +
         ' last ' + recentEvents.length + ' events: ' + recentEvents.join(' ');
 
     console.time('    diff');
     let newSerializedState = JSON.stringify(newState),
         diffs = diff.diffChars(client.serializedState, newSerializedState).map(toSimpleCharDiff),
-        data = JSON.stringify(['s', client.revision, diffs, startTime]);
+        data = JSON.stringify(['p', client.revision, diffs, startTime.getTime()]);
     client.serializedState = newSerializedState;
 
     console.timeEnd('    diff');

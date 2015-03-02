@@ -193,7 +193,7 @@ function render(serverTime) {
     }
 }
 
-let handlers = {r: onrefresh, s: onpatch};
+let handlers = {r: onrefresh, p: onpatch};
 
 function onmessage(data) {
     debug('client received:', data.data.length, data.data);
