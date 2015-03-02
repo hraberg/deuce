@@ -328,18 +328,20 @@ document.addEventListener('keypress', (e) => {
 
 document.addEventListener('DOMContentLoaded', connect);
 
+function sendSizeEvent (type, idAttr, element) {
+    if (ws) {
+        ws.send(JSON.stringify([type, element.getAttribute(idAttr),
+                                parseInt(element.getAttribute('width'), 10),
+                                parseInt(element.getAttribute('height', 10))]));
+    }
+}
+
 DeuceFrame.resize = () => {
     DeuceElement.resize.call(this);
-    if (ws) {
-        ws.send(JSON.stringify(['zf', this.getAttribute('name'),
-                                parseInt(this.getAttribute('width'), 10), parseInt(this.getAttribute('height', 10))]));
-    }
+    sendSizeEvent('zf', 'name', this);
 };
 
 DeuceWindow.resize = () => {
     DeuceElement.resize.call(this);
-    if (ws) {
-        ws.send(JSON.stringify(['zw', this.getAttribute('sequence-number'),
-                                parseInt(this.getAttribute('width'), 10), parseInt(this.getAttribute('height', 10))]));
-    }
+    sendSizeEvent('zw', 'sequence-number', this);
 };
