@@ -253,6 +253,63 @@ window.addEventListener('error', (e) => {
     }
 });
 
+let keyCodeToEmacs = {8: 'backspace', 9: 'tab', 13: 'return',
+                      19: 'pause',
+                      27: 'escape',
+                      33: 'prior', 34: 'next',
+                      35: 'end', 36: 'home',
+                      37: 'left', 38: 'up', 39: 'right', 40: 'down',
+                      45: 'insert', 46: 'delete',
+                      112: 'f1', 113: 'f2', 114: 'f3', 115: 'f4', 116: 'f5', 117: 'f6',
+                      118: 'f7', 119: 'f8', 120: 'f9', 121: 'f10', 122: 'f11', 123: 'f12'},
+    modifierKeyCodes = {16: 'shift', 17: 'ctrl', 18: 'alt'};
+
+function modifiers(e, noShift) {
+    let mods = [];
+    if (e.ctrlKey) {
+        mods.push('C');
+    }
+    if (e.altKey) {
+        mods.push('M');
+    }
+    if (e.shiftKey && !noShift) {
+        mods.push('S');
+    }
+    return mods;
+}
+
+function keyEventToString (mods, key) {
+    return mods.concat([key]).join('-');
+}
+
+function sendKeyEvent (event) {
+    console.log('key:', keyEventToString(event[0], event[1]));
+    if (ws) {
+        ws.send(JSON.stringify(['k', event]));
+    }
+}
+
+window.addEventListener('keydown', (e) => {
+    let event;
+    if (keyCodeToEmacs[e.keyCode]) {
+        event = [modifiers(e), keyCodeToEmacs[e.keyCode]];
+
+    } else if ((e.ctrlKey || e.altKey) && !modifierKeyCodes[e.keyCode]) {
+        event = [modifiers(e), String.fromCharCode(e.keyCode).toLowerCase()];
+    }
+    if (event) {
+        e.preventDefault();
+        sendKeyEvent(event);
+    }
+});
+
+window.addEventListener('keypress', (e) => {
+    let key = String.fromCharCode(e.charCode),
+        event = [modifiers(e, true), key];
+    e.preventDefault();
+    sendKeyEvent(event);
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     connect();
 });
