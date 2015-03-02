@@ -253,6 +253,7 @@ window.addEventListener('error', (e) => {
     }
 });
 
+// Based on https://github.com/ccampbell/mousetrap/blob/master/mousetrap.js
 let keyCodeToEmacs = {8: 'backspace', 9: 'tab', 13: 'return',
                       19: 'pause',
                       27: 'escape',
@@ -262,6 +263,16 @@ let keyCodeToEmacs = {8: 'backspace', 9: 'tab', 13: 'return',
                       45: 'insert', 46: 'delete',
                       112: 'f1', 113: 'f2', 114: 'f3', 115: 'f4', 116: 'f5', 117: 'f6',
                       118: 'f7', 119: 'f8', 120: 'f9', 121: 'f10', 122: 'f11', 123: 'f12'},
+    specialKeys = {106: '*', 107: '+', 109: '-',
+                   110: '.', 111: '/',
+                   186: ';', 187: '=', 188: ',', 189: '-',
+                   190: '.', 191: '/', 192: '`',
+                   219: '[', 220: '\\', 221: ']', 222: '\''},
+    shiftMap = {'`': '~', '1': '!', '2': '@', '3': '#', '4': '$', '5': '%', '6': '^', '7': '&', '8': '*', '9': '(', '0': ')',
+                '-': '_', '=': '+',
+                '[': '{', ']': '}', '\\': '|',
+                ';': ':', '\'': '\"',
+                ',': '<', '.': '>', '/': '?'},
     modifierKeyCodes = {16: 'shift', 17: 'ctrl', 18: 'alt'};
 
 function modifiers(e, noShift) {
@@ -296,7 +307,17 @@ document.addEventListener('keydown', (e) => {
         sendKeyEvent(modifiers(e), keyCodeToEmacs[e.keyCode]);
     } else if ((e.ctrlKey || e.altKey) && !modifierKeyCodes[e.keyCode]) {
         e.preventDefault();
-        sendKeyEvent(modifiers(e), String.fromCharCode(e.keyCode).toLowerCase());
+        let key = String.fromCharCode(e.keyCode),
+            noShift = false;
+
+        if (specialKeys[e.keyCode]) {
+            key = specialKeys[e.keyCode];
+        }
+        if (e.shiftKey && shiftMap[key]) {
+            key = shiftMap[key];
+            noShift = true;
+        }
+        sendKeyEvent(modifiers(e, noShift), key.toLowerCase());
     }
 });
 
