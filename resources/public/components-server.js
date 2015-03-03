@@ -236,6 +236,7 @@ Buffer.prototype.backwardWord = (n) => {
     }
 };
 
+// There's a bug when there's a single line paragraph on the first line of the buffer, jumping too far.
 Buffer.prototype.forwardParagraph = (n) => {
     n = n || 1;
     while (n > 0) {
@@ -337,7 +338,6 @@ Buffer.prototype.deleteForwardChar = (n) => {
 };
 
 Buffer.prototype.deleteBackwardChar = (n) => {
-    let mark = this.mark;
     this.deleteRegion(this.mark || (this.pt - (n || 1)), this.pt);
 };
 
