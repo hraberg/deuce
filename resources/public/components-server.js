@@ -167,7 +167,7 @@ Buffer.prototype.widen = () =>
 
 
 Buffer.prototype.lookingAt = (regexp) =>
-    this.text.beg.charAt(this.pt - 1).match(regexp);// || this.text.beg.slice(this.pt - 1).match(regexp);
+    this.text.beg.charAt(this.pt - 1).match(regexp);
 
 Buffer.prototype.gotoChar = (position) => {
     this.pt = this.limitToRegion(position);
@@ -213,9 +213,43 @@ Buffer.prototype.backwardWord = (n) => {
     }
 };
 
+Buffer.prototype.forwardParagraph = (n) => {
+    n = n || 1;
+    while (n > 0) {
+        let regexps = [/^\s+$/, /\S/], line;
+        for (let i = 0; i < regexps.length; i += 1) {
+            do {
+                let previousPt = this.pt;
+                if (previousPt === this.nextLine()) {
+                    return;
+                }
+                line = this.lineNumberAtPos();
+            } while ((this.text.beg.lines(line - 1, line).toString().match(regexps[i])))
+        }
+        n -= 1;
+    }
+};
+
+Buffer.prototype.backwardParagraph = (n) => {
+    n = n || 1;
+    while (n > 0) {
+        let regexps = [/^\s+$/, /\S/], line;
+        for (let i = 0; i < regexps.length; i += 1) {
+            do {
+                let previousPt = this.pt;
+                if (previousPt === this.previousLine()) {
+                    return;
+                }
+                line = this.lineNumberAtPos();
+            } while ((this.text.beg.lines(line - 1, line).toString().match(regexps[i])))
+        }
+        n -= 1;
+    }
+};
+
 Buffer.prototype.beginningOfLine = (n) => {
     let line = Math.min(Math.max(1, this.lineNumberAtPos() + (n || 0)), this.text.beg.newlines + 1);
-    this.gotoChar(this.text.beg.indexOfLine(line - 1) + 1);
+    return this.gotoChar(this.text.beg.indexOfLine(line - 1) + 1);
 };
 
 Buffer.prototype.endOfLine = (n) => {
@@ -352,10 +386,10 @@ ws.createServer({port: 8080}, (ws) => {
             if (key === 'down' || key === 'C-n') {
                 currentBuffer.nextLine();
             }
-            if (key === 'prior') {
+            if (key === 'prior' || key === 'M-v') {
                 selectedWindow.scrollDown();
             }
-            if (key === 'next') {
+            if (key === 'next' || key === 'C-v') {
                 selectedWindow.scrollUp();
             }
             if (key === 'C-left' || key === 'M-left') {
@@ -363,6 +397,12 @@ ws.createServer({port: 8080}, (ws) => {
             }
             if (key === 'C-right' || key === 'M-right') {
                 currentBuffer.forwardWord();
+            }
+            if (key === 'C-up') {
+                currentBuffer.backwardParagraph();
+            }
+            if (key === 'C-down') {
+                currentBuffer.forwardParagraph();
             }
             if (key === 'return' || key === 'C-m') {
                 currentBuffer.newline();
@@ -373,10 +413,10 @@ ws.createServer({port: 8080}, (ws) => {
             if (key === 'backspace') {
                 currentBuffer.deleteBackwardChar();
             }
-            if (key === 'C-a') {
+            if (key === 'C-a' || key === 'home') {
                 currentBuffer.beginningOfLine();
             }
-            if (key === 'C-e') {
+            if (key === 'C-e' || key === 'end') {
                 currentBuffer.endOfLine();
             }
             if (key === 'C-/' || key === 'C-_') {
