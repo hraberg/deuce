@@ -402,6 +402,12 @@ Buffer.prototype.newline = (n) => {
     }
 };
 
+Buffer.prototype.openLine = (n) => {
+    let previousPt = this.pt;
+    this.newline(n);
+    this.gotoChar(previousPt);
+};
+
 Buffer.prototype.yank = (n) => {
     n = (n || 1);
     let previous, kill, text = '';
@@ -500,6 +506,7 @@ function defaultKeyMap() {
             'C-down': 'forward-paragraph',
             'return': 'newline',
             'C-m': 'newline',
+            'C-o': 'open-line',
             'delete': 'delete-forward-char',
             'C-d': 'delete-forward-char',
             'backspace': 'delete-backward-char',
