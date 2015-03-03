@@ -107,6 +107,8 @@ function Buffer(name, text, pt, majorMode, minorModes, begv, zv, mark, modeLineF
     this.modeLineFormat = modeLineFormat || '';
 }
 
+Buffer.NEW_LINES_PATTERN = /(?:\r\n?|\n)/gm;
+
 Buffer.prototype.toViewModel = (frame, win) => {
     let text = this.text.beg,
         lineNumberAtPointMax = text.newlines + 1,
@@ -114,7 +116,7 @@ Buffer.prototype.toViewModel = (frame, win) => {
         col = (this.pt - (text.indexOfLine(lineNumberAtPoint - 1) + 1)),
         lineNumberAtStart = this.lineNumberAtPos(win.start),
         lineNumberAtEnd = lineNumberAtStart + win.totalLines,
-        lines = text.lines(lineNumberAtStart - 1, lineNumberAtEnd - 1).toString().split(/(?:\r\n?|\n)/gm);
+        lines = text.lines(lineNumberAtStart - 1, lineNumberAtEnd - 1).toString().split(Buffer.NEW_LINES_PATTERN);
     return {'name': this.name,
             'current': frame.selectedWindow === win,
             'major-mode': this.majorMode,
@@ -168,6 +170,30 @@ Buffer.prototype.forwardChar = (n) =>
 
 Buffer.prototype.backwardChar = (n) =>
     this.gotoChar(this.pt - (n || 1));
+
+Buffer.prototype.beginningOfLine = (n) => {
+    let line = Math.min(Math.max(1, this.lineNumberAtPos() + (n || 0)), this.text.beg.newlines + 1);
+    this.gotoChar(this.text.beg.indexOfLine(line - 1) + 1);
+};
+
+Buffer.prototype.endOfLine = (n) => {
+    this.beginningOfLine(n || 0);
+    let line = this.lineNumberAtPos();
+    return this.forwardChar(this.text.beg.lines(line - 1, line).toString().replace(Buffer.NEW_LINES_PATTERN, '').length);
+};
+
+Buffer.prototype.nextLine = (n) => {
+    let text = this.text.beg,
+        lineNumberAtPoint = this.lineNumberAtPos(),
+        line = Math.min(Math.max(1, this.lineNumberAtPos() + (n || 1)), this.text.beg.newlines + 1),
+        col = (this.pt - (text.indexOfLine(lineNumberAtPoint - 1) + 1)),
+        lineLength = text.lines(line - 1, line).toString().replace(Buffer.NEW_LINES_PATTERN, '').length;
+    return this.gotoChar(text.indexOfLine(line - 1) + 1 + Math.min(Math.max(0, col), lineLength));
+};
+
+Buffer.prototype.previousLine = (n) => {
+    return this.nextLine(-(n || 1));
+};
 
 Buffer.prototype.insert = (args) => {
     let previousPt = this.pt, nextPt = previousPt + args.length;
@@ -271,22 +297,34 @@ ws.createServer({port: 8080}, (ws) => {
             client.events.push(key);
             console.log('     key:', key);
             let currentBuffer = client.frame.selectedWindow.buffer;
-            if (key === 'left') {
+            if (key === 'left' || key === 'C-b') {
                 currentBuffer.backwardChar();
             }
-            if (key === 'right') {
+            if (key === 'right' || key === 'C-f') {
                 currentBuffer.forwardChar();
             }
-            if (key === 'return') {
+            if (key === 'up' || key === 'C-p') {
+                currentBuffer.previousLine();
+            }
+            if (key === 'down' || key === 'C-n') {
+                currentBuffer.nextLine();
+            }
+            if (key === 'return' || key === 'C-m') {
                 currentBuffer.newline();
             }
-            if (key === 'delete') {
+            if (key === 'delete' || key === 'C-d') {
                 currentBuffer.deleteForwardChar();
             }
             if (key === 'backspace') {
                 currentBuffer.deleteBackwardChar();
             }
-            if (key === 'C-/') {
+            if (key === 'C-a') {
+                currentBuffer.beginningOfLine();
+            }
+            if (key === 'C-e') {
+                currentBuffer.endOfLine();
+            }
+            if (key === 'C-/' || key === 'C-_') {
                 currentBuffer.undo();
             }
             if (key.length === 1) {
