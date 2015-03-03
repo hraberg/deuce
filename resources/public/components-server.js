@@ -172,6 +172,7 @@ Buffer.prototype.limitToRegion = (position) =>
 Buffer.prototype.newRevision = (pt, text) => {
     this.text = text;
     this.size = this.text.beg.length;
+    this.mark = null;
     this._revisions = (this._revisions || []).slice(0, this._currentRevision);
     this._revisions.push({text: this.text, pt: pt});
     this._currentRevision = this._revisions.length - 1;
@@ -281,12 +282,13 @@ Buffer.prototype.endOfBuffer = () => {
 };
 
 Buffer.prototype.beginningOfLine = (n) => {
-    let line = Math.min(Math.max(1, this.lineNumberAtPos() + (n || 0)), this.text.beg.newlines + 1);
+    n = (n || 1);
+    let line = Math.min(Math.max(1, this.lineNumberAtPos() + (n - 1)), this.text.beg.newlines + 1);
     return this.gotoChar(this.text.beg.indexOfLine(line - 1) + 1);
 };
 
 Buffer.prototype.endOfLine = (n) => {
-    this.beginningOfLine(n || 0);
+    this.beginningOfLine(n || 1);
     let line = this.lineNumberAtPos();
     return this.forwardChar(this.text.beg.lines(line - 1, line).toString().replace(Buffer.NEW_LINES_PATTERN, '').length);
 };
@@ -333,6 +335,29 @@ Buffer.prototype.deleteBackwardChar = (n) => {
     }
 };
 
+Buffer.prototype.killLine = (n) => {
+    let previousPt = this.pt;
+    this.setMarkCommand();
+    if (previousPt === this.endOfLine(n)) {
+        this.beginningOfLine(2);
+    }
+    this.exchangePointAndMark();
+    this.deleteRegion();
+};
+
+Buffer.prototype.killWord = (n) => {
+    this.setMarkCommand();
+    this.forwardWord(n);
+    this.exchangePointAndMark();
+    this.deleteRegion();
+};
+
+Buffer.prototype.backwardKillWord = (n) => {
+    this.setMarkCommand();
+    this.backwardWord(n);
+    this.deleteRegion();
+};
+
 Buffer.prototype.newline = (n) => {
     n = n || 1;
     while (n > 0) {
@@ -353,6 +378,18 @@ Buffer.prototype.undo = (arg) => {
         this.size = this.text.beg.length;
         this.gotoChar(this._revisions[this._currentRevision].pt);
         arg -= 1;
+    }
+};
+
+Buffer.prototype.setMarkCommand = () => {
+    this.mark = this.pt;
+};
+
+Buffer.prototype.exchangePointAndMark = () => {
+    if (this.mark) {
+        let tmp = this.mark;
+        this.mark = this.pt;
+        this.pt = tmp;
     }
 };
 
@@ -387,6 +424,11 @@ function defaultKeyMap() {
             'M-left': 'backward-word',
             'C-right': 'forward-word',
             'M-right': 'forward-word',
+            'C-backspace': 'backward-kill-word',
+            'M-backspace': 'backward-kill-word',
+            'C-delete': 'kill-word',
+            'M-delete': 'kill-word',
+            'C-k': 'kill-line',
             'C-up': 'backward-paragraph',
             'C-down': 'forward-paragraph',
             'return': 'newline',
@@ -402,6 +444,7 @@ function defaultKeyMap() {
             'C-end': 'end-of-buffer',
             'C-/': 'undo',
             'C-_': 'undo',
+            'C- ': 'set-mark-command',
             'C-x': {'C-c': 'save-buffers-kill-emacs'}};
 }
 
