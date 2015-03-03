@@ -29,6 +29,8 @@ I plan to finish this as a standalone editor, independent of Deuce with function
 
 ### Rejected Approaches
 
-In `gap.js` there's a Gap buffer implementation superseded the `rope.js`. In `paging.js` there's a complicated more "intelligent" version of the client which intuitively felt like the wrong approach, but had to be explored a bit. `deuce.js` is a naive client version which works directly with the DOM and no server, basically a client-first editor eventually depending on node-webkit. `render-spikes.js` is similar but focusing on viewing and has no editing.
+In `gap.js` there's a Gap buffer implementation superseded the `rope.js`. In `paging.js` there's a complicated more "intelligent" version of the client which intuitively felt like the wrong approach, but had to be explored a bit. `deuce.js` is a naive client version which works directly with the DOM and no server, basically a client-first editor eventually depending on node-webkit. `render-spikes.js` is similar but focusing on viewing and has no editing. `vd.js` is a collection of various virtual dom and patch approaches.
+
+`node-{clojure,deuce}.js` entertains the idea of embedding a JVM with Clojure inside node but aren't explored beyond seeing that it could in theory be done.
 
 All spikes have been mined for ideas in the current `components` version.
