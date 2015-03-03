@@ -94,7 +94,7 @@ Frame.prototype.toViewModel = () => {
             'closed': this.closed};
 };
 
-function camel (s) {
+function camel(s) {
     return s && s.replace(/-(\w)/g, (_, s) => s.toUpperCase());
 }
 
