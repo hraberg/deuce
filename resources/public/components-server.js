@@ -36,12 +36,16 @@ Window.nextSequenceNumber = (() => {
 })();
 
 Window.prototype.toViewModel = (frame) => {
+    let lineNumberAtStart = this.buffer ? this.buffer.lineNumberAtPos(this.start) : undefined,
+        lineNumberAtPointMax = this.buffer.text.beg.newlines + 1,
+        lineNumberAtEnd = Math.min(lineNumberAtPointMax, lineNumberAtStart + this.totalLines) || lineNumberAtPointMax;
     return {'sequence-number': this.sequenceNumber,
             'mini-p': this.isMini,
             'live-p': this.buffer !== undefined,
             'selected': this === frame.selectedWindow,
             'buffer': this.buffer ? this.buffer.toViewModel(frame, this) : undefined,
-            'line-number-at-start': this.buffer ? this.buffer.lineNumberAtPos(this.start) : undefined,
+            'line-number-at-start': lineNumberAtStart,
+            'line-number-at-end': lineNumberAtEnd,
             'mode-line': (this.isMini || !this.buffer) ? undefined : this.formatModeLine(frame)};
 };
 
@@ -149,8 +153,8 @@ Buffer.prototype.toViewModel = (frame, win) => {
         lineNumberAtPointMax = text.newlines + 1,
         lineNumberAtPoint = this.lineNumberAtPos(pt),
         col = (pt - (text.indexOfLine(lineNumberAtPoint - 1) + 1)),
-        lineNumberAtMark = this.lineNumberAtPos(this.mark),
-        markCol = (this.mark - (text.indexOfLine(lineNumberAtMark - 1) + 1)),
+        lineNumberAtMark = this.mark && this.lineNumberAtPos(this.mark),
+        markCol = this.mark && (this.mark - (text.indexOfLine(lineNumberAtMark - 1) + 1)),
         lineNumberAtStart = this.lineNumberAtPos(win.start),
         lineNumberAtEnd = lineNumberAtStart + win.totalLines,
         lines = text.lines(lineNumberAtStart - 1, lineNumberAtEnd - 1).toString().split(Buffer.NEW_LINES_PATTERN);
