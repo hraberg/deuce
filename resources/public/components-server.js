@@ -105,6 +105,9 @@ Frame.prototype.executeExtendedCommand = (prefixArg, command) => {
         currentBuffer = selectedWindow.buffer,
         target = [this, currentBuffer, selectedWindow].filter((x) => x[name])[0];
     if (target) {
+        if (target === currentBuffer) {
+            currentBuffer.eventId += 1;
+        }
         target[name].call(target, prefixArg);
         selectedWindow.pointm = currentBuffer.pt;
     } else {
@@ -143,6 +146,7 @@ function Buffer(name, text, pt, majorMode, minorModes, begv, zv, mark, modeLineF
     this.majorMode = majorMode || 'fundamental-mode';
     this.minorModes = minorModes || [];
     this.modeLineFormat = modeLineFormat || '';
+    this.eventId = 0; // this is a semi-hack.
 }
 
 Buffer.NEW_LINES_PATTERN = /(?:\r\n?|\n)/gm;
@@ -356,6 +360,11 @@ Buffer.prototype.deleteBackwardChar = (n) => {
     }
 };
 
+Buffer.prototype.killRegion = (start, end) => {
+    this.killRing.push({text: this.bufferSubstring(start, end), type: 'kill-region', id: this.eventId});
+    this.deleteRegion(start, end);
+};
+
 Buffer.prototype.killLine = (n) => {
     let previousPt = this.pt;
     this.setMarkCommand();
@@ -363,7 +372,7 @@ Buffer.prototype.killLine = (n) => {
         this.beginningOfLine(2);
     }
     this.exchangePointAndMark();
-    this.killRing.push(this.bufferSubstring());
+    this.killRing.push({text: this.bufferSubstring(), type: 'kill-line', id: this.eventId});
     this.deleteRegion();
 };
 
@@ -371,7 +380,7 @@ Buffer.prototype.killWord = (n) => {
     this.setMarkCommand();
     this.forwardWord(n);
     this.exchangePointAndMark();
-    this.killRing.push(this.bufferSubstring());
+    this.killRing.push({text: this.bufferSubstring(), type: 'kill-word', id: this.eventId});
     this.deleteRegion();
 };
 
@@ -379,8 +388,8 @@ Buffer.prototype.backwardKillWord = (n) => {
     this.setMarkCommand();
     this.backwardWord(n);
     this.exchangePointAndMark();
-    this.killRing.push(this.bufferSubstring());
     let mark = this.mark;
+    this.killRing.push({text: this.bufferSubstring(), type: 'backward-kill-word', id: this.eventId});
     this.deleteRegion();
     this.gotoChar(mark);
 };
@@ -394,9 +403,27 @@ Buffer.prototype.newline = (n) => {
 };
 
 Buffer.prototype.yank = (n) => {
-    let kill = this.killRing[this.killRing.length - (n || 1)];
-    if (kill) {
-        this.insert(kill);
+    n = (n || 1);
+    let previous, kill, text = '';
+
+    do {
+        kill = this.killRing[this.killRing.length - n];
+        if (kill) {
+            if (previous && (previous.type && kill.type !== previous.type ||
+                             Math.abs(previous.id - kill.id) !== 1)) {
+                break;
+            }
+            if (kill.type === 'backward-kill-word') {
+                text += kill.text;
+            } else {
+                text = kill.text + text;
+            }
+            previous = kill;
+            n += 1;
+        }
+    } while (kill);
+    if (text.length > 0) {
+        this.insert(text);
     }
 };
 
@@ -467,6 +494,7 @@ function defaultKeyMap() {
             'C-delete': 'kill-word',
             'M-delete': 'kill-word',
             'C-k': 'kill-line',
+            'C-w': 'kill-region', // closes tab in Chrome.
             'C-y': 'yank',
             'C-up': 'backward-paragraph',
             'C-down': 'forward-paragraph',
