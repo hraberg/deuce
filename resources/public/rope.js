@@ -132,13 +132,14 @@ Rope.balanceFibStep = (acc, rope) => {
         if (!acc[n] && rope.length <= maxLength) {
             acc[n] = rope;
             return acc;
-        }
-        if (acc[n]) {
+        } else if (acc[n]) {
             rope = new Rope(acc[n], rope);
             acc[n] = undefined;
         } else if (rope.length > maxLength) {
             n += 1;
             maxLength = Rope.fib(n + 2);
+        } else {
+            throw new Error('Invalid state:', acc, n);
         }
     }
 };
@@ -195,7 +196,8 @@ Rope.prototype.slice = (beginSlice, endSlice) => {
 };
 
 Rope.prototype.lines = (startLine, endLine) =>
-    this.slice(this.indexOfLine(startLine), endLine ? this.indexOfLine(endLine) : this.length);
+    this.slice(this.indexOfLine(startLine), endLine &&
+               endLine <= this.newlines ? this.indexOfLine(endLine) : this.length);
 
 Rope.prototype.insert = (offset, str) =>
     this.slice(0, offset).concat(str).concat(this.slice(offset));
@@ -386,6 +388,9 @@ assert.equal(new Rope('Hello', 'World').slice(3, 8), 'loWor');
 assert.equal(new Rope('Hello', 'World').slice(3, 8).constructor, RopeString);
 
 assert.equal(new Rope('Hello', 'World').insert(3, 'Space'), 'HelSpaceloWorld');
+assert.equal(new Rope('Hello', 'World').insert(10, 'Space'), 'HelloWorldSpace');
+assert.equal(new Rope('Hello', 'World').insert(0, 'Space'), 'SpaceHelloWorld');
+assert.equal(new Rope('Hello', 'World').insert(-1, 'Space'), 'HelloWorlSpaced');
 assert.equal(new Rope('Hello', 'World').del(3, 8), 'Helld');
 
 assert.equal(Rope.EMPTY.newlines, 0);
@@ -426,6 +431,7 @@ assert.equal(new Rope('Hello\n', 'World\n').indexOfLine(3), -1);
 assert.equal(new Rope('Hello\n', 'World\n').lines(0, 1), 'Hello\n');
 assert.equal(new Rope('Hello\n', 'World\n').lines(0), 'Hello\nWorld\n');
 assert.equal(new Rope('Hello\n', 'World\n').lines(1, 2), 'World\n');
+assert.equal(new Rope('Hello\n', 'World\n').lines(1, 3), 'World\n');
 assert.equal(new Rope('Hello\n', 'World\n').concat('Space').lines(1, 2), 'World\n');
 
 assert.equal(new RopeString('Hello\nWorld\n').lines(0, 1), 'Hello\n');

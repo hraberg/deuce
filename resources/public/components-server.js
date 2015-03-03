@@ -111,9 +111,9 @@ Buffer.prototype.toViewModel = (frame, win) => {
     let text = this.text.beg,
         lineNumberAtPointMax = text.newlines + 1,
         lineNumberAtPoint = this.lineNumberAtPos(),
-        col = this.pt - (text.indexOfLine(lineNumberAtPoint - 1) + 1),
+        col = (this.pt - (text.indexOfLine(lineNumberAtPoint - 1) + 1)),
         lineNumberAtStart = this.lineNumberAtPos(win.start),
-        lineNumberAtEnd = lineNumberAtStart + win.totalLines - 1,
+        lineNumberAtEnd = lineNumberAtStart + win.totalLines,
         lines = text.lines(lineNumberAtStart - 1, lineNumberAtEnd - 1).toString().split(/(?:\r\n?|\n)/gm);
     return {'name': this.name,
             'current': frame.selectedWindow === win,
@@ -131,7 +131,7 @@ Buffer.prototype.lineNumberAtPos = (pos) => {
 };
 
 Buffer.prototype.limitToRegion = (position) =>
-    Math.max(this.begv || 1, Math.min(position, (this.zv || this.size) + 1));
+    Math.max(this.begv || 1, Math.min(position, (this.zv || this.size + 1)));
 
 Buffer.prototype.newRevision = (pt, text) => {
     this.text = text;
@@ -170,7 +170,7 @@ Buffer.prototype.backwardChar = (n) =>
     this.gotoChar(this.pt - (n || 1));
 
 Buffer.prototype.insert = (args) => {
-    let previousPt = this.pt, nextPt = this.limitToRegion(previousPt + args.length);
+    let previousPt = this.pt, nextPt = previousPt + args.length;
     this.newRevision(nextPt, this.text.insert(previousPt, args));
     this.gotoChar(nextPt);
 };
@@ -191,8 +191,11 @@ Buffer.prototype.deleteForwardChar = (n) => {
 };
 
 Buffer.prototype.deleteBackwardChar = (n) => {
+    let previousPt = this.pt;
     this.backwardChar(n);
-    this.deleteForwardChar(n);
+    if (this.pt !== previousPt) {
+        this.deleteForwardChar(n);
+    }
 };
 
 Buffer.prototype.newline = (n) => {

@@ -306,7 +306,7 @@ function sendKeyEvent (mods, key) {
     send('k', eventString);
 }
 
-document.addEventListener('keydown', (e) => {
+window.addEventListener('keydown', (e) => {
     rootNode.classList.add('keydown');
     if (keyCodeToEmacs[e.keyCode]) {
         e.preventDefault();
@@ -327,16 +327,12 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-document.addEventListener('keypress', (e) => {
+window.addEventListener('keypress', (e) => {
     e.preventDefault();
     sendKeyEvent(modifiers(e, true), String.fromCharCode(e.charCode));
 });
 
-['keyup', 'blur'].forEach((e) => {
-    document.addEventListener(e, () => {
-        rootNode.classList.remove('keydown');
-    });
-});
+['keyup', 'blur'].forEach((e) => window.addEventListener(e, () => rootNode.classList.remove('keydown')));
 
 document.addEventListener('DOMContentLoaded', connect);
 
