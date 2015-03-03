@@ -573,12 +573,7 @@ function toSimpleCharDiff(d) {
 // This fn will be called after a command has been excuted.
 function updateClient(client) {
     let startTime = new Date(),
-        newState = {frame: client.frame.toViewModel()},
-        recentEvents = client.events.slice(-10);
-
-    // Hack to see that we're running for now.
-    newState.frame['minibuffer-window'].buffer.text[0] += ' ' + startTime + ' last event at: ' + startTime.getTime() +
-        ' last ' + recentEvents.length + ' events: ' + recentEvents.join(' ');
+        newState = {frame: client.frame.toViewModel()};
 
     console.time('    diff');
     let newSerializedState = JSON.stringify(newState),
