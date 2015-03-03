@@ -280,7 +280,9 @@ let keyCodeToEmacs = {8: 'backspace', 9: 'tab', 13: 'return',
                 '[': '{', ']': '}', '\\': '|',
                 ';': ':', '\'': '\"',
                 ',': '<', '.': '>', '/': '?'},
-    modifierKeyCodes = {16: 'shift', 17: 'ctrl', 18: 'alt'};
+    modifierKeyCodes = {16: 'shift', 17: 'ctrl', 18: 'alt'},
+    keyUpTimer,
+    keyUpDelay = 400;
 
 function modifiers(e, noShift) {
     let mods = [];
@@ -308,6 +310,9 @@ function sendKeyEvent (mods, key) {
 
 window.addEventListener('keydown', (e) => {
     rootNode.classList.add('keydown');
+    if (keyUpTimer) {
+        clearTimeout(keyUpTimer);
+    }
     if (keyCodeToEmacs[e.keyCode]) {
         e.preventDefault();
         sendKeyEvent(modifiers(e), keyCodeToEmacs[e.keyCode]);
@@ -332,7 +337,9 @@ window.addEventListener('keypress', (e) => {
     sendKeyEvent(modifiers(e, true), String.fromCharCode(e.charCode));
 });
 
-['keyup', 'blur'].forEach((e) => window.addEventListener(e, () => rootNode.classList.remove('keydown')));
+['keyup', 'blur'].forEach((e) => window.addEventListener(e, () => {
+    keyUpTimer = setTimeout(() => rootNode.classList.remove('keydown'), keyUpDelay);
+}));
 
 document.addEventListener('DOMContentLoaded', connect);
 

@@ -64,7 +64,7 @@ Window.prototype.formatModeLine = (frame) => {
 };
 
 // The Frame doesn't really own the buffers. The menu-bar is really a function of the active keymap / modes.
-function Frame(name, menuBar, minorModes, rootWindow, minibufferWindow, buffers, width, height) {
+function Frame(name, menuBar, minorModes, rootWindow, minibufferWindow, buffers, globalMap, width, height) {
     this.name = name;
     this.menuBar = menuBar;
     this.minorModes = minorModes;
@@ -72,6 +72,7 @@ function Frame(name, menuBar, minorModes, rootWindow, minibufferWindow, buffers,
     this.minibufferWindow = minibufferWindow;
     this.selectedWindow = this.rootWindow;
     this.buffers = buffers;
+    this.globalMap = globalMap;
     this.width = width || 0;
     this.height = height || 0;
     this.windows = {};
@@ -85,6 +86,27 @@ Frame.prototype.toViewModel = () => {
             'minor-modes': this.minorModes,
             'root-window': this.rootWindow.toViewModel(this),
             'minibuffer-window': this.minibufferWindow.toViewModel(this)};
+};
+
+function camel (s) {
+    return s && s.replace(/-(\w)/g, (_, s) => s.toUpperCase());
+}
+
+Frame.prototype.executeExtendedCommand = (prefixArg, command) => {
+    console.log(' command:', command);
+    let fn = camel(command),
+        selectedWindow = this.selectedWindow,
+        currentBuffer = selectedWindow.buffer;
+
+    if (currentBuffer[fn]) {
+        currentBuffer[fn](prefixArg);
+    } else if (selectedWindow[fn]) {
+        selectedWindow[fn](prefixArg);
+    } else {
+        console.error('unknown command:', command);
+    }
+
+    selectedWindow.pointm = currentBuffer.pt;
 };
 
 function BufferText(beg, modiff, saveModiff, markers) {
@@ -309,7 +331,7 @@ Buffer.prototype.newline = (n) => {
 };
 
 Buffer.prototype.selfInsertCommand = (arg) => {
-    this.insert(arg);
+    this.insert([].constructor((arg || 1) + 1).join(this.lastCommandEvent));
 };
 
 Buffer.prototype.undo = (arg) => {
@@ -327,24 +349,65 @@ let scratch = [';; This buffer is for notes you don\'t want to save, and for Lis
                ';; If you want to create a file, visit that file with C-x C-f,',
                ';; then enter the text in that file\'s own buffer.',
                '',
-               ''].join('\n'),
-    initalBuffers = {'*scratch*': new Buffer('*scratch*', Rope.toRope(scratch),
-                                             scratch.length + 1, 'lisp-interaction-mode'),
-                     ' *Minibuf-0*': new Buffer(' *Minibuf-0*', Rope.toRope('Welcome to GNU Emacs'),
-                                                1, 'minibuffer-inactive-mode')},
-    connections = new Map();
+               ''].join('\n');
+
+function initalBuffers() {
+    return {'*scratch*': new Buffer('*scratch*', Rope.toRope(scratch),
+                                    scratch.length + 1, 'lisp-interaction-mode'),
+            ' *Minibuf-0*': new Buffer(' *Minibuf-0*', Rope.toRope('Welcome to GNU Emacs'),
+                                       1, 'minibuffer-inactive-mode'),
+            ' *Echo Area 0*': new Buffer(' *Echo Area 0*', Rope.EMPTY, 1, 'fundamental-mode')};
+}
+
+function defaultKeyMap() {
+    return {'left': 'backward-char',
+            'C-b': 'backward-char',
+            'right': 'forward-char',
+            'C-f': 'forward-char',
+            'up': 'previous-line',
+            'C-p': 'previous-line',
+            'down': 'next-line',
+            'C-n': 'next-line',
+            'prior': 'scroll-down',
+            'M-v': 'scroll-down',
+            'next': 'scroll-up',
+            'C-v': 'scroll-up',
+            'C-left': 'backward-word',
+            'M-left': 'backward-word',
+            'C-right': 'forward-word',
+            'M-right': 'forward-word',
+            'C-up': 'backward-paragraph',
+            'C-down': 'forward-paragraph',
+            'return': 'newline',
+            'C-m': 'newline',
+            'delete': 'delete-forward-char',
+            'C-d': 'delete-forward-char',
+            'backspace': 'delete-backward-char',
+            'C-a': 'beginning-of-line',
+            'home': 'beginning-of-line',
+            'C-e': 'end-of-line',
+            'end': 'end-of-line',
+            'C-/': 'undo',
+            'C-_': 'undo'};
+}
+
+function initialFrame(id) {
+    let buffers = initalBuffers();
+    return new Frame('F' + id,
+                     ['File', 'Edit', 'Options', 'Tools', 'Buffers', 'Help'],
+                     ['blink-cursor-mode', 'menu-bar-mode'],
+                     new Window(buffers['*scratch*']),
+                     new Window(buffers[' *Minibuf-0*'], true),
+                     buffers, defaultKeyMap());
+}
+
+let connections = new Map();
 
 ws.createServer({port: 8080}, (ws) => {
     let id = connections.size + 1,
-        frame = new Frame('F' + id,
-                          ['File', 'Edit', 'Options', 'Tools', 'Buffers', 'Help'],
-                          ['blink-cursor-mode', 'menu-bar-mode'],
-                          new Window(initalBuffers['*scratch*']),
-                          new Window(initalBuffers[' *Minibuf-0*'], true),
-                          initalBuffers),
-        client = {ws: ws, frame: frame, revision: 0, events: []};
-    connections.set(id, client);
-    let onrefresh = () => {
+        frame = initialFrame(id),
+        client = {ws: ws, frame: frame, revision: 0, events: []},
+        onrefresh = () => {
             fs.open(path.join(__dirname, 'components.js'), 'r', (err, fd) => {
                 if (err) {
                     throw (err);
@@ -372,62 +435,25 @@ ws.createServer({port: 8080}, (ws) => {
         onkey = (key) => {
             client.events.push(key);
             console.log('     key:', key);
-            let selectedWindow = client.frame.selectedWindow,
-                currentBuffer = selectedWindow.buffer;
-            if (key === 'left' || key === 'C-b') {
-                currentBuffer.backwardChar();
+            let command = frame.globalMap[key],
+                prefixArg;
+
+            if (!command && key.length === 1) {
+                command = 'self-insert-command';
             }
-            if (key === 'right' || key === 'C-f') {
-                currentBuffer.forwardChar();
+
+            if (command) {
+                let currentBuffer = frame.selectedWindow.buffer;
+                currentBuffer.lastCommandEvent = key;
+                try {
+                    frame.executeExtendedCommand(prefixArg, command);
+                    updateClient(client);
+                } finally {
+                    delete currentBuffer.lastCommandEvent;
+                }
             }
-            if (key === 'up' || key === 'C-p') {
-                currentBuffer.previousLine();
-            }
-            if (key === 'down' || key === 'C-n') {
-                currentBuffer.nextLine();
-            }
-            if (key === 'prior' || key === 'M-v') {
-                selectedWindow.scrollDown();
-            }
-            if (key === 'next' || key === 'C-v') {
-                selectedWindow.scrollUp();
-            }
-            if (key === 'C-left' || key === 'M-left') {
-                currentBuffer.backwardWord();
-            }
-            if (key === 'C-right' || key === 'M-right') {
-                currentBuffer.forwardWord();
-            }
-            if (key === 'C-up') {
-                currentBuffer.backwardParagraph();
-            }
-            if (key === 'C-down') {
-                currentBuffer.forwardParagraph();
-            }
-            if (key === 'return' || key === 'C-m') {
-                currentBuffer.newline();
-            }
-            if (key === 'delete' || key === 'C-d') {
-                currentBuffer.deleteForwardChar();
-            }
-            if (key === 'backspace') {
-                currentBuffer.deleteBackwardChar();
-            }
-            if (key === 'C-a' || key === 'home') {
-                currentBuffer.beginningOfLine();
-            }
-            if (key === 'C-e' || key === 'end') {
-                currentBuffer.endOfLine();
-            }
-            if (key === 'C-/' || key === 'C-_') {
-                currentBuffer.undo();
-            }
-            if (key.length === 1) {
-                currentBuffer.selfInsertCommand(key);
-            }
-            selectedWindow.pointm = currentBuffer.pt;
-            updateClient(client);
         };
+    connections.set(id, client);
     ws.on('close', () => {
         console.log('disconnect:', id);
         connections.delete(id);
