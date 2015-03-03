@@ -134,6 +134,7 @@ function Buffer(name, text, pt, majorMode, minorModes, begv, zv, mark, modeLineF
     this.zv = zv || null;
     this.pt = pt || 1;
     this.mark = mark || null;
+    this.killRing = [];
     this.newRevision(this.pt, new BufferText(text));
     this.majorMode = majorMode || 'fundamental-mode';
     this.minorModes = minorModes || [];
@@ -169,12 +170,12 @@ Buffer.prototype.lineNumberAtPos = (pos) => {
 Buffer.prototype.limitToRegion = (position) =>
     Math.max(this.begv || 1, Math.min(position, (this.zv || this.size + 1)));
 
-Buffer.prototype.newRevision = (pt, text) => {
+Buffer.prototype.newRevision = (pt, text, singleChar, newline) => {
     this.text = text;
     this.size = this.text.beg.length;
     this.mark = null;
-    this._revisions = (this._revisions || []).slice(0, this._currentRevision);
-    this._revisions.push({text: this.text, pt: pt});
+    this._revisions = (this._revisions || []).slice(0, this._currentRevision + 1);
+    this._revisions.push({text: this.text, pt: pt, singleChar: singleChar, newline: newline});
     this._currentRevision = this._revisions.length - 1;
 };
 
@@ -307,8 +308,8 @@ Buffer.prototype.previousLine = (n) => {
 };
 
 Buffer.prototype.insert = (args) => {
-    let previousPt = this.pt, nextPt = previousPt + args.length;
-    this.newRevision(nextPt, this.text.insert(previousPt, args));
+    let previousPt = this.pt, nextPt = previousPt + args.length, newline = args === '\n';
+    this.newRevision(previousPt, this.text.insert(previousPt, args), args.length === 1 && !newline, newline);
     this.gotoChar(nextPt);
 };
 
@@ -323,16 +324,24 @@ Buffer.prototype.deleteRegion = (start, end) => {
     this.newRevision(this.pt, this.text.deleteRegion(start, end));
 };
 
+Buffer.prototype.bufferSubstring = (start, end) => {
+    start = this.limitToRegion(start || this.pt);
+    end = this.limitToRegion(end || this.mark || this.pt);
+    if (end < start) {
+        let tmp = end;
+        end = start;
+        start = tmp;
+    }
+    return this.text.beg.slice(start - 1, end - 1).toString();
+};
+
 Buffer.prototype.deleteForwardChar = (n) => {
     this.deleteRegion(this.pt, this.pt + (n || 1));
 };
 
 Buffer.prototype.deleteBackwardChar = (n) => {
-    let previousPt = this.pt;
+    this.deleteRegion(this.pt - (n || 1), this.pt);
     this.backwardChar(n);
-    if (this.pt !== previousPt) {
-        this.deleteForwardChar(n);
-    }
 };
 
 Buffer.prototype.killLine = (n) => {
@@ -342,6 +351,7 @@ Buffer.prototype.killLine = (n) => {
         this.beginningOfLine(2);
     }
     this.exchangePointAndMark();
+    this.killRing.push(this.bufferSubstring());
     this.deleteRegion();
 };
 
@@ -349,13 +359,18 @@ Buffer.prototype.killWord = (n) => {
     this.setMarkCommand();
     this.forwardWord(n);
     this.exchangePointAndMark();
+    this.killRing.push(this.bufferSubstring());
     this.deleteRegion();
 };
 
 Buffer.prototype.backwardKillWord = (n) => {
     this.setMarkCommand();
     this.backwardWord(n);
+    this.exchangePointAndMark();
+    this.killRing.push(this.bufferSubstring());
+    let mark = this.mark;
     this.deleteRegion();
+    this.gotoChar(mark);
 };
 
 Buffer.prototype.newline = (n) => {
@@ -366,6 +381,13 @@ Buffer.prototype.newline = (n) => {
     }
 };
 
+Buffer.prototype.yank = (n) => {
+    let kill = this.killRing[this.killRing.length - (n || 1)];
+    if (kill) {
+        this.insert(kill);
+    }
+};
+
 Buffer.prototype.selfInsertCommand = (arg) => {
     this.insert([].constructor((arg || 1) + 1).join(this.lastCommandEvent));
 };
@@ -373,11 +395,15 @@ Buffer.prototype.selfInsertCommand = (arg) => {
 Buffer.prototype.undo = (arg) => {
     arg = arg === undefined ? 1 : arg;
     while (arg > 0 && this._currentRevision > 0) {
+        let befreUndo = this._revisions[this._currentRevision];
         this._currentRevision = this._currentRevision - 1;
-        this.text = this._revisions[this._currentRevision].text;
+        let afterUndo = this._revisions[this._currentRevision];
+        this.text = afterUndo.text;
         this.size = this.text.beg.length;
-        this.gotoChar(this._revisions[this._currentRevision].pt);
-        arg -= 1;
+        this.gotoChar(befreUndo.pt);
+        if (!(befreUndo.singleChar && afterUndo.singleChar || (befreUndo.newline && afterUndo.newline))) {
+            arg -= 1;
+        }
     }
 };
 
@@ -429,6 +455,7 @@ function defaultKeyMap() {
             'C-delete': 'kill-word',
             'M-delete': 'kill-word',
             'C-k': 'kill-line',
+            'C-y': 'yank',
             'C-up': 'backward-paragraph',
             'C-down': 'forward-paragraph',
             'return': 'newline',
