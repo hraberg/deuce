@@ -24,7 +24,7 @@ function Window(buffer, isMini, next, prev, hchild, vchild, parent, leftCol, top
     this.normalLines = normalLines;
     this.normalCols = normalCols;
     this.start = start || 1;
-    this.pointm = pointm || 1;
+    this.pointm = pointm || buffer.pt;
 }
 
 Window.nextSequenceNumber = (() => {
@@ -43,6 +43,14 @@ Window.prototype.toViewModel = (frame) => {
             'buffer': this.buffer ? this.buffer.toViewModel(frame, this) : undefined,
             'line-number-at-start': this.buffer ? this.buffer.lineNumberAtPos(this.start) : undefined,
             'mode-line': (this.isMini || !this.buffer) ? undefined : this.formatModeLine(frame)};
+};
+
+Window.prototype.scrollDown = (arg) =>
+    this.scrollUp(-arg || -this.totalLines);
+
+Window.prototype.scrollUp = (arg) => {
+    this.buffer.nextLine(arg || this.totalLines);
+    this.buffer.beginningOfLine();
 };
 
 // Fake, doesn't attempt to take the buffer's mode-line-format into account.
@@ -111,9 +119,10 @@ Buffer.NEW_LINES_PATTERN = /(?:\r\n?|\n)/gm;
 
 Buffer.prototype.toViewModel = (frame, win) => {
     let text = this.text.beg,
+        pt = win.pointm,
         lineNumberAtPointMax = text.newlines + 1,
-        lineNumberAtPoint = this.lineNumberAtPos(),
-        col = (this.pt - (text.indexOfLine(lineNumberAtPoint - 1) + 1)),
+        lineNumberAtPoint = this.lineNumberAtPos(pt),
+        col = (pt - (text.indexOfLine(lineNumberAtPoint - 1) + 1)),
         lineNumberAtStart = this.lineNumberAtPos(win.start),
         lineNumberAtEnd = lineNumberAtStart + win.totalLines,
         lines = text.lines(lineNumberAtStart - 1, lineNumberAtEnd - 1).toString().split(Buffer.NEW_LINES_PATTERN);
@@ -199,9 +208,9 @@ Buffer.prototype.backwardWord = (n) => {
                 }
             } while ((this.lookingAt(regexps[i])))
         }
+        this.forwardChar();
         n -= 1;
     }
-    this.forwardChar();
 };
 
 Buffer.prototype.beginningOfLine = (n) => {
@@ -218,7 +227,7 @@ Buffer.prototype.endOfLine = (n) => {
 Buffer.prototype.nextLine = (n) => {
     let text = this.text.beg,
         lineNumberAtPoint = this.lineNumberAtPos(),
-        line = Math.min(Math.max(1, this.lineNumberAtPos() + (n || 1)), this.text.beg.newlines + 1),
+        line = Math.min(Math.max(1, this.lineNumberAtPos() + (n || 1)), text.newlines + 1),
         col = (this.pt - (text.indexOfLine(lineNumberAtPoint - 1) + 1)),
         lineLength = text.lines(line - 1, line).toString().replace(Buffer.NEW_LINES_PATTERN, '').length;
     return this.gotoChar(text.indexOfLine(line - 1) + 1 + Math.min(Math.max(0, col), lineLength));
@@ -329,7 +338,8 @@ ws.createServer({port: 8080}, (ws) => {
         onkey = (key) => {
             client.events.push(key);
             console.log('     key:', key);
-            let currentBuffer = client.frame.selectedWindow.buffer;
+            let selectedWindow = client.frame.selectedWindow,
+                currentBuffer = selectedWindow.buffer;
             if (key === 'left' || key === 'C-b') {
                 currentBuffer.backwardChar();
             }
@@ -341,6 +351,12 @@ ws.createServer({port: 8080}, (ws) => {
             }
             if (key === 'down' || key === 'C-n') {
                 currentBuffer.nextLine();
+            }
+            if (key === 'prior') {
+                selectedWindow.scrollDown();
+            }
+            if (key === 'next') {
+                selectedWindow.scrollUp();
             }
             if (key === 'C-left' || key === 'M-left') {
                 currentBuffer.backwardWord();
@@ -369,6 +385,7 @@ ws.createServer({port: 8080}, (ws) => {
             if (key.length === 1) {
                 currentBuffer.selfInsertCommand(key);
             }
+            selectedWindow.pointm = currentBuffer.pt;
             updateClient(client);
         };
     ws.on('close', () => {
