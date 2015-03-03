@@ -396,8 +396,7 @@ Buffer.prototype.yank = (n) => {
     do {
         kill = this.killRing[this.killRing.length - n];
         if (kill) {
-            if (previous && (previous.type && kill.type !== previous.type ||
-                             Math.abs(previous.id - kill.id) !== 1)) {
+            if (previous && Math.abs(previous.id - kill.id) !== 1) {
                 break;
             }
             if (kill.type === 'backward-kill-word') {
