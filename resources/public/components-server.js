@@ -272,6 +272,14 @@ Buffer.prototype.backwardParagraph = (n) => {
     }
 };
 
+Buffer.prototype.beginningOfBuffer = () => {
+    return this.gotoChar(1);
+};
+
+Buffer.prototype.endOfBuffer = () => {
+    return this.gotoChar(this.size + 1);
+};
+
 Buffer.prototype.beginningOfLine = (n) => {
     let line = Math.min(Math.max(1, this.lineNumberAtPos() + (n || 0)), this.text.beg.newlines + 1);
     return this.gotoChar(this.text.beg.indexOfLine(line - 1) + 1);
@@ -390,6 +398,8 @@ function defaultKeyMap() {
             'home': 'beginning-of-line',
             'C-e': 'end-of-line',
             'end': 'end-of-line',
+            'C-home': 'beginning-of-buffer',
+            'C-end': 'end-of-buffer',
             'C-/': 'undo',
             'C-_': 'undo',
             'C-x': {'C-c': 'save-buffers-kill-emacs'}};
