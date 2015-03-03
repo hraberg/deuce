@@ -75,6 +75,9 @@ function windowFromModel(win) {
 }
 
 function frameFromModel(frame) {
+    if (frame.closed) {
+        window.location = 'about:blank';
+    }
     let properties = {key: 'frame-' + frame.name, attributes: {}},
         children = [];
     Object.keys(frame).forEach((a) => {

@@ -75,6 +75,7 @@ function Frame(name, menuBar, minorModes, rootWindow, minibufferWindow, buffers,
     this.globalMap = globalMap;
     this.width = width || 0;
     this.height = height || 0;
+    this.closed = false;
     this.windows = {};
     this.windows[rootWindow.sequenceNumber] = rootWindow;
     this.windows[minibufferWindow.sequenceNumber] = minibufferWindow;
@@ -85,7 +86,8 @@ Frame.prototype.toViewModel = () => {
             'menu-bar': this.menuBar,
             'minor-modes': this.minorModes,
             'root-window': this.rootWindow.toViewModel(this),
-            'minibuffer-window': this.minibufferWindow.toViewModel(this)};
+            'minibuffer-window': this.minibufferWindow.toViewModel(this),
+            'closed': this.closed};
 };
 
 function camel (s) {
@@ -94,19 +96,20 @@ function camel (s) {
 
 Frame.prototype.executeExtendedCommand = (prefixArg, command) => {
     console.log(' command:', command);
-    let fn = camel(command),
+    let name = camel(command),
         selectedWindow = this.selectedWindow,
-        currentBuffer = selectedWindow.buffer;
-
-    if (currentBuffer[fn]) {
-        currentBuffer[fn](prefixArg);
-    } else if (selectedWindow[fn]) {
-        selectedWindow[fn](prefixArg);
+        currentBuffer = selectedWindow.buffer,
+        target = [this, currentBuffer, selectedWindow].filter((x) => x[name])[0];
+    if (target) {
+        target[name].call(target, prefixArg);
+        selectedWindow.pointm = currentBuffer.pt;
     } else {
         console.error('unknown command:', command);
     }
+};
 
-    selectedWindow.pointm = currentBuffer.pt;
+Frame.prototype.saveBuffersKillEmacs = () => {
+    this.closed = true;
 };
 
 function BufferText(beg, modiff, saveModiff, markers) {
@@ -388,7 +391,8 @@ function defaultKeyMap() {
             'C-e': 'end-of-line',
             'end': 'end-of-line',
             'C-/': 'undo',
-            'C-_': 'undo'};
+            'C-_': 'undo',
+            'C-x': {'C-c': 'save-buffers-kill-emacs'}};
 }
 
 function initialFrame(id) {
@@ -434,15 +438,19 @@ ws.createServer({port: 8080}, (ws) => {
         },
         onkey = (key) => {
             client.events.push(key);
-            console.log('     key:', key);
-            let command = frame.globalMap[key],
+            console.log('    keys:', client.events);
+            let command = client.events.reduce((map, key) => map && map[key], frame.globalMap),
                 prefixArg;
 
             if (!command && key.length === 1) {
                 command = 'self-insert-command';
             }
 
-            if (command) {
+            if (typeof command !== 'object') {
+                client.events = [];
+            }
+
+            if (typeof command === 'string') {
                 let currentBuffer = frame.selectedWindow.buffer;
                 currentBuffer.lastCommandEvent = key;
                 try {
