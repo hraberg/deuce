@@ -158,7 +158,7 @@ Buffer.prototype.widen = () =>
 
 
 Buffer.prototype.lookingAt = (regexp) =>
-    this.text.beg.charAt(this.pt - 1).match(regexp) || this.text.beg.slice(this.pt - 1).match(regexp);
+    this.text.beg.charAt(this.pt - 1).match(regexp);// || this.text.beg.slice(this.pt - 1).match(regexp);
 
 Buffer.prototype.gotoChar = (position) => {
     this.pt = this.limitToRegion(position);
@@ -170,6 +170,39 @@ Buffer.prototype.forwardChar = (n) =>
 
 Buffer.prototype.backwardChar = (n) =>
     this.gotoChar(this.pt - (n || 1));
+
+Buffer.prototype.forwardWord = (n) => {
+    n = n || 1;
+    while (n > 0) {
+        let regexps = [/\W/, /\w/];
+        for (let i = 0; i < regexps.length; i += 1) {
+            while ((this.lookingAt(regexps[i]))) {
+                let previousPt = this.pt;
+                if (previousPt === this.forwardChar()) {
+                    return;
+                }
+            }
+        }
+        n -= 1;
+    }
+};
+
+Buffer.prototype.backwardWord = (n) => {
+    n = n || 1;
+    while (n > 0) {
+        let regexps = [/\W/, /\w/];
+        for (let i = 0; i < regexps.length; i += 1) {
+            do {
+                let previousPt = this.pt;
+                if (previousPt === this.backwardChar()) {
+                    return;
+                }
+            } while ((this.lookingAt(regexps[i])))
+        }
+        n -= 1;
+    }
+    this.forwardChar();
+};
 
 Buffer.prototype.beginningOfLine = (n) => {
     let line = Math.min(Math.max(1, this.lineNumberAtPos() + (n || 0)), this.text.beg.newlines + 1);
@@ -308,6 +341,12 @@ ws.createServer({port: 8080}, (ws) => {
             }
             if (key === 'down' || key === 'C-n') {
                 currentBuffer.nextLine();
+            }
+            if (key === 'C-left' || key === 'M-left') {
+                currentBuffer.backwardWord();
+            }
+            if (key === 'C-right' || key === 'M-right') {
+                currentBuffer.forwardWord();
             }
             if (key === 'return' || key === 'C-m') {
                 currentBuffer.newline();
