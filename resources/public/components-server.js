@@ -135,10 +135,8 @@ BufferText.prototype.insert = (pt, args) =>
 BufferText.prototype.deleteRegion = (start, end) =>
     this.nextModificationEvent(this.beg.del(start - 1, end - 1));
 
-function Buffer(name, text, pt, majorMode, minorModes, begv, zv, mark, modeLineFormat) {
+function Buffer(name, text, pt, majorMode, minorModes, mark, modeLineFormat) {
     this.name = name;
-    this.begv = begv || null;
-    this.zv = zv || null;
     this.pt = pt || 1;
     this.mark = mark || null;
     this.killRing = [];
@@ -180,7 +178,7 @@ Buffer.prototype.lineNumberAtPos = (pos) => {
 };
 
 Buffer.prototype.limitToRegion = (position) =>
-    Math.max(this.begv || 1, Math.min(position, (this.zv || this.size + 1)));
+    Math.max(1, Math.min(position, this.size + 1));
 
 Buffer.prototype.newRevision = (pt, text, singleChar, newline) => {
     this.text = text;
@@ -190,20 +188,6 @@ Buffer.prototype.newRevision = (pt, text, singleChar, newline) => {
     this._revisions.push({text: this.text, pt: pt, singleChar: singleChar, newline: newline});
     this._currentRevision = this._revisions.length - 1;
 };
-
-Buffer.prototype.narrowToRegion = (start, end) => {
-    if (start && end && end < start) {
-        let tmp = start;
-        start = end;
-        end = tmp;
-    }
-    this.begv = start ? this.limitToRegion(start) : null;
-    this.zv = end ? this.limitToRegion(end) : null;
-};
-
-Buffer.prototype.widen = () =>
-    this.narrowToRegion(null, null);
-
 
 Buffer.prototype.lookingAt = (regexp) =>
     this.text.beg.charAt(this.pt - 1).match(regexp);
@@ -355,9 +339,6 @@ Buffer.prototype.deleteForwardChar = (n) => {
 Buffer.prototype.deleteBackwardChar = (n) => {
     let mark = this.mark;
     this.deleteRegion(this.mark || (this.pt - (n || 1)), this.pt);
-    if (!mark) {
-        this.backwardChar(n);
-    }
 };
 
 Buffer.prototype.killRegion = (start, end) => {
@@ -456,6 +437,31 @@ Buffer.prototype.setMarkCommand = () => {
     this.mark = this.pt;
 };
 
+Buffer.prototype.markWholeBuffer = () => {
+    this.gotoChar(this.size + 1);
+    this.setMarkCommand();
+    this.gotoChar(1);
+};
+
+Buffer.prototype.markWord = (arg) => {
+    if (!this.mark) {
+        this.setMarkCommand();
+    }
+    this.exchangePointAndMark();
+    this.forwardWord(arg);
+    this.exchangePointAndMark();
+};
+
+Buffer.prototype.markParagraph = (arg) => {
+    if (!this.mark) {
+        this.backwardParagraph();
+        this.setMarkCommand();
+    }
+    this.exchangePointAndMark();
+    this.forwardParagraph(arg);
+    this.exchangePointAndMark();
+};
+
 Buffer.prototype.exchangePointAndMark = () => {
     if (this.mark) {
         let tmp = this.mark;
@@ -499,6 +505,8 @@ function defaultKeyMap() {
             'M-backspace': 'backward-kill-word',
             'C-delete': 'kill-word',
             'M-delete': 'kill-word',
+            'M-@': 'mark-word',
+            'M-h': 'mark-paragraph',
             'C-k': 'kill-line',
             'C-w': 'kill-region', // closes tab in Chrome.
             'C-y': 'yank',
@@ -519,7 +527,8 @@ function defaultKeyMap() {
             'C-/': 'undo',
             'C-_': 'undo',
             'C- ': 'set-mark-command',
-            'C-x': {'C-c': 'save-buffers-kill-emacs'}};
+            'C-x': {'C-c': 'save-buffers-kill-emacs',
+                    'h': 'mark-whole-buffer'}};
 }
 
 function initialFrame(id) {
