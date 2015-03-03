@@ -149,6 +149,8 @@ Buffer.prototype.toViewModel = (frame, win) => {
         lineNumberAtPointMax = text.newlines + 1,
         lineNumberAtPoint = this.lineNumberAtPos(pt),
         col = (pt - (text.indexOfLine(lineNumberAtPoint - 1) + 1)),
+        lineNumberAtMark = this.lineNumberAtPos(this.mark),
+        markCol = (this.mark - (text.indexOfLine(lineNumberAtMark - 1) + 1)),
         lineNumberAtStart = this.lineNumberAtPos(win.start),
         lineNumberAtEnd = lineNumberAtStart + win.totalLines,
         lines = text.lines(lineNumberAtStart - 1, lineNumberAtEnd - 1).toString().split(Buffer.NEW_LINES_PATTERN);
@@ -158,7 +160,9 @@ Buffer.prototype.toViewModel = (frame, win) => {
             'minor-modes': this.minorModes,
             'line-number-at-point-max': lineNumberAtPointMax,
             'line-number-at-point': lineNumberAtPoint,
+            'line-number-at-mark': lineNumberAtMark,
             'current-column': col,
+            'current-mark-column': markCol,
             'text': lines};
 };
 
@@ -322,6 +326,7 @@ Buffer.prototype.deleteRegion = (start, end) => {
         start = tmp;
     }
     this.newRevision(this.pt, this.text.deleteRegion(start, end));
+    this.gotoChar(start);
 };
 
 Buffer.prototype.bufferSubstring = (start, end) => {
@@ -340,8 +345,11 @@ Buffer.prototype.deleteForwardChar = (n) => {
 };
 
 Buffer.prototype.deleteBackwardChar = (n) => {
-    this.deleteRegion(this.pt - (n || 1), this.pt);
-    this.backwardChar(n);
+    let mark = this.mark;
+    this.deleteRegion(this.mark || (this.pt - (n || 1)), this.pt);
+    if (!mark) {
+        this.backwardChar(n);
+    }
 };
 
 Buffer.prototype.killLine = (n) => {
