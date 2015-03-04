@@ -33,4 +33,7 @@ In `gap.js` there's a Gap buffer implementation superseded the `rope.js`. In `pa
 
 `node-{clojure,deuce}.js` entertains the idea of embedding a JVM with Clojure inside node but aren't explored beyond seeing that it could in theory be done.
 
+`json-patch-dom.js` contains a spike where JSON patches are applied straight to the DOM. The idea is to only do the diffing once, but the approach has several issues.
+
+
 All spikes have been mined for ideas in the current `components` version.
