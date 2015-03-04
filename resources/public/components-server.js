@@ -6,6 +6,14 @@ const diff = require('diff'),
       path = require('path'),
       Rope = require('./rope').Rope;
 
+function camel(s) {
+    return s && s.replace(/-(\w)/g, (_, s) => s.toUpperCase());
+}
+
+function humanize (s) {
+    return s.split('-').map((s) => s[0].toUpperCase() + s.slice(1)).join(' ');
+}
+
 // These fields are based on Emacs/Deuce, we might not need them all.
 function Window(buffer, isMini, next, prev, hchild, vchild, parent, leftCol, topLine,
                 totallLines, totalCols, normalLines, normalCols, start, pointm) {
@@ -59,11 +67,10 @@ Window.prototype.scrollUp = (arg) => {
 
 // Fake, doesn't attempt to take the buffer's mode-line-format into account.
 Window.prototype.formatModeLine = (frame) => {
-    let humanize = (s) => s.split('-').map((s) => s[0].toUpperCase() + s.slice(1)).join(' ');
     return '-UUU:----' + frame.name +
         '  <strong style=\"opacity:0.5;\">' + this.buffer.name + '</strong>' +
         '      All L' + this.buffer.lineNumberAtPos() +
-        '     (' + humanize(this.buffer.majorMode) + ') ' +
+        '     (' + humanize(this.buffer.majorMode.replace(/-mode$/, '')) + ') ' +
         [].constructor(256).join('-');
 };
 
@@ -93,10 +100,6 @@ Frame.prototype.toViewModel = () => {
             'minibuffer-window': this.minibufferWindow.toViewModel(this),
             'closed': this.closed};
 };
-
-function camel(s) {
-    return s && s.replace(/-(\w)/g, (_, s) => s.toUpperCase());
-}
 
 Frame.prototype.executeExtendedCommand = (prefixArg, command) => {
     console.log(' command:', command);

@@ -37,7 +37,8 @@
     },
     "scripts": {
         "vd-watch": "watchify -d vd-client.js -o vd-client-bundle.js",
-        "vd-server": "node --harmony vd-server.js"
+        "vd-server": "node --harmony vd-server.js",
+        "server": "node --harmony components-server.js"
     },
     "eslintConfig": {
         "ecmaFeatures": {
