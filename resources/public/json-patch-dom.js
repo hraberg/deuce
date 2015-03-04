@@ -31,11 +31,19 @@ function resolvePointer(element, path) {
     let segs = path.slice(1).split('/').map((x) => parseInt(x, 10) || x);
     return segs.reduce((acc, seg) => {
         let parent = acc[0],
-            child = seg === 1 ? parent.attributes : parent.childNodes ? parent.childNodes[seg - 2] : seg;
+            child;
+        if (seg === 1) {
+            child = parent.attributes;
+        } else if (parent.childNodes) {
+            child = seg === '-' ? undefined : parent.childNodes[seg - 2];
+        } else {
+            child = seg;
+        }
         return [child, parent];
     }, [element]);
 }
 
+// https://tools.ietf.org/html/rfc6902
 function doPatch(element, p) {
     let resolved = resolvePointer(element, p.path),
         child = resolved[0],
@@ -54,7 +62,11 @@ function doPatch(element, p) {
         if (typeof child === 'string') {
             patchAttribute(parent, child, p.value);
         } else {
-            parent.replaceChild(toDOM(p.value), child);
+            if (child.nodeType === 3) {
+                child.data = p.value;
+            } else {
+                parent.replaceChild(toDOM(p.value), child);
+            }
         }
     }
     if (p.op === 'remove') {
