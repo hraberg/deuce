@@ -6,7 +6,7 @@ The main spike is `components`. To run:
 
 ```
     npm install
-    node --harmony components-server.js
+    npm start
 ```
 
 Then open `components.html` in a recent Chrome / WebKit.
