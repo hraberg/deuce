@@ -344,11 +344,6 @@ window.addEventListener('keypress', (e) => {
     keyUpTimer = setTimeout(() => rootNode.classList.remove('keydown'), keyUpDelay);
 }));
 
-window.addEventListener('close', (e) => {
-    e.preventDefault();
-    return false;
-});
-
 document.addEventListener('DOMContentLoaded', connect);
 
 function sendSizeEvent (type, idAttr, element) {
