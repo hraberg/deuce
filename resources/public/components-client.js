@@ -344,6 +344,10 @@ window.addEventListener('keypress', (e) => {
     keyUpTimer = setTimeout(() => rootNode.classList.remove('keydown'), keyUpDelay);
 }));
 
+window.addEventListener('mousedown', (e) => e.preventDefault());
+
+window.oncontextmenu = (e) => e.preventDefault();
+
 window.onbeforeunload = () => {
     if (rootNode.classList.contains('keydown')) {
         setTimeout(() => sendKeyEvent('C-w'));
