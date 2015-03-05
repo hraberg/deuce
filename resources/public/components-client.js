@@ -239,6 +239,7 @@ function connect() {
     };
     ws.onerror = (e) => {
         console.error('connection error:', e);
+        rootNode.classList.remove('keydown');
         ws.close();
     };
     ws.onclose = (e) => {

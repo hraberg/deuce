@@ -45,10 +45,59 @@ DeucePoint.moveTo = (column, visibleLine) => {
     }
 };
 
+let DeuceMark = Object.create(DeucePoint);
+
+DeuceMark.attachedCallback = () => {
+    this.start = this.querySelector('::shadow .start');
+    this.mid = this.querySelector('::shadow .mid');
+    this.end = this.querySelector('::shadow .end');
+    this.markRegion = this.querySelector('::shadow .mark-region');
+    DeucePoint.attachedCallback.call(this);
+};
+
+DeuceMark.update = (startColumn, startLine, endColumn, endLine) => {
+    if (![startLine, startColumn, endLine, endColumn].some(Number.isNaN)) {
+        if (startLine === endLine) {
+            let startX = this.charWidth * startColumn,
+                startY = this.charHeight * startLine,
+                startTransform = 'translate3d(' + startX + 'px, ' + startY + 'px, 0)';
+
+            this.markRegion.classList.add('same-line');
+
+            this.start.style.transform = startTransform;
+            this.start.style.height = this.charHeight + 'px';
+            this.start.style.width = (endColumn - startColumn) * this.charWidth + 'px';
+        } else {
+            let startX = this.charWidth * startColumn,
+                startY = this.charHeight * startLine,
+                startTransform = 'translate3d(' + startX + 'px, ' + startY + 'px, 0)',
+                endX = 0,
+                endY = this.charHeight * (startLine + 1),
+                endTransform = 'translate3d(' + endX + 'px, ' + endY + 'px, 0)',
+                windowWidth = window.innerWidth + 'px';
+
+            this.markRegion.classList.remove('same-line');
+
+            this.start.style.transform = startTransform;
+            this.start.style.height = ((endLine - startLine) * this.charHeight) + 'px';
+            this.start.style.width = windowWidth;
+
+            this.mid.style.transform = endTransform;
+            this.mid.style.height = ((endLine - startLine - 1) * this.charHeight) + 'px';
+            this.mid.style.width = windowWidth;
+
+            this.end.style.transform = endTransform;
+            this.end.style.height = ((endLine - startLine) * this.charHeight) + 'px';
+            this.end.style.width = (endColumn * this.charWidth) + 'px';
+        }
+    }
+};
+
 let DeuceBuffer = Object.create(DeuceElement);
 
 DeuceBuffer.attachedCallback = () => {
     this.point = this.querySelector('::shadow point-d');
+    this.mark = this.querySelector('::shadow mark-d');
     this.scrollBuffer = this.querySelector('::shadow .scroll-buffer');
     this.win = this.parentElement;
     DeuceElement.attachedCallback.call(this);
@@ -65,11 +114,55 @@ DeuceBuffer.attributeChangedCallback = (attrName) => {
             lineNumberAtStart = parseInt(this.win.getAttribute('line-number-at-start'), 10),
             visibleLine = (lineNumberAtPoint - (firstLineInClientBuffer - lineNumberAtStart)) - lineNumberAtStart;
         this.point.moveTo(column, visibleLine);
+        this.updateMark();
     }
     if (attrName === 'line-number-at-point-max') {
         let lineNumberAtPointMax = parseInt(this.getAttribute('line-number-at-point-max'), 10);
         this.scrollBuffer.style.height = (lineNumberAtPointMax * this.point.charHeight) + 'px';
     }
+    if (attrName === 'current-mark-column' || attrName === 'line-number-at-mark' || attrName === 'mark-active') {
+        this.updateMark();
+    }
+};
+
+DeuceBuffer.updateMark = () => {
+    if (this.getAttribute('mark-active') !== 'true') {
+        return;
+    }
+    let lineNumberAtPoint = parseInt(this.getAttribute('line-number-at-point'), 10),
+        lineNumberAtMark = parseInt(this.getAttribute('line-number-at-mark'), 10),
+        column = parseInt(this.getAttribute('current-column'), 10),
+        markColumn = parseInt(this.getAttribute('current-mark-column'), 10),
+        firstLineInClientBuffer = parseInt(this.querySelector('line-d').getAttribute('number'), 10),
+        lastLineInClientBuffer = parseInt(this.querySelector('line-d:last-child').getAttribute('number'), 10),
+        lineNumberAtStart = parseInt(this.win.getAttribute('line-number-at-start'), 10),
+        visibleLineAtPoint = (lineNumberAtPoint - (firstLineInClientBuffer - lineNumberAtStart)) - lineNumberAtStart;
+
+    if (lineNumberAtMark < lineNumberAtStart) {
+        markColumn = 0;
+    }
+    lineNumberAtMark = Math.min(Math.max(lineNumberAtMark, lineNumberAtStart),
+                                lineNumberAtStart + lastLineInClientBuffer);
+    let visibleLineAtMark = (lineNumberAtMark - (firstLineInClientBuffer - lineNumberAtStart)) - lineNumberAtStart,
+        startColumn, startLine, endColumn, endLine;
+
+    if (visibleLineAtPoint < visibleLineAtMark) {
+        startColumn = column;
+        startLine = visibleLineAtPoint;
+        endColumn = markColumn;
+        endLine = visibleLineAtMark;
+    } else if (visibleLineAtPoint > visibleLineAtMark) {
+        startColumn = markColumn;
+        startLine = visibleLineAtMark;
+        endColumn = column;
+        endLine = visibleLineAtPoint;
+    } else {
+        startColumn = Math.min(column, markColumn);
+        startLine = visibleLineAtMark;
+        endColumn = Math.max(column, markColumn);
+        endLine = visibleLineAtPoint;
+    }
+    this.mark.update(startColumn, startLine, endColumn, endLine);
 };
 
 let DeuceWindow = Object.create(DeuceElement);
@@ -122,7 +215,8 @@ DeuceFrame.detachedCallback = () => {
     window.removeEventListener('resize', this.resize);
 };
 
-let tagPrototypes = {'buffer-d': DeuceBuffer, 'point-d': DeucePoint, 'window-d': DeuceWindow, 'frame-d': DeuceFrame};
+let tagPrototypes = {'buffer-d': DeuceBuffer, 'point-d': DeucePoint, 'mark-d': DeuceMark,
+                     'window-d': DeuceWindow, 'frame-d': DeuceFrame};
 
 document.addEventListener('DOMContentLoaded', () => {
     [].slice.call(document.querySelectorAll('template[data-tag]')).forEach((template) => {

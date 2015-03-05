@@ -164,8 +164,9 @@ Buffer.prototype.toViewModel = (frame, win) => {
         lineNumberAtPointMax = text.newlines + 1,
         lineNumberAtPoint = this.lineNumberAtPos(pt),
         col = (pt - (text.indexOfLine(lineNumberAtPoint - 1) + 1)),
-        lineNumberAtMark = this.mark && this.lineNumberAtPos(this.mark),
-        markCol = this.mark && (this.mark - (text.indexOfLine(lineNumberAtMark - 1) + 1)),
+        markActive = this.mark !== null,
+        lineNumberAtMark = markActive && this.lineNumberAtPos(this.mark),
+        markCol = markActive && (this.mark - (text.indexOfLine(lineNumberAtMark - 1) + 1)),
         lineNumberAtStart = this.lineNumberAtPos(win.start),
         lineNumberAtEnd = lineNumberAtStart + win.totalLines,
         lines = text.lines(lineNumberAtStart - 1, lineNumberAtEnd - 1).toString().split(Buffer.NEW_LINES_PATTERN);
@@ -178,6 +179,7 @@ Buffer.prototype.toViewModel = (frame, win) => {
             'line-number-at-mark': lineNumberAtMark,
             'current-column': col,
             'current-mark-column': markCol,
+            'mark-active': markActive,
             'text': lines};
 };
 

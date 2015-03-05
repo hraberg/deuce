@@ -56,16 +56,32 @@
       <span> </span>
     </template>
 
+    <template data-tag="mark-d">
+      <style>
+        :host { z-index: -1; position: absolute; visibility: hidden; }
+        :host span { position: absolute; background-color: #cdcd00; white-space: pre; }
+        .mark-region.same-line .mid { visibility: hidden; }
+        .mark-region.same-line .end { visibility: hidden; }
+      </style>
+      <div class="mark-region">
+        <span class="start"> </span>
+        <span class="mid"> </span>
+        <span class="end"> </span>
+      </div>
+    </template>
+
     <template data-tag="buffer-d">
       <style>
         :host { position: absolute; width: 100%; top: 0; bottom: 1.2em; overflow: hidden; outline: 0; }
         :host-context(frame-d[minor-modes~=scroll-bar-mode]) { overflow-y: scroll; }
         :host-context(frame-d[minor-modes~=scroll-bar-mode]):host-context([mini-p]) { overflow-y: hidden; }
         :host-context([mini-p]) { bottom: 0; }
+        :host([mark-active]) mark-d { visibility: visible; }
         :host([major-mode=minibuffer-inactive-mode]) point-d { visibility: hidden; }
         .scroll-buffer { position: absolute; width: 100%; }
       </style>
       <point-d></point-d>
+      <mark-d></mark-d>
       <div class="scroll-buffer"></div>
       <content></content>
     </template>
