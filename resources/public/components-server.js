@@ -608,26 +608,15 @@ function initialFrame(id) {
                      buffers, defaultKeyMap());
 }
 
+const REFRESH_THRESHOLD = 512;
+
 let connections = new Map();
 
 ws.createServer({port: 8080}, (ws) => {
     let id = connections.size + 1,
         frame = initialFrame(id),
         client = {ws: ws, frame: frame, revision: 0, events: []},
-        onrefresh = () => {
-            fs.open(path.join(__dirname, 'components.js'), 'r', (err, fd) => {
-                if (err) {
-                    throw (err);
-                }
-                client.state = {frame: frame.toViewModel()};
-                client.serializedState = JSON.stringify(client.state);
-                let data = JSON.stringify(['r', client.revision, client.state, fs.fstatSync(fd).mtime, Date.now()]);
-                console.log(' refresh:', data);
-                if (ws.readyState === ws.OPEN) {
-                    ws.send(data);
-                }
-            });
-        },
+        onrefresh = () => refreshClient(client),
         onframesize = (id, width, height) => {
             console.log('    size: frame', id, width, height);
             client.frame.width = width;
@@ -660,11 +649,7 @@ ws.createServer({port: 8080}, (ws) => {
                 currentBuffer.lastCommandEvent = key;
                 try {
                     frame.executeExtendedCommand(prefixArg, command);
-                    if (command === 'switch-to-buffer') {
-                        onrefresh();
-                    } else {
-                        updateClient(client);
-                    }
+                    updateClient(client);
                 } finally {
                     delete currentBuffer.lastCommandEvent;
                 }
@@ -698,16 +683,19 @@ function toSimpleCharDiff(d) {
     return d.value.length;
 }
 
-
 // This fn will be called after a command has been excuted.
 function updateClient(client) {
     let startTime = new Date(),
         newState = {frame: client.frame.toViewModel()};
 
-    console.time('  update');
     let newSerializedState = JSON.stringify(newState);
 
+    if (Math.abs(newSerializedState.length - client.serializedState.length) > REFRESH_THRESHOLD) {
+        return refreshClient(client, newState, newSerializedState);
+    }
+
     if (newSerializedState !== client.serializedState) {
+        console.time('  update');
         let diffs = diff.diffChars(client.serializedState, newSerializedState).map(toSimpleCharDiff),
             data = JSON.stringify(['p', client.revision, diffs, startTime.getTime()]);
 
@@ -718,6 +706,18 @@ function updateClient(client) {
             client.state = newState;
             client.serializedState = newSerializedState;
         }
+        console.timeEnd('  update');
     }
-    console.timeEnd('  update');
+}
+
+function refreshClient(client, newState, newSerializedState) {
+    console.time(' refresh:');
+    client.state = newState || {frame: client.frame.toViewModel()};
+    client.serializedState = newSerializedState || JSON.stringify(client.state);
+    let data = JSON.stringify(['r', client.revision, client.state, Date.now()]);
+    if (client.ws.readyState === ws.OPEN) {
+        console.log(' sending:', data);
+        client.ws.send(data);
+    }
+    console.timeEnd(' refresh:');
 }

@@ -115,17 +115,9 @@ let state,
     revision,
     rootNode,
     vdomTree,
-    pendingRefresh,
-    clientCompileTime;
+    pendingRefresh;
 
-function onrefresh(newRevision, newState, newClientCompileTime) {
-    if (!clientCompileTime) {
-        clientCompileTime = newClientCompileTime;
-    }
-    if (clientCompileTime !== newClientCompileTime) {
-        debug('new client version, reloading app');
-        window.location.reload();
-    }
+function onrefresh(newRevision, newState) {
     state = newState;
     serializedState = JSON.stringify(state);
 
