@@ -77,11 +77,12 @@ Window.prototype.formatModeLine = () => {
         modified = this.buffer.bufferModifierP() ? '-' : '*',
         writable = modified,
         localDirectory = '-',
-        lineNumberAtPointMax = this.buffer.lineNumberAtPos(this.buffer.pointMax());
+        lineNumberAtPointMax = this.buffer.lineNumberAtPos(this.buffer.pointMax()),
+        modes = [this.buffer.majorMode].concat(this.buffer.minorModes).map((m) => m.replace(/-mode$/, '')).map(humanize);
     return codingSystem + endOfLineStyle + writable + modified + localDirectory +
         '  ' + '<strong style=\"opacity:0.5;\">' + this.buffer.name + '</strong>' +
         '      ' + (this.totalLines >= lineNumberAtPointMax ? 'All' : 'Top') + ' ' + 'L' + this.buffer.lineNumberAtPos() +
-        '     ' + '(' + humanize(this.buffer.majorMode.replace(/-mode$/, '')) + ')' +
+        '     ' + '(' + modes.join(' ') + ')' +
         ' ' + [].constructor(256).join('-');
 };
 
