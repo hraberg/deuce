@@ -40,7 +40,7 @@ function attributeFromModel(value) {
 
 function lineFromModel(bufferName, lineNumberAtStart, line, idx) {
     return h('line-d', attrs({key: 'line-' + bufferName + '-' + idx,
-                              attributes: {number: (idx + lineNumberAtStart)}, innerHTML: line}));
+                              attributes: {number: (idx + lineNumberAtStart)}}), line);
 }
 
 function bufferFromModel(buffer, lineNumberAtStart) {

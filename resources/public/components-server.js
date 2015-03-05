@@ -27,8 +27,8 @@ function Window(buffer, isMini, next, prev, hchild, vchild, parent, leftCol, top
     this.parent = parent;
     this.leftCol = leftCol || 0;
     this.topLine = topLine || 0;
-    this.totalLines = totallLines;
-    this.totalCols = totalCols;
+    this.totalLines = totallLines || 0;
+    this.totalCols = totalCols || 0;
     this.normalLines = normalLines;
     this.normalCols = normalCols;
     this.start = start || 1;
@@ -46,7 +46,7 @@ Window.nextSequenceNumber = (() => {
 Window.prototype.toViewModel = (frame) => {
     let lineNumberAtStart = this.buffer ? this.buffer.lineNumberAtPos(this.start) : undefined,
         lineNumberAtPointMax = this.buffer.text.beg.newlines + 1,
-        lineNumberAtEnd = Math.min(lineNumberAtPointMax, lineNumberAtStart + this.totalLines) || lineNumberAtPointMax;
+        lineNumberAtEnd = Math.min(lineNumberAtPointMax, lineNumberAtStart + this.totalLines);
     return {'sequence-number': this.sequenceNumber,
             'mini-p': this.isMini,
             'live-p': this.buffer !== undefined,
@@ -63,6 +63,11 @@ Window.prototype.scrollDown = (arg) =>
 Window.prototype.scrollUp = (arg) => {
     this.buffer.nextLine(arg || this.totalLines);
     this.buffer.beginningOfLine();
+};
+
+Window.prototype.setBuffer = (buffer) => {
+    this.buffer = buffer;
+    this.pointm = buffer.pt;
 };
 
 // Fake, doesn't attempt to take the buffer's mode-line-format into account.
@@ -117,7 +122,9 @@ Frame.prototype.executeExtendedCommand = (prefixArg, command) => {
             currentBuffer.eventId += 1;
         }
         target[name].call(target, prefixArg);
-        selectedWindow.pointm = currentBuffer.pt;
+        if (target === currentBuffer) {
+            selectedWindow.pointm = currentBuffer.pt;
+        }
     } else {
         console.error('unknown command:', command);
     }
@@ -125,6 +132,16 @@ Frame.prototype.executeExtendedCommand = (prefixArg, command) => {
 
 Frame.prototype.saveBuffersKillEmacs = () => {
     this.closed = true;
+};
+
+// This just picks another buffer, no prompts yet.
+Frame.prototype.switchToBuffer = () => {
+    let selectedWindow = this.selectedWindow,
+        currentBuffer = selectedWindow.buffer,
+        otherBufferName = Object.keys(this.buffers).filter((name) => name !== currentBuffer.name && !name.match(/^ /))[0];
+    if (otherBufferName) {
+        selectedWindow.setBuffer(this.buffers[otherBufferName]);
+    }
 };
 
 function BufferText(beg, modiff, saveModiff, markers) {
@@ -518,11 +535,13 @@ let scratch = [';; This buffer is for notes you don\'t want to save, and for Lis
                ';; If you want to create a file, visit that file with C-x C-f,',
                ';; then enter the text in that file\'s own buffer.',
                '',
-               ''].join('\n');
+               ''].join('\n'),
+    tutorial = fs.readFileSync(path.join(__dirname, '/../etc/tutorials/TUTORIAL'), {encoding: 'utf8'});
 
 function initalBuffers() {
     return {'*scratch*': new Buffer('*scratch*', Rope.toRope(scratch),
                                     scratch.length + 1, 'lisp-interaction-mode'),
+            'TUTORIAL': new Buffer('TUTORIAL', Rope.toRope(tutorial), 1, 'fundamental-mode'),
             ' *Minibuf-0*': new Buffer(' *Minibuf-0*', Rope.toRope('Welcome to deuce.js'),
                                        1, 'minibuffer-inactive-mode'),
             ' *Echo Area 0*': new Buffer(' *Echo Area 0*', Rope.EMPTY, 1, 'fundamental-mode')};
@@ -572,6 +591,7 @@ function defaultKeyMap() {
             'C-_': 'undo',
             'C- ': 'set-mark-command',
             'C-x': {'C-c': 'save-buffers-kill-emacs',
+                    'b': 'switch-to-buffer',
                     'h': 'mark-whole-buffer'}};
 }
 
@@ -609,12 +629,14 @@ ws.createServer({port: 8080}, (ws) => {
             console.log('    size: frame', id, width, height);
             client.frame.width = width;
             client.frame.height = height;
+            updateClient(client);
         },
         onwindowsize = (id, width, height) => {
             console.log('    size: window', id, width, height);
             let win = client.frame.windows[id];
             win.totalCols = width;
             win.totalLines = height;
+            updateClient(client);
         },
         onkey = (key) => {
             client.events.push(key);
@@ -635,7 +657,11 @@ ws.createServer({port: 8080}, (ws) => {
                 currentBuffer.lastCommandEvent = key;
                 try {
                     frame.executeExtendedCommand(prefixArg, command);
-                    updateClient(client);
+                    if (command === 'switch-to-buffer') {
+                        onrefresh();
+                    } else {
+                        updateClient(client);
+                    }
                 } finally {
                     delete currentBuffer.lastCommandEvent;
                 }

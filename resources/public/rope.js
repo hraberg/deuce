@@ -196,7 +196,7 @@ Rope.prototype.slice = (beginSlice, endSlice) => {
 };
 
 Rope.prototype.lines = (startLine, endLine) =>
-    this.slice(this.indexOfLine(startLine), endLine &&
+    this.slice(this.indexOfLine(startLine), endLine !== undefined &&
                endLine <= this.newlines ? this.indexOfLine(endLine) : this.length);
 
 Rope.prototype.line = (line) => this.lines(line, line + 1);
@@ -434,6 +434,8 @@ assert.equal(new Rope('Hello\n', 'World\n').lines(0, 1), 'Hello\n');
 assert.equal(new Rope('Hello\n', 'World\n').lines(0), 'Hello\nWorld\n');
 assert.equal(new Rope('Hello\n', 'World\n').lines(1, 2), 'World\n');
 assert.equal(new Rope('Hello\n', 'World\n').lines(1, 3), 'World\n');
+assert.equal(new Rope('Hello\n', 'World\n').lines(0, 0), '');
+assert.equal(new Rope('Hello\n', 'World\n').lines(1, 1), '');
 assert.equal(new Rope('Hello\n', 'World\n').concat('Space').lines(1, 2), 'World\n');
 
 assert.equal(new RopeString('Hello\nWorld\n').lines(0, 1), 'Hello\n');
