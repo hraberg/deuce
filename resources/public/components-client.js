@@ -287,7 +287,8 @@ let keyCodeToEmacs = {8: 'backspace', 9: 'tab', 13: 'return',
                 ',': '<', '.': '>', '/': '?'},
     modifierKeyCodes = {16: 'shift', 17: 'ctrl', 18: 'alt'},
     keyUpTimer,
-    keyUpDelay = 400;
+    keyUpDelay = 400,
+    ctrlDown;
 
 function modifiers(e, noShift) {
     let mods = [];
@@ -314,6 +315,7 @@ function sendKeyEvent(event) {
 
 window.addEventListener('keydown', (e) => {
     rootNode.classList.add('keydown');
+    ctrlDown = modifierKeyCodes[e.keyCode] === 'ctrl';
     if (keyUpTimer) {
         clearTimeout(keyUpTimer);
     }
@@ -341,6 +343,8 @@ window.addEventListener('keypress', (e) => {
     sendKeyEvent(keyEventToString(modifiers(e, true), String.fromCharCode(e.charCode)));
 });
 
+window.addEventListener('keyup', (e) => ctrlDown = ctrlDown && modifierKeyCodes[e.keyCode] !== 'ctrl');
+
 ['keyup', 'blur'].forEach((e) => window.addEventListener(e, () => {
     keyUpTimer = setTimeout(() => rootNode.classList.remove('keydown'), keyUpDelay);
 }));
@@ -350,7 +354,7 @@ window.addEventListener('mousedown', (e) => e.preventDefault());
 window.oncontextmenu = (e) => e.preventDefault();
 
 window.onbeforeunload = () => {
-    if (rootNode.classList.contains('keydown')) {
+    if (ctrlDown) {
         setTimeout(() => sendKeyEvent('C-w'));
         return 'Staying on this page will execute kill-region.';
     }
