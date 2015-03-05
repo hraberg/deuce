@@ -366,7 +366,8 @@ Buffer.prototype.deleteForwardChar = (n) => {
 };
 
 Buffer.prototype.deleteBackwardChar = (n) => {
-    if (!this.mark) {
+    if (!this.mark || this.mark === this.pt) {
+        this.mark = null;
         this.setMarkCommand();
         this.backwardChar(n);
     }
