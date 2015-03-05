@@ -63,6 +63,7 @@ Window.prototype.scrollDown = (arg) =>
 Window.prototype.scrollUp = (arg) => {
     this.buffer.nextLine(arg || this.totalLines);
     this.buffer.beginningOfLine();
+    this.pointm = this.buffer.pt;
 };
 
 Window.prototype.setBuffer = (buffer) => {
