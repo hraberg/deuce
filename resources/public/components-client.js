@@ -76,6 +76,7 @@ function windowFromModel(win) {
 
 function frameFromModel(frame) {
     if (frame.closed) {
+        rootNode.classList.remove('keydown');
         window.location = 'about:blank';
     }
     let properties = {key: 'frame-' + frame.name, attributes: {}},

@@ -407,7 +407,7 @@ Buffer.prototype.backwardKillWord = (n) => {
 };
 
 Buffer.prototype.newline = (n) => {
-    n = undefined ? 1 : n;
+    n = n === undefined ? 1 : n;
     while (n > 0) {
         this.insert('\n');
         n -= 1;
@@ -421,7 +421,7 @@ Buffer.prototype.openLine = (n) => {
 };
 
 Buffer.prototype.yank = (n) => {
-    n = undefined ? 1 : n;
+    n = n === undefined ? 1 : n;
     let previous, kill, text = '';
 
     do {
@@ -609,7 +609,7 @@ ws.createServer({port: 8080}, (ws) => {
             let command = client.events.reduce((map, key) => map && map[key], frame.globalMap),
                 prefixArg;
 
-            if (!command && key.length === 1) {
+            if (!command && key.length === 1 && client.events.length === 1) {
                 command = 'self-insert-command';
             }
 
