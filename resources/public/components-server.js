@@ -148,6 +148,7 @@ function Buffer(name, text, pt, majorMode, minorModes, mark, modeLineFormat) {
     this.minorModes = minorModes || [];
     this.modeLineFormat = modeLineFormat || '';
     this.eventId = 0; // this is a semi-hack.
+    this.desiredCol = 0;
 }
 
 Buffer.NEW_LINES_PATTERN = /(?:\r\n?|\n)/gm;
@@ -187,8 +188,9 @@ Buffer.prototype.lineBeginningPosition = (n) => {
 
 Buffer.prototype.lineEndPosition = (n) => {
     n = n === undefined ? 0 : n;
-    let line = Math.min(Math.max(1, this.lineNumberAtPos() + n), this.text.beg.newlines + 1);
-    return this.lineBeginningPosition(n) + this.text.beg.line(line - 1).toString().replace(Buffer.NEW_LINES_PATTERN, '').length;
+    let line = Math.min(Math.max(1, this.lineNumberAtPos() + n), this.text.beg.newlines + 1),
+        lineLength = this.text.beg.line(line - 1).toString().replace(Buffer.NEW_LINES_PATTERN, '').length;
+    return this.lineBeginningPosition(n) + lineLength;
 };
 
 Buffer.prototype.currentColumn = () => {
@@ -220,6 +222,7 @@ Buffer.prototype.lookingAt = (regexp) =>
 
 Buffer.prototype.gotoChar = (position) => {
     this.pt = this.limitToRegion(position);
+    this.desiredCol = this.currentColumn();
     return this.pt;
 };
 
@@ -297,38 +300,37 @@ Buffer.prototype.backwardParagraph = (n) => {
     }
 };
 
-Buffer.prototype.beginningOfBuffer = () => {
-    return this.gotoChar(this.pointMin());
-};
+Buffer.prototype.beginningOfBuffer = () =>
+    this.gotoChar(this.pointMin());
 
-Buffer.prototype.endOfBuffer = () => {
-    return this.gotoChar(this.pointMax());
-};
+Buffer.prototype.endOfBuffer = () =>
+    this.gotoChar(this.pointMax());
 
-Buffer.prototype.beginningOfLine = (n) => {
-    return this.gotoChar(this.lineBeginningPosition(n === undefined ? 0 : n));
-};
+Buffer.prototype.beginningOfLine = (n) =>
+    this.gotoChar(this.lineBeginningPosition(n === undefined ? 0 : n));
 
-Buffer.prototype.endOfLine = (n) => {
-    return this.gotoChar(this.lineEndPosition(n === undefined ? 0 : n));
-};
+Buffer.prototype.endOfLine = (n) =>
+    this.gotoChar(this.lineEndPosition(n === undefined ? 0 : n));
 
 Buffer.prototype.nextLine = (n) => {
-    let col = this.currentColumn();
+    let col = this.desiredCol;
     this.beginningOfLine(n === undefined ? 1 : n);
     let text = this.text.beg,
         lineLength = text.line(this.lineNumberAtPos() - 1).toString().replace(Buffer.NEW_LINES_PATTERN, '').length;
-    return this.forwardChar(Math.min(col, lineLength));
+    this.forwardChar(Math.min(col, lineLength));
+    this.desiredCol = col;
+    return this.pt;
 };
 
-Buffer.prototype.previousLine = (n) => {
+Buffer.prototype.previousLine = (n) =>
     this.nextLine(-(n === undefined ? 1 : n));
-};
 
 Buffer.prototype.insert = (args) => {
-    let previousPt = this.pt, nextPt = previousPt + args.length, newline = args === '\n';
-    this.newRevision(previousPt, this.text.insert(previousPt, args), args.length === 1 && !newline, newline);
-    this.gotoChar(nextPt);
+    let previousPt = this.pt,
+        nextPt = previousPt + args.length,
+        newline = args === '\n';
+    this.newRevision(this.pt, this.text.insert(this.pt, args), args.length === 1 && !newline, newline);
+    return this.gotoChar(nextPt);
 };
 
 Buffer.prototype.deleteRegion = (start, end) => {
@@ -340,7 +342,7 @@ Buffer.prototype.deleteRegion = (start, end) => {
         start = tmp;
     }
     this.newRevision(this.pt, this.text.deleteRegion(start, end));
-    this.gotoChar(start);
+    return this.gotoChar(start);
 };
 
 Buffer.prototype.bufferSubstring = (start, end) => {
@@ -354,10 +356,12 @@ Buffer.prototype.bufferSubstring = (start, end) => {
     return this.text.beg.slice(start - 1, end - 1).toString();
 };
 
+Buffer.prototype.bufferString = () => this.text.beg.toString();
+
 Buffer.prototype.deleteForwardChar = (n) => {
     this.setMarkCommand();
     this.forwardChar(n);
-    this.deleteRegion();
+    return this.deleteRegion();
 };
 
 Buffer.prototype.deleteBackwardChar = (n) => {
@@ -365,23 +369,23 @@ Buffer.prototype.deleteBackwardChar = (n) => {
         this.setMarkCommand();
         this.backwardChar(n);
     }
-    this.deleteRegion();
+    return this.deleteRegion();
 };
 
 Buffer.prototype.killRegion = (start, end) => {
     this.killRing.push({text: this.bufferSubstring(start, end), type: 'kill-region', id: this.eventId});
-    this.deleteRegion(start, end);
+    return this.deleteRegion(start, end);
 };
 
 Buffer.prototype.killLine = (n) => {
     let previousPt = this.pt;
     this.setMarkCommand();
     if (previousPt === this.endOfLine(n)) {
-        this.beginningOfLine(2);
+        this.beginningOfLine(1);
     }
     this.exchangePointAndMark();
     this.killRing.push({text: this.bufferSubstring(), type: 'kill-line', id: this.eventId});
-    this.deleteRegion();
+    return this.deleteRegion();
 };
 
 Buffer.prototype.killWord = (n) => {
@@ -389,7 +393,7 @@ Buffer.prototype.killWord = (n) => {
     this.forwardWord(n);
     this.exchangePointAndMark();
     this.killRing.push({text: this.bufferSubstring(), type: 'kill-word', id: this.eventId});
-    this.deleteRegion();
+    return this.deleteRegion();
 };
 
 Buffer.prototype.backwardKillWord = (n) => {
@@ -399,7 +403,7 @@ Buffer.prototype.backwardKillWord = (n) => {
     let mark = this.mark;
     this.killRing.push({text: this.bufferSubstring(), type: 'backward-kill-word', id: this.eventId});
     this.deleteRegion();
-    this.gotoChar(mark);
+    return this.gotoChar(mark);
 };
 
 Buffer.prototype.newline = (n) => {
@@ -413,7 +417,7 @@ Buffer.prototype.newline = (n) => {
 Buffer.prototype.openLine = (n) => {
     let previousPt = this.pt;
     this.newline(n);
-    this.gotoChar(previousPt);
+    return this.gotoChar(previousPt);
 };
 
 Buffer.prototype.yank = (n) => {
@@ -442,7 +446,7 @@ Buffer.prototype.yank = (n) => {
 
 Buffer.prototype.selfInsertCommand = (arg) => {
     arg = arg === undefined ? 1 : arg;
-    this.insert([].constructor(arg + 1).join(this.lastCommandEvent));
+    return this.insert([].constructor(arg + 1).join(this.lastCommandEvent));
 };
 
 Buffer.prototype.undo = (arg) => {
