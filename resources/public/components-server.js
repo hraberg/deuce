@@ -75,8 +75,9 @@ Window.prototype.setBuffer = (buffer) => {
 Window.prototype.formatModeLine = () => {
     let codingSystem = '-',
         endOfLineStyle = ':',
-        modified = this.buffer.bufferModifierP() ? '-' : '*',
-        writable = modified,
+        readOnlyMode = this.buffer.minorModes.indexOf('read-only-mode') !== -1,
+        modified = this.buffer.bufferModifiedP() ? '*' : '-',
+        writable = readOnlyMode ? '%' : modified,
         localDirectory = '-',
         lineNumberAtPointMax = this.buffer.lineNumberAtPos(this.buffer.pointMax()),
         modes = [this.buffer.majorMode].concat(this.buffer.minorModes).map((m) => m.replace(/-mode$/, '')).map(humanize),
@@ -237,7 +238,7 @@ Buffer.prototype.toViewModel = (frame, win) => {
             'text': lines};
 };
 
-Buffer.prototype.bufferModifierP = () => this._currentRevision === 0;
+Buffer.prototype.bufferModifiedP = () => this._currentRevision !== 0;
 
 Buffer.prototype.lineNumberAtPos = (pos) => {
     return this.text.beg.lineAt((pos || this.pt) - 1) + 1;
@@ -272,6 +273,9 @@ Buffer.prototype.limitToRegion = (position) =>
     Math.max(this.pointMin(), Math.min(position, this.pointMax()));
 
 Buffer.prototype.newRevision = (pt, text, singleChar, newline) => {
+    if ((this.minorModes || []).indexOf('read-only-mode') !== -1) {
+        return; // should probably throw an exception which gets handled in the command loop.
+    }
     this.text = text;
     this.size = this.text.beg.length;
     this.mark = null;
