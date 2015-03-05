@@ -662,17 +662,20 @@ function updateClient(client) {
     let startTime = new Date(),
         newState = {frame: client.frame.toViewModel()};
 
-    console.time('    diff');
-    let newSerializedState = JSON.stringify(newState),
-        diffs = diff.diffChars(client.serializedState, newSerializedState).map(toSimpleCharDiff),
-        data = JSON.stringify(['p', client.revision, diffs, startTime.getTime()]);
-    client.serializedState = newSerializedState;
+    console.time('  update');
+    let newSerializedState = JSON.stringify(newState);
 
-    console.timeEnd('    diff');
-    console.log(' sending:', data);
-    if (client.ws.readyState === ws.OPEN) {
-        client.ws.send(data);
-        client.revision += 1;
-        client.state = newState;
+    if (newSerializedState !== client.serializedState) {
+        let diffs = diff.diffChars(client.serializedState, newSerializedState).map(toSimpleCharDiff),
+            data = JSON.stringify(['p', client.revision, diffs, startTime.getTime()]);
+
+        if (client.ws.readyState === ws.OPEN) {
+            console.log(' sending:', data);
+            client.ws.send(data);
+            client.revision += 1;
+            client.state = newState;
+            client.serializedState = newSerializedState;
+        }
     }
+    console.timeEnd('  update');
 }
