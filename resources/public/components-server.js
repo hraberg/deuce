@@ -359,6 +359,7 @@ Buffer.prototype.bufferSubstring = (start, end) => {
 Buffer.prototype.bufferString = () => this.text.beg.toString();
 
 Buffer.prototype.deleteForwardChar = (n) => {
+    this.mark = null;
     this.setMarkCommand();
     this.forwardChar(n);
     return this.deleteRegion();
@@ -465,7 +466,7 @@ Buffer.prototype.undo = (arg) => {
 };
 
 Buffer.prototype.setMarkCommand = () => {
-    this.mark = this.pt;
+    this.mark = this.mark === this.pt ? null : this.pt;
 };
 
 Buffer.prototype.markWholeBuffer = () => {
