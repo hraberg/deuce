@@ -67,11 +67,16 @@ Window.prototype.scrollUp = (arg) => {
 
 // Fake, doesn't attempt to take the buffer's mode-line-format into account.
 Window.prototype.formatModeLine = (frame) => {
-    return '-UUU:----' + frame.name +
-        '  <strong style=\"opacity:0.5;\">' + this.buffer.name + '</strong>' +
-        '      All L' + this.buffer.lineNumberAtPos() +
-        '     (' + humanize(this.buffer.majorMode.replace(/-mode$/, '')) + ') ' +
-        [].constructor(256).join('-');
+    let codingSystem = '-',
+        endOfLineStyle = ':',
+        modified = this.buffer.bufferModifierP() ? '-' : '*',
+        writable = modified,
+        localDirectory = '-';
+    return codingSystem + endOfLineStyle + writable + modified + localDirectory +
+        '  ' + '<strong style=\"opacity:0.5;\">' + this.buffer.name + '</strong>' +
+        '      ' + 'All' + ' ' + 'L' + this.buffer.lineNumberAtPos() +
+        '     ' + '(' + humanize(this.buffer.majorMode.replace(/-mode$/, '')) + ')' +
+        ' ' + [].constructor(256).join('-');
 };
 
 // The Frame doesn't really own the buffers. The menu-bar is really a function of the active keymap / modes.
@@ -175,6 +180,8 @@ Buffer.prototype.toViewModel = (frame, win) => {
             'current-mark-column': markCol,
             'text': lines};
 };
+
+Buffer.prototype.bufferModifierP = () => this._currentRevision === 0;
 
 Buffer.prototype.lineNumberAtPos = (pos) => {
     return this.text.beg.lineAt((pos || this.pt) - 1) + 1;
