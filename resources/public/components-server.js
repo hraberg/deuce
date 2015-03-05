@@ -76,10 +76,11 @@ Window.prototype.formatModeLine = () => {
         endOfLineStyle = ':',
         modified = this.buffer.bufferModifierP() ? '-' : '*',
         writable = modified,
-        localDirectory = '-';
+        localDirectory = '-',
+        lineNumberAtPointMax = this.buffer.lineNumberAtPos(this.buffer.pointMax());
     return codingSystem + endOfLineStyle + writable + modified + localDirectory +
         '  ' + '<strong style=\"opacity:0.5;\">' + this.buffer.name + '</strong>' +
-        '      ' + 'All' + ' ' + 'L' + this.buffer.lineNumberAtPos() +
+        '      ' + (this.totalLines >= lineNumberAtPointMax ? 'All' : 'Top') + ' ' + 'L' + this.buffer.lineNumberAtPos() +
         '     ' + '(' + humanize(this.buffer.majorMode.replace(/-mode$/, '')) + ')' +
         ' ' + [].constructor(256).join('-');
 };
@@ -599,7 +600,7 @@ function initialFrame(id) {
     let buffers = initalBuffers();
     return new Frame('F' + id,
                      ['File', 'Edit', 'Options', 'Tools', 'Buffers', 'Help'],
-                     ['blink-cursor-mode', 'menu-bar-mode'],
+                     ['blink-cursor-mode', 'menu-bar-mode', 'scroll-bar-mode'],
                      new Window(buffers['*scratch*']),
                      new Window(buffers[' *Minibuf-0*'], true),
                      buffers, defaultKeyMap());
