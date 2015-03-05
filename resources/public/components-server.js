@@ -176,7 +176,6 @@ Buffer.prototype.toViewModel = (frame, win) => {
 };
 
 Buffer.prototype.lineNumberAtPos = (pos) => {
-    pos = (pos || this.pt);
     return this.text.beg.lineAt((pos || this.pt) - 1) + 1;
 };
 
