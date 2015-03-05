@@ -179,6 +179,31 @@ function Buffer(name, text, pt, majorMode, minorModes, mark, modeLineFormat, tab
 
 Buffer.NEW_LINES_PATTERN = /(?:\r\n?|\n)/gm;
 
+Buffer.prototype.expandTab = (line, col, visibleCol) => {
+    return line[col] === '\t' ? (this.tabWidth - (visibleCol % this.tabWidth)) : 1;
+};
+
+Buffer.prototype.lineVisibleColumn = (line, col) => {
+    let visibleCol = 0;
+    line = this.text.beg.line(line - 1).toString();
+    for (let i = 0; i < col; i += 1) {
+        visibleCol += this.expandTab(line, i, visibleCol);
+    }
+    return visibleCol;
+};
+
+Buffer.prototype.visibleColumnToColumn = (line, visibleCol) => {
+    let col, i = 0;
+    line = this.text.beg.line(line - 1).toString();
+    for (col = 0; col < line.length && i < visibleCol; col += 1) {
+        i += this.expandTab(line, col, i);
+    }
+    if (Math.min(Math.max(i, 0), visibleCol) % this.tabWidth !== 0 && line[col - 1] === '\t') {
+        return col - 1;
+    }
+    return col;
+};
+
 Buffer.prototype.toViewModel = (frame, win) => {
     let text = this.text.beg,
         pt = win.pointm,
@@ -191,6 +216,13 @@ Buffer.prototype.toViewModel = (frame, win) => {
         lineNumberAtStart = this.lineNumberAtPos(win.start),
         lineNumberAtEnd = lineNumberAtStart + win.totalLines,
         lines = text.lines(lineNumberAtStart - 1, lineNumberAtEnd - 1).toString().split(Buffer.NEW_LINES_PATTERN);
+
+    col = this.lineVisibleColumn(lineNumberAtPoint, col);
+
+    if (markCol) {
+        markCol = this.lineVisibleColumn(lineNumberAtMark, markCol);
+    }
+
     return {'name': this.name,
             'current': frame.selectedWindow === win,
             'major-mode': this.majorMode,
@@ -253,7 +285,7 @@ Buffer.prototype.lookingAt = (regexp) =>
 
 Buffer.prototype.gotoChar = (position) => {
     this.pt = this.limitToRegion(position);
-    this.desiredCol = this.currentColumn();
+    this.desiredCol = this.lineVisibleColumn(this.lineNumberAtPos(), this.currentColumn());
     return this.pt;
 };
 
@@ -344,12 +376,13 @@ Buffer.prototype.endOfLine = (n) =>
     this.gotoChar(this.lineEndPosition(n === undefined ? 0 : n));
 
 Buffer.prototype.nextLine = (n) => {
-    let col = this.desiredCol;
+    let previousDesiredCol = this.desiredCol;
     this.beginningOfLine(n === undefined ? 1 : n);
     let text = this.text.beg,
-        lineLength = text.line(this.lineNumberAtPos() - 1).toString().replace(Buffer.NEW_LINES_PATTERN, '').length;
+        lineLength = text.line(this.lineNumberAtPos() - 1).toString().replace(Buffer.NEW_LINES_PATTERN, '').length,
+        col = this.visibleColumnToColumn(this.lineNumberAtPos(), previousDesiredCol);
     this.forwardChar(Math.min(col, lineLength));
-    this.desiredCol = col;
+    this.desiredCol = previousDesiredCol;
     return this.pt;
 };
 
