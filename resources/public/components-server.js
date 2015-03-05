@@ -512,7 +512,7 @@ let scratch = [';; This buffer is for notes you don\'t want to save, and for Lis
 function initalBuffers() {
     return {'*scratch*': new Buffer('*scratch*', Rope.toRope(scratch),
                                     scratch.length + 1, 'lisp-interaction-mode'),
-            ' *Minibuf-0*': new Buffer(' *Minibuf-0*', Rope.toRope('Welcome to GNU Emacs'),
+            ' *Minibuf-0*': new Buffer(' *Minibuf-0*', Rope.toRope('Welcome to deuce.js'),
                                        1, 'minibuffer-inactive-mode'),
             ' *Echo Area 0*': new Buffer(' *Echo Area 0*', Rope.EMPTY, 1, 'fundamental-mode')};
 }
