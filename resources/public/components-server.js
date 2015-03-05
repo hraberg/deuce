@@ -84,7 +84,7 @@ Window.prototype.formatModeLine = () => {
     return codingSystem + endOfLineStyle + writable + modified + localDirectory +
         '  ' + '<strong style=\"opacity:0.5;\">' + this.buffer.name + '</strong>' +
         '      ' + (this.totalLines >= lineNumberAtPointMax ? 'All' : 'Top') + ' ' + 'L' + line + '(' + modes.join(' ') + ')' +
-        ' ' + [].constructor(256).join('-');
+        ' ' + [].constructor(this.totalCols).join('-');
 };
 
 // The Frame doesn't really own the buffers. The menu-bar is really a function of the active keymap / modes.
@@ -163,7 +163,7 @@ BufferText.prototype.insert = (pt, args) =>
 BufferText.prototype.deleteRegion = (start, end) =>
     this.nextModificationEvent(this.beg.del(start - 1, end - 1));
 
-function Buffer(name, text, pt, majorMode, minorModes, mark, modeLineFormat) {
+function Buffer(name, text, pt, majorMode, minorModes, mark, modeLineFormat, tabWidth) {
     this.name = name;
     this.pt = pt || 1;
     this.mark = mark || null;
@@ -172,6 +172,7 @@ function Buffer(name, text, pt, majorMode, minorModes, mark, modeLineFormat) {
     this.majorMode = majorMode || 'fundamental-mode';
     this.minorModes = minorModes || [];
     this.modeLineFormat = modeLineFormat || '';
+    this.tabWidth = tabWidth || 8;
     this.eventId = 0; // this is a semi-hack.
     this.desiredCol = 0;
 }
@@ -200,6 +201,7 @@ Buffer.prototype.toViewModel = (frame, win) => {
             'current-column': col,
             'current-mark-column': markCol,
             'mark-active': markActive,
+            'tab-width': this.tabWidth,
             'text': lines};
 };
 

@@ -123,6 +123,9 @@ DeuceBuffer.attributeChangedCallback = (attrName) => {
     if (attrName === 'current-mark-column' || attrName === 'line-number-at-mark' || attrName === 'mark-active') {
         this.updateMark();
     }
+    if (attrName === 'tab-width') {
+        this.style.tabSize = this.getAttribute('tab-width');
+    }
 };
 
 DeuceBuffer.updateMark = () => {
