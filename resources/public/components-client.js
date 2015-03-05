@@ -346,7 +346,7 @@ window.addEventListener('mousedown', (e) => e.preventDefault());
 window.oncontextmenu = (e) => e.preventDefault();
 
 window.onbeforeunload = () => {
-    if (ctrlDown) {
+    if (ctrlDown && ws) {
         setTimeout(() => sendKeyEvent('C-w'));
         return 'Staying on this page will execute kill-region.';
     }
