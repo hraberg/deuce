@@ -23,23 +23,23 @@ DeuceElement.attachedCallback = () => {
 DeuceElement.resize = () => {
     let point = this.querySelector('::shadow point-d'),
         rect = this.getBoundingClientRect();
-    this.setAttribute('width', Math.round(rect.width / point.fontWidth));
-    this.setAttribute('height', Math.round(rect.height / point.fontHeight));
+    this.setAttribute('width', Math.round(rect.width / point.charWidth));
+    this.setAttribute('height', Math.round(rect.height / point.charHeight));
 };
 
 let DeucePoint = Object.create(DeuceElement);
 
 DeucePoint.attachedCallback = () => {
     let pointStyle = this.querySelector('::shadow span').getBoundingClientRect();
-    this.fontWidth = parseFloat(pointStyle.width);
-    this.fontHeight = parseFloat(pointStyle.height);
+    this.charWidth = parseFloat(pointStyle.width);
+    this.charHeight = parseFloat(pointStyle.height);
     DeuceElement.attachedCallback.call(this);
 };
 
 DeucePoint.moveTo = (column, visibleLine) => {
-    if (![column, visibleLine, this.fontWidth, this.fontHeight].some(Number.isNaN)) {
-        let x = (this.fontWidth * column),
-            y = (this.fontHeight) * visibleLine,
+    if (![column, visibleLine, this.charWidth, this.charHeight].some(Number.isNaN)) {
+        let x = (this.charWidth * column),
+            y = (this.charHeight) * visibleLine,
             transform = 'translate3d(' + x + 'px, ' + y + 'px, 0)';
         this.style.transform = transform;
     }
@@ -68,7 +68,7 @@ DeuceBuffer.attributeChangedCallback = (attrName) => {
     }
     if (attrName === 'line-number-at-point-max') {
         let lineNumberAtPointMax = parseInt(this.getAttribute('line-number-at-point-max'), 10);
-        this.scrollBuffer.style.height = (lineNumberAtPointMax * this.point.fontHeight) + 'px';
+        this.scrollBuffer.style.height = (lineNumberAtPointMax * this.point.charHeight) + 'px';
     }
 };
 
@@ -100,7 +100,7 @@ DeuceWindow.attributeChangedCallback = (attrName) => {
 };
 
 DeuceWindow.scrollTo = (visibleLine) => {
-    let negativeY = this.buffer.point.fontHeight * -visibleLine;
+    let negativeY = this.buffer.point.charHeight * -visibleLine;
     if (!Number.isNaN(negativeY)) {
         let transform = 'translate3d(' + 0 + 'px, ' + negativeY + 'px, 0)';
         this.buffer.style.transform = transform;
