@@ -301,14 +301,13 @@ function modifiers(e, noShift) {
     return mods;
 }
 
-function keyEventToString (mods, key) {
+function keyEventToString(mods, key) {
     return mods.concat([key]).join('-');
 }
 
-function sendKeyEvent (mods, key) {
-    let eventString = keyEventToString(mods, key);
-    console.log('key:', eventString);
-    send('k', eventString);
+function sendKeyEvent(event) {
+    console.log('key:', event);
+    send('k', event);
 }
 
 window.addEventListener('keydown', (e) => {
@@ -318,7 +317,7 @@ window.addEventListener('keydown', (e) => {
     }
     if (keyCodeToEmacs[e.keyCode]) {
         e.preventDefault();
-        sendKeyEvent(modifiers(e), keyCodeToEmacs[e.keyCode]);
+        sendKeyEvent(keyEventToString(modifiers(e), keyCodeToEmacs[e.keyCode]));
     } else if ((e.ctrlKey || e.altKey) && !modifierKeyCodes[e.keyCode]) {
         e.preventDefault();
         let key = String.fromCharCode(e.keyCode),
@@ -331,22 +330,29 @@ window.addEventListener('keydown', (e) => {
             key = shiftMap[key];
             noShift = true;
         }
-        sendKeyEvent(modifiers(e, noShift), key.toLowerCase());
+        sendKeyEvent(keyEventToString(modifiers(e, noShift), key.toLowerCase()));
     }
 });
 
 window.addEventListener('keypress', (e) => {
     e.preventDefault();
-    sendKeyEvent(modifiers(e, true), String.fromCharCode(e.charCode));
+    sendKeyEvent(keyEventToString(modifiers(e, true), String.fromCharCode(e.charCode)));
 });
 
 ['keyup', 'blur'].forEach((e) => window.addEventListener(e, () => {
     keyUpTimer = setTimeout(() => rootNode.classList.remove('keydown'), keyUpDelay);
 }));
 
+window.onbeforeunload = () => {
+    if (rootNode.classList.contains('keydown')) {
+        setTimeout(() => sendKeyEvent('C-w'));
+        return 'Staying on this page will execute kill-region.';
+    }
+};
+
 document.addEventListener('DOMContentLoaded', connect);
 
-function sendSizeEvent (type, idAttr, element) {
+function sendSizeEvent(type, idAttr, element) {
     send(type, element.getAttribute(idAttr),
          parseInt(element.getAttribute('width'), 10),
          parseInt(element.getAttribute('height', 10)));
