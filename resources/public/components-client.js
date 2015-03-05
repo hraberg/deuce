@@ -356,8 +356,7 @@ document.addEventListener('DOMContentLoaded', connect);
 
 function sendSizeEvent(type, idAttr, element) {
     send(type, element.getAttribute(idAttr),
-         parseInt(element.getAttribute('width'), 10),
-         parseInt(element.getAttribute('height', 10)));
+         element.intAttribute('width'), element.intAttribute('height'));
 }
 
 DeuceFrame.resize = () => {

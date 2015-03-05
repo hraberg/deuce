@@ -27,6 +27,8 @@ DeuceElement.resize = () => {
     this.setAttribute('height', Math.round(rect.height / point.charHeight));
 };
 
+DeuceElement.intAttribute = (name) => parseInt(this.getAttribute(name), 10);
+
 let DeucePoint = Object.create(DeuceElement);
 
 DeucePoint.attachedCallback = () => {
@@ -108,16 +110,16 @@ DeuceBuffer.attributeChangedCallback = (attrName) => {
         return;
     }
     if (attrName === 'current-column' || attrName === 'line-number-at-point') {
-        let column = parseInt(this.getAttribute('current-column'), 10),
-            firstLineInClientBuffer = parseInt(this.querySelector('line-d').getAttribute('number'), 10),
-            lineNumberAtPoint = parseInt(this.getAttribute('line-number-at-point'), 10),
-            lineNumberAtStart = parseInt(this.win.getAttribute('line-number-at-start'), 10),
+        let column = this.intAttribute('current-column'),
+            firstLineInClientBuffer = this.querySelector('line-d').intAttribute('number'),
+            lineNumberAtPoint = this.intAttribute('line-number-at-point'),
+            lineNumberAtStart = this.win.intAttribute('line-number-at-start'),
             visibleLine = (lineNumberAtPoint - (firstLineInClientBuffer - lineNumberAtStart)) - lineNumberAtStart;
         this.point.moveTo(column, visibleLine);
         this.updateMark();
     }
     if (attrName === 'line-number-at-point-max') {
-        let lineNumberAtPointMax = parseInt(this.getAttribute('line-number-at-point-max'), 10);
+        let lineNumberAtPointMax = this.intAttribute('line-number-at-point-max');
         this.scrollBuffer.style.height = (lineNumberAtPointMax * this.point.charHeight) + 'px';
     }
     if (attrName === 'current-mark-column' || attrName === 'line-number-at-mark' || attrName === 'mark-active') {
@@ -132,13 +134,13 @@ DeuceBuffer.updateMark = () => {
     if (this.getAttribute('mark-active') !== 'true') {
         return;
     }
-    let lineNumberAtPoint = parseInt(this.getAttribute('line-number-at-point'), 10),
-        lineNumberAtMark = parseInt(this.getAttribute('line-number-at-mark'), 10),
-        column = parseInt(this.getAttribute('current-column'), 10),
-        markColumn = parseInt(this.getAttribute('current-mark-column'), 10),
-        firstLineInClientBuffer = parseInt(this.querySelector('line-d').getAttribute('number'), 10),
-        lastLineInClientBuffer = parseInt(this.querySelector('line-d:last-child').getAttribute('number'), 10),
-        lineNumberAtStart = parseInt(this.win.getAttribute('line-number-at-start'), 10),
+    let lineNumberAtPoint = this.intAttribute('line-number-at-point'),
+        lineNumberAtMark = this.intAttribute('line-number-at-mark'),
+        column = this.intAttribute('current-column'),
+        markColumn = this.intAttribute('current-mark-column'),
+        firstLineInClientBuffer = this.querySelector('line-d').intAttribute('number'),
+        lastLineInClientBuffer = this.querySelector('line-d:last-child').intAttribute('number'),
+        lineNumberAtStart = this.win.intAttribute('line-number-at-start'),
         visibleLineAtPoint = (lineNumberAtPoint - (firstLineInClientBuffer - lineNumberAtStart)) - lineNumberAtStart;
 
     if (lineNumberAtMark < lineNumberAtStart) {
@@ -187,8 +189,8 @@ DeuceWindow.attributeChangedCallback = (attrName) => {
         return;
     }
     if (attrName === 'line-number-at-start') {
-        let firstLineInClientBuffer = parseInt(this.buffer.querySelector('line-d').getAttribute('number'), 10),
-            lineNumberAtStart = parseInt(this.getAttribute('line-number-at-start'), 10);
+        let firstLineInClientBuffer = this.buffer.querySelector('line-d').intAttribute('number'),
+            lineNumberAtStart = this.intAttribute('line-number-at-start');
         if (![lineNumberAtStart, firstLineInClientBuffer].some(Number.isNaN)) {
             this.scrollTo(lineNumberAtStart - firstLineInClientBuffer);
         }
