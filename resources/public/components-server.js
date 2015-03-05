@@ -1,6 +1,6 @@
 'use strict';
 
-const diff = require('diff'),
+const diff = require('fast-diff'),
       ws = require('ws'),
       fs = require('fs'),
       path = require('path'),
@@ -79,11 +79,11 @@ Window.prototype.formatModeLine = () => {
         writable = modified,
         localDirectory = '-',
         lineNumberAtPointMax = this.buffer.lineNumberAtPos(this.buffer.pointMax()),
-        modes = [this.buffer.majorMode].concat(this.buffer.minorModes).map((m) => m.replace(/-mode$/, '')).map(humanize);
+        modes = [this.buffer.majorMode].concat(this.buffer.minorModes).map((m) => m.replace(/-mode$/, '')).map(humanize),
+        line = (this.buffer.lineNumberAtPos() + '     ').slice(0, 6);
     return codingSystem + endOfLineStyle + writable + modified + localDirectory +
         '  ' + '<strong style=\"opacity:0.5;\">' + this.buffer.name + '</strong>' +
-        '      ' + (this.totalLines >= lineNumberAtPointMax ? 'All' : 'Top') + ' ' + 'L' + this.buffer.lineNumberAtPos() +
-        '     ' + '(' + modes.join(' ') + ')' +
+        '      ' + (this.totalLines >= lineNumberAtPointMax ? 'All' : 'Top') + ' ' + 'L' + line + '(' + modes.join(' ') + ')' +
         ' ' + [].constructor(256).join('-');
 };
 
@@ -674,13 +674,13 @@ ws.createServer({port: 8080}, (ws) => {
 });
 
 function toSimpleCharDiff(d) {
-    if (d.added) {
-        return d.value;
+    if (d[0] === 1) {
+        return d[1];
     }
-    if (d.removed) {
-        return -d.value.length;
+    if (d[0] === -1) {
+        return -d[1].length;
     }
-    return d.value.length;
+    return d[1].length;
 }
 
 // This fn will be called after a command has been excuted.
@@ -696,7 +696,7 @@ function updateClient(client) {
 
     if (newSerializedState !== client.serializedState) {
         console.time('  update');
-        let diffs = diff.diffChars(client.serializedState, newSerializedState).map(toSimpleCharDiff),
+        let diffs = diff(client.serializedState, newSerializedState).map(toSimpleCharDiff),
             data = JSON.stringify(['p', client.revision, diffs, startTime.getTime()]);
 
         if (client.ws.readyState === ws.OPEN) {
