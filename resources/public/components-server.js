@@ -54,7 +54,7 @@ Window.prototype.toViewModel = (frame) => {
             'buffer': this.buffer ? this.buffer.toViewModel(frame, this) : undefined,
             'line-number-at-start': lineNumberAtStart,
             'line-number-at-end': lineNumberAtEnd,
-            'mode-line': (this.isMini || !this.buffer) ? undefined : this.formatModeLine(frame)};
+            'mode-line': (this.isMini || !this.buffer) ? undefined : this.formatModeLine()};
 };
 
 Window.prototype.scrollDown = (arg) =>
@@ -66,7 +66,7 @@ Window.prototype.scrollUp = (arg) => {
 };
 
 // Fake, doesn't attempt to take the buffer's mode-line-format into account.
-Window.prototype.formatModeLine = (frame) => {
+Window.prototype.formatModeLine = () => {
     let codingSystem = '-',
         endOfLineStyle = ':',
         modified = this.buffer.bufferModifierP() ? '-' : '*',
