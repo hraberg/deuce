@@ -180,8 +180,32 @@ Buffer.prototype.lineNumberAtPos = (pos) => {
     return this.text.beg.lineAt((pos || this.pt) - 1) + 1;
 };
 
+Buffer.prototype.lineBeginningPosition = (n) => {
+    n = n === undefined ? 0 : n;
+    let line = Math.min(Math.max(1, this.lineNumberAtPos() + n), this.text.beg.newlines + 1);
+    return this.text.beg.indexOfLine(line - 1) + 1;
+};
+
+Buffer.prototype.lineEndPosition = (n) => {
+    n = n === undefined ? 0 : n;
+    let line = Math.min(Math.max(1, this.lineNumberAtPos() + n), this.text.beg.newlines + 1);
+    return this.lineBeginningPosition(n) + this.text.beg.line(line - 1).toString().replace(Buffer.NEW_LINES_PATTERN, '').length;
+};
+
+Buffer.prototype.currentColumn = () => {
+    return this.pt - this.lineBeginningPosition();
+};
+
+Buffer.prototype.pointMin = () => {
+    return 1;
+};
+
+Buffer.prototype.pointMax = () => {
+    return this.size + 1;
+};
+
 Buffer.prototype.limitToRegion = (position) =>
-    Math.max(1, Math.min(position, this.size + 1));
+    Math.max(this.pointMin(), Math.min(position, this.pointMax()));
 
 Buffer.prototype.newRevision = (pt, text, singleChar, newline) => {
     this.text = text;
@@ -201,13 +225,13 @@ Buffer.prototype.gotoChar = (position) => {
 };
 
 Buffer.prototype.forwardChar = (n) =>
-    this.gotoChar(this.pt + (n || 1));
+    this.gotoChar(this.pt + (n === undefined ? 1 : n));
 
 Buffer.prototype.backwardChar = (n) =>
-    this.gotoChar(this.pt - (n || 1));
+    this.gotoChar(this.pt - (n === undefined ? 1 : n));
 
 Buffer.prototype.forwardWord = (n) => {
-    n = n || 1;
+    n = n === undefined ? 1 : n;
     while (n > 0) {
         let regexps = [/\W/, /\w/];
         for (let i = 0; i < regexps.length; i += 1) {
@@ -223,7 +247,7 @@ Buffer.prototype.forwardWord = (n) => {
 };
 
 Buffer.prototype.backwardWord = (n) => {
-    n = n || 1;
+    n = n === undefined ? 1 : n;
     while (n > 0) {
         let regexps = [/\W/, /\w/];
         for (let i = 0; i < regexps.length; i += 1) {
@@ -241,7 +265,7 @@ Buffer.prototype.backwardWord = (n) => {
 
 // There's a bug when there's a single line paragraph on the first line of the buffer, jumping too far.
 Buffer.prototype.forwardParagraph = (n) => {
-    n = n || 1;
+    n = n === undefined ? 1 : n;
     while (n > 0) {
         let regexps = [/^\s+$/, /\S/], line;
         for (let i = 0; i < regexps.length; i += 1) {
@@ -251,14 +275,14 @@ Buffer.prototype.forwardParagraph = (n) => {
                     return;
                 }
                 line = this.lineNumberAtPos();
-            } while ((this.text.beg.lines(line - 1, line).toString().match(regexps[i])))
+            } while ((this.text.beg.line(line - 1).toString().match(regexps[i])))
         }
         n -= 1;
     }
 };
 
 Buffer.prototype.backwardParagraph = (n) => {
-    n = n || 1;
+    n = n === undefined ? 1 : n;
     while (n > 0) {
         let regexps = [/^\s+$/, /\S/], line;
         for (let i = 0; i < regexps.length; i += 1) {
@@ -268,43 +292,38 @@ Buffer.prototype.backwardParagraph = (n) => {
                     return;
                 }
                 line = this.lineNumberAtPos();
-            } while ((this.text.beg.lines(line - 1, line).toString().match(regexps[i])))
+            } while ((this.text.beg.line(line - 1).toString().match(regexps[i])))
         }
         n -= 1;
     }
 };
 
 Buffer.prototype.beginningOfBuffer = () => {
-    return this.gotoChar(1);
+    return this.gotoChar(this.pointMin());
 };
 
 Buffer.prototype.endOfBuffer = () => {
-    return this.gotoChar(this.size + 1);
+    return this.gotoChar(this.pointMax());
 };
 
 Buffer.prototype.beginningOfLine = (n) => {
-    n = (n || 1);
-    let line = Math.min(Math.max(1, this.lineNumberAtPos() + (n - 1)), this.text.beg.newlines + 1);
-    return this.gotoChar(this.text.beg.indexOfLine(line - 1) + 1);
+    return this.gotoChar(this.lineBeginningPosition(n === undefined ? 0 : n));
 };
 
 Buffer.prototype.endOfLine = (n) => {
-    this.beginningOfLine(n || 1);
-    let line = this.lineNumberAtPos();
-    return this.forwardChar(this.text.beg.lines(line - 1, line).toString().replace(Buffer.NEW_LINES_PATTERN, '').length);
+    return this.gotoChar(this.lineEndPosition(n === undefined ? 0 : n));
 };
 
 Buffer.prototype.nextLine = (n) => {
+    let col = this.currentColumn();
+    this.beginningOfLine(n === undefined ? 1 : n);
     let text = this.text.beg,
-        lineNumberAtPoint = this.lineNumberAtPos(),
-        line = Math.min(Math.max(1, this.lineNumberAtPos() + (n || 1)), text.newlines + 1),
-        col = (this.pt - (text.indexOfLine(lineNumberAtPoint - 1) + 1)),
-        lineLength = text.lines(line - 1, line).toString().replace(Buffer.NEW_LINES_PATTERN, '').length;
-    return this.gotoChar(text.indexOfLine(line - 1) + 1 + Math.min(Math.max(0, col), lineLength));
+        lineLength = text.line(this.lineNumberAtPos() - 1).toString().replace(Buffer.NEW_LINES_PATTERN, '').length;
+    return this.forwardChar(Math.min(col, lineLength));
 };
 
 Buffer.prototype.previousLine = (n) => {
-    return this.nextLine(-(n || 1));
+    this.nextLine(-(n === undefined ? 1 : n));
 };
 
 Buffer.prototype.insert = (args) => {
@@ -337,11 +356,17 @@ Buffer.prototype.bufferSubstring = (start, end) => {
 };
 
 Buffer.prototype.deleteForwardChar = (n) => {
-    this.deleteRegion(this.pt, this.pt + (n || 1));
+    this.setMarkCommand();
+    this.forwardChar(n);
+    this.deleteRegion();
 };
 
 Buffer.prototype.deleteBackwardChar = (n) => {
-    this.deleteRegion(this.mark || (this.pt - (n || 1)), this.pt);
+    if (!this.mark) {
+        this.setMarkCommand();
+        this.backwardChar(n);
+    }
+    this.deleteRegion();
 };
 
 Buffer.prototype.killRegion = (start, end) => {
@@ -379,7 +404,7 @@ Buffer.prototype.backwardKillWord = (n) => {
 };
 
 Buffer.prototype.newline = (n) => {
-    n = n || 1;
+    n = undefined ? 1 : n;
     while (n > 0) {
         this.insert('\n');
         n -= 1;
@@ -393,7 +418,7 @@ Buffer.prototype.openLine = (n) => {
 };
 
 Buffer.prototype.yank = (n) => {
-    n = (n || 1);
+    n = undefined ? 1 : n;
     let previous, kill, text = '';
 
     do {
@@ -417,7 +442,8 @@ Buffer.prototype.yank = (n) => {
 };
 
 Buffer.prototype.selfInsertCommand = (arg) => {
-    this.insert([].constructor((arg || 1) + 1).join(this.lastCommandEvent));
+    arg = arg === undefined ? 1 : arg;
+    this.insert([].constructor(arg + 1).join(this.lastCommandEvent));
 };
 
 Buffer.prototype.undo = (arg) => {

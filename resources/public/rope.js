@@ -199,6 +199,8 @@ Rope.prototype.lines = (startLine, endLine) =>
     this.slice(this.indexOfLine(startLine), endLine &&
                endLine <= this.newlines ? this.indexOfLine(endLine) : this.length);
 
+Rope.prototype.line = (line) => this.lines(line, line + 1);
+
 Rope.prototype.insert = (offset, str) =>
     this.slice(0, offset).concat(str).concat(this.slice(offset));
 
@@ -226,7 +228,7 @@ function RopeString(s) {
 }
 
 mixin(RopeString, String, ['charAt', 'match', 'indexOf']);
-mixin(RopeString, Rope, ['concat', 'insert', 'del', 'lines', 'reduce']);
+mixin(RopeString, Rope, ['concat', 'insert', 'del', 'lines', 'line', 'reduce']);
 
 Object.defineProperty(RopeString.prototype, 'newlines', {
     enumerable: true,
@@ -305,7 +307,7 @@ function RopeBuffer(buffer, start, end) {
 }
 
 mixin(RopeBuffer, String, ['match', 'indexOf']);
-mixin(RopeBuffer, Rope, ['concat', 'insert', 'del', 'lines', 'reduce']);
+mixin(RopeBuffer, Rope, ['concat', 'insert', 'del', 'lines', 'line', 'reduce']);
 mixin(RopeBuffer, RopeString, ['indexOfLine', 'lineAt']);
 
 RopeBuffer.prototype.toString = () =>
