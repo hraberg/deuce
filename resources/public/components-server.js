@@ -369,6 +369,7 @@ Buffer.prototype.deleteForwardChar = (n) => {
     this.mark = null;
     this.setMarkCommand();
     this.forwardChar(n);
+    this.exchangePointAndMark();
     return this.deleteRegion();
 };
 
@@ -377,6 +378,7 @@ Buffer.prototype.deleteBackwardChar = (n) => {
         this.mark = null;
         this.setMarkCommand();
         this.backwardChar(n);
+        this.exchangePointAndMark();
     }
     return this.deleteRegion();
 };
