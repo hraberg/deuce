@@ -36,7 +36,7 @@
     <template data-tag="window-d">
       <style>
         :host { display: -webkit-flex; display: flex; -webkit-flex-wrap: nowrap; flex-wrap: nowrap; order: 0; -webkit-flex: 1 1 auto; flex: 1 1 auto; overflow: hidden; }
-        :host([live-p]) { position: relative; }
+        :host([live-p]) { position: relative; -webkit-flex-direction: column; flex-direction: column; }
         :host([mini-p]) { -webkit-flex: 0 1 auto; flex: 0 1 auto; height: 1.2em; }
       </style>
       <content></content>
@@ -44,21 +44,24 @@
 
     <template data-tag="point-d">
       <style>
-        :host { position: absolute; border: 1px solid; margin-top: -2px; border: 1px solid darkgray; }
-        :host > span { white-space: pre; }
-        :host-context([selected][live-p]) { background: black; background: rgba(0, 0, 0, 0.2); }
+        :host .point { white-space: pre; position: absolute; margin-top: -2px; border: 1px solid darkgray; }
+
+        :host-context([selected][live-p]) .point { background: black; background: rgba(0, 0, 0, 0.2); }
+        :host-context([major-mode=minibuffer-inactive-mode]) .point { visibility: hidden; }
+
         :host-context(frame-d[minor-modes~=blink-cursor-mode]):host-context(window-d[selected][live-p]) { -webkit-animation: blink-cursor-mode 1s steps(1) infinite; -moz-animation: blink-cursor-mode 1s steps(1) infinite; animation: blink-cursor-mode 1s steps(1) infinite; }
-        :host-context(frame-d.keydown[minor-modes~=blink-cursor-mode]):host-context(window-d[selected][live-p]) { opacity: 1; -webkit-animation: none; -moz-animation: none; animation: none; }
+        :host-context(.keydown):host-context(frame-d[minor-modes~=blink-cursor-mode]):host-context(window-d[selected][live-p]) { opacity: 1; -webkit-animation: none; -moz-animation: none; animation: none; }
 
         @-webkit-keyframes blink-cursor-mode { 0% { opacity: 0; } 50% { opacity: 1; } }
         @keyframes blink-cursor-mode { 0% { opacity: 0; } 50% { opacity: 1; } }
       </style>
-      <span> </span>
+      <span class="point"><span class="undecorated-point"> </span></span>
     </template>
 
     <template data-tag="mark-d">
       <style>
         :host { z-index: -1; position: absolute; visibility: hidden; }
+        :host-context([mark-active]) { visibility: visible; }
         :host span { position: absolute; background-color: #cdcd00; white-space: pre; }
         .mark-region.same-line .mid { visibility: hidden; }
         .mark-region.same-line .end { visibility: hidden; }
@@ -72,18 +75,20 @@
 
     <template data-tag="buffer-d">
       <style>
-        :host { position: absolute; width: 100%; top: 0; bottom: 1.2em; overflow: hidden; outline: 0; }
-        :host-context(frame-d[minor-modes~=scroll-bar-mode]) { overflow-y: scroll; }
-        :host-context(frame-d[minor-modes~=scroll-bar-mode]):host-context([mini-p]) { overflow-y: hidden; }
-        :host-context([mini-p]) { bottom: 0; }
-        :host([mark-active]) mark-d { visibility: visible; }
-        :host([major-mode=minibuffer-inactive-mode]) point-d { visibility: hidden; }
-        .scroll-buffer { position: absolute; width: 100%; }
+        :host .display { position: absolute; z-index: -1; top: 0; bottom: 1.2em; }
+        :host .scroll-pane { outline: 0; }
+        :host-context(frame-d[minor-modes~=scroll-bar-mode]) .scroll-pane { overflow-y: scroll; }
+        :host-context(frame-d[minor-modes~=scroll-bar-mode]):host-context([mini-p]) .scroll-pane { overflow-y: hidden; }
+        :host-context([mini-p]) .display { bottom: 0; }
       </style>
-      <point-d></point-d>
-      <mark-d></mark-d>
-      <div class="scroll-buffer"></div>
-      <content></content>
+      <div class="scroll-pane">
+        <div class="display">
+          <point-d></point-d>
+          <mark-d></mark-d>
+          <content></content>
+        </div>
+        <div class="scroll-buffer"></div>
+      </div>
     </template>
 
     <template data-tag="line-d">

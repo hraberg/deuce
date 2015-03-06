@@ -76,7 +76,7 @@ function windowFromModel(win) {
 
 function frameFromModel(frame) {
     if (frame.closed) {
-        rootNode.classList.remove('keydown');
+        document.body.classList.remove('keydown');
         window.location = 'about:blank';
     }
     let properties = {key: 'frame-' + frame.name, attributes: {}},
@@ -231,7 +231,7 @@ function connect() {
     };
     ws.onerror = (e) => {
         console.error('connection error:', e);
-        rootNode.classList.remove('keydown');
+        document.body.classList.remove('keydown');
         ws.close();
     };
     ws.onclose = (e) => {
@@ -306,7 +306,7 @@ function sendKeyEvent(event) {
 }
 
 window.addEventListener('keydown', (e) => {
-    rootNode.classList.add('keydown');
+    document.body.classList.add('keydown');
     ctrlDown = modifierKeyCodes[e.keyCode] === 'ctrl';
     if (keyUpTimer) {
         clearTimeout(keyUpTimer);
@@ -338,7 +338,7 @@ window.addEventListener('keypress', (e) => {
 window.addEventListener('keyup', (e) => ctrlDown = ctrlDown && modifierKeyCodes[e.keyCode] !== 'ctrl');
 
 ['keyup', 'blur'].forEach((e) => window.addEventListener(e, () => {
-    keyUpTimer = setTimeout(() => rootNode.classList.remove('keydown'), keyUpDelay);
+    keyUpTimer = setTimeout(() => document.body.classList.remove('keydown'), keyUpDelay);
 }));
 
 window.addEventListener('mousedown', (e) => e.preventDefault());

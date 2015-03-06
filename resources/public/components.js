@@ -32,9 +32,10 @@ DeuceElement.intAttribute = (name) => parseInt(this.getAttribute(name), 10);
 let DeucePoint = Object.create(DeuceElement);
 
 DeucePoint.attachedCallback = () => {
-    let pointStyle = this.querySelector('::shadow span').getBoundingClientRect();
-    this.charWidth = parseFloat(pointStyle.width);
-    this.charHeight = parseFloat(pointStyle.height);
+    this.point = this.querySelector('::shadow span');
+    let rect = (this.point.querySelector('.undecorated-point') || this.point).getBoundingClientRect();
+    this.charWidth = parseFloat(rect.width);
+    this.charHeight = parseFloat(rect.height);
     DeuceElement.attachedCallback.call(this);
 };
 
@@ -43,7 +44,7 @@ DeucePoint.moveTo = (column, visibleLine) => {
         let x = (this.charWidth * column),
             y = (this.charHeight) * visibleLine,
             transform = 'translate3d(' + x + 'px, ' + y + 'px, 0)';
-        this.style.transform = transform;
+        this.point.style.transform = transform;
     }
 };
 
@@ -101,8 +102,23 @@ DeuceBuffer.attachedCallback = () => {
     this.point = this.querySelector('::shadow point-d');
     this.mark = this.querySelector('::shadow mark-d');
     this.scrollBuffer = this.querySelector('::shadow .scroll-buffer');
+    this.scrollPane = this.querySelector('::shadow .scroll-pane');
+    this.display = this.querySelector('::shadow .display');
+
     this.win = this.parentElement;
+    this.resize = this.resize.bind(this);
+    window.addEventListener('resize', this.resize);
+    setTimeout(this.resize);
     DeuceElement.attachedCallback.call(this);
+};
+
+DeuceBuffer.detachedCallback = () => {
+    window.removeEventListener('resize', this.resize);
+};
+
+DeuceBuffer.resize = () => {
+    DeuceElement.resize.call(this);
+    this.scrollPane.style.height = this.display.getBoundingClientRect().height + 'px';
 };
 
 DeuceBuffer.attributeChangedCallback = (attrName) => {
@@ -201,7 +217,7 @@ DeuceWindow.scrollTo = (visibleLine) => {
     let negativeY = this.buffer.point.charHeight * -visibleLine;
     if (!Number.isNaN(negativeY)) {
         let transform = 'translate3d(' + 0 + 'px, ' + negativeY + 'px, 0)';
-        this.buffer.style.transform = transform;
+        this.buffer.display.style.transform = transform;
     }
 };
 
