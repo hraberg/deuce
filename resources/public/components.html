@@ -75,11 +75,11 @@
 
     <template data-tag="buffer-d">
       <style>
-        :host .display { position: absolute; z-index: -1; top: 0; bottom: 1.2em; }
+        :host { -webkit-flex: 1 1 auto; flex: 1 1 auto; }
+        :host .display { position: absolute; z-index: -1; }
         :host .scroll-pane { outline: 0; }
         :host-context(frame-d[minor-modes~=scroll-bar-mode]) .scroll-pane { overflow-y: scroll; }
         :host-context(frame-d[minor-modes~=scroll-bar-mode]):host-context([mini-p]) .scroll-pane { overflow-y: hidden; }
-        :host-context([mini-p]) .display { bottom: 0; }
       </style>
       <div class="scroll-pane">
         <div class="display">
@@ -101,7 +101,7 @@
 
     <template data-tag="mode-line-d">
       <style>
-        :host { position: absolute; bottom: 0; width: 100%; overflow: hidden; background-color: #ccc; }
+        :host { background-color: #ccc; }
       </style>
       <line-d><content></content></line-d>
     </template>

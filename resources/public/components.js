@@ -104,7 +104,6 @@ DeuceBuffer.attachedCallback = () => {
     this.scrollBuffer = this.querySelector('::shadow .scroll-buffer');
     this.scrollPane = this.querySelector('::shadow .scroll-pane');
     this.display = this.querySelector('::shadow .display');
-
     this.win = this.parentElement;
     this.resize = this.resize.bind(this);
     window.addEventListener('resize', this.resize);
@@ -118,7 +117,7 @@ DeuceBuffer.detachedCallback = () => {
 
 DeuceBuffer.resize = () => {
     DeuceElement.resize.call(this);
-    this.scrollPane.style.height = this.display.getBoundingClientRect().height + 'px';
+    this.scrollPane.style.height = this.getBoundingClientRect().height + 'px';
 };
 
 DeuceBuffer.attributeChangedCallback = (attrName) => {
