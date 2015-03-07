@@ -188,7 +188,7 @@ Frame.prototype.executeExtendedCommand = (prefixArg, command) => {
             selectedWindow.adjustScroll();
         }
     } else {
-        console.error('unknown command:', command);
+        throw new Error('void function ' + command);
     }
 };
 
@@ -207,6 +207,10 @@ Frame.prototype.message = (str) => {
     echoArea.deleteRegion();
     echoArea.insert(str);
     this.inMessage = false;
+};
+
+Frame.prototype.keyboardQuit = () => {
+    throw new Error('Quit');
 };
 
 // This just picks another buffer, no prompts yet.
@@ -699,8 +703,10 @@ function defaultKeyMap() {
             'C-l': 'recenter',
             'C-left': 'backward-word',
             'M-left': 'backward-word',
+            'M-b': 'backward-word',
             'C-right': 'forward-word',
             'M-right': 'forward-word',
+            'M-f': 'forward-word',
             'C-backspace': 'backward-kill-word',
             'M-backspace': 'backward-kill-word',
             'C-delete': 'kill-word',
@@ -723,10 +729,13 @@ function defaultKeyMap() {
             'C-e': 'end-of-line',
             'end': 'end-of-line',
             'C-home': 'beginning-of-buffer',
+            'M-<': 'beginning-of-buffer',
             'C-end': 'end-of-buffer',
+            'M->': 'end-of-buffer',
             'C-/': 'undo',
             'C-_': 'undo',
             'C- ': 'set-mark-command',
+            'C-g': 'keyboard-quit',
             'C-x': {'C-c': 'save-buffers-kill-emacs',
                     'b': 'switch-to-buffer',
                     'h': 'mark-whole-buffer'}};
@@ -775,6 +784,10 @@ ws.createServer({port: 8080}, (ws) => {
             updateClient(client);
         },
         onkey = (key) => {
+            if (client.keyTimer) {
+                clearTimeout(client.keyTimer);
+                delete client.keyTimer;
+            }
             client.events.push(key);
             console.log('    keys:', client.events);
             let command = client.events.reduce((map, key) => map && map[key], frame.globalMap),
@@ -784,8 +797,20 @@ ws.createServer({port: 8080}, (ws) => {
                 command = 'self-insert-command';
             }
 
+            if (!command) {
+                frame.message(client.events.join(' ') + ' is undefined');
+                updateClient(client);
+            }
+
             if (typeof command !== 'object') {
                 client.events = [];
+            }
+
+            if (typeof command === 'object') {
+                client.keyTimer = setTimeout(() => {
+                    frame.message(client.events.join(' ') + '-');
+                    updateClient(client);
+                }, 1000);
             }
 
             if (typeof command === 'string') {
@@ -793,8 +818,10 @@ ws.createServer({port: 8080}, (ws) => {
                 currentBuffer.lastCommandEvent = key;
                 try {
                     frame.executeExtendedCommand(prefixArg, command);
-                    updateClient(client);
+                } catch (e) {
+                    frame.message(e.message);
                 } finally {
+                    updateClient(client);
                     delete currentBuffer.lastCommandEvent;
                 }
             }
