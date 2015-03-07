@@ -800,7 +800,8 @@ function defaultKeyMap() {
             'C-x': {'C-c': 'save-buffers-kill-emacs',
                     'b': 'switch-to-buffer',
                     'h': 'mark-whole-buffer',
-                    'o': 'other-window'}};
+                    'o': 'other-window',
+                    'u': 'undo'}};
 }
 
 function initialFrame(id) {
