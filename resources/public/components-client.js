@@ -196,7 +196,7 @@ function render(serverTime) {
 
             timeEnd('redraw');
             timeEnd('client time');
-            setTimeout(() => console.log('latency:', Date.now() - serverTime, 'ms', usedRenderer()));
+            debug('latency:', Date.now() - serverTime, 'ms', usedRenderer());
         });
     }
 }
@@ -408,8 +408,8 @@ let bufferAttachedCallback = DeuceBuffer.attachedCallback,
 DeuceBuffer.scroll = () => {
     this.scrollPane.lastScrollTop = this.scrollPane.scrollTop;
     let newLineNumberAtStart = Math.floor(this.scrollPane.lastScrollTop / this.point.charHeight) + 1;
-    if (newLineNumberAtStart !== this.win['line-number-at-start'] && !document.body.classList.contains('keydown')) {
-        send('s', this.win['sequence-number'], newLineNumberAtStart);
+    if (newLineNumberAtStart !== this.win.lineNumberAtStart && !document.body.classList.contains('keydown')) {
+        send('s', this.win.sequenceNumber, newLineNumberAtStart);
     }
 };
 
