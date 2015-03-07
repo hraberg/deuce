@@ -168,6 +168,19 @@ Frame.prototype.toViewModel = () => {
 
 Frame.prototype.executeExtendedCommand = (prefixArg, command) => {
     console.log(' command:', command);
+    if (command === 'execute-extended-command') {
+        this.noEcho = true;
+        let minibuffer = this.buffers[' *Minibuf-0*'];
+        this.minibufferWindow.setBuffer(minibuffer);
+        minibuffer.markWholeBuffer();
+        minibuffer.deleteRegion();
+        minibuffer.insert('M-x ');
+        this.minibufferWindow.pointm = minibuffer.pt;
+        minibuffer.majorMode = 'fundamental-mode';
+        this.selectedWindow = this.minibufferWindow;
+        this.noEcho = false;
+        return;
+    }
     let name = camel(command),
         selectedWindow = this.selectedWindow,
         currentBuffer = selectedWindow.buffer,
@@ -188,7 +201,7 @@ Frame.prototype.executeExtendedCommand = (prefixArg, command) => {
             selectedWindow.adjustScroll();
         }
     } else {
-        throw new Error('void function ' + command);
+        throw new Error('`' + command + '\' is not a valid command name');
     }
 };
 
@@ -196,20 +209,39 @@ Frame.prototype.saveBuffersKillEmacs = () => {
     this.closed = true;
 };
 
+// Assumes only two windows atm.
+Frame.prototype.otherWindow = () => {
+    if (this.selectedWindow === this.minibufferWindow) {
+        this.selectedWindow = this.rootWindow;
+    } else if (this.selectedWindow === this.rootWindow && this.minibufferWindow.majorMode !== 'minibuffer-inactive-mode') {
+        this.selectedWindow = this.minibufferWindow;
+    }
+};
+
 Frame.prototype.message = (str) => {
-    if (this.inMessage) {
+    if (this.noEcho) {
         return;
     }
-    this.inMessage = true;
+    this.noEcho = true;
     let echoArea = this.buffers[' *Echo Area 0*'];
     this.minibufferWindow.setBuffer(echoArea);
     echoArea.markWholeBuffer();
     echoArea.deleteRegion();
     echoArea.insert(str);
-    this.inMessage = false;
+    this.noEcho = false;
 };
 
 Frame.prototype.keyboardQuit = () => {
+    if (this.selectedWindow === this.minibufferWindow) {
+        this.noEcho = true;
+        let minibuffer = this.selectedWindow.buffer;
+        minibuffer.markWholeBuffer();
+        minibuffer.deleteRegion();
+        this.minibufferWindow.pointm = minibuffer.pt;
+        minibuffer.majorMode = 'minibuffer-inactive-mode';
+        this.selectedWindow = this.rootWindow;
+        this.noEcho = false;
+    }
     throw new Error('Quit');
 };
 
@@ -573,6 +605,16 @@ Buffer.prototype.backwardKillWord = (n) => {
 };
 
 Buffer.prototype.newline = (n) => {
+     // super hack - just to get going, it should have its own key map etc.
+    if (this.win === this.win.frame.minibufferWindow) {
+        let command = this.bufferString().replace(/^M-x/, '').trim();
+        try {
+            this.win.frame.keyboardQuit();
+        } catch (ignore) {
+        }
+        this.win.frame.executeExtendedCommand(null, command);
+        return;
+    }
     n = n === undefined ? 1 : n;
     while (n > 0) {
         this.insert('\n');
@@ -736,9 +778,11 @@ function defaultKeyMap() {
             'C-_': 'undo',
             'C- ': 'set-mark-command',
             'C-g': 'keyboard-quit',
+            'M-x': 'execute-extended-command',
             'C-x': {'C-c': 'save-buffers-kill-emacs',
                     'b': 'switch-to-buffer',
-                    'h': 'mark-whole-buffer'}};
+                    'h': 'mark-whole-buffer',
+                    'o': 'other-window'}};
 }
 
 function initialFrame(id) {
