@@ -90,11 +90,15 @@ Window.prototype.setBuffer = (buffer) => {
     buffer.win = this;
 };
 
-Window.prototype.recenter = () => {
+Window.prototype.recenter = (arg) => {
     let lineNumberAtPoint = this.buffer.lineNumberAtPos(),
         lineNumberAtStart = this.buffer.lineNumberAtPos(this.start),
         startLine = Math.max(1, lineNumberAtPoint - Math.round((this.totalLines - this.contextLines) / 2));
-    if (lineNumberAtStart === lineNumberAtPoint && this.frame.lastCommand === 'recenter') {
+    if (arg !== undefined) {
+        startLine = lineNumberAtStart + arg > 0 ? Math.min(this.totalLines, arg) : Math.max(this.totallLines - 1, arg);
+        startLine = Math.min(Math.max(startLine, this.buffer.lineNumberAtPos(this.buffer.pointMin())),
+                             this.buffer.lineNumberAtPos(this.buffer.pointMax()));
+    } else if (lineNumberAtStart === lineNumberAtPoint && this.frame.lastCommand === 'recenter') {
         startLine = Math.max(lineNumberAtPoint - this.totalLines + this.contextLines,
                              this.buffer.lineNumberAtPos(this.buffer.pointMin()));
     } else if (lineNumberAtStart === startLine && this.frame.lastCommand === 'recenter') {
@@ -665,7 +669,7 @@ Buffer.prototype.yank = (n) => {
 
 Buffer.prototype.selfInsertCommand = (arg) => {
     arg = arg === undefined ? 1 : arg;
-    return this.insert([].constructor(arg + 1).join(this.lastCommandEvent));
+    return this.insert([].constructor(arg + 1).join(this.win.frame.lastCommandEvent));
 };
 
 Buffer.prototype.undo = (arg) => {
@@ -848,8 +852,26 @@ ws.createServer({port: 8080}, (ws) => {
             }
             client.events.push(key);
             console.log('    keys:', client.events);
-            let command = client.events.reduce((map, key) => map && map[key], frame.globalMap),
-                prefixArg;
+
+            let command;
+            if (client.events[0] === 'C-u') {
+                command = {};
+                if (client.events.length === 1) {
+                    client.prefixArg = 0;
+                    client.prefixSign = 1;
+                } else if (client.events.length === 2 && key === '-') {
+                    client.prefixSign = -1;
+                } else if (key.length === 1 && (!Number.isNaN(parseInt(key, 10)) || key === '-')) {
+                    client.prefixArg = client.prefixArg * 10 + parseInt(key, 10);
+                } else {
+                    client.events = client.events.slice(-1);
+                    command = null;
+                }
+            }
+
+            if (!command) {
+                command = client.events.reduce((map, key) => map && map[key], frame.globalMap);
+            }
 
             if (!command && key.length === 1 && client.events.length === 1) {
                 command = 'self-insert-command';
@@ -872,15 +894,16 @@ ws.createServer({port: 8080}, (ws) => {
             }
 
             if (typeof command === 'string') {
-                let currentBuffer = frame.selectedWindow.buffer;
-                currentBuffer.lastCommandEvent = key;
+                frame.lastCommandEvent = key;
                 try {
-                    frame.executeExtendedCommand(prefixArg, command);
+                    frame.executeExtendedCommand(client.prefixSign ? client.prefixSign * client.prefixArg : undefined, command);
                 } catch (e) {
                     frame.message(e.message);
                 } finally {
+                    delete client.prefixArg;
+                    delete client.prefixSign;
+                    delete frame.lastCommandEvent;
                     updateClient(client);
-                    delete currentBuffer.lastCommandEvent;
                 }
             }
         };
