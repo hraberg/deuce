@@ -26,6 +26,7 @@
         "diff-dom": "1.0.0",
         "fast-diff": "1.0.0",
         "googlediff": "0.1.0",
+        "chardiff": "0.1.2",
         "fast-json-patch": "0.5.1",
         "mithril": "0.1.30"
     },
