@@ -168,6 +168,7 @@ DeuceBuffer.updatePoint = () => {
     this.point.moveTo(column, visibleLine);
 };
 
+// There's a bug here, drawing of mark broke while introducing scrolling.
 DeuceBuffer.updateMark = () => {
     if (this.getAttribute('mark-active') !== 'true') {
         return;
