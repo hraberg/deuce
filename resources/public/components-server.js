@@ -92,8 +92,16 @@ Window.prototype.setBuffer = (buffer) => {
 
 Window.prototype.recenter = () => {
     let lineNumberAtPoint = this.buffer.lineNumberAtPos(),
-        startLine = Math.max(1, lineNumberAtPoint - ((this.totalLines - this.contextLines) / 2));
+        lineNumberAtStart = this.buffer.lineNumberAtPos(this.start),
+        startLine = Math.max(1, lineNumberAtPoint - Math.round((this.totalLines - this.contextLines) / 2));
+    if (lineNumberAtStart === lineNumberAtPoint && this.frame.lastCommand === 'recenter') {
+        startLine = Math.max(lineNumberAtPoint - this.totalLines + this.contextLines,
+                             this.buffer.lineNumberAtPos(this.buffer.pointMin()));
+    } else if (lineNumberAtStart === startLine && this.frame.lastCommand === 'recenter') {
+        startLine = lineNumberAtPoint;
+    }
     this.start = this.buffer.text.beg.indexOfLine(startLine - 1) + 1;
+
 };
 
 Window.prototype.adjustScroll = () => {
