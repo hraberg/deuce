@@ -615,7 +615,7 @@ function defaultKeyMap() {
             'M-@': 'mark-word',
             'M-h': 'mark-paragraph',
             'C-k': 'kill-line',
-            'C-w': 'kill-region', // closes tab in Chrome.
+            'C-w': 'kill-region', // has onbeforeonload hack to avoid closing tab in Chrome.
             'C-y': 'yank',
             'C-up': 'backward-paragraph',
             'C-down': 'forward-paragraph',
@@ -748,7 +748,6 @@ function serialize(state) {
     return JSON.stringify(state, null, 1);
 }
 
-// This fn will be called after a command has been excuted.
 function updateClient(client) {
     let startTime = new Date(),
         newState = {frame: client.frame.toViewModel()};
