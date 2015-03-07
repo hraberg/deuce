@@ -45,6 +45,7 @@ DeucePoint.moveTo = (column, visibleLine) => {
             y = (this.charHeight) * visibleLine,
             transform = 'translate3d(' + x + 'px, ' + y + 'px, 0)';
         this.point.style.transform = transform;
+        this.style.visibility = 'visible';
     }
 };
 
@@ -105,6 +106,7 @@ DeuceBuffer.attachedCallback = () => {
     this.scrollPane = this.querySelector('::shadow .scroll-pane');
     this.display = this.querySelector('::shadow .display');
     this.win = this.parentElement;
+    this.win.buffer = this;
     this.resize = this.resize.bind(this);
     window.addEventListener('resize', this.resize);
     setTimeout(this.resize);
@@ -118,6 +120,7 @@ DeuceBuffer.detachedCallback = () => {
 DeuceBuffer.resize = () => {
     DeuceElement.resize.call(this);
     this.scrollPane.style.height = this.getBoundingClientRect().height + 'px';
+    this.updateScroll();
 };
 
 DeuceBuffer.attributeChangedCallback = (attrName) => {
@@ -125,12 +128,7 @@ DeuceBuffer.attributeChangedCallback = (attrName) => {
         return;
     }
     if (attrName === 'current-column' || attrName === 'line-number-at-point') {
-        let column = this.intAttribute('current-column'),
-            firstLineInClientBuffer = this.querySelector('line-d').intAttribute('number'),
-            lineNumberAtPoint = this.intAttribute('line-number-at-point'),
-            lineNumberAtStart = this.win.intAttribute('line-number-at-start'),
-            visibleLine = (lineNumberAtPoint - (firstLineInClientBuffer - lineNumberAtStart)) - lineNumberAtStart;
-        this.point.moveTo(column, visibleLine);
+        this.updatePoint();
         this.updateMark();
     }
     if (attrName === 'line-number-at-point-max') {
@@ -141,8 +139,24 @@ DeuceBuffer.attributeChangedCallback = (attrName) => {
         this.updateMark();
     }
     if (attrName === 'tab-width') {
-        this.style.tabSize = this.getAttribute('tab-width');
+        this.display.style.tabSize = this.getAttribute('tab-width');
     }
+};
+
+DeuceBuffer.updateScroll = () => {
+    let visibleLine = this.win.intAttribute('line-number-at-start') - 1,
+        scrollTop = visibleLine * this.point.charHeight;
+    if (scrollTop !== this.scrollPane.scrollTop && !document.body.classList.contains('mousedown')) {
+        this.scrollPane.scrollTop = scrollTop;
+    }
+};
+
+DeuceBuffer.updatePoint = () => {
+    let column = this.intAttribute('current-column'),
+        lineNumberAtPoint = this.intAttribute('line-number-at-point'),
+        lineNumberAtStart = this.win.intAttribute('line-number-at-start'),
+        visibleLine = lineNumberAtPoint - lineNumberAtStart;
+    this.point.moveTo(column, visibleLine);
 };
 
 DeuceBuffer.updateMark = () => {
@@ -153,17 +167,16 @@ DeuceBuffer.updateMark = () => {
         lineNumberAtMark = this.intAttribute('line-number-at-mark'),
         column = this.intAttribute('current-column'),
         markColumn = this.intAttribute('current-mark-column'),
-        firstLineInClientBuffer = this.querySelector('line-d').intAttribute('number'),
         lastLineInClientBuffer = this.querySelector('line-d:last-child').intAttribute('number'),
         lineNumberAtStart = this.win.intAttribute('line-number-at-start'),
-        visibleLineAtPoint = (lineNumberAtPoint - (firstLineInClientBuffer - lineNumberAtStart)) - lineNumberAtStart;
+        visibleLineAtPoint = lineNumberAtPoint - lineNumberAtStart;
 
     if (lineNumberAtMark < lineNumberAtStart) {
         markColumn = 0;
     }
     lineNumberAtMark = Math.min(Math.max(lineNumberAtMark, lineNumberAtStart),
                                 lineNumberAtStart + lastLineInClientBuffer);
-    let visibleLineAtMark = (lineNumberAtMark - (firstLineInClientBuffer - lineNumberAtStart)) - lineNumberAtStart,
+    let visibleLineAtMark = lineNumberAtMark - lineNumberAtStart,
         startColumn, startLine, endColumn, endLine;
 
     if (visibleLineAtPoint < visibleLineAtMark) {
@@ -188,7 +201,6 @@ DeuceBuffer.updateMark = () => {
 let DeuceWindow = Object.create(DeuceElement);
 
 DeuceWindow.attachedCallback = () => {
-    this.buffer = this.querySelector('buffer-d');
     this.resize = this.resize.bind(this);
     window.addEventListener('resize', this.resize);
     setTimeout(this.resize);
@@ -204,19 +216,11 @@ DeuceWindow.attributeChangedCallback = (attrName) => {
         return;
     }
     if (attrName === 'line-number-at-start') {
-        let firstLineInClientBuffer = this.buffer.querySelector('line-d').intAttribute('number'),
-            lineNumberAtStart = this.intAttribute('line-number-at-start');
-        if (![lineNumberAtStart, firstLineInClientBuffer].some(Number.isNaN)) {
-            this.scrollTo(lineNumberAtStart - firstLineInClientBuffer);
+        if (!Number.isNaN(this.intAttribute('line-number-at-start'))) {
+            this.buffer.updatePoint();
+            this.buffer.updateMark();
+            this.buffer.updateScroll();
         }
-    }
-};
-
-DeuceWindow.scrollTo = (visibleLine) => {
-    let negativeY = this.buffer.point.charHeight * -visibleLine;
-    if (!Number.isNaN(negativeY)) {
-        let transform = 'translate3d(' + 0 + 'px, ' + negativeY + 'px, 0)';
-        this.buffer.display.style.transform = transform;
     }
 };
 

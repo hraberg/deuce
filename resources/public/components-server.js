@@ -67,8 +67,10 @@ Window.prototype.scrollUp = (arg) => {
 };
 
 Window.prototype.setBuffer = (buffer) => {
+    this.buffer.lastVisibleStart = this.start;
     this.buffer = buffer;
     this.pointm = buffer.pt;
+    this.start = buffer.lastVisibleStart || 1;
 };
 
 // Fake, doesn't attempt to take the buffer's mode-line-format into account.
@@ -647,7 +649,7 @@ function initialFrame(id) {
                      buffers, defaultKeyMap());
 }
 
-const REFRESH_THRESHOLD = 512;
+const REFRESH_THRESHOLD = 4096;
 
 let connections = new Map();
 
@@ -667,6 +669,16 @@ ws.createServer({port: 8080}, (ws) => {
             let win = client.frame.windows[id];
             win.totalCols = width;
             win.totalLines = height;
+            updateClient(client);
+        },
+        onwindowscroll = (id, lineNumberAtStart) => {
+            console.log('  scroll: window', id, lineNumberAtStart);
+            let win = client.frame.windows[id];
+            win.start = win.buffer.text.beg.indexOfLine(lineNumberAtStart - 1) + 1;
+            let pt = Math.min(Math.max(win.start, win.pointm),
+                              win.buffer.text.beg.indexOfLine(lineNumberAtStart - 1 + (win.totalLines - 2 - 1 )) + 1);
+            win.buffer.gotoChar(pt);
+            win.pointm = win.buffer.beginningOfLine();
             updateClient(client);
         },
         onkey = (key) => {
@@ -701,7 +713,8 @@ ws.createServer({port: 8080}, (ws) => {
     });
     ws.on('message', (data) => {
         let message = JSON.parse(data),
-            handler = ({r: onrefresh, k: onkey, zf: onframesize, zw: onwindowsize})[message[0]];
+            handler = ({r: onrefresh, k: onkey, s: onwindowscroll,
+                        zf: onframesize, zw: onwindowsize})[message[0]];
         if (handler) {
             handler.apply(null, message.slice(1));
         } else {

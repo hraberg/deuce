@@ -1,5 +1,5 @@
 /*eslint-env browser */
-/*globals virtualDom m DeuceVDom DeuceFrame DeuceWindow DeuceElement */
+/*globals virtualDom m DeuceVDom DeuceFrame DeuceWindow DeuceBuffer DeuceElement */
 
 'use strict';
 
@@ -341,7 +341,15 @@ window.addEventListener('keyup', (e) => ctrlDown = ctrlDown && modifierKeyCodes[
     keyUpTimer = setTimeout(() => document.body.classList.remove('keydown'), keyUpDelay);
 }));
 
-window.addEventListener('mousedown', (e) => e.preventDefault());
+window.addEventListener('mousedown', (e) => {
+    document.body.classList.add('mousedown');
+    e.preventDefault();
+});
+
+window.addEventListener('mouseup', (e) => {
+    document.body.classList.remove('mousedown');
+    e.preventDefault();
+});
 
 window.oncontextmenu = (e) => e.preventDefault();
 
@@ -367,4 +375,26 @@ DeuceFrame.resize = () => {
 DeuceWindow.resize = () => {
     DeuceElement.resize.call(this);
     sendSizeEvent('zw', 'sequence-number', this);
+};
+
+let bufferAttachedCallback = DeuceBuffer.attachedCallback,
+    bufferDetachedCallback = DeuceBuffer.detachedCallback;
+
+DeuceBuffer.scroll = (e) => {
+    let newLineNumberAtStart = Math.floor(this.scrollPane.scrollTop / this.point.charHeight) + 1;
+    if (newLineNumberAtStart !== this.win.intAttribute('line-number-at-start')) {
+        send('s', this.win.intAttribute('sequence-number'), newLineNumberAtStart);
+    }
+    e.preventDefault();
+};
+
+DeuceBuffer.attachedCallback = () => {
+    bufferAttachedCallback.call(this);
+    this.scroll = this.scroll.bind(this);
+    this.scrollPane.addEventListener('scroll', this.scroll);
+};
+
+DeuceBuffer.detachedCallback = () => {
+    bufferDetachedCallback.call(this);
+    this.scrollPane.removeEventListener('scroll', this.scroll);
 };
