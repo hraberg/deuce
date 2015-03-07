@@ -349,6 +349,9 @@ Buffer.prototype.lookingAt = (regexp) =>
     this.text.beg.charAt(this.pt - 1).match(regexp);
 
 Buffer.prototype.gotoChar = (position) => {
+    if (position === this.pt) {
+        return this.pt;
+    }
     let previousPt = this.pt;
     this.pt = this.limitToRegion(position);
     this.desiredCol = this.lineVisibleColumn(this.lineNumberAtPos(), this.currentColumn());
@@ -441,11 +444,21 @@ Buffer.prototype.beginningOfBuffer = () =>
 Buffer.prototype.endOfBuffer = () =>
     this.gotoChar(this.pointMax());
 
-Buffer.prototype.beginningOfLine = (n) =>
-    this.gotoChar(this.lineBeginningPosition(n === undefined ? 0 : n));
+Buffer.prototype.beginningOfLine = (n) => {
+    n = n === undefined ? 0 : n;
+    if (n + this.lineNumberAtPos() < this.lineNumberAtPos(this.pointMin())) {
+        this.win.frame.message('Beginning of buffer');
+    } else if (n + this.lineNumberAtPos() > this.lineNumberAtPos(this.pointMax())) {
+        this.win.frame.message('End of buffer');
+    } else {
+        this.gotoChar(this.lineBeginningPosition(n));
+    }
+};
 
-Buffer.prototype.endOfLine = (n) =>
-    this.gotoChar(this.lineEndPosition(n === undefined ? 0 : n));
+Buffer.prototype.endOfLine = (n) => {
+    this.beginningOfLine(n === undefined ? 0 : -n);
+    this.gotoChar(this.lineEndPosition());
+};
 
 Buffer.prototype.nextLine = (n) => {
     let previousDesiredCol = this.desiredCol;
@@ -453,10 +466,7 @@ Buffer.prototype.nextLine = (n) => {
     let text = this.text.beg,
         lineLength = text.line(this.lineNumberAtPos() - 1).toString().replace(Buffer.NEW_LINES_PATTERN, '').length,
         col = this.visibleColumnToColumn(this.lineNumberAtPos(), previousDesiredCol);
-    col = Math.min(col, lineLength);
-    if (col !== 0) {
-        this.forwardChar(col);
-    }
+    this.forwardChar(Math.min(col, lineLength));
     this.desiredCol = previousDesiredCol;
     return this.pt;
 };
