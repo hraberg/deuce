@@ -450,9 +450,8 @@ Buffer.prototype.beginningOfLine = (n) => {
         this.win.frame.message('Beginning of buffer');
     } else if (n + this.lineNumberAtPos() > this.lineNumberAtPos(this.pointMax())) {
         this.win.frame.message('End of buffer');
-    } else {
-        this.gotoChar(this.lineBeginningPosition(n));
     }
+    this.gotoChar(this.lineBeginningPosition(n));
 };
 
 Buffer.prototype.endOfLine = (n) => {
