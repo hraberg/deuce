@@ -1,6 +1,6 @@
 'use strict';
 
-const diff = require('fast-diff'),
+const DiffMatchPatch = require('googlediff'),
       ws = require('ws'),
       fs = require('fs'),
       path = require('path'),
@@ -725,7 +725,16 @@ ws.createServer({port: 8080}, (ws) => {
     onrefresh();
 });
 
-function toSimpleCharDiff(d) {
+let dmp = new DiffMatchPatch();
+
+function diffLineMode(from, to) {
+    let a = dmp.diff_linesToChars_(from, to),
+        diffs = dmp.diff_main(a.chars1, a.chars2, false);
+    dmp.diff_charsToLines_(diffs, a.lineArray);
+    return diffs;
+}
+
+function toSimpleDiff(d) {
     if (d[0] === 1) {
         return d[1];
     }
@@ -735,12 +744,16 @@ function toSimpleCharDiff(d) {
     return d[1].length;
 }
 
+function serialize(state) {
+    return JSON.stringify(state, null, 1);
+}
+
 // This fn will be called after a command has been excuted.
 function updateClient(client) {
     let startTime = new Date(),
         newState = {frame: client.frame.toViewModel()};
 
-    let newSerializedState = JSON.stringify(newState);
+    let newSerializedState = serialize(newState);
 
     if (Math.abs(newSerializedState.length - client.serializedState.length) > REFRESH_THRESHOLD) {
         return refreshClient(client, newState, newSerializedState);
@@ -748,7 +761,7 @@ function updateClient(client) {
 
     if (newSerializedState !== client.serializedState) {
         console.time('  update');
-        let diffs = diff(client.serializedState, newSerializedState).map(toSimpleCharDiff),
+        let diffs = diffLineMode(client.serializedState, newSerializedState).map(toSimpleDiff),
             data = JSON.stringify(['p', client.revision, diffs, startTime.getTime()]);
 
         if (client.ws.readyState === ws.OPEN) {
@@ -765,8 +778,8 @@ function updateClient(client) {
 function refreshClient(client, newState, newSerializedState) {
     console.time(' refresh:');
     client.state = newState || {frame: client.frame.toViewModel()};
-    client.serializedState = newSerializedState || JSON.stringify(client.state);
-    let data = JSON.stringify(['r', client.revision, client.state, Date.now()]);
+    client.serializedState = newSerializedState || serialize(client.state);
+    let data = JSON.stringify(['r', client.revision, client.serializedState, Date.now()]);
     if (client.ws.readyState === ws.OPEN) {
         console.log(' sending:', data);
         client.ws.send(data);

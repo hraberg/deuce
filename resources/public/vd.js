@@ -25,7 +25,7 @@ let DeuceVDom = (() => {
         let attributes = {},
             children,
             args = [].constructor(arguments.length);
-        for (let i = 0; i < arguments.length; i += 1) {
+        for (var i = 0; i < arguments.length; i += 1) {
             args[i] = arguments[i];
         }
 
@@ -47,7 +47,7 @@ let DeuceVDom = (() => {
             Object.keys(attributes).forEach((k) => {
                 if (attributes[k] === undefined) {
                     element.removeAttribute(k);
-                } else {
+                } else if (attributes[k] !== virtualElement.attributes[k]) {
                     if (k === 'style') {
                         Object.keys(attributes.style).forEach((s) => {
                             if (attributes.style[s] !== undefined) {
@@ -99,9 +99,9 @@ let DeuceVDom = (() => {
             virtualElement.attributes = attributes;
 
             if (!attributes.innerHTML) {
-                let oldIndex = 0;
+                var oldIndex = 0;
                 children = children.map((newChild, idx) => {
-                    let isString = typeof newChild === 'string',
+                    var isString = typeof newChild === 'string',
                         oldChild = virtualElement.children[oldIndex],
                         newVirtualChild = () => isString ? text(newChild, key + '-text-' + idx) : newChild;
 
@@ -124,7 +124,7 @@ let DeuceVDom = (() => {
                     return newChild;
                 });
 
-                for (let toRemove = element.childNodes.length - children.length; toRemove > 0; toRemove -= 1) {
+                for (var toRemove = element.childNodes.length - children.length; toRemove > 0; toRemove -= 1) {
                     element.lastChild.remove();
                 }
 
@@ -133,7 +133,7 @@ let DeuceVDom = (() => {
 
         } else {
             let element = document.createElement(tag);
-                element.key = key;
+            element.key = key;
 
             Object.keys(attributes).forEach((k) => {
                 if (k === 'style') {
@@ -168,12 +168,10 @@ let DeuceVDom = (() => {
     };
 
     let redraw = (render) => {
-        try {
-            return render();
-        } finally {
-            existingElements = accessedElements;
-            accessedElements = {};
-        }
+        let result = render();
+        existingElements = accessedElements;
+        accessedElements = {};
+        return result;
     };
 
     return {redraw: redraw, e: e};

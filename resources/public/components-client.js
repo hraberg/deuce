@@ -4,11 +4,23 @@
 'use strict';
 
 let DEBUG = false,
-    h = virtualDom.h;
+    h = DeuceVDom.e;
 
 function debug() {
     if (DEBUG) {
         console.debug.apply(console, [].slice.call(arguments));
+    }
+}
+
+function time(label) {
+    if (DEBUG) {
+        time(label);
+    }
+}
+
+function timeEnd(label) {
+    if (DEBUG) {
+        timeEnd(label);
     }
 }
 
@@ -45,12 +57,11 @@ function lineFromModel(bufferName, lineNumberAtStart, line, idx) {
 
 function bufferFromModel(buffer, lineNumberAtStart) {
     let properties = {key: 'buffer-' + buffer.name, attributes: {}},
-        children = [];
+        children;
     lineNumberAtStart = lineNumberAtStart || 1;
     Object.keys(buffer).forEach((a) => {
         if (a === 'text') {
-            buffer[a].map((line, idx) => lineFromModel(buffer.name, lineNumberAtStart, line, idx))
-                .forEach((line) => children.push(line));
+            children = buffer[a].map((line, idx) => lineFromModel(buffer.name, lineNumberAtStart, line, idx));
         } else if (buffer[a] !== false) {
             properties.attributes[a] = attributeFromModel(buffer[a]);
         }
@@ -83,7 +94,7 @@ function frameFromModel(frame) {
         children = [];
     Object.keys(frame).forEach((a) => {
         if (a === 'menu-bar') {
-            children.push(h('menu-bar-d', attrs({key: 'menu-bar-' - properties.key}),
+            children.push(h('menu-bar-d', attrs({key: 'menu-bar-' + properties.key}),
                             frame[a].map((menu) => h('menu-d', {key: 'menu-' + menu}, menu))));
         } else if (a === 'root-window' || a === 'minibuffer-window') {
             children.push(windowFromModel(frame[a]));
@@ -96,7 +107,7 @@ function frameFromModel(frame) {
 
 function applySimpleCharDiffs(ds, s) {
     let acc = '';
-    for (let i = 0, idx = 0; i < ds.length; i += 1) {
+    for (var i = 0, idx = 0; i < ds.length; i += 1) {
         let d = ds[i];
         if (typeof d === 'string') {
             acc += d;
@@ -117,9 +128,9 @@ let state,
     vdomTree,
     pendingRefresh;
 
-function onrefresh(newRevision, newState) {
-    state = newState;
-    serializedState = JSON.stringify(state);
+function onrefresh(newRevision, newSerializedState) {
+    serializedState = newSerializedState;
+    state = JSON.parse(serializedState);
 
     requestAnimationFrame(() => {
         if (usedRenderer() === 'mithril') {
@@ -164,10 +175,10 @@ function onpatch(oldRevision, diffs) {
 function render(serverTime) {
     if (!pendingRefresh) {
         pendingRefresh = true;
-        console.time('frame waiting time');
+        time('frame waiting time');
         requestAnimationFrame(() => {
-            console.timeEnd('frame waiting time');
-            console.time('redraw');
+            timeEnd('frame waiting time');
+            time('redraw');
             pendingRefresh = false;
 
             if (state.frame) {
@@ -183,9 +194,9 @@ function render(serverTime) {
                 }
             }
 
-            console.timeEnd('redraw');
-            console.timeEnd('client time');
-            console.log('latency:', Date.now() - serverTime, 'ms', usedRenderer());
+            timeEnd('redraw');
+            timeEnd('client time');
+            setTimeout(() => console.log('latency:', Date.now() - serverTime, 'ms', usedRenderer()));
         });
     }
 }
@@ -194,13 +205,11 @@ let handlers = {r: onrefresh, p: onpatch};
 
 function onmessage(data) {
     debug('client received:', data.data.length, data.data);
-    console.time('client time');
-    console.time('onmessage');
+    time('client time');
     let message = JSON.parse(data.data),
         serverTime = message[message.length - 1];
-    console.log('server time:', Date.now() - serverTime, 'ms');
+    debug('server time:', Date.now() - serverTime, 'ms');
     handlers[message[0]].apply(null, message.slice(1));
-    console.timeEnd('onmessage');
     render(serverTime);
 }
 
@@ -213,7 +222,11 @@ let ws,
 
 function send() {
     if (ws) {
-        ws.send(JSON.stringify([].slice.call(arguments)));
+        let args = [].constructor(arguments.length);
+        for (let i = 0; i < arguments.length; i += 1) {
+            args[i] = arguments[i];
+        }
+        ws.send(JSON.stringify(args));
     }
 }
 
@@ -301,7 +314,7 @@ function keyEventToString(mods, key) {
 }
 
 function sendKeyEvent(event) {
-    console.log('key:', event);
+    debug('key:', event);
     send('k', event);
 }
 
@@ -351,6 +364,16 @@ window.addEventListener('mouseup', (e) => {
     e.preventDefault();
 });
 
+let wheelTimer,
+    wheelDelay = 250;
+
+window.addEventListener('mousewheel', () => {
+    clearTimeout(wheelTimer);
+    document.body.classList.add('mousewheel');
+    wheelTimer = setTimeout(() => document.body.classList.remove('mousewheel'), wheelDelay);
+});
+
+
 window.oncontextmenu = (e) => e.preventDefault();
 
 window.onbeforeunload = () => {
@@ -380,12 +403,12 @@ DeuceWindow.resize = () => {
 let bufferAttachedCallback = DeuceBuffer.attachedCallback,
     bufferDetachedCallback = DeuceBuffer.detachedCallback;
 
-DeuceBuffer.scroll = (e) => {
-    let newLineNumberAtStart = Math.floor(this.scrollPane.scrollTop / this.point.charHeight) + 1;
-    if (newLineNumberAtStart !== this.win.intAttribute('line-number-at-start')) {
-        send('s', this.win.intAttribute('sequence-number'), newLineNumberAtStart);
+DeuceBuffer.scroll = () => {
+    this.scrollPane.lastScrollTop = this.scrollPane.scrollTop;
+    let newLineNumberAtStart = Math.floor(this.scrollPane.lastScrollTop / this.point.charHeight) + 1;
+    if (newLineNumberAtStart !== this.win['line-number-at-start']) {
+        send('s', this.win['sequence-number'], newLineNumberAtStart);
     }
-    e.preventDefault();
 };
 
 DeuceBuffer.attachedCallback = () => {
