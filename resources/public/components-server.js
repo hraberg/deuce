@@ -16,7 +16,7 @@ function humanize (s) {
 
 // These fields are based on Emacs/Deuce, we might not need them all.
 function Window(buffer, isMini, next, prev, hchild, vchild, parent, leftCol, topLine,
-                totallLines, totalCols, normalLines, normalCols, start, pointm) {
+                totallLines, totalCols, normalLines, normalCols, start, pointm, contextLines) {
     this.sequenceNumber = Window.nextSequenceNumber();
     this.buffer = buffer;
     this.isMini = isMini || false;
@@ -33,6 +33,7 @@ function Window(buffer, isMini, next, prev, hchild, vchild, parent, leftCol, top
     this.normalCols = normalCols;
     this.start = start || 1;
     this.pointm = pointm || buffer.pt;
+    this.contextLines = contextLines || 2;
 }
 
 Window.nextSequenceNumber = (() => {
@@ -57,13 +58,26 @@ Window.prototype.toViewModel = (frame) => {
             'mode-line': (this.isMini || !this.buffer) ? undefined : this.formatModeLine()};
 };
 
-Window.prototype.scrollDown = (arg) =>
-    this.scrollUp(-arg || -this.totalLines);
+Window.prototype.scrollDown = (arg) => {
+    this.buffer.previousLine(arg || this.totalLines);
+    this.buffer.beginningOfLine();
+    this.pointm = this.buffer.pt;
+    let lineNumberAtPoint = this.buffer.lineNumberAtPos(),
+        startLine = Math.max(1, lineNumberAtPoint - (this.totalLines - 1 - this.contextLines));
+    this.start = this.buffer.text.beg.indexOfLine(startLine - 1) + 1;
+};
 
 Window.prototype.scrollUp = (arg) => {
     this.buffer.nextLine(arg || this.totalLines);
     this.buffer.beginningOfLine();
     this.pointm = this.buffer.pt;
+    let lineNumberAtStart = this.buffer.lineNumberAtPos(this.start),
+        lineNumberAtPointMax = this.buffer.text.beg.newlines + 1;
+    if (lineNumberAtStart + this.totalLines >= lineNumberAtPointMax) {
+        this.recenter();
+    } else {
+        this.start = this.pointm;
+    }
 };
 
 Window.prototype.setBuffer = (buffer) => {
@@ -71,6 +85,22 @@ Window.prototype.setBuffer = (buffer) => {
     this.buffer = buffer;
     this.pointm = buffer.pt;
     this.start = buffer.lastVisibleStart || 1;
+};
+
+Window.prototype.recenter = () => {
+    let lineNumberAtPoint = this.buffer.lineNumberAtPos(),
+        startLine = Math.max(1, lineNumberAtPoint - ((this.totalLines - this.contextLines) / 2));
+    this.start = this.buffer.text.beg.indexOfLine(startLine - 1) + 1;
+};
+
+Window.prototype.adjustScroll = () => {
+    let lineNumberAtStart = this.buffer.lineNumberAtPos(this.start),
+        lineNumberAtPointMax = this.buffer.text.beg.newlines + 1,
+        lineNumberAtVisibleEnd = Math.min(lineNumberAtPointMax, lineNumberAtStart + this.totalLines - this.contextLines - 1),
+        windowVisibleEnd = this.buffer.text.beg.indexOfLine(lineNumberAtVisibleEnd - 1) + 1;
+    if (this.start > this.pointm || windowVisibleEnd < this.pointm) {
+        this.recenter();
+    }
 };
 
 // Fake, doesn't attempt to take the buffer's mode-line-format into account.
@@ -130,6 +160,7 @@ Frame.prototype.executeExtendedCommand = (prefixArg, command) => {
         target[name].call(target, prefixArg);
         if (target === currentBuffer) {
             selectedWindow.pointm = currentBuffer.pt;
+            selectedWindow.adjustScroll();
         }
     } else {
         console.error('unknown command:', command);
@@ -604,6 +635,7 @@ function defaultKeyMap() {
             'M-v': 'scroll-down',
             'next': 'scroll-up',
             'C-v': 'scroll-up',
+            'C-l': 'recenter',
             'C-left': 'backward-word',
             'M-left': 'backward-word',
             'C-right': 'forward-word',

@@ -137,7 +137,7 @@ function onrefresh(newRevision, newSerializedState) {
             rootNode = document.body;
         } else if (usedRenderer() === 'deuce-vdom') {
             document.body.innerHTML = '';
-            rootNode = DeuceVDom.redraw(() => frameFromModel(state.frame)).element;
+            rootNode = DeuceVDom.redraw(() => frameFromModel(state.frame), true).element;
             document.body.appendChild(rootNode);
         } else {
             vdomTree = frameFromModel(state.frame);
@@ -264,7 +264,9 @@ function connect() {
 window.addEventListener('error', (e) => {
     if (ws) {
         console.error('error, reloading app:', e);
-        ws.close();
+        if (ws.close) {
+            ws.close();
+        }
         ws = {};
         setTimeout(() => window.location.reload(), maxReconnectInterval);
     }
@@ -406,7 +408,7 @@ let bufferAttachedCallback = DeuceBuffer.attachedCallback,
 DeuceBuffer.scroll = () => {
     this.scrollPane.lastScrollTop = this.scrollPane.scrollTop;
     let newLineNumberAtStart = Math.floor(this.scrollPane.lastScrollTop / this.point.charHeight) + 1;
-    if (newLineNumberAtStart !== this.win['line-number-at-start']) {
+    if (newLineNumberAtStart !== this.win['line-number-at-start'] && !document.body.classList.contains('keydown')) {
         send('s', this.win['sequence-number'], newLineNumberAtStart);
     }
 };

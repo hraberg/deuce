@@ -167,7 +167,10 @@ let DeuceVDom = (() => {
         return virtualElement;
     };
 
-    let redraw = (render) => {
+    let redraw = (render, clean) => {
+        if (clean) {
+            existingElements = {};
+        }
         let result = render();
         existingElements = accessedElements;
         accessedElements = {};

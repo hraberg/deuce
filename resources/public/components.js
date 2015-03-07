@@ -154,8 +154,8 @@ DeuceBuffer.updateScroll = () => {
     let visibleLine = this.win['line-number-at-start'] - 1,
         scrollTop = visibleLine * this.point.charHeight;
     if (scrollTop !== this.scrollPane.lastScrollTop &&
-        !document.body.classList.contains('mousedown') &&
-        !document.body.classList.contains('mousewheel')) {
+        !(document.body.classList.contains('mousedown') ||
+          document.body.classList.contains('mousewheel'))) {
         this.scrollPane.scrollTop = scrollTop;
     }
 };
