@@ -67,6 +67,7 @@ Window.prototype.scrollDown = (arg) => {
     this.start = this.buffer.text.beg.indexOfLine(startLine - 1) + 1;
 };
 
+// There's a bug here at the final page where the start line doesn't always feels right.
 Window.prototype.scrollUp = (arg) => {
     this.buffer.nextLine(arg || this.totalLines);
     this.buffer.beginningOfLine();
@@ -111,12 +112,16 @@ Window.prototype.formatModeLine = () => {
         modified = this.buffer.bufferModifiedP() ? '*' : '-',
         writable = readOnlyMode ? '%' : modified,
         localDirectory = '-',
+        lineNumberAtPoint = this.buffer.lineNumberAtPos(),
         lineNumberAtPointMax = this.buffer.lineNumberAtPos(this.buffer.pointMax()),
         modes = [this.buffer.majorMode].concat(this.buffer.minorModes).map((m) => m.replace(/-mode$/, '')).map(humanize),
-        line = (this.buffer.lineNumberAtPos() + '     ').slice(0, 6);
+        location = (this.totalLines >= lineNumberAtPointMax ? 'All' : lineNumberAtPoint < this.totalLines
+                    ? 'Top' : lineNumberAtPoint + this.totalLines > lineNumberAtPointMax
+                    ? 'Bot' : Math.round(lineNumberAtPoint / lineNumberAtPointMax * 100) + '%'),
+        line = (lineNumberAtPoint + '     ').slice(0, 6);
     return codingSystem + endOfLineStyle + writable + modified + localDirectory +
         '  ' + '<strong style=\"opacity:0.5;\">' + this.buffer.name + '</strong>' +
-        '      ' + (this.totalLines >= lineNumberAtPointMax ? 'All' : 'Top') + ' ' + 'L' + line + '(' + modes.join(' ') + ')' +
+        '      ' + location + ' ' + 'L' + line + '(' + modes.join(' ') + ')' +
         ' ' + [].constructor(this.totalCols).join('-');
 };
 
