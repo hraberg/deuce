@@ -209,6 +209,17 @@ Frame.prototype.saveBuffersKillEmacs = () => {
     this.closed = true;
 };
 
+['menu-bar-mode', 'scroll-bar-mode', 'blink-cursor-mode']
+    .forEach((mode) =>
+             Frame.prototype[camel(mode)] = () => {
+                 let idx = this.minorModes.indexOf(mode);
+                 if (idx === -1) {
+                     this.minorModes.push(mode);
+                 } else {
+                     this.minorModes.splice(idx, 1);
+                 }
+             });
+
 // Assumes only two windows atm.
 Frame.prototype.otherWindow = () => {
     if (this.selectedWindow === this.minibufferWindow) {
