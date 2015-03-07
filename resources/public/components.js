@@ -33,10 +33,18 @@ let DeucePoint = Object.create(DeuceElement);
 
 DeucePoint.attachedCallback = () => {
     this.point = this.querySelector('::shadow span');
+    this.resize = this.resize.bind(this);
+    window.addEventListener('resize', this.resize);
+    this.resize();
+    DeuceElement.attachedCallback.call(this);
+};
+
+DeucePoint.detachedCallback = () => removeEventListener('resize', this.resize);
+
+DeucePoint.resize = () => {
     let rect = (this.point.querySelector('.undecorated-point') || this.point).getBoundingClientRect();
     this.charWidth = parseFloat(rect.width);
     this.charHeight = parseFloat(rect.height);
-    DeuceElement.attachedCallback.call(this);
 };
 
 DeucePoint.moveTo = (column, visibleLine) => {
@@ -113,9 +121,7 @@ DeuceBuffer.attachedCallback = () => {
     DeuceElement.attachedCallback.call(this);
 };
 
-DeuceBuffer.detachedCallback = () => {
-    window.removeEventListener('resize', this.resize);
-};
+DeuceBuffer.detachedCallback = () => removeEventListener('resize', this.resize);
 
 DeuceBuffer.resize = () => {
     DeuceElement.resize.call(this);
@@ -210,9 +216,7 @@ DeuceWindow.attachedCallback = () => {
     DeuceElement.attachedCallback.call(this);
 };
 
-DeuceWindow.detachedCallback = () => {
-    window.removeEventListener('resize', this.resize);
-};
+DeuceWindow.detachedCallback = () => window.removeEventListener('resize', this.resize);
 
 DeuceWindow.attributeChangedCallback = (attrName) => {
     this[attrName] = this.intAttribute(attrName) || this.getAttribute(attrName);
