@@ -156,6 +156,9 @@ DeuceBuffer.attributeChangedCallback = (attrName, oldVal, newVal) => {
     if (attrName === 'tab-width') {
         this.display.style.tabSize = this.tabWidth;
     }
+    if (attrName === 'name' && this.current) {
+        document.title = 'deuce | ' + this.name;
+    }
 };
 
 DeuceBuffer.updateScroll = () => {
