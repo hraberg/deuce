@@ -34,6 +34,7 @@ function Window(buffer, isMini, next, prev, hchild, vchild, parent, leftCol, top
     this.start = start || 1;
     this.pointm = pointm || buffer.pt;
     this.contextLines = contextLines || 2;
+    this.buffer.win = this;
 }
 
 Window.nextSequenceNumber = (() => {
@@ -86,6 +87,7 @@ Window.prototype.setBuffer = (buffer) => {
     this.buffer = buffer;
     this.pointm = buffer.pt;
     this.start = buffer.lastVisibleStart || 1;
+    buffer.win = this;
 };
 
 Window.prototype.recenter = () => {
@@ -141,6 +143,8 @@ function Frame(name, menuBar, minorModes, rootWindow, minibufferWindow, buffers,
     this.windows = {};
     this.windows[rootWindow.sequenceNumber] = rootWindow;
     this.windows[minibufferWindow.sequenceNumber] = minibufferWindow;
+    rootWindow.frame = this;
+    minibufferWindow.frame = this;
 }
 
 Frame.prototype.toViewModel = () => {
@@ -162,7 +166,13 @@ Frame.prototype.executeExtendedCommand = (prefixArg, command) => {
         if (target === currentBuffer) {
             currentBuffer.eventId += 1;
         }
+        if (this.minibufferWindow.buffer === this.buffers[' *Echo Area 0*']) {
+            this.minibufferWindow.setBuffer(this.buffers[' *Minibuf-0*']);
+        }
+        this.thisCommand = command;
         target[name].call(target, prefixArg);
+        this.lastCommand = this.thisCommand;
+        this.thisCommand = null;
         if (target === currentBuffer) {
             selectedWindow.pointm = currentBuffer.pt;
             selectedWindow.adjustScroll();
@@ -174,6 +184,19 @@ Frame.prototype.executeExtendedCommand = (prefixArg, command) => {
 
 Frame.prototype.saveBuffersKillEmacs = () => {
     this.closed = true;
+};
+
+Frame.prototype.message = (str) => {
+    if (this.inMessage) {
+        return;
+    }
+    this.inMessage = true;
+    let echoArea = this.buffers[' *Echo Area 0*'];
+    this.minibufferWindow.setBuffer(echoArea);
+    echoArea.markWholeBuffer();
+    echoArea.deleteRegion();
+    echoArea.insert(str);
+    this.inMessage = false;
 };
 
 // This just picks another buffer, no prompts yet.
@@ -328,6 +351,12 @@ Buffer.prototype.lookingAt = (regexp) =>
 Buffer.prototype.gotoChar = (position) => {
     this.pt = this.limitToRegion(position);
     this.desiredCol = this.lineVisibleColumn(this.lineNumberAtPos(), this.currentColumn());
+    if (this.pt === this.pointMin()) {
+        this.win.frame.message('Beginning of buffer');
+    }
+    if (this.pt === this.pointMax()) {
+        this.win.frame.message('End of buffer');
+    }
     return this.pt;
 };
 
@@ -568,6 +597,7 @@ Buffer.prototype.undo = (arg) => {
         this.text = afterUndo.text;
         this.size = this.text.beg.length;
         this.gotoChar(befreUndo.pt);
+        this.win.frame.message('Undo!');
         if (!(befreUndo.singleChar && afterUndo.singleChar || (befreUndo.newline && afterUndo.newline))) {
             arg -= 1;
         }
@@ -576,6 +606,9 @@ Buffer.prototype.undo = (arg) => {
 
 Buffer.prototype.setMarkCommand = () => {
     this.mark = this.mark === this.pt ? null : this.pt;
+    if (this.win.frame.thisCommand === 'set-mark-command') {
+        this.win.frame.message(this.mark ? 'Mark set' : 'Mark cleared');
+    }
 };
 
 Buffer.prototype.markWholeBuffer = () => {
@@ -622,9 +655,9 @@ function initalBuffers() {
     return {'*scratch*': new Buffer('*scratch*', Rope.toRope(scratch),
                                     scratch.length + 1, 'lisp-interaction-mode'),
             'TUTORIAL': new Buffer('TUTORIAL', Rope.toRope(tutorial), 1, 'fundamental-mode'),
-            ' *Minibuf-0*': new Buffer(' *Minibuf-0*', Rope.toRope('Welcome to deuce.js'),
+            ' *Minibuf-0*': new Buffer(' *Minibuf-0*', Rope.EMPTY,
                                        1, 'minibuffer-inactive-mode'),
-            ' *Echo Area 0*': new Buffer(' *Echo Area 0*', Rope.EMPTY, 1, 'fundamental-mode')};
+            ' *Echo Area 0*': new Buffer(' *Echo Area 0*', Rope.EMPTY, 1, 'minibuffer-inactive-mode')};
 }
 
 function defaultKeyMap() {
@@ -759,6 +792,7 @@ ws.createServer({port: 8080}, (ws) => {
         }
     });
     console.log('new client:', id);
+    frame.message('Welcome to deuce.js');
     onrefresh();
 });
 
