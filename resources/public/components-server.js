@@ -842,7 +842,8 @@ ws.createServer({port: 8080}, (ws) => {
             let pt = Math.min(Math.max(win.start, win.pointm),
                               win.buffer.text.beg.indexOfLine(lineNumberAtStart - 1 + (win.totalLines - 2 - 1 )) + 1);
             win.buffer.gotoChar(pt);
-            win.pointm = win.buffer.beginningOfLine();
+            win.buffer.beginningOfLine();
+            win.pointm = win.buffer.pt;
             updateClient(client);
         },
         onkey = (key) => {
