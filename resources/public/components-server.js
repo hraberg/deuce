@@ -114,16 +114,18 @@ Window.prototype.formatModeLine = () => {
         modified = this.buffer.bufferModifiedP() ? '*' : '-',
         writable = readOnlyMode ? '%' : modified,
         localDirectory = '-',
+        lineNumberAtStart = this.buffer.lineNumberAtPos(this.start),
         lineNumberAtPoint = this.buffer.lineNumberAtPos(),
         lineNumberAtPointMax = this.buffer.lineNumberAtPos(this.buffer.pointMax()),
         modes = [this.buffer.majorMode].concat(this.buffer.minorModes).map((m) => m.replace(/-mode$/, '')).map(humanize),
-        location = (this.totalLines >= lineNumberAtPointMax ? 'All' : lineNumberAtPoint < this.totalLines
-                    ? 'Top' : lineNumberAtPoint + this.totalLines > lineNumberAtPointMax
+        location = (this.totalLines >= lineNumberAtPointMax || lineNumberAtPoint > this.totallLines
+                    ? 'All' : lineNumberAtStart === 1
+                    ? 'Top' : lineNumberAtStart + this.totalLines > lineNumberAtPointMax
                     ? 'Bot' : Math.round(lineNumberAtPoint / lineNumberAtPointMax * 100) + '%'),
         line = (lineNumberAtPoint + '     ').slice(0, 6);
     return codingSystem + endOfLineStyle + writable + modified + localDirectory +
         '  ' + '<strong style=\"opacity:0.5;\">' + this.buffer.name + '</strong>' +
-        '      ' + location + ' ' + 'L' + line + '(' + modes.join(' ') + ')' +
+        '      ' + ('    ' + location).slice(-4) + ' ' + 'L' + line + '(' + modes.join(' ') + ')' +
         ' ' + [].constructor(this.totalCols).join('-');
 };
 
