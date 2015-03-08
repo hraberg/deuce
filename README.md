@@ -60,7 +60,7 @@ There's more information about this throughout this document, but some of it mig
 
 **2015-03-08 deuce.js**
 
-I've spent the last month hacking on an unfinished JavaScript Zile clone which lives under [`resources/public`](https://github.com/hraberg/deuce/blob/master/resources/public), see the `README` in that directory. This is not an actual port of Emacs, and there's no Emacs Lisp, but I definitely plan to add Clojure into the mix. The idea is to eventually learn from both this experiment and Deuce proper to find an approach forward. Now time has come to work elsewhere. To be continued.
+I've spent the last month hacking on an unfinished JavaScript Zile clone which lives under [`resources/public`](https://github.com/hraberg/deuce/blob/master/resources/public), see the `README` in that directory. This is not an actual port of Emacs, and there's no Emacs Lisp, but I definitely plan to add Clojure into the mix. The idea is to eventually learn from both this experiment and Deuce proper to find an approach forward. Now the time has come to work elsewhere for a bit. To be continued.
 
 
 **2015-02-06**
