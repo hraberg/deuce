@@ -34,6 +34,7 @@ Rope.LONG_LIMIT = 1024;
 Rope.LINES_PATTERN = /^.*(\r\n?|\n)/gm;
 
 Rope.EMPTY = new RopeString('');
+ // There's a bug here, this seems to cause stack overflow during the reduce in toRope below.
 Rope.EMPTY.concat = (rope) => Rope.toRope(rope);
 
 Rope.toRope = (x) => {
@@ -44,9 +45,7 @@ Rope.toRope = (x) => {
         if (x.length === 0) {
             return Rope.EMPTY;
         }
-        return x.reduce((left, right) => {
-            return Rope.toRope(left).concat(Rope.toRope(right));
-        });
+        return x.reduce((left, right) => Rope.toRope(left).concat(Rope.toRope(right)));
     }
     return x === undefined ? Rope.EMPTY : new RopeString(x).balance();
 };
@@ -124,6 +123,7 @@ Rope.fib = ((f) => {
 })(Rope.fib);
 
 // based on this version in Common Lisp: https://github.com/Ramarren/ropes
+//
 Rope.balanceFibStep = (acc, rope) => {
     let n = 0,
         maxLength = Rope.fib(n + 2),
@@ -396,6 +396,9 @@ assert.equal(new Rope('Hello', 'World').insert(-1, 'Space'), 'HelloWorlSpaced');
 assert.equal(new Rope('Hello', 'World').del(3, 8), 'Helld');
 
 assert.equal(Rope.EMPTY.newlines, 0);
+assert.equal(Rope.EMPTY.concat(Rope.EMPTY), Rope.EMPTY);
+assert.equal(Rope.EMPTY.concat(''), Rope.EMPTY);
+assert.equal(Rope.EMPTY.concat(new Rope('Hello', 'World')), 'HelloWorld');
 assert.equal(new Rope('Hello').right, Rope.EMPTY);
 assert.equal(new Rope('Hello').newlines, 0);
 assert.equal(new Rope('Hello').depth, 1);

@@ -55,13 +55,17 @@ function lineFromModel(bufferName, lineNumberAtStart, line, idx) {
                               attributes: {number: (idx + lineNumberAtStart)}}), line);
 }
 
-function bufferFromModel(buffer, lineNumberAtStart) {
+function bufferFromModel(buffer, lineNumberAtStart, lineNumberAtEnd) {
     let properties = {key: 'buffer-' + buffer.name, attributes: {}},
         children;
     lineNumberAtStart = lineNumberAtStart || 1;
     Object.keys(buffer).forEach((a) => {
         if (a === 'text') {
-            children = buffer[a].map((line, idx) => lineFromModel(buffer.name, lineNumberAtStart, line, idx));
+            let lines = buffer[a];
+            if (lines.length === buffer['line-number-at-point-max']) {
+                lines = lines.slice(lineNumberAtStart - 1, lineNumberAtEnd);
+            }
+            children = lines.map((line, idx) => lineFromModel(buffer.name, lineNumberAtStart, line, idx));
         } else if (buffer[a] !== false) {
             properties.attributes[a] = attributeFromModel(buffer[a]);
         }
@@ -72,10 +76,11 @@ function bufferFromModel(buffer, lineNumberAtStart) {
 function windowFromModel(win) {
     let properties = {key: 'window-' + win['sequence-number'], attributes: {}},
         children = [],
-        lineNumberAtStart = parseInt(win['line-number-at-start'], 10);
+        lineNumberAtStart = parseInt(win['line-number-at-start'], 10),
+        lineNumberAtEnd = parseInt(win['line-number-at-end'], 10);
     Object.keys(win).forEach((a) => {
         if (a === 'buffer') {
-            children.push(bufferFromModel(win[a], lineNumberAtStart));
+            children.push(bufferFromModel(win[a], lineNumberAtStart, lineNumberAtEnd));
         } else if (a === 'mode-line') {
             children.push(h('mode-line-d', attrs({key: 'mode-line-' + properties.key, innerHTML: win[a]})));
         } else if (win[a] !== false) {

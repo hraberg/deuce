@@ -1,5 +1,7 @@
 'use strict';
 
+let SEND_ENTIRE_BUFFER = false;
+
 const DiffMatchPatch = require('googlediff'),
       ws = require('ws'),
       fs = require('fs'),
@@ -338,7 +340,13 @@ Buffer.prototype.toViewModel = (frame, win) => {
         markCol = markActive && (this.mark - (text.indexOfLine(lineNumberAtMark - 1) + 1)),
         lineNumberAtStart = this.lineNumberAtPos(win.start),
         lineNumberAtEnd = lineNumberAtStart + win.totalLines,
-        lines = text.lines(lineNumberAtStart - 1, lineNumberAtEnd - 1).toString().split(Buffer.NEW_LINES_PATTERN);
+        lines;
+
+    if (SEND_ENTIRE_BUFFER) {
+        lines = text.toString().split(Buffer.NEW_LINES_PATTERN);
+    } else {
+       lines = text.lines(lineNumberAtStart - 1, lineNumberAtEnd - 1).toString().split(Buffer.NEW_LINES_PATTERN);
+    }
 
     col = this.lineVisibleColumn(lineNumberAtPoint, col);
 
@@ -938,6 +946,12 @@ function diffLineMode(from, to) {
     return diffs;
 }
 
+function diffCharMode(from, to) {
+    return dmp.diff_main(from, to);
+}
+
+let diff = SEND_ENTIRE_BUFFER ? diffCharMode : diffLineMode;
+
 function toSimpleDiff(d) {
     if (d[0] === 1) {
         return d[1];
@@ -949,7 +963,11 @@ function toSimpleDiff(d) {
 }
 
 function serialize(state) {
-    return JSON.stringify(state, null, 1);
+    if (SEND_ENTIRE_BUFFER) {
+        return JSON.stringify(state);
+    } else {
+        return JSON.stringify(state, null, 1);
+    }
 }
 
 function updateClient(client) {
@@ -964,7 +982,7 @@ function updateClient(client) {
 
     if (newSerializedState !== client.serializedState) {
         console.time('  update');
-        let diffs = diffLineMode(client.serializedState, newSerializedState).map(toSimpleDiff),
+        let diffs = diff(client.serializedState, newSerializedState).map(toSimpleDiff),
             data = JSON.stringify(['p', client.revision, diffs, startTime.getTime()]);
 
         if (client.ws.readyState === ws.OPEN) {
