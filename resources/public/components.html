@@ -63,14 +63,14 @@
       <style>
         :host { z-index: -1; position: absolute; visibility: hidden; }
         :host-context([mark-active]) { visibility: visible; }
-        :host span { position: absolute; background-color: #cdcd00; white-space: pre; }
+        :host .mark { position: absolute; background-color: #cdcd00; white-space: pre; }
         .mark-region.same-line .mid { visibility: hidden; }
         .mark-region.same-line .end { visibility: hidden; }
       </style>
       <div class="mark-region">
-        <span class="start"> </span>
-        <span class="mid"> </span>
-        <span class="end"> </span>
+        <span class="start mark"> </span>
+        <span class="mid mark"> </span>
+        <span class="end mark"> </span>
       </div>
     </template>
 
@@ -94,10 +94,10 @@
 
     <template data-tag="line-d">
       <style>
-        :host div { white-space: pre; }
+        :host .line { white-space: pre; }
         ::content strong { font-weight: normal; text-shadow: 1px 0 0; }
       </style>
-      <div><content></content> </div>
+      <div class="line"><content></content> </div>
     </template>
 
     <template data-tag="mode-line-d">
