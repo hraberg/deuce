@@ -18,7 +18,7 @@ Also - there's a risk I'll give up, far before reaching the current benchmark of
 
 Deuce can currently start Emacs and handle limited keyboard input (like C-x C-c). The main moving pieces are there but it's far from usable yet. Back in 2013 I aimed to release a developer preview, 0.1.0 around September, followed by an end-user alpha "when it's done". Needless to say, this didn't happen. I also thought that 0.1.0 was less than a months work away, and that reaching alpha would take about another 2-4 months of work. While that still somewhat holds, I feel Deuce needs some new ideas to move forward.
 
-I work on Deuce on and off and have spent about 2-3 months full-time so far in total. I started in April 2012.
+I work on Deuce on and off and have spent about 4 months full-time so far in total. I started in April 2012.
 
 ### Getting Started
 
