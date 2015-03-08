@@ -58,6 +58,11 @@ There's more information about this throughout this document, but some of it mig
 
 [Marginalia](http://hraberg.github.io/deuce/uberdoc.html) | [Codox](http://hraberg.github.io/deuce/codox) | [Skip to below updates](#preparing-emacs) | [Contributors](https://github.com/hraberg/deuce#contributors) | [Dependencies](https://github.com/hraberg/deuce#dependencies)
 
+**2015-03-08 deuce.js**
+
+I've spent the last month hacking on an unfinished JavaScript Zile clone which lives under [`resources/public`](https://github.com/hraberg/deuce/blob/master/resources/public), see the `README` in that directory. This is not an actual port of Emacs, and there's no Emacs Lisp, but I definitely plan to add Clojure into the mix. The idea is to eventually learn from both this experiment and Deuce proper to find an approach forward. Now time has come to work elsewhere. To be continued.
+
+
 **2015-02-06**
 
 I've revisited Deuce this past week and done some house cleaning to make it slightly more attractive to work on:
