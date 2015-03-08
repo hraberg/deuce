@@ -51,15 +51,16 @@ Window.nextSequenceNumber = (() => {
 Window.prototype.toViewModel = (frame) => {
     let lineNumberAtStart = this.buffer ? this.buffer.lineNumberAtPos(this.start) : undefined,
         lineNumberAtPointMax = this.buffer.text.beg.newlines + 1,
-        lineNumberAtEnd = Math.min(lineNumberAtPointMax, lineNumberAtStart + this.totalLines);
+        lineNumberAtEnd = Math.min(lineNumberAtPointMax, lineNumberAtStart + this.totalLines),
+        isLive = this.buffer !== undefined;
     return {'sequence-number': this.sequenceNumber,
             'mini-p': this.isMini,
-            'live-p': this.buffer !== undefined,
+            'live-p': isLive,
             'selected': this === frame.selectedWindow,
             'buffer': this.buffer ? this.buffer.toViewModel(frame, this) : undefined,
             'line-number-at-start': lineNumberAtStart,
             'line-number-at-end': lineNumberAtEnd,
-            'mode-line': (this.isMini || !this.buffer) ? undefined : this.formatModeLine()};
+            'mode-line': isLive && !this.isMini ? this.formatModeLine() : undefined};
 };
 
 Window.prototype.scrollDown = (arg) => {
@@ -162,6 +163,7 @@ function Frame(name, menuBar, minorModes, rootWindow, minibufferWindow, buffers,
     this.windows[minibufferWindow.sequenceNumber] = minibufferWindow;
     rootWindow.frame = this;
     minibufferWindow.frame = this;
+    this.recursiveEditLevel = 0;
 }
 
 Frame.prototype.toViewModel = () => {
@@ -173,20 +175,22 @@ Frame.prototype.toViewModel = () => {
             'closed': this.closed};
 };
 
+Frame.prototype.prompt = (prompt) => {
+    this.noEcho = true;
+    let minibuffer = this.buffers[' *Minibuf-' + this.recursiveEditLevel + '*'];
+    this.minibufferWindow.setBuffer(minibuffer);
+    minibuffer.markWholeBuffer();
+    minibuffer.insert(prompt);
+    this.minibufferWindow.pointm = minibuffer.pt;
+    minibuffer.majorMode = 'fundamental-mode';
+    this.selectedWindow = this.minibufferWindow;
+    this.noEcho = false;
+};
+
 Frame.prototype.executeExtendedCommand = (prefixArg, command) => {
     console.log(' command:', command);
     if (command === 'execute-extended-command') {
-        this.noEcho = true;
-        let minibuffer = this.buffers[' *Minibuf-0*'];
-        this.minibufferWindow.setBuffer(minibuffer);
-        minibuffer.markWholeBuffer();
-        minibuffer.deleteRegion();
-        minibuffer.insert('M-x ');
-        this.minibufferWindow.pointm = minibuffer.pt;
-        minibuffer.majorMode = 'fundamental-mode';
-        this.selectedWindow = this.minibufferWindow;
-        this.noEcho = false;
-        return;
+        return this.prompt('M-x ');
     }
     let name = camel(command),
         selectedWindow = this.selectedWindow,
@@ -196,8 +200,8 @@ Frame.prototype.executeExtendedCommand = (prefixArg, command) => {
         if (target === currentBuffer) {
             currentBuffer.eventId += 1;
         }
-        if (this.minibufferWindow.buffer === this.buffers[' *Echo Area 0*']) {
-            this.minibufferWindow.setBuffer(this.buffers[' *Minibuf-0*']);
+        if (this.minibufferWindow.buffer === this.buffers[' *Echo Area ' + this.recursiveEditLevel + '*']) {
+            this.minibufferWindow.setBuffer(this.buffers[' *Minibuf-' + this.recursiveEditLevel + '*']);
         }
         this.thisCommand = command;
         target[name].call(target, prefixArg);
@@ -241,22 +245,21 @@ Frame.prototype.message = (str) => {
         return;
     }
     this.noEcho = true;
-    let echoArea = this.buffers[' *Echo Area 0*'];
+    let echoArea = this.buffers[' *Echo Area ' + this.recursiveEditLevel + '*'];
     this.minibufferWindow.setBuffer(echoArea);
     echoArea.markWholeBuffer();
-    echoArea.deleteRegion();
     echoArea.insert(str);
     this.noEcho = false;
 };
 
 Frame.prototype.keyboardQuit = () => {
-    if (this.selectedWindow === this.minibufferWindow) {
+    if (this.selectedWindow.isMini) {
         this.noEcho = true;
         let minibuffer = this.selectedWindow.buffer;
         minibuffer.markWholeBuffer();
         minibuffer.deleteRegion();
-        this.minibufferWindow.pointm = minibuffer.pt;
         minibuffer.majorMode = 'minibuffer-inactive-mode';
+        this.selectedWindow.pointm = minibuffer.pt;
         this.selectedWindow = this.rootWindow;
         this.noEcho = false;
     }
@@ -369,7 +372,7 @@ Buffer.prototype.toViewModel = (frame, win) => {
             'text': lines};
 };
 
-Buffer.prototype.bufferModifiedP = () => this._currentRevision !== 0;
+Buffer.prototype.bufferModifiedP = () => this.text.modiff !== this.text.saveModiff;
 
 Buffer.prototype.lineNumberAtPos = (pos) => {
     return this.text.beg.lineAt((pos || this.pt) - 1) + 1;
@@ -544,11 +547,18 @@ Buffer.prototype.previousLine = (n) =>
     this.nextLine(-(n === undefined ? 1 : n));
 
 Buffer.prototype.insert = (args) => {
-    let previousPt = this.pt,
-        nextPt = previousPt + args.length,
-        newline = args === '\n';
-    this.newRevision(this.pt, this.text.insert(this.pt, args), args.length === 1 && !newline, newline);
-    return this.gotoChar(nextPt);
+    if (this.mark) {
+        let start = Math.min(this.mark, this.pt),
+            end = Math.max(this.mark, this.pt);
+        this.newRevision(this.pt, this.text.deleteRegion(start, end).insert(start, args));
+        return this.gotoChar(start + args.length);
+    } else {
+        let nextPt = this.pt + args.length,
+            newline = args === '\n',
+            singleChar = this.win.frame.thisCommand === 'self-insert-command' && !newline;
+        this.newRevision(this.pt, this.text.insert(this.pt, args), singleChar, newline);
+        return this.gotoChar(nextPt);
+    }
 };
 
 Buffer.prototype.deleteRegion = (start, end) => {
@@ -630,7 +640,7 @@ Buffer.prototype.backwardKillWord = (n) => {
 
 Buffer.prototype.newline = (n) => {
      // super hack - just to get going, it should have its own key map etc.
-    if (this.win === this.win.frame.minibufferWindow) {
+    if (this.win.isMini) {
         let command = this.bufferString().replace(/^M-x/, '').trim();
         try {
             this.win.frame.keyboardQuit();
