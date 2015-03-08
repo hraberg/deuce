@@ -1,6 +1,7 @@
 'use strict';
 
-let SEND_ENTIRE_BUFFER = false;
+let SEND_ENTIRE_BUFFER = false,
+    REFRESH_THRESHOLD = 4096;
 
 const DiffMatchPatch = require('googlediff'),
       ws = require('ws'),
@@ -822,7 +823,76 @@ function initialFrame(id) {
                      buffers, defaultKeyMap());
 }
 
-const REFRESH_THRESHOLD = 4096;
+let dmp = new DiffMatchPatch();
+
+function diffLineMode(from, to) {
+    let a = dmp.diff_linesToChars_(from, to),
+        diffs = dmp.diff_main(a.chars1, a.chars2, false);
+    dmp.diff_charsToLines_(diffs, a.lineArray);
+    return diffs;
+}
+
+function diffCharMode(from, to) {
+    return dmp.diff_main(from, to);
+}
+
+let diff = SEND_ENTIRE_BUFFER ? diffCharMode : diffLineMode;
+
+function toSimpleDiff(d) {
+    if (d[0] === 1) {
+        return d[1];
+    }
+    if (d[0] === -1) {
+        return -d[1].length;
+    }
+    return d[1].length;
+}
+
+function serialize(state) {
+    if (SEND_ENTIRE_BUFFER) {
+        return JSON.stringify(state);
+    } else {
+        return JSON.stringify(state, null, 1);
+    }
+}
+
+function updateClient(client) {
+    let startTime = new Date(),
+        newState = {frame: client.frame.toViewModel()};
+
+    let newSerializedState = serialize(newState);
+
+    if (Math.abs(newSerializedState.length - client.serializedState.length) > REFRESH_THRESHOLD) {
+        return refreshClient(client, newState, newSerializedState);
+    }
+
+    if (newSerializedState !== client.serializedState) {
+        console.time('  update');
+        let diffs = diff(client.serializedState, newSerializedState).map(toSimpleDiff),
+            data = JSON.stringify(['p', client.revision, diffs, startTime.getTime()]);
+
+        if (client.ws.readyState === ws.OPEN) {
+            console.log(' sending:', data);
+            client.ws.send(data);
+            client.revision += 1;
+            client.state = newState;
+            client.serializedState = newSerializedState;
+        }
+        console.timeEnd('  update');
+    }
+}
+
+function refreshClient(client, newState, newSerializedState) {
+    console.time(' refresh:');
+    client.state = newState || {frame: client.frame.toViewModel()};
+    client.serializedState = newSerializedState || serialize(client.state);
+    let data = JSON.stringify(['r', client.revision, client.serializedState, Date.now()]);
+    if (client.ws.readyState === ws.OPEN) {
+        console.log(' sending:', data);
+        client.ws.send(data);
+    }
+    console.timeEnd(' refresh:');
+}
 
 let connections = new Map();
 
@@ -936,74 +1006,3 @@ ws.createServer({port: 8080}, (ws) => {
     frame.message('Welcome to deuce.js');
     onrefresh();
 });
-
-let dmp = new DiffMatchPatch();
-
-function diffLineMode(from, to) {
-    let a = dmp.diff_linesToChars_(from, to),
-        diffs = dmp.diff_main(a.chars1, a.chars2, false);
-    dmp.diff_charsToLines_(diffs, a.lineArray);
-    return diffs;
-}
-
-function diffCharMode(from, to) {
-    return dmp.diff_main(from, to);
-}
-
-let diff = SEND_ENTIRE_BUFFER ? diffCharMode : diffLineMode;
-
-function toSimpleDiff(d) {
-    if (d[0] === 1) {
-        return d[1];
-    }
-    if (d[0] === -1) {
-        return -d[1].length;
-    }
-    return d[1].length;
-}
-
-function serialize(state) {
-    if (SEND_ENTIRE_BUFFER) {
-        return JSON.stringify(state);
-    } else {
-        return JSON.stringify(state, null, 1);
-    }
-}
-
-function updateClient(client) {
-    let startTime = new Date(),
-        newState = {frame: client.frame.toViewModel()};
-
-    let newSerializedState = serialize(newState);
-
-    if (Math.abs(newSerializedState.length - client.serializedState.length) > REFRESH_THRESHOLD) {
-        return refreshClient(client, newState, newSerializedState);
-    }
-
-    if (newSerializedState !== client.serializedState) {
-        console.time('  update');
-        let diffs = diff(client.serializedState, newSerializedState).map(toSimpleDiff),
-            data = JSON.stringify(['p', client.revision, diffs, startTime.getTime()]);
-
-        if (client.ws.readyState === ws.OPEN) {
-            console.log(' sending:', data);
-            client.ws.send(data);
-            client.revision += 1;
-            client.state = newState;
-            client.serializedState = newSerializedState;
-        }
-        console.timeEnd('  update');
-    }
-}
-
-function refreshClient(client, newState, newSerializedState) {
-    console.time(' refresh:');
-    client.state = newState || {frame: client.frame.toViewModel()};
-    client.serializedState = newSerializedState || serialize(client.state);
-    let data = JSON.stringify(['r', client.revision, client.serializedState, Date.now()]);
-    if (client.ws.readyState === ws.OPEN) {
-        console.log(' sending:', data);
-        client.ws.send(data);
-    }
-    console.timeEnd(' refresh:');
-}
