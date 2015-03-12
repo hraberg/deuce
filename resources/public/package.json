@@ -17,10 +17,10 @@
     },
     "dependencies": {
         "java": "0.4.6",
-        "mmap.js": "0.2.2",
+        "mmap.js": "1.0.0",
         "ws": "0.7.1",
         "diff": "1.3.0",
-        "virtual-dom": "2.0.0",
+        "virtual-dom": "2.0.1",
         "html-to-vdom": "0.5.5",
         "jsdom": "4.0.2",
         "diff-dom": "1.0.0",
@@ -35,7 +35,7 @@
         "watchify": "2.4.0",
         "node-webkit-builder": "1.0.11",
         "benchmark": "1.0.0",
-        "eslint": "0.16.0",
+        "eslint": "0.16.2",
         "csslint": "0.10.0",
         "nodemon": "1.3.7"
     },
