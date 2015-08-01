@@ -26,6 +26,7 @@ I plan to finish this as a standalone editor, independent of Deuce with function
 2. Consider to rewrite parts of this in Clojure/ClojureScript.
 3. Integrate the UI back into Deuce proper / revisit the best Emacs Lisp strategy.
 
+**[2015-08-01]** Now with self hosted [ClojureScript 1.7](http://swannodette.github.io/2015/07/29/clojurescript-17/) out, this could be re-done in pure ClojureScript, with optional Clojure parts.
 
 ### Rejected Approaches
 
