@@ -11,13 +11,10 @@
            [java.lang.reflect Method])
   (:refer-clojure :exclude [defmacro and or cond let while eval set compile]))
 
-(timbre/set-config! [:prefix-fn]
-                    (fn [{:keys [level timestamp hostname ns]}]
-                      (str timestamp " " (-> level name s/upper-case) " [" ns "]")))
-(timbre/set-config! [:timestamp-pattern] "HH:mm:ss,SSS")
+(timbre/merge-config! {:timestamp-opts {:pattern "HH:mm:ss,SSS"}
+                       :appenders {:println {:min-level :error}}})
 
 (timbre/set-level! :debug)
-(timbre/set-config! [:appenders :standard-out :min-level] :error)
 (set! *warn-on-reflection* true)
 
 (create-ns 'deuce.emacs)

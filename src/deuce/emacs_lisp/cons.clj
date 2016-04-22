@@ -63,18 +63,18 @@
 (extend-type PersistentList
   ICons
   (setcar [^PersistentList this val]
-    (do (.set l_first this val)
+    (do (.set ^Field l_first this val)
         val))
   (setcdr [^PersistentList this val]
     (if (or (instance? IPersistentList val) (nil? val) (= () val))
       (do
-        (.set l_rest this val)
-        (.set l_count this (int (inc (count val))))) ;; this gets out of sync when changing part of the tail.
+        (.set ^Field l_rest this val)
+        (.set ^Field l_count this (int (inc (count val))))) ;; this gets out of sync when changing part of the tail.
       (if (dotted-pair? this)
         (setcar (rest (rest this)) val)
         (do
-          (.set l_rest this (c/list '. val))
-          (.set l_count this (int 3)))))
+          (.set ^Field l_rest this (c/list '. val))
+          (.set ^Field l_count this (int 3)))))
     val))
 
 ;; This should really be eval-expression-print-length, maybe move this to deuce.emacs.print

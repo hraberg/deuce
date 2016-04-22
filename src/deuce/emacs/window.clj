@@ -134,6 +134,9 @@
 
 (def ^:private sequence-number (atom 0))
 
+(def ^:private window-prev-buffers-list (atom {}))
+(def ^:private window-next-buffers-list (atom {}))
+
 (defn ^:private allocate-window [minibuffer? parent leftcol top-line total-cols total-lines]
   (let [[next prev hchild vchild
          buffer start pointm] (repeatedly #(atom nil))
@@ -373,7 +376,7 @@
 (defun window-next-buffers (&optional window)
   "Return list of buffers recently re-shown in WINDOW.
   WINDOW must be a live window and defaults to the selected one."
-  )
+  (cons/maybe-seq (@window-next-buffers-list (el/check-type 'windowp (or window (selected-window))))))
 
 (defun set-window-combination-limit (window limit)
   "Set combination limit of window WINDOW to LIMIT; return LIMIT.
@@ -387,7 +390,8 @@
   "Set WINDOW's next buffers to NEXT-BUFFERS.
   WINDOW must be a live window and defaults to the selected one.
   NEXT-BUFFERS should be a list of buffers."
-  )
+  (swap! window-next-buffers-list assoc (el/check-type 'windowp window) next-buffers)
+  nil)
 
 (defun set-window-redisplay-end-trigger (window value)
   "This function is obsolete since 23.1.
@@ -943,7 +947,8 @@
   PREV-BUFFERS should be a list of elements (BUFFER WINDOW-START POS),
   where BUFFER is a buffer, WINDOW-START is the start position of the
   window for that buffer, and POS is a window-specific point value."
-  )
+  (swap! window-prev-buffers-list assoc (el/check-type 'windowp window) prev-buffers)
+  nil)
 
 (defun window-prev-buffers (&optional window)
   "Return buffers previously shown in WINDOW.
@@ -952,7 +957,7 @@
   The return value is a list of elements (BUFFER WINDOW-START POS),
   where BUFFER is a buffer, WINDOW-START is the start position of the
   window for that buffer, and POS is a window-specific point value."
-  )
+  (cons/maybe-seq (@window-prev-buffers-list (el/check-type 'windowp (or window (selected-window))))))
 
 (defun minibuffer-selected-window ()
   "Return the window which was selected when entering the minibuffer.

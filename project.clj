@@ -4,10 +4,11 @@
             :url "http://www.gnu.org/licenses/"
             :distribution :repo}
   :url "http://hraberg.github.io/deuce/"
-  :dependencies [[org.clojure/clojure "1.7.0-alpha5"]
+  :dependencies [[org.clojure/clojure "1.7.0"]
                  [clojure-lanterna "0.9.3"]
-                 [com.taoensso/timbre "3.3.1"]
+                 [com.taoensso/timbre "4.3.1"]
                  [org.tcrawley/dynapath "0.2.3"]
+                 [org.flatland/ordered "1.5.3"]
                  [fipp "0.5.1"]]
   :repositories {"sonatype-staging"
                  "https://oss.sonatype.org/content/groups/staging/"}

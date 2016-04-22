@@ -823,6 +823,7 @@ For details, see [`project.clj`](https://github.com/hraberg/deuce/blob/master/pr
 
 [Fast Idiomatic Pretty-Printer](https://github.com/brandonbloom/fipp) Brandon Bloom, 2013 - "Fipp is a better pretty printer for Clojure." EPL
 
+[Ordered](https://github.com/amalloy/ordered) Alan Malloy, 2011 - "ordered provides sets and maps that maintain the insertion order of their contents." EPL
 
 ## References
 

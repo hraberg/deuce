@@ -240,6 +240,7 @@
       (load "select")))
 ;; DEUCE: InstantiationException in timer-activate, comes from 'with-no-warnings with 'cl-struct-setf-expander
 ;;        Hack to get around this by pre-defining 'last' in deuce.emacs
+;;        In Clojure 1.8.0 this fails with No setf-method known for timer--high-seconds.
 (load "emacs-lisp/timer")
 (load "isearch")
 (load "rfn-eshadow")

@@ -7,7 +7,9 @@
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.casefiddle :as casefiddle]
             [deuce.emacs.textprop :as textprop])
-  (:import [java.util Scanner]
+  (:import [java.io InputStream]
+           [java.lang.reflect Field]
+           [java.util Scanner]
            [java.util.regex Pattern]))
 
 (declare tokenize)
@@ -196,11 +198,11 @@
                         (.setAccessible true)))
 
 (defn parse-internal [r & [all?]]
-  (let [scanner (doto (if (string? r) (Scanner. r) (Scanner. r "UTF-8"))
+  (let [scanner (doto (if (string? r) (Scanner. ^String r) (Scanner. ^InputStream r "UTF-8"))
                   (.useDelimiter #"(\s|\]|\)|\"|;)"))]
     (cons/pair
      ((if all? tokenize-all tokenize) scanner)
-     (.get scanner-position scanner))))
+     (.get ^Field scanner-position scanner))))
 
 (defn parse [r]
   (cons/car (parse-internal r :all)))

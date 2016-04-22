@@ -20,6 +20,7 @@
             [deuce.emacs.window :as window]
             [deuce.emacs.xdisp :as xdisp]
             [taoensso.timbre :as timbre]
+            [taoensso.timbre.appenders.core :as timbre-appenders]
             [dynapath.util :as dp])
   (:import [java.io FileNotFoundException InputStreamReader]
            [java.awt Toolkit]
@@ -364,16 +365,17 @@
     (terminal-init-lanterna)
     :ok))
 
-(timbre/set-config!
- [:appenders :deuce-buffer-appender]
- {:min-level :debug :enabled? true :async? true
-  :fn (fn [{:keys [ap-config level prefix message more] :as args}]
-        (binding [buffer/*current-buffer* (buffer/get-buffer-create "*Deuce*")]
-          (editfns/insert (str (s/join " " (concat [prefix "-" message] more)) \newline))))})
-
-(timbre/set-config! [:shared-appender-config :spit-filename] (str (io/file deuce-dot-d "deuce.log")))
-(timbre/set-config! [:appenders :standard-out :enabled?] (inside-emacs?))
-(timbre/merge-config! {:appenders {:spit {:min-level :debug :enabled? true}}})
+(timbre/merge-config!
+ {:appenders
+  {:deuce-buffer-appender
+   {:min-level :debug :enabled? true :async? true
+    :fn (fn [{:keys [output-fn] :as data}]
+          (binding [buffer/*current-buffer* (buffer/get-buffer-create "*Deuce*")]
+            (editfns/insert (str (output-fn data) \newline))))}
+   :println (merge (timbre-appenders/println-appender)
+                   {:enabled? (inside-emacs?)})
+   :spit (merge (timbre-appenders/spit-appender {:fname (str (io/file deuce-dot-d "deuce.log"))})
+                {:min-level :debug :enabled? true})}})
 
 ;; We want to support emacs -q initially. -q is --no-init-file
 (defn -main [& args]

@@ -3,6 +3,7 @@
   (:require [clojure.core :as c]
             [clojure.string :as s]
             [clojure.java.io :as io]
+            [flatland.ordered.map :as ordered-map]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.data :as data]
             [deuce.emacs.eval :as eval]
@@ -790,7 +791,7 @@
 
 (init-buffer-locals)
 
-(def ^:private buffer-alist (atom {}))
+(def ^:private buffer-alist (atom (ordered-map/ordered-map)))
 (def ^:dynamic ^:private *current-buffer* nil)
 
 (declare current-buffer set-buffer other-buffer buffer-name
@@ -908,9 +909,10 @@
   even if it is dead.  The return value is never nil."
   (if (data/bufferp buffer-or-name)
     buffer-or-name
-    (let [buffer (or (get-buffer buffer-or-name) (allocate-buffer buffer-or-name))]
-      (swap! buffer-alist assoc buffer-or-name buffer)
-      buffer)))
+    (or (get-buffer buffer-or-name)
+        (let [buffer (allocate-buffer buffer-or-name)]
+          (swap! buffer-alist assoc buffer-or-name buffer)
+          buffer))))
 
 (defun overlay-start (overlay)
   "Return the position at which OVERLAY starts."
@@ -1031,9 +1033,12 @@
   ends when the current command terminates.  Use `switch-to-buffer' or
   `pop-to-buffer' to switch buffers permanently."
   ;; This is not correct, should only change the binding, but will do for now.
-  (alter-var-root #'*current-buffer*
-                  (constantly (when buffer-or-name
-                                (get-exisiting-buffer buffer-or-name)))))
+  (let [buffer (when buffer-or-name
+                 (get-exisiting-buffer buffer-or-name))]
+    (when buffer
+      (swap! buffer-alist dissoc @(.name ^Buffer buffer))
+      (swap! buffer-alist assoc @(.name ^Buffer buffer) buffer))
+    (alter-var-root #'*current-buffer* (constantly buffer))))
 
 (defun buffer-enable-undo (&optional buffer)
   "Start keeping undo information for buffer BUFFER.
@@ -1168,7 +1173,7 @@
   The buffer's `buffer-file-name' must match exactly the expansion of FILENAME.
   If there is no such live buffer, return nil.
   See also `find-buffer-visiting'."
-  (first (filter (comp #{((el/fun 'expand-file-name) filename)} buffer-file-name) (buffer-list))))
+  (first (filter (comp #{((el/fun 'expand-file-name) filename)} buffer-file-name) (vals @buffer-alist))))
 
 (defun overlay-properties (overlay)
   "Return a list of the properties on OVERLAY.
@@ -1187,7 +1192,8 @@
   The buffer is found by scanning the selected or specified frame's buffer
   list first, followed by the list of all buffers.  If no other buffer
   exists, return the buffer `*scratch*' (creating it if necessary)."
-  (or (first (remove #{(el/check-type 'bufferp (or buffer (current-buffer)))} (buffer-list)))
+  (or (last (remove #{(el/check-type 'bufferp (or buffer (current-buffer)))}
+                    (vals @buffer-alist)))
       (get-buffer-create "*scratch*")))
 
 (defun overlays-at (pos)
