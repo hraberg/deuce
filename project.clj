@@ -20,6 +20,7 @@
   :profiles {:uberjar {:aot :all
                        :auto-clean false}
              :test {:global-vars {*warn-on-reflection* true}}}
+  :pedantic? :abort
   :resource-paths ["emacs/lisp" "resources"]
   :jar-exclusions [#".*\.elc" #"TUTORIAL\..*"
                    #"ChangeLog.*" #"Makefile.*" #"README" #"\.gitignore"]
