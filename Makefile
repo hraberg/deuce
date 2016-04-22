@@ -114,7 +114,7 @@ run-dev: emacs/lisp/loaddefs.el
 docs/index.html: $(deuce_source_files)
 	git submodule update --init docs
 	rm -rf docs/codox
-	lein do marg-el, doc
+	lein do marg-el, codox
 
 docs: docs/index.html
 

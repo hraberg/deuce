@@ -13,10 +13,10 @@
   :repositories {"sonatype-staging"
                  "https://oss.sonatype.org/content/groups/staging/"}
   :plugins [[lein-difftest "2.0.0"]
-            [lein-marginalia "0.8.0"]
-            [codox "0.8.10"]]
-  :codox {:output-dir "docs/codox"
-          :exclude deuce.emacs}
+            [lein-marginalia "0.9.0"]
+            [lein-codox "0.9.4"]]
+  :codox {:output-path "docs/codox"
+          :namespaces [#"^(?!deuce\.emacs$).*$"]}
   :profiles {:uberjar {:aot :all
                        :auto-clean false}
              :test {:global-vars {*warn-on-reflection* true}}}
