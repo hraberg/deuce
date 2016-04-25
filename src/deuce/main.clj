@@ -31,13 +31,13 @@
   (:gen-class))
 
 ;; Start Deuce like this:
-;;    lein trampoline run -Q --nrepl
+;;    make run-dev
 
-;; Using -Q will put you in *scratch*, with the keyboard enabled.
+;; This will put you in *scratch*, with the keyboard enabled.
 ;; There's no minibuffer yet, so you have to switch buffer from the REPL.
 ;; Several keyboard commands fail or are a bit off (like move-end-of-line).
 
-;; Connect to nREPL from Emacs:
+;; Connect to nREPL from Emacs on port 7888:
 ;; user> (in-ns 'deuce.emacs)  ;; We're now in Emacs Lisp
 
 ;; Tail the log at ~/.deuce.d/deuce.log
@@ -239,18 +239,14 @@
   ;; (when-not (.ready in)
   ;;   (update-terminal-size))
   (let [c (.read in)]
-;    (println c (char c))
     (swap! char-buffer conj (char c))
     (let [maybe-event (object-array @char-buffer)
           decoded (keymap/lookup-key (data/symbol-value 'input-decode-map) maybe-event)]
-      (if (keymap/keymapp decoded)
-        nil
-;        (println "potential input-decode prefix" maybe-event)
+      (when-not (keymap/keymapp decoded)
         (let [_ (reset! char-buffer [])
               event (if (data/vectorp decoded) decoded maybe-event)
               _ (swap! event-buffer (comp vec concat) event)
               def (keymap/key-binding (object-array @event-buffer))]
-;          (println maybe-event decoded event @event-buffer (if (keymap/keymapp def) "(keymap)" def))
           (if (and def (not (keymap/keymapp def)))
             (try
               ;; There are many more things that can happen here

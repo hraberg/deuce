@@ -63,7 +63,7 @@ $(deuce_uberjar): emacs/lisp/loaddefs.el $(emacs_lisp_files) $(deuce_source_file
 
 define deuce_header
 #!/bin/sh
-exec java -client -noverify -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -jar "$$0" -q "$$@"
+exec java -client -noverify -jar "$$0" -q "$$@"
 exit
 endef
 export deuce_header
