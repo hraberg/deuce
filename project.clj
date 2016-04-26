@@ -12,11 +12,12 @@
                  [fipp "0.5.1"]]
   :plugins [[lein-difftest "2.0.0"]
             [lein-marginalia "0.9.0"]
-            [lein-codox "0.9.4"]]
-  :codox {:output-path "docs/codox"
-          :namespaces [#"^(?!deuce\.emacs$).*$"]}
+            [lein-codox "0.9.5"]]
   :profiles {:uberjar {:aot :all
                        :auto-clean false}
+             :codox {:pedantic? :ranges
+                     :codox {:output-path "docs/codox"
+                             :namespaces [#"^(?!deuce\.emacs$).*$"]}}
              :test {:global-vars {*warn-on-reflection* true}}}
   :pedantic? :abort
   :resource-paths ["emacs/lisp" "resources"]
