@@ -2866,14 +2866,12 @@ net.brehaut.ClojureTools = (function (SH) {
   };
 })(SyntaxHighlighter);
 </script><title>deuce -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name"><a href="http://hraberg.github.io/deuce/">deuce</a></h1><h2 class="project-version">0.1.0-SNAPSHOT</h2><br /><p>DEUCE - Deuce is (not yet) Emacs under Clojure</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.7.0</td></tr><tr><td class="dep-name">clojure-lanterna</td><td class="dotted"><hr /></td><td class="dep-version">0.9.3</td></tr><tr><td class="dep-name">com.taoensso/timbre</td><td class="dotted"><hr /></td><td class="dep-version">4.3.1</td></tr><tr><td class="dep-name">org.tcrawley/dynapath</td><td class="dotted"><hr /></td><td class="dep-version">0.2.3</td></tr><tr><td class="dep-name">org.flatland/ordered</td><td class="dotted"><hr /></td><td class="dep-version">1.5.3</td></tr><tr><td class="dep-name">fipp</td><td class="dotted"><hr /></td><td class="dep-version">0.5.1</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#data_readers.clj">data_readers.clj</a></li><li><a href="#deuce.main">deuce.main</a></li><li><a href="#deuce.emacs-lisp">deuce.emacs-lisp</a></li><li><a href="#deuce.emacs.keyboard">deuce.emacs.keyboard</a></li><li><a href="#deuce.emacs.casefiddle">deuce.emacs.casefiddle</a></li><li><a href="#deuce.emacs.composite">deuce.emacs.composite</a></li><li><a href="#deuce.emacs.lread">deuce.emacs.lread</a></li><li><a href="#deuce.emacs.indent">deuce.emacs.indent</a></li><li><a href="#deuce.emacs.floatfns">deuce.emacs.floatfns</a></li><li><a href="#deuce.emacs.insdel">deuce.emacs.insdel</a></li><li><a href="#deuce.emacs.font">deuce.emacs.font</a></li><li><a href="#deuce.emacs.textprop">deuce.emacs.textprop</a></li><li><a href="#deuce.emacs.doc">deuce.emacs.doc</a></li><li><a href="#deuce.emacs.editfns">deuce.emacs.editfns</a></li><li><a href="#deuce.emacs.minibuf">deuce.emacs.minibuf</a></li><li><a href="#deuce.emacs.menu">deuce.emacs.menu</a></li><li><a href="#deuce.emacs.fileio">deuce.emacs.fileio</a></li><li><a href="#deuce.emacs.window">deuce.emacs.window</a></li><li><a href="#deuce.emacs.fns">deuce.emacs.fns</a></li><li><a href="#deuce.emacs.data">deuce.emacs.data</a></li><li><a href="#deuce.emacs.callproc">deuce.emacs.callproc</a></li><li><a href="#deuce.emacs.bytecode">deuce.emacs.bytecode</a></li><li><a href="#deuce.emacs.ccl">deuce.emacs.ccl</a></li><li><a href="#deuce.emacs.buffer">deuce.emacs.buffer</a></li><li><a href="#deuce.emacs.chartab">deuce.emacs.chartab</a></li><li><a href="#deuce.emacs.filelock">deuce.emacs.filelock</a></li><li><a href="#deuce.emacs.casetab">deuce.emacs.casetab</a></li><li><a href="#deuce.emacs.coding">deuce.emacs.coding</a></li><li><a href="#deuce.emacs.marker">deuce.emacs.marker</a></li><li><a href="#deuce.emacs.category">deuce.emacs.category</a></li><li><a href="#deuce.emacs.print">deuce.emacs.print</a></li><li><a href="#deuce.emacs.xfaces">deuce.emacs.xfaces</a></li><li><a href="#deuce.emacs.macros">deuce.emacs.macros</a></li><li><a href="#deuce.emacs.dired">deuce.emacs.dired</a></li><li><a href="#deuce.emacs.undo">deuce.emacs.undo</a></li><li><a href="#deuce.emacs.charset">deuce.emacs.charset</a></li><li><a href="#deuce.emacs.process">deuce.emacs.process</a></li><li><a href="#deuce.emacs.character">deuce.emacs.character</a></li><li><a href="#deuce.emacs.xdisp">deuce.emacs.xdisp</a></li><li><a href="#deuce.emacs.eval">deuce.emacs.eval</a></li><li><a href="#deuce.emacs.cmds">deuce.emacs.cmds</a></li><li><a href="#deuce.emacs.dispnew">deuce.emacs.dispnew</a></li><li><a href="#deuce.emacs.keymap">deuce.emacs.keymap</a></li><li><a href="#deuce.emacs.xml">deuce.emacs.xml</a></li><li><a href="#deuce.emacs.terminal">deuce.emacs.terminal</a></li><li><a href="#deuce.emacs.syntax">deuce.emacs.syntax</a></li><li><a href="#deuce.emacs.search">deuce.emacs.search</a></li><li><a href="#deuce.emacs.callint">deuce.emacs.callint</a></li><li><a href="#deuce.emacs.alloc">deuce.emacs.alloc</a></li><li><a href="#deuce.emacs.term">deuce.emacs.term</a></li><li><a href="#deuce.emacs.emacs">deuce.emacs.emacs</a></li><li><a href="#deuce.emacs.frame">deuce.emacs.frame</a></li><li><a href="#deuce.emacs-lisp.globals">deuce.emacs-lisp.globals</a></li><li><a href="#deuce.emacs-lisp.printer">deuce.emacs-lisp.printer</a></li><li><a href="#deuce.emacs-lisp.cons">deuce.emacs-lisp.cons</a></li><li><a href="#deuce.emacs-lisp.parser">deuce.emacs-lisp.parser</a></li><li><a href="#deuce.emacs">deuce.emacs</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#data_readers.clj" name="data_readers.clj"><h1 class="project-name">data_readers.clj</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.7.0</td></tr><tr><td class="dep-name">com.googlecode.lanterna/lanterna</td><td class="dotted"><hr /></td><td class="dep-version">3.0.0-beta2</td></tr><tr><td class="dep-name">com.taoensso/timbre</td><td class="dotted"><hr /></td><td class="dep-version">4.3.1</td></tr><tr><td class="dep-name">org.tcrawley/dynapath</td><td class="dotted"><hr /></td><td class="dep-version">0.2.3</td></tr><tr><td class="dep-name">org.flatland/ordered</td><td class="dotted"><hr /></td><td class="dep-version">1.5.3</td></tr><tr><td class="dep-name">fipp</td><td class="dotted"><hr /></td><td class="dep-version">0.5.1</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#data_readers.clj">data_readers.clj</a></li><li><a href="#deuce.main">deuce.main</a></li><li><a href="#deuce.emacs-lisp">deuce.emacs-lisp</a></li><li><a href="#deuce.emacs.keyboard">deuce.emacs.keyboard</a></li><li><a href="#deuce.emacs.casefiddle">deuce.emacs.casefiddle</a></li><li><a href="#deuce.emacs.composite">deuce.emacs.composite</a></li><li><a href="#deuce.emacs.lread">deuce.emacs.lread</a></li><li><a href="#deuce.emacs.indent">deuce.emacs.indent</a></li><li><a href="#deuce.emacs.floatfns">deuce.emacs.floatfns</a></li><li><a href="#deuce.emacs.insdel">deuce.emacs.insdel</a></li><li><a href="#deuce.emacs.font">deuce.emacs.font</a></li><li><a href="#deuce.emacs.textprop">deuce.emacs.textprop</a></li><li><a href="#deuce.emacs.doc">deuce.emacs.doc</a></li><li><a href="#deuce.emacs.editfns">deuce.emacs.editfns</a></li><li><a href="#deuce.emacs.minibuf">deuce.emacs.minibuf</a></li><li><a href="#deuce.emacs.menu">deuce.emacs.menu</a></li><li><a href="#deuce.emacs.fileio">deuce.emacs.fileio</a></li><li><a href="#deuce.emacs.window">deuce.emacs.window</a></li><li><a href="#deuce.emacs.fns">deuce.emacs.fns</a></li><li><a href="#deuce.emacs.data">deuce.emacs.data</a></li><li><a href="#deuce.emacs.callproc">deuce.emacs.callproc</a></li><li><a href="#deuce.emacs.bytecode">deuce.emacs.bytecode</a></li><li><a href="#deuce.emacs.ccl">deuce.emacs.ccl</a></li><li><a href="#deuce.emacs.buffer">deuce.emacs.buffer</a></li><li><a href="#deuce.emacs.chartab">deuce.emacs.chartab</a></li><li><a href="#deuce.emacs.filelock">deuce.emacs.filelock</a></li><li><a href="#deuce.emacs.casetab">deuce.emacs.casetab</a></li><li><a href="#deuce.emacs.coding">deuce.emacs.coding</a></li><li><a href="#deuce.emacs.marker">deuce.emacs.marker</a></li><li><a href="#deuce.emacs.category">deuce.emacs.category</a></li><li><a href="#deuce.emacs.print">deuce.emacs.print</a></li><li><a href="#deuce.emacs.xfaces">deuce.emacs.xfaces</a></li><li><a href="#deuce.emacs.macros">deuce.emacs.macros</a></li><li><a href="#deuce.emacs.dired">deuce.emacs.dired</a></li><li><a href="#deuce.emacs.undo">deuce.emacs.undo</a></li><li><a href="#deuce.emacs.charset">deuce.emacs.charset</a></li><li><a href="#deuce.emacs.process">deuce.emacs.process</a></li><li><a href="#deuce.emacs.character">deuce.emacs.character</a></li><li><a href="#deuce.emacs.xdisp">deuce.emacs.xdisp</a></li><li><a href="#deuce.emacs.eval">deuce.emacs.eval</a></li><li><a href="#deuce.emacs.cmds">deuce.emacs.cmds</a></li><li><a href="#deuce.emacs.dispnew">deuce.emacs.dispnew</a></li><li><a href="#deuce.emacs.keymap">deuce.emacs.keymap</a></li><li><a href="#deuce.emacs.xml">deuce.emacs.xml</a></li><li><a href="#deuce.emacs.terminal">deuce.emacs.terminal</a></li><li><a href="#deuce.emacs.syntax">deuce.emacs.syntax</a></li><li><a href="#deuce.emacs.search">deuce.emacs.search</a></li><li><a href="#deuce.emacs.callint">deuce.emacs.callint</a></li><li><a href="#deuce.emacs.alloc">deuce.emacs.alloc</a></li><li><a href="#deuce.emacs.term">deuce.emacs.term</a></li><li><a href="#deuce.emacs.emacs">deuce.emacs.emacs</a></li><li><a href="#deuce.emacs.frame">deuce.emacs.frame</a></li><li><a href="#deuce.emacs-lisp.globals">deuce.emacs-lisp.globals</a></li><li><a href="#deuce.emacs-lisp.printer">deuce.emacs-lisp.printer</a></li><li><a href="#deuce.emacs-lisp.cons">deuce.emacs-lisp.cons</a></li><li><a href="#deuce.emacs-lisp.parser">deuce.emacs-lisp.parser</a></li><li><a href="#deuce.emacs">deuce.emacs</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#data_readers.clj" name="data_readers.clj"><h1 class="project-name">data_readers.clj</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">{el/vec deuce.emacs-lisp/vector-reader
  el/sym deuce.emacs-lisp/symbol-reader}</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.main" name="deuce.main"><h1 class="project-name">deuce.main</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.main
   (:require [clojure.string :as s]
             [clojure.java.io :as io]
-            [lanterna.screen :as sc]
-            [lanterna.terminal :as te]
             [deuce.emacs]
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals]
@@ -2883,7 +2881,6 @@ net.brehaut.ClojureTools = (function (SH) {
             [deuce.emacs.editfns :as editfns]
             [deuce.emacs.eval :as eval]
             [deuce.emacs.fns :as fns]
-            [deuce.emacs.frame :as frame]
             [deuce.emacs.keymap :as keymap]
             [deuce.emacs.keyboard :as keyboard]
             [deuce.emacs.lread :as lread]
@@ -2896,15 +2893,19 @@ net.brehaut.ClojureTools = (function (SH) {
   (:import [java.io FileNotFoundException InputStreamReader]
            [java.awt Toolkit]
            [java.awt.datatransfer DataFlavor StringSelection]
+           [java.util HashSet]
            [clojure.lang ExceptionInfo]
            [deuce.emacs.data Buffer Window]
+           [com.googlecode.lanterna TerminalPosition SGR]
+           [com.googlecode.lanterna TextColor$ANSI]
+           [com.googlecode.lanterna.graphics TextGraphics]
            [com.googlecode.lanterna.screen Screen])
   (:gen-class))</pre></td></tr><tr><td class="docs"><p>Start Deuce like this:
-   lein trampoline run -Q --nrepl</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>Using -Q will put you in <em>scratch</em>, with the keyboard enabled.
+   make run-dev</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>This will put you in <em>scratch</em>, with the keyboard enabled.
 There's no minibuffer yet, so you have to switch buffer from the REPL.
 Several keyboard commands fail or are a bit off (like move-end-of-line).</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>Connect to nREPL from Emacs:
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Connect to nREPL from Emacs on port 7888:
 user> (in-ns 'deuce.emacs)  ;; We're now in Emacs Lisp</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Tail the log at ~/.deuce.d/deuce.log
 Errors are also visible in the Echo Area</p>
@@ -2941,19 +2942,22 @@ But produces the expected result:</p>
       (s/join &quot; &quot; menu-bar))))</pre></td></tr><tr><td class="docs"><p>Renders a single window using Lanterna. Scrolling is not properly taken care of.
 Hard to bootstrap, requires fiddling when connected to nREPL inside Deuce atm.
 Consider moving all this into deuce.emacs.dispnew</p>
-</td><td class="codes"><pre class="brush: clojure">(declare ^Screen screen)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def colors {:bg :default :fg :default})
-(def reverse-video {:styles #{:reverse}})
-(def region-colors {:fg :default :bg :yellow})</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(declare ^Screen screen)
+(declare ^TextGraphics text-graphics)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def reverse-video {:styles #{SGR/REVERSE}})
+(def region-colors {:fg TextColor$ANSI/DEFAULT :bg TextColor$ANSI/YELLOW})</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn puts
-  ([x y s] (puts x y s colors))
-  ([x y s opts] (sc/put-string screen x y (str s) opts)))</pre></td></tr><tr><td class="docs">
+  ([x y s] (puts x y s {}))
+  ([x y s {:keys [styles fg bg] :or {styles #{} fg TextColor$ANSI/DEFAULT bg TextColor$ANSI/DEFAULT}}]
+   (.setForegroundColor text-graphics fg)
+   (.setBackgroundColor text-graphics bg)
+   (.putString text-graphics x y (str s) (HashSet. styles))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn pad [s cols]
   (format (str &quot;%-&quot; cols &quot;s&quot;) s))</pre></td></tr><tr><td class="docs"><p>If the screen gets messed up by other output like a stack trace you need to call this.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn blank []
-  (sc/clear screen)
-  (te/clear (.getTerminal screen))
-  (sc/redraw screen))</pre></td></tr><tr><td class="docs">
+  (.clear screen)
+  (.clearScreen (.getTerminal screen))
+  (.refresh screen))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(doseq [f '[line-indexes pos-to-line point-coords]]
   (eval `(def ~f (ns-resolve 'deuce.emacs.cmds '~f))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn render-live-window [^Window window]
@@ -3003,9 +3007,11 @@ Consider moving all this into deuce.emacs.dispnew</p>
              :else (puts 0 screen-line text)))))
       (when selected-window?
         (let [[px py] (screen-coords (point-coords (dec pt)))]
-          (sc/move-cursor screen px py)))
+          (.setCursorPosition screen (TerminalPosition. px py))))
       (when mode-line
-        (puts 0 (+ top-line total-lines) (pad (xdisp/format-mode-line mode-line nil window buffer) cols) {:bg :white})))))</pre></td></tr><tr><td class="docs">
+        (puts 0 (+ top-line total-lines)
+              (pad (xdisp/format-mode-line mode-line nil window buffer) cols)
+              {:bg TextColor$ANSI/WHITE})))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn render-window [^Window window x y width height]
   ;; We should walk the tree, splitting windows as we go.
   ;; top or left children in turn have next siblings all sharing this area.
@@ -3021,7 +3027,8 @@ Consider moving all this into deuce.emacs.dispnew</p>
     window/window-left-child (throw (UnsupportedOperationException.))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def size (atom nil))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn update-terminal-size []
-  (reset! size (te/get-size (.getTerminal screen))))</pre></td></tr><tr><td class="docs">
+  (reset! size (let [size (.getTerminalSize (.getTerminal screen))]
+                 [(.getColumns size) (.getRows size)])))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn display-using-lanterna []
   (let [[width height] @size
         mini-buffer-window (window/minibuffer-window)
@@ -3034,7 +3041,7 @@ Consider moving all this into deuce.emacs.dispnew</p>
                    width (- mini-buffer menu-bar))
     (render-window (window/minibuffer-window) 0 mini-buffer
                    width (window/window-total-height mini-buffer-window))
-    (sc/redraw screen)))</pre></td></tr><tr><td class="docs">
+    (.refresh screen)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def running (atom nil))
 (def ^InputStreamReader in (InputStreamReader. System/in))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn stop-ui []
@@ -3057,74 +3064,21 @@ Consider moving all this into deuce.emacs.dispnew</p>
             (timbre/error e &quot;An error occured during the render loop&quot;))
           (throw e))))
     (reset! running nil)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def char-buffer (atom []))
-(def event-buffer (atom []))</pre></td></tr><tr><td class="docs"><p>We bypass Lanterna with System/in but utilize their setup of private mode, see deuce.emacs.keyboard
-We report our TERM as "lanterna" to allow terminal-init-lanterna to be run first, then init the real one.
-All this has only been tested on TERM=xterm
-input-decode-map is setup in term/xterm. We should also look in local-function-key-map
-This interfers badly with Lanterna's get-size, occasionally locks up, needs fix.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn read-key []
-  ;; Somewhere here we could maybe update the screen size, doesn't work.
-  ;; (when-not (.ready in)
-  ;;   (update-terminal-size))
-  (let [c (.read in)]
-;    (println c (char c))
-    (swap! char-buffer conj (char c))
-    (let [maybe-event (object-array @char-buffer)
-          decoded (keymap/lookup-key (data/symbol-value 'input-decode-map) maybe-event)]
-      (if (keymap/keymapp decoded)
-        nil
-;        (println &quot;potential input-decode prefix&quot; maybe-event)
-        (let [_ (reset! char-buffer [])
-              event (if (data/vectorp decoded) decoded maybe-event)
-              _ (swap! event-buffer (comp vec concat) event)
-              def (keymap/key-binding (object-array @event-buffer))]
-;          (println maybe-event decoded event @event-buffer (if (keymap/keymapp def) &quot;(keymap)&quot; def))
-          (if (and def (not (keymap/keymapp def)))
-            (try
-              ;; There are many more things that can happen here
-              (el/setq last-event-frame (frame/selected-frame))
-              (el/setq last-command-event (last @event-buffer))
-              (el/setq last-nonmenu-event (last @event-buffer))
-              ;; this-command-keys and this-command-keys-vector return the entire event-buffer as string or vector.
-              ;; They are backed by one variable in C, this_command_keys.
-              (el/setq this-command def)
-              (el/setq this-original-command def) ;; Need to handle remap
-              (el/setq deactivate-mark nil)
-              (buffer/set-buffer (window/window-buffer (window/selected-window)))
-              (reset! char-buffer [])
-              (reset! event-buffer [])
-              (eval/run-hooks 'pre-command-hook)
-              (timbre/debug (format &quot;Command: %s&quot; def))
-              (keyboard/command-execute def)
-              (finally
-               (eval/run-hooks 'post-command-hook)
-               (when (data/symbol-value 'deactivate-mark)
-                 (eval/funcall 'deactivate-mark))
-               (el/setq this-command nil)
-               (el/setq this-original-command nil)
-               (el/setq last-prefix-arg (data/symbol-value 'current-prefix-arg))
-               (el/setq last-command (data/symbol-value 'this-command))
-               (el/setq real-last-command (data/symbol-value 'this-command))))
-            (when-not (keymap/keymapp def)
-              (reset! char-buffer [])
-              (reset! event-buffer []))))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn drain-input-stream [^InputStreamReader in]
-  (while (.ready in)
-    (.read in)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn start-input-loop []
+</td><td class="codes"><pre class="brush: clojure">(defn start-command-loop []
   (reset! running true)
-  (drain-input-stream in)
   (future
+    ((ns-resolve 'deuce.emacs.keyboard 'drain-input-stream))
     (while (running?)
       (try
-        (read-key)
+        (let [def (keymap/key-binding (keyboard/read-key-sequence-vector nil))]
+          (when (and def (not (keymap/keymapp def)))
+            (keyboard/command-execute def)))
         (catch ExceptionInfo e
           (binding [*ns* (the-ns 'clojure.core)]
             (timbre/error (.getMessage e))))
         (catch Exception e
           ;; This is a simplification, but makes you aware of the error without tailing the log.
-          ((ns-resolve 'deuce.emacs.lread 'echo) (.getMessage e))
+          ((ns-resolve 'deuce.emacs.keyboard 'echo) (.getMessage e))
           (binding [*ns* (the-ns 'clojure.core)]
             (timbre/error (el/cause e) &quot;An error occured during the input loop&quot;)))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn init-clipboard []
@@ -3138,7 +3092,7 @@ This interfers badly with Lanterna's get-size, occasionally locks up, needs fix.
   (= &quot;dumb&quot; (System/getenv &quot;TERM&quot;)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn start-ui []
   (start-render-loop)
-  (start-input-loop))</pre></td></tr><tr><td class="docs">
+  (start-command-loop))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare init-user-classpath)</pre></td></tr><tr><td class="docs"><p>Callback run by faces/tty-run-terminal-initialization based on deuce.emacs.term/tty-type returning "lanterna"
 Has Emacs Lisp proxy in deuce.emacs.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn terminal-init-lanterna []
@@ -3147,6 +3101,7 @@ Has Emacs Lisp proxy in deuce.emacs.</p>
       (init-user-classpath)
       ((ns-resolve 'deuce.emacs.terminal 'init-initial-terminal))
       (def screen (terminal/frame-terminal))
+      (def text-graphics (.newTextGraphics screen))
       ;; We need to deal with resize later, it queries and gets the result on System/in which we have taken over.
       ;; Initialize the real TERM, should setup input-decode-map and local-function-key-map
       (eval/eval '(tty-run-terminal-initialization (selected-frame)
@@ -3156,7 +3111,7 @@ Has Emacs Lisp proxy in deuce.emacs.</p>
       (start-ui))
     (catch Exception e
       (when screen
-        (sc/stop screen))
+        (.stopScreen screen))
       (timbre/error e &quot;An error occured during Lanterna init&quot;)
       (throw e))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def deuce-dot-d (str (doto (io/file (System/getProperty &quot;user.home&quot;) &quot;.deuce.d&quot;)
@@ -4093,17 +4048,22 @@ Set NAME's `doc-string-elt' property to ELT.
   (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
             [clojure.java.shell :as sh]
-            [lanterna.common]
+            [deuce.emacs.buffer :as buffer]
             [deuce.emacs.callint :as callint]
             [deuce.emacs.casefiddle :as casefiddle]
             [deuce.emacs.data :as data]
             [deuce.emacs.editfns :as editfns]
+            [deuce.emacs.eval :as eval]
+            [deuce.emacs.frame :as frame]
+            [deuce.emacs.keymap :as keymap]
             [deuce.emacs.macros :as macros]
             [deuce.emacs.term :as term]
             [deuce.emacs.terminal :as terminal]
-            [deuce.emacs-lisp.parser :as parser])
+            [deuce.emacs.window :as window]
+            [deuce.emacs-lisp.parser :as parser]
+            [taoensso.timbre :as timbre])
   (:import [sun.misc Signal SignalHandler]
-           [com.googlecode.lanterna.terminal Terminal])
+           [java.io InputStreamReader])
   (:refer-clojure :exclude []))</pre></td></tr><tr><td class="docs"><p>Last input event that was part of a command.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar last-command-event nil)</pre></td></tr><tr><td class="docs"><p>If not -1, an object to be read as next command input event.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar unread-command-char nil)</pre></td></tr><tr><td class="docs"><p>Function to call to handle deferred actions, after each command.
@@ -4483,35 +4443,26 @@ Set NAME's `doc-string-elt' property to ELT.
   This keymap works like `function-key-map', but comes after that,
   and its non-prefix bindings override ordinary bindings.
   Another difference is that it is global rather than keyboard-local.</p>
-</td><td class="codes"><pre class="brush: clojure">(defvar key-translation-map nil)</pre></td></tr><tr><td class="docs"><p>DEUCE: For reference, this is the main low level read_char function in Emacs.
+</td><td class="codes"><pre class="brush: clojure">(defvar key-translation-map nil)</pre></td></tr><tr><td class="docs"><p>We bypass Lanterna with System/in but utilize their setup of private mode, see UnixTerminal/enterPrivateMode:
+(do (require '[clojure.java.shell :as sh])
+  (sh/sh "/bin/sh" "-c" "/bin/stty -echo &lt; /dev/tty") ;; Disables echo, leave this out for manual testing.
+  (sh/sh "/bin/sh" "-c" "/bin/stty -icanon &lt; /dev/tty") ;; Enable all chars for reading.
+  (sh/sh "/bin/sh" "-c" "/bin/stty min 1 &lt; /dev/tty")) ;; Read single chars.</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>We report our TERM as "lanterna" to allow terminal-init-lanterna to be run first, then init the real one.
+All this has only been tested on TERM=xterm
+input-decode-map is setup in term/xterm. We should also look in local-function-key-map
+This interfers badly with Lanterna's get-size, occasionally locks up, needs fix.</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def ^InputStreamReader in (InputStreamReader. System/in))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def ^:private char-buffer (atom []))
+(def ^:private  event-buffer (atom []))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn ^:private drain-input-stream []
+  (while (.ready in)
+    (.read in)))</pre></td></tr><tr><td class="docs"><p>DEUCE: For reference, this is the main low level read_char function in Emacs.
        We don't use nmaps (or most arguments yet).
        We use currentTimeMillis for internal times instead of Emacs style time.
        Maybe totally revamped, but let's start with something "similar" to Emacs.
        Is normally called from read<em>key</em>sequence (C internal version) from command<em>loop</em>1.</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><pre><code>    To identify non-default function keys we can either use:
-    com.googlecode.lanterna.input.BasicCharacterPattern in our own KeyMappingProfile,
-    and add it to the terminal using addInputProfile.
-    Or we can do what Emacs does, and use term/xterm.el and friends (or do something similar), which
-    registers a parent to input-decode-map which read-key-sequence uses to translate things on a low level.
-    (These two methods are essentially the same.)
-    The Emacs one would be best, but xterm.el does more stuff as well, like actually trying to talk to the terminal.
-    Example:
-    Lanterna:  new BasicCharacterPattern(new Key(Key.Kind.ArrowUp), ESC_CODE, '[', 'A'),
-    Emacs:    (define-key map "\e[A" [up])
-              And the actual ones we need:
-              (define-key map "\e[1;3A" [M-up])
-              This is defined differently in Lanterna:
-              new BasicCharacterPattern(new Key(Key.Kind.ArrowUp, false, true), ESC_CODE, ESC_CODE, '[', 'A'),
-              But we also need shift, and Key.Kind is a closed enum:
-              (define-key map "\eO2A" [S-up])
-   The best approach is probably to have a close to empty Lanterna InputProfile and do all this using input-decode-map.
-   Normal Ctrl would be control chars, and Meta basically \e + char, which is dealt with via the esc-map in Emacs.
-   Lanterna enters the mode where it can read all chars roughly like this (see UnixTerminal/enterPrivateMode):
-   (do (require '[clojure.java.shell :as sh])
-     (sh/sh "/bin/sh" "-c" "/bin/stty -echo &lt; /dev/tty") ;; Disables echo, leave this out for manual testing.
-     (sh/sh "/bin/sh" "-c" "/bin/stty -icanon &lt; /dev/tty") ;; Enable all chars for reading.
-     (sh/sh "/bin/sh" "-c" "/bin/stty min 1 &lt; /dev/tty")) ;; Read single chars.
-</code></pre>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>/* read a character from the keyboard; call the redisplay if needed */
 /* commandflag 0 means do not autosave, but do redisplay.
    -1 means do not redisplay, but do autosave.
@@ -4532,9 +4483,25 @@ Set NAME's `doc-string-elt' property to ELT.
    specifying the maximum time to wait until.  If no input arrives by
    that time, stop waiting and return nil.</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>   Value is t if we showed a menu and the user rejected it.  */</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ^:private read-char [commandflag maps prev-event used-mouse-menu end-time]
-  (lanterna.common/block-on #(.readInput ^Terminal (terminal/frame-terminal)) []
-                            (when end-time {:timeout (* 1000 (- end-time (System/currentTimeMillis)))}))  )</pre></td></tr><tr><td class="docs"><p>Convert the event description list EVENT-DESC to an event type.
+  (loop []
+    (when (or (nil? end-time)
+              (&gt; end-time (System/currentTimeMillis)))
+      (if (.ready in)
+        (.read in)
+        (do (Thread/sleep 15)
+            (recur))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn ^:private echo [message]
+  ;; Emacs uses 2 echo areas and switches between them.
+  (let [echo-area (buffer/get-buffer-create &quot; *Echo Area 0*&quot;)]
+    (if (seq message)
+      (binding [buffer/*current-buffer* echo-area]
+        (buffer/erase-buffer)
+        (editfns/insert message))
+      (binding [buffer/*current-buffer* echo-area]
+        (buffer/erase-buffer)))
+    (window/set-window-buffer (window/minibuffer-window) echo-area)))</pre></td></tr><tr><td class="docs"><p>Convert the event description list EVENT-DESC to an event type.
   EVENT-DESC should contain one base event type (a character or symbol)
   and zero or more modifier names (control, meta, hyper, super, shift, alt,
   drag, down, double or triple).  The base must be last.
@@ -4586,12 +4553,35 @@ Set NAME's `doc-string-elt' property to ELT.
   a special event, so ignore the prefix argument and don't clear it.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun command-execute (cmd &amp;optional record-flag keys special)
   (el/check-type 'commandp cmd)
-  (when-not special
-    (el/setq current-prefix-arg (data/symbol-value 'prefix-arg))
-    (el/setq prefix-arg nil))
-  (if (or (data/stringp cmd) (data/vectorp cmd))
-    (macros/execute-kbd-macro cmd (when-not special (data/symbol-value 'current-prefix-arg)))
-    (callint/call-interactively cmd record-flag keys)))</pre></td></tr><tr><td class="docs">
+  (try
+    ;; There are many more things that can happen here
+    (el/setq last-event-frame (frame/selected-frame))
+    (el/setq last-command-event (last @event-buffer))
+    (el/setq last-nonmenu-event (last @event-buffer))
+    ;; this-command-keys and this-command-keys-vector return the entire event-buffer as string or vector.
+    ;; They are backed by one variable in C, this_command_keys.
+    (reset! event-buffer [])
+    (el/setq this-command cmd)
+    (el/setq this-original-command cmd) ;; Need to handle remap
+    (el/setq deactivate-mark nil)
+    (buffer/set-buffer (window/window-buffer (window/selected-window)))
+    (eval/run-hooks 'pre-command-hook)
+    (timbre/debug (format &quot;command-execute: %s&quot; cmd))
+    (when-not special
+      (el/setq current-prefix-arg (data/symbol-value 'prefix-arg))
+      (el/setq prefix-arg nil))
+    (if (or (data/stringp cmd) (data/vectorp cmd))
+      (macros/execute-kbd-macro cmd (when-not special (data/symbol-value 'current-prefix-arg)))
+      (callint/call-interactively cmd record-flag keys))
+    (finally
+      (eval/run-hooks 'post-command-hook)
+      (when (data/symbol-value 'deactivate-mark)
+        (eval/funcall 'deactivate-mark))
+      (el/setq this-command nil)
+      (el/setq this-original-command nil)
+      (el/setq last-prefix-arg (data/symbol-value 'current-prefix-arg))
+      (el/setq last-command (data/symbol-value 'this-command))
+      (el/setq real-last-command (data/symbol-value 'this-command)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(Signal/handle (Signal. &quot;CONT&quot;)
                (proxy [SignalHandler] []
                  (handle [s] (term/resume-tty))))</pre></td></tr><tr><td class="docs"><p>Stop Emacs and return to superior process.  You can resume later.
@@ -4614,7 +4604,21 @@ Set NAME's `doc-string-elt' property to ELT.
      (.setAccessible true)) nil (object-array [(int 20)])))</pre></td></tr><tr><td class="docs"><p>Return the current depth in recursive edits.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun recursion-depth ()
   0)</pre></td></tr><tr><td class="docs"><p>Like `read-key-sequence' but always return a vector.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun read-key-sequence-vector (prompt &amp;optional continue-echo dont-downcase-last can-return-switch-frame cmd-loop))</pre></td></tr><tr><td class="docs"><p>Set mode of reading keyboard input.
+</td><td class="codes"><pre class="brush: clojure">(defun read-key-sequence-vector (prompt &amp;optional continue-echo dont-downcase-last can-return-switch-frame cmd-loop)
+  (when prompt
+    (echo prompt))
+  (loop [c (.read in)]
+    (swap! char-buffer conj (char c))
+    (let [maybe-event (object-array @char-buffer)
+          decoded (keymap/lookup-key (data/symbol-value 'input-decode-map) maybe-event)]
+      (if (keymap/keymapp decoded)
+        (recur (.read in))
+        (do (reset! char-buffer [])
+            (let [event (if (data/vectorp decoded) decoded maybe-event)]
+              (swap! event-buffer (comp vec concat) event)
+              (if (keymap/keymapp (keymap/key-binding (object-array @event-buffer)))
+                (recur (.read in))
+                (object-array @event-buffer))))))))</pre></td></tr><tr><td class="docs"><p>Set mode of reading keyboard input.
   First arg INTERRUPT non-nil means use input interrupts;
    nil means use CBREAK mode.
   Second arg FLOW non-nil means use ^S/^Q flow control for output to terminal
@@ -4670,7 +4674,8 @@ Set NAME's `doc-string-elt' property to ELT.
   that this key sequence is being read by something that will
   read commands one after another.  It should be nil if the caller
   will read just one key sequence.</p>
-</td><td class="codes"><pre class="brush: clojure">(defun read-key-sequence (prompt &amp;optional continue-echo dont-downcase-last can-return-switch-frame cmd-loop))</pre></td></tr><tr><td class="docs"><p>Return position information for pixel coordinates X and Y.
+</td><td class="codes"><pre class="brush: clojure">(defun read-key-sequence (prompt &amp;optional continue-echo dont-downcase-last can-return-switch-frame cmd-loop)
+  (apply str (map char (read-key-sequence prompt continue-echo dont-downcase-last can-return-switch-frame cmd-loop))))</pre></td></tr><tr><td class="docs"><p>Return position information for pixel coordinates X and Y.
   By default, X and Y are relative to text area of the selected window.
   Optional third arg FRAME-OR-WINDOW non-nil specifies frame or window.
   If optional fourth arg WHOLE is non-nil, X is relative to the left
@@ -4967,13 +4972,13 @@ Set NAME's `doc-string-elt' property to ELT.
             [clojure.java.io :as io]
             [clojure.string :as s]
             [clojure.walk :as w]
-            [lanterna.constants]
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.cons :refer [car cdr] :as cons]
             [deuce.emacs-lisp.globals :as globals]
             [deuce.emacs-lisp.printer :as printer]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.buffer :as buffer]
+            [deuce.emacs.character :as character]
             [deuce.emacs.data :as data]
             [deuce.emacs.editfns :as editfns]
             [deuce.emacs.fileio :as fileio]
@@ -4982,7 +4987,6 @@ Set NAME's `doc-string-elt' property to ELT.
   (:refer-clojure :exclude [read intern load])
   (:import [java.io FileNotFoundException]
            [java.net URL]
-           [com.googlecode.lanterna.input Key]
            [clojure.lang Compiler]))</pre></td></tr><tr><td class="docs"><p>Set to non-nil when `read' encounters an old-style backquote.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar old-style-backquotes nil)</pre></td></tr><tr><td class="docs"><p>List of values of all expressions which were read, evaluated and printed.
   Order is reverse chronological.</p>
@@ -5110,34 +5114,7 @@ Set NAME's `doc-string-elt' property to ELT.
   variables, this must be set in the first line of a file.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar lexical-binding nil)</pre></td></tr><tr><td class="docs"><p>Stream for read to get input from.
   See documentation of `read' for possible values.</p>
-</td><td class="codes"><pre class="brush: clojure">(defvar standard-input nil)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn ^:private echo [message]
-  ;; Emacs uses 2 echo areas and switches between them.
-  (let [echo-area (buffer/get-buffer-create &quot; *Echo Area 0*&quot;)]
-    (if (seq message)
-      (binding [buffer/*current-buffer* echo-area]
-        (buffer/erase-buffer)
-        (editfns/insert message))
-      (binding [buffer/*current-buffer* echo-area]
-        (buffer/erase-buffer)))
-    (window/set-window-buffer (window/minibuffer-window) echo-area)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn ^:private read-event-internal [prompt inherit-input-method seconds]
-  (when prompt (echo prompt))
-  ((ns-resolve 'deuce.emacs.keyboard 'read-char) nil nil nil nil
-   (+ (System/currentTimeMillis)
-      (* 1000 seconds))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn ^:private key-to-integer [^Key k]
-  (parser/event-convert-list-internal
-   (remove nil? [(when (.isAltPressed k) 'meta)
-                 (when (.isCtrlPressed k) 'control)])
-   (.getCharacter k)))</pre></td></tr><tr><td class="docs"><p>This should maybe use the input-decode-map?</p>
-</td><td class="codes"><pre class="brush: clojure">(def ^:private lanterna-to-emacs-event {:enter &quot;return&quot;
-                                        :page-down &quot;next&quot;
-                                        :page-up &quot;prior&quot;
-                                        :reverse-tab &quot;S-iso-lefttab&quot;})</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def ^:private lanterna-valid-chars {:escape (Key. \)
-                                     :backspace (Key. \)
-                                     :enter (Key. \return)})</pre></td></tr><tr><td class="docs"><p>Read an event object from the input stream.
+</td><td class="codes"><pre class="brush: clojure">(defvar standard-input nil)</pre></td></tr><tr><td class="docs"><p>Read an event object from the input stream.
   If the optional argument PROMPT is non-nil, display that as a prompt.
   If the optional argument INHERIT-INPUT-METHOD is non-nil and some
   input method is turned on in the current buffer, that input method
@@ -5147,13 +5124,12 @@ Set NAME's `doc-string-elt' property to ELT.
   input arrives in that time, return nil.  SECONDS may be a
   floating-point value.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun read-event (&amp;optional prompt inherit-input-method seconds)
-  (let [^Key k (read-event-internal prompt inherit-input-method seconds)
-        kind (lanterna.constants/key-codes (.getKind k))]
-    (if (= kind :normal)
-      (key-to-integer k)
-      (symbol (str (when (.isCtrlPressed k) &quot;C-&quot;)
-                   (when (.isAltPressed k) &quot;M-&quot;)
-                   (lanterna-to-emacs-event kind (name kind)))))))</pre></td></tr><tr><td class="docs"><p>Read a character from the command input (keyboard or macro).
+  (when prompt
+    ((ns-resolve 'deuce.emacs.keyboard 'echo) prompt))
+  ((ns-resolve 'deuce.emacs.keyboard 'read-char) nil nil nil nil
+   (when seconds
+     (+ (System/currentTimeMillis)
+        (* 1000 seconds)))))</pre></td></tr><tr><td class="docs"><p>Read a character from the command input (keyboard or macro).
   It is returned as a number.  Non-character events are ignored.
   If the character has modifiers, they are resolved and reflected to the
   character code if possible (e.g. C-SPC -> 0).</p>
@@ -5167,17 +5143,16 @@ Set NAME's `doc-string-elt' property to ELT.
   input arrives in that time, return nil.  SECONDS may be a
   floating-point value.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun read-char-exclusive (&amp;optional prompt inherit-input-method seconds)
-  ;; Non-normal keys with modifiers, like Shift-Arrow-Up etc.
-  ;; comes as a string of escape codes probably not dealt with by Lanterna.
-  ;; See com.googlecode.lanterna.input.CommonProfile
-  ;; We might want to write a specific EmacsProfile.
-  (let [^Key k (read-event-internal prompt inherit-input-method seconds)
-        kind (lanterna.constants/key-codes (.getKind k))
-        ^Key k (lanterna-valid-chars kind k)
-        kind (lanterna.constants/key-codes (.getKind k))]
-    (if (or (= :normal kind) (Character/isISOControl (.getCharacter k)))
-      (key-to-integer k)
-      (el/throw* 'error &quot;Non-character input-event&quot;))))</pre></td></tr><tr><td class="docs"><p>Read one Lisp expression as text from STREAM, return as Lisp object.
+  (when prompt
+    ((ns-resolve 'deuce.emacs.keyboard 'echo) prompt))
+  (let [end-time (when seconds
+                   (+ (System/currentTimeMillis)
+                      (* 1000 seconds)))]
+    (loop []
+      (let [event ((ns-resolve 'deuce.emacs.keyboard 'read-char) nil nil nil nil end-time)]
+        (if (character/characterp event)
+          event
+          (recur))))))</pre></td></tr><tr><td class="docs"><p>Read one Lisp expression as text from STREAM, return as Lisp object.
   If STREAM is nil, use the value of `standard-input' (which see).
   STREAM or the value of `standard-input' may be:
    a buffer (read from point and advance it)
@@ -14662,12 +14637,13 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.emacs.terminal
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
-            [lanterna.screen :as s]
             [deuce.emacs.eval :as eval]
             [deuce.emacs.frame :as frame]
             [deuce.emacs-lisp.cons :as cons]
             [deuce.emacs-lisp.globals :as globals])
-  (:import [deuce.emacs.data Frame])
+  (:import [deuce.emacs.data Frame]
+           [com.googlecode.lanterna.screen Screen TerminalScreen]
+           [com.googlecode.lanterna.terminal DefaultTerminalFactory])
   (:refer-clojure :exclude []))</pre></td></tr><tr><td class="docs"><p>Special hook run when a terminal is deleted.
   Each function is called with argument, the terminal.
   This may be called just before actually deleting the terminal,
@@ -14676,9 +14652,10 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
   The function should accept no arguments.</p>
 </td><td class="codes"><pre class="brush: clojure">(defvar ring-bell-function nil)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ^:private init-initial-terminal []
-  (let [terminal (s/get-screen :text)]
+  (let [terminal (TerminalScreen. (.createTerminal (doto (DefaultTerminalFactory.)
+                                                     (.setForceTextTerminal true))))]
     (reset! (.terminal ^Frame globals/terminal-frame) terminal)
-    (s/start terminal)))</pre></td></tr><tr><td class="docs"><p>Return a list of all terminal devices.</p>
+    (.startScreen terminal)))</pre></td></tr><tr><td class="docs"><p>Return a list of all terminal devices.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun terminal-list ()
   (cons/maybe-seq (remove nil? (map #(deref (.terminal ^Frame %)) (frame/frame-list)))))</pre></td></tr><tr><td class="docs"><p>Return TERMINAL's value for parameter PARAMETER.
   TERMINAL can be a terminal object, a frame, or nil (meaning the
@@ -14707,7 +14684,7 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
   (when-let [terminal (or terminal (frame-terminal))]
     (eval/run-hook-with-args 'delete-terminal-functions terminal)
     ((ns-resolve 'deuce.main 'stop-ui))
-    (s/stop terminal)
+    (.stopScreen ^Screen terminal)
     (when (= terminal (frame-terminal))
       (reset! (.terminal ^Frame globals/terminal-frame) nil))))</pre></td></tr><tr><td class="docs"><p>Set TERMINAL's value for parameter PARAMETER to VALUE.
   Return the previous value of PARAMETER.</p>
@@ -15637,10 +15614,10 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.emacs.term
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
-            [lanterna.screen :as s]
             [deuce.emacs.data :as data]
             [deuce.emacs.eval :as eval]
             [deuce.emacs.terminal :as terminal])
+  (:import [com.googlecode.lanterna.screen Screen])
   (:refer-clojure :exclude []))</pre></td></tr><tr><td class="docs"><p>Functions to be run after suspending a tty.
   The functions are run with one argument, the terminal object to be suspended.
   See `suspend-tty'.</p>
@@ -15704,8 +15681,8 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
 <p>  TTY may be a terminal object, a frame, or nil (meaning the selected
   frame's terminal).</p>
 </td><td class="codes"><pre class="brush: clojure">(defun resume-tty (&amp;optional tty)
-  (when-let [terminal (terminal/frame-terminal)]
-    (s/start terminal)
+  (when-let [terminal ^Screen (terminal/frame-terminal)]
+    (.startScreen terminal)
     ((ns-resolve 'deuce.main 'start-ui))
     (eval/run-hook-with-args 'resume-tty-functions terminal)))</pre></td></tr><tr><td class="docs"><p>Suspend the terminal device TTY.</p>
 
@@ -15726,9 +15703,9 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
 
 <p>  A suspended tty may be resumed by calling `resume-tty' on it.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun suspend-tty (&amp;optional tty)
-  (when-let [terminal (terminal/frame-terminal)]
+  (when-let [terminal ^Screen (terminal/frame-terminal)]
     ((ns-resolve 'deuce.main 'stop-ui))
-    (s/stop terminal)
+    (.stopScreen terminal)
     (eval/run-hook-with-args 'suspend-tty-functions terminal)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#deuce.emacs.emacs" name="deuce.emacs.emacs"><h1 class="project-name">deuce.emacs.emacs</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.emacs.emacs
   (:use [deuce.emacs-lisp :only (defun defvar) :as el])
@@ -15836,13 +15813,13 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
 </td><td class="codes"><pre class="brush: clojure">(ns deuce.emacs.frame
   (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
-            [lanterna.screen :as s]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data]
             [deuce.emacs-lisp.cons :as cons]
             [deuce.emacs-lisp.globals :as globals])
-  (:import [deuce.emacs.data Frame Window])
+  (:import [deuce.emacs.data Frame Window]
+           [com.googlecode.lanterna.screen Screen])
   (:refer-clojure :exclude []))</pre></td></tr><tr><td class="docs"><p>Non-nil if Menu-Bar mode is enabled.
   See the command `menu-bar-mode' for a description of this minor mode.
   Setting this variable directly does not take effect;
@@ -16084,8 +16061,8 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
   to `frame-height').</p>
 </td><td class="codes"><pre class="brush: clojure">(defun frame-pixel-height (&amp;optional frame)
   (let [^Frame frame (el/check-type 'framep (or frame (selected-frame)))]
-    (if-let [s  @(.terminal frame)]
-      (second (s/get-size s))
+    (if-let [s ^Screen @(.terminal frame)]
+      (.getRows (.getTerminalSize s))
       0)))</pre></td></tr><tr><td class="docs"><p>Return non-nil if OBJECT is a frame which has not been deleted.
   Value is nil if OBJECT is not a live frame.  If object is a live
   frame, the return value indicates what sort of terminal device it is
@@ -16125,8 +16102,8 @@ bindings for DEFINITION instead, ignoring its remapping.</p></li>
   If FRAME is omitted, the selected frame is used.</p>
 </td><td class="codes"><pre class="brush: clojure">(defun frame-pixel-width (&amp;optional frame)
   (let [^Frame frame (el/check-type 'framep (or frame (selected-frame)))]
-    (if-let [s @(.terminal frame)]
-      (first (s/get-size s))
+    (if-let [s ^Screen @(.terminal frame)]
+      (.getColumns (.getTerminalSize s))
       0)))</pre></td></tr><tr><td class="docs"><p>Specify that the frame FRAME has LINES lines.
   Optional third arg non-nil means that redisplay should use LINES lines
   but that the idea of the actual height of the frame should not be changed.</p>
