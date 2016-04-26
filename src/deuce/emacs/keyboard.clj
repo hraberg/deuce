@@ -526,10 +526,6 @@
 (def ^:private char-buffer (atom []))
 (def ^:private  event-buffer (atom []))
 
-(defn ^:private drain-input-stream []
-  (while (.ready in)
-    (.read in)))
-
 ;; DEUCE: For reference, this is the main low level read_char function in Emacs.
 ;;        We don't use nmaps (or most arguments yet).
 ;;        We use currentTimeMillis for internal times instead of Emacs style time.
@@ -847,7 +843,10 @@
 (defun discard-input ()
   "Discard the contents of the terminal input buffer.
   Also end any kbd macro being defined."
-  )
+  (reset! char-buffer [])
+  (reset! event-buffer [])
+  (while (.ready in)
+    (.read in)))
 
 (defun reset-this-command-lengths ()
   "Make the unread events replace the last command and echo.
