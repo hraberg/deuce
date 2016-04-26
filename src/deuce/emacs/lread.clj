@@ -4,7 +4,6 @@
             [clojure.java.io :as io]
             [clojure.string :as s]
             [clojure.walk :as w]
-            [lanterna.constants]
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.cons :refer [car cdr] :as cons]
             [deuce.emacs-lisp.globals :as globals]

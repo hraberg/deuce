@@ -2,7 +2,6 @@
   (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
             [clojure.java.shell :as sh]
-            [lanterna.common]
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.callint :as callint]
             [deuce.emacs.casefiddle :as casefiddle]
@@ -18,8 +17,7 @@
             [deuce.emacs-lisp.parser :as parser]
             [taoensso.timbre :as timbre])
   (:import [sun.misc Signal SignalHandler]
-           [java.io InputStreamReader]
-           [com.googlecode.lanterna.screen Screen])
+           [java.io InputStreamReader])
   (:refer-clojure :exclude []))
 
 (defvar last-command-event nil
