@@ -1,8 +1,6 @@
 (ns deuce.main
   (:require [clojure.string :as s]
             [clojure.java.io :as io]
-            [lanterna.screen :as sc]
-            [lanterna.terminal :as te]
             [deuce.emacs]
             [deuce.emacs-lisp :as el]
             [deuce.emacs-lisp.globals :as globals]
@@ -24,8 +22,12 @@
   (:import [java.io FileNotFoundException InputStreamReader]
            [java.awt Toolkit]
            [java.awt.datatransfer DataFlavor StringSelection]
+           [java.util HashSet]
            [clojure.lang ExceptionInfo]
            [deuce.emacs.data Buffer Window]
+           [com.googlecode.lanterna TerminalPosition SGR]
+           [com.googlecode.lanterna TextColor$ANSI]
+           [com.googlecode.lanterna.graphics TextGraphics]
            [com.googlecode.lanterna.screen Screen])
   (:gen-class))
 
@@ -79,23 +81,26 @@
 ;; Hard to bootstrap, requires fiddling when connected to nREPL inside Deuce atm.
 ;; Consider moving all this into deuce.emacs.dispnew
 (declare ^Screen screen)
+(declare ^TextGraphics text-graphics)
 
-(def colors {:bg :default :fg :default})
-(def reverse-video {:styles #{:reverse}})
-(def region-colors {:fg :default :bg :yellow})
+(def reverse-video {:styles #{SGR/REVERSE}})
+(def region-colors {:fg TextColor$ANSI/DEFAULT :bg TextColor$ANSI/YELLOW})
 
 (defn puts
-  ([x y s] (puts x y s colors))
-  ([x y s opts] (sc/put-string screen x y (str s) opts)))
+  ([x y s] (puts x y s {}))
+  ([x y s {:keys [styles fg bg] :or {styles #{} fg TextColor$ANSI/DEFAULT bg TextColor$ANSI/DEFAULT}}]
+   (.setForegroundColor text-graphics fg)
+   (.setBackgroundColor text-graphics bg)
+   (.putString text-graphics x y (str s) (HashSet. styles))))
 
 (defn pad [s cols]
   (format (str "%-" cols "s") s))
 
 ;; If the screen gets messed up by other output like a stack trace you need to call this.
 (defn blank []
-  (sc/clear screen)
-  (te/clear (.getTerminal screen))
-  (sc/redraw screen))
+  (.clear screen)
+  (.clearScreen (.getTerminal screen))
+  (.refresh screen))
 
 (doseq [f '[line-indexes pos-to-line point-coords]]
   (eval `(def ~f (ns-resolve 'deuce.emacs.cmds '~f))))
@@ -155,10 +160,12 @@
 
       (when selected-window?
         (let [[px py] (screen-coords (point-coords (dec pt)))]
-          (sc/move-cursor screen px py)))
+          (.setCursorPosition screen (TerminalPosition. px py))))
 
       (when mode-line
-        (puts 0 (+ top-line total-lines) (pad (xdisp/format-mode-line mode-line nil window buffer) cols) {:bg :white})))))
+        (puts 0 (+ top-line total-lines)
+              (pad (xdisp/format-mode-line mode-line nil window buffer) cols)
+              {:bg TextColor$ANSI/WHITE})))))
 
 (defn render-window [^Window window x y width height]
   ;; We should walk the tree, splitting windows as we go.
@@ -179,7 +186,8 @@
 (def size (atom nil))
 
 (defn update-terminal-size []
-  (reset! size (te/get-size (.getTerminal screen))))
+  (reset! size (let [size (.getTerminalSize (.getTerminal screen))]
+                 [(.getColumns size) (.getRows size)])))
 
 (defn display-using-lanterna []
   (let [[width height] @size
@@ -196,7 +204,7 @@
     (render-window (window/minibuffer-window) 0 mini-buffer
                    width (window/window-total-height mini-buffer-window))
 
-    (sc/redraw screen)))
+    (.refresh screen)))
 
 (def running (atom nil))
 (def ^InputStreamReader in (InputStreamReader. System/in))
@@ -269,6 +277,7 @@
       (init-user-classpath)
       ((ns-resolve 'deuce.emacs.terminal 'init-initial-terminal))
       (def screen (terminal/frame-terminal))
+      (def text-graphics (.newTextGraphics screen))
       ;; We need to deal with resize later, it queries and gets the result on System/in which we have taken over.
 
       ;; Initialize the real TERM, should setup input-decode-map and local-function-key-map
@@ -280,7 +289,7 @@
       (start-ui))
     (catch Exception e
       (when screen
-        (sc/stop screen))
+        (.stopScreen screen))
       (timbre/error e "An error occured during Lanterna init")
       (throw e))))
 

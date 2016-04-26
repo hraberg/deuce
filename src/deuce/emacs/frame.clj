@@ -1,13 +1,13 @@
 (ns deuce.emacs.frame
   (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
-            [lanterna.screen :as s]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data]
             [deuce.emacs-lisp.cons :as cons]
             [deuce.emacs-lisp.globals :as globals])
-  (:import [deuce.emacs.data Frame Window])
+  (:import [deuce.emacs.data Frame Window]
+           [com.googlecode.lanterna.screen Screen])
   (:refer-clojure :exclude []))
 
 (defvar menu-bar-mode true
@@ -313,8 +313,8 @@
   result is really in characters rather than pixels (i.e., is identical
   to `frame-height')."
   (let [^Frame frame (el/check-type 'framep (or frame (selected-frame)))]
-    (if-let [s  @(.terminal frame)]
-      (second (s/get-size s))
+    (if-let [s ^Screen @(.terminal frame)]
+      (.getRows (.getTerminalSize s))
       0)))
 
 (defun frame-live-p (object)
@@ -366,8 +366,8 @@
   For a terminal frame, the result really gives the width in characters.
   If FRAME is omitted, the selected frame is used."
   (let [^Frame frame (el/check-type 'framep (or frame (selected-frame)))]
-    (if-let [s @(.terminal frame)]
-      (first (s/get-size s))
+    (if-let [s ^Screen @(.terminal frame)]
+      (.getColumns (.getTerminalSize s))
       0)))
 
 (defun set-frame-height (frame lines &optional pretend)

@@ -510,7 +510,12 @@
   and its non-prefix bindings override ordinary bindings.
   Another difference is that it is global rather than keyboard-local.")
 
-;; We bypass Lanterna with System/in but utilize their setup of private mode, see deuce.emacs.keyboard
+;; We bypass Lanterna with System/in but utilize their setup of private mode, see UnixTerminal/enterPrivateMode:
+;; (do (require '[clojure.java.shell :as sh])
+;;   (sh/sh "/bin/sh" "-c" "/bin/stty -echo < /dev/tty") ;; Disables echo, leave this out for manual testing.
+;;   (sh/sh "/bin/sh" "-c" "/bin/stty -icanon < /dev/tty") ;; Enable all chars for reading.
+;;   (sh/sh "/bin/sh" "-c" "/bin/stty min 1 < /dev/tty")) ;; Read single chars.
+
 ;; We report our TERM as "lanterna" to allow terminal-init-lanterna to be run first, then init the real one.
 ;; All this has only been tested on TERM=xterm
 ;; input-decode-map is setup in term/xterm. We should also look in local-function-key-map
@@ -530,30 +535,6 @@
 ;;        We use currentTimeMillis for internal times instead of Emacs style time.
 ;;        Maybe totally revamped, but let's start with something "similar" to Emacs.
 ;;        Is normally called from read_key_sequence (C internal version) from command_loop_1.
-
-;;         To identify non-default function keys we can either use:
-;;         com.googlecode.lanterna.input.BasicCharacterPattern in our own KeyMappingProfile,
-;;         and add it to the terminal using addInputProfile.
-;;         Or we can do what Emacs does, and use term/xterm.el and friends (or do something similar), which
-;;         registers a parent to input-decode-map which read-key-sequence uses to translate things on a low level.
-;;         (These two methods are essentially the same.)
-;;         The Emacs one would be best, but xterm.el does more stuff as well, like actually trying to talk to the terminal.
-;;         Example:
-;;         Lanterna:  new BasicCharacterPattern(new Key(Key.Kind.ArrowUp), ESC_CODE, '[', 'A'),
-;;         Emacs:    (define-key map "\e[A" [up])
-;;                   And the actual ones we need:
-;;                   (define-key map "\e[1;3A" [M-up])
-;;                   This is defined differently in Lanterna:
-;;                   new BasicCharacterPattern(new Key(Key.Kind.ArrowUp, false, true), ESC_CODE, ESC_CODE, '[', 'A'),
-;;                   But we also need shift, and Key.Kind is a closed enum:
-;;                   (define-key map "\eO2A" [S-up])
-;;        The best approach is probably to have a close to empty Lanterna InputProfile and do all this using input-decode-map.
-;;        Normal Ctrl would be control chars, and Meta basically \e + char, which is dealt with via the esc-map in Emacs.
-;;        Lanterna enters the mode where it can read all chars roughly like this (see UnixTerminal/enterPrivateMode):
-;;        (do (require '[clojure.java.shell :as sh])
-;;          (sh/sh "/bin/sh" "-c" "/bin/stty -echo < /dev/tty") ;; Disables echo, leave this out for manual testing.
-;;          (sh/sh "/bin/sh" "-c" "/bin/stty -icanon < /dev/tty") ;; Enable all chars for reading.
-;;          (sh/sh "/bin/sh" "-c" "/bin/stty min 1 < /dev/tty")) ;; Read single chars.
 
 ;; /* read a character from the keyboard; call the redisplay if needed */
 ;; /* commandflag 0 means do not autosave, but do redisplay.

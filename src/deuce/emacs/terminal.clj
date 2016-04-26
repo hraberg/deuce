@@ -1,12 +1,13 @@
 (ns deuce.emacs.terminal
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
-            [lanterna.screen :as s]
             [deuce.emacs.eval :as eval]
             [deuce.emacs.frame :as frame]
             [deuce.emacs-lisp.cons :as cons]
             [deuce.emacs-lisp.globals :as globals])
-  (:import [deuce.emacs.data Frame])
+  (:import [deuce.emacs.data Frame]
+           [com.googlecode.lanterna.screen Screen TerminalScreen]
+           [com.googlecode.lanterna.terminal DefaultTerminalFactory])
   (:refer-clojure :exclude []))
 
 (defvar delete-terminal-functions nil
@@ -20,9 +21,10 @@
   The function should accept no arguments.")
 
 (defn ^:private init-initial-terminal []
-  (let [terminal (s/get-screen :text)]
+  (let [terminal (TerminalScreen. (.createTerminal (doto (DefaultTerminalFactory.)
+                                                     (.setForceTextTerminal true))))]
     (reset! (.terminal ^Frame globals/terminal-frame) terminal)
-    (s/start terminal)))
+    (.startScreen terminal)))
 
 (defun terminal-list ()
   "Return a list of all terminal devices."
@@ -63,7 +65,7 @@
   (when-let [terminal (or terminal (frame-terminal))]
     (eval/run-hook-with-args 'delete-terminal-functions terminal)
     ((ns-resolve 'deuce.main 'stop-ui))
-    (s/stop terminal)
+    (.stopScreen ^Screen terminal)
     (when (= terminal (frame-terminal))
       (reset! (.terminal ^Frame globals/terminal-frame) nil))))
 

@@ -5,13 +5,11 @@
             :distribution :repo}
   :url "http://hraberg.github.io/deuce/"
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [clojure-lanterna "0.9.4"]
+                 [com.googlecode.lanterna/lanterna "3.0.0-beta2" :exclusions [junit]]
                  [com.taoensso/timbre "4.3.1"]
                  [org.tcrawley/dynapath "0.2.3"]
                  [org.flatland/ordered "1.5.3"]
                  [fipp "0.5.1"]]
-  :repositories {"sonatype-staging"
-                 "https://oss.sonatype.org/content/groups/staging/"}
   :plugins [[lein-difftest "2.0.0"]
             [lein-marginalia "0.9.0"]
             [lein-codox "0.9.4"]]

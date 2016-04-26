@@ -1,10 +1,10 @@
 (ns deuce.emacs.term
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
-            [lanterna.screen :as s]
             [deuce.emacs.data :as data]
             [deuce.emacs.eval :as eval]
             [deuce.emacs.terminal :as terminal])
+  (:import [com.googlecode.lanterna.screen Screen])
   (:refer-clojure :exclude []))
 
 (defvar suspend-tty-functions nil
@@ -89,8 +89,8 @@
 
   TTY may be a terminal object, a frame, or nil (meaning the selected
   frame's terminal)."
-  (when-let [terminal (terminal/frame-terminal)]
-    (s/start terminal)
+  (when-let [terminal ^Screen (terminal/frame-terminal)]
+    (.startScreen terminal)
     ((ns-resolve 'deuce.main 'start-ui))
     (eval/run-hook-with-args 'resume-tty-functions terminal)))
 
@@ -113,7 +113,7 @@
   suspended.
 
   A suspended tty may be resumed by calling `resume-tty' on it."
-  (when-let [terminal (terminal/frame-terminal)]
+  (when-let [terminal ^Screen (terminal/frame-terminal)]
     ((ns-resolve 'deuce.main 'stop-ui))
-    (s/stop terminal)
+    (.stopScreen terminal)
     (eval/run-hook-with-args 'suspend-tty-functions terminal)))
