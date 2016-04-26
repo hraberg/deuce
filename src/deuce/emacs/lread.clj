@@ -11,6 +11,7 @@
             [deuce.emacs-lisp.printer :as printer]
             [deuce.emacs.alloc :as alloc]
             [deuce.emacs.buffer :as buffer]
+            [deuce.emacs.character :as character]
             [deuce.emacs.data :as data]
             [deuce.emacs.editfns :as editfns]
             [deuce.emacs.fileio :as fileio]
@@ -19,7 +20,6 @@
   (:refer-clojure :exclude [read intern load])
   (:import [java.io FileNotFoundException]
            [java.net URL]
-           [com.googlecode.lanterna.input Key]
            [clojure.lang Compiler]))
 
 (defvar old-style-backquotes nil
@@ -205,39 +205,6 @@
   "Stream for read to get input from.
   See documentation of `read' for possible values.")
 
-(defn ^:private echo [message]
-  ;; Emacs uses 2 echo areas and switches between them.
-  (let [echo-area (buffer/get-buffer-create " *Echo Area 0*")]
-    (if (seq message)
-      (binding [buffer/*current-buffer* echo-area]
-        (buffer/erase-buffer)
-        (editfns/insert message))
-      (binding [buffer/*current-buffer* echo-area]
-        (buffer/erase-buffer)))
-    (window/set-window-buffer (window/minibuffer-window) echo-area)))
-
-(defn ^:private read-event-internal [prompt inherit-input-method seconds]
-  (when prompt (echo prompt))
-  ((ns-resolve 'deuce.emacs.keyboard 'read-char) nil nil nil nil
-   (+ (System/currentTimeMillis)
-      (* 1000 seconds))))
-
-(defn ^:private key-to-integer [^Key k]
-  (parser/event-convert-list-internal
-   (remove nil? [(when (.isAltPressed k) 'meta)
-                 (when (.isCtrlPressed k) 'control)])
-   (.getCharacter k)))
-
-;; This should maybe use the input-decode-map?
-(def ^:private lanterna-to-emacs-event {:enter "return"
-                                        :page-down "next"
-                                        :page-up "prior"
-                                        :reverse-tab "S-iso-lefttab"})
-
-(def ^:private lanterna-valid-chars {:escape (Key. \)
-                                     :backspace (Key. \)
-                                     :enter (Key. \return)})
-
 (defun read-event (&optional prompt inherit-input-method seconds)
   "Read an event object from the input stream.
   If the optional argument PROMPT is non-nil, display that as a prompt.
@@ -248,13 +215,12 @@
   specifying the maximum number of seconds to wait for input.  If no
   input arrives in that time, return nil.  SECONDS may be a
   floating-point value."
-  (let [^Key k (read-event-internal prompt inherit-input-method seconds)
-        kind (lanterna.constants/key-codes (.getKind k))]
-    (if (= kind :normal)
-      (key-to-integer k)
-      (symbol (str (when (.isCtrlPressed k) "C-")
-                   (when (.isAltPressed k) "M-")
-                   (lanterna-to-emacs-event kind (name kind)))))))
+  (when prompt
+    ((ns-resolve 'deuce.emacs.keyboard 'echo) prompt))
+  ((ns-resolve 'deuce.emacs.keyboard 'read-char) nil nil nil nil
+   (when seconds
+     (+ (System/currentTimeMillis)
+        (* 1000 seconds)))))
 
 (defun read-char-exclusive (&optional prompt inherit-input-method seconds)
   "Read a character from the command input (keyboard or macro).
@@ -270,17 +236,16 @@
   specifying the maximum number of seconds to wait for input.  If no
   input arrives in that time, return nil.  SECONDS may be a
   floating-point value."
-  ;; Non-normal keys with modifiers, like Shift-Arrow-Up etc.
-  ;; comes as a string of escape codes probably not dealt with by Lanterna.
-  ;; See com.googlecode.lanterna.input.CommonProfile
-  ;; We might want to write a specific EmacsProfile.
-  (let [^Key k (read-event-internal prompt inherit-input-method seconds)
-        kind (lanterna.constants/key-codes (.getKind k))
-        ^Key k (lanterna-valid-chars kind k)
-        kind (lanterna.constants/key-codes (.getKind k))]
-    (if (or (= :normal kind) (Character/isISOControl (.getCharacter k)))
-      (key-to-integer k)
-      (el/throw* 'error "Non-character input-event"))))
+  (when prompt
+    ((ns-resolve 'deuce.emacs.keyboard 'echo) prompt))
+  (let [end-time (when seconds
+                   (+ (System/currentTimeMillis)
+                      (* 1000 seconds)))]
+    (loop []
+      (let [event ((ns-resolve 'deuce.emacs.keyboard 'read-char) nil nil nil nil end-time)]
+        (if (character/characterp event)
+          event
+          (recur))))))
 
 (defun read (&optional stream)
   "Read one Lisp expression as text from STREAM, return as Lisp object.

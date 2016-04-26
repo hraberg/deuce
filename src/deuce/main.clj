@@ -12,7 +12,6 @@
             [deuce.emacs.editfns :as editfns]
             [deuce.emacs.eval :as eval]
             [deuce.emacs.fns :as fns]
-            [deuce.emacs.frame :as frame]
             [deuce.emacs.keymap :as keymap]
             [deuce.emacs.keyboard :as keyboard]
             [deuce.emacs.lread :as lread]
@@ -226,74 +225,21 @@
           (throw e))))
     (reset! running nil)))
 
-(def char-buffer (atom []))
-(def event-buffer (atom []))
-
-;; We bypass Lanterna with System/in but utilize their setup of private mode, see deuce.emacs.keyboard
-;; We report our TERM as "lanterna" to allow terminal-init-lanterna to be run first, then init the real one.
-;; All this has only been tested on TERM=xterm
-;; input-decode-map is setup in term/xterm. We should also look in local-function-key-map
-;; This interfers badly with Lanterna's get-size, occasionally locks up, needs fix.
-(defn read-key []
-  ;; Somewhere here we could maybe update the screen size, doesn't work.
-  ;; (when-not (.ready in)
-  ;;   (update-terminal-size))
-  (let [c (.read in)]
-    (swap! char-buffer conj (char c))
-    (let [maybe-event (object-array @char-buffer)
-          decoded (keymap/lookup-key (data/symbol-value 'input-decode-map) maybe-event)]
-      (when-not (keymap/keymapp decoded)
-        (let [_ (reset! char-buffer [])
-              event (if (data/vectorp decoded) decoded maybe-event)
-              _ (swap! event-buffer (comp vec concat) event)
-              def (keymap/key-binding (object-array @event-buffer))]
-          (if (and def (not (keymap/keymapp def)))
-            (try
-              ;; There are many more things that can happen here
-              (el/setq last-event-frame (frame/selected-frame))
-              (el/setq last-command-event (last @event-buffer))
-              (el/setq last-nonmenu-event (last @event-buffer))
-              ;; this-command-keys and this-command-keys-vector return the entire event-buffer as string or vector.
-              ;; They are backed by one variable in C, this_command_keys.
-              (el/setq this-command def)
-              (el/setq this-original-command def) ;; Need to handle remap
-              (el/setq deactivate-mark nil)
-              (buffer/set-buffer (window/window-buffer (window/selected-window)))
-              (reset! char-buffer [])
-              (reset! event-buffer [])
-              (eval/run-hooks 'pre-command-hook)
-              (timbre/debug (format "Command: %s" def))
-              (keyboard/command-execute def)
-              (finally
-               (eval/run-hooks 'post-command-hook)
-               (when (data/symbol-value 'deactivate-mark)
-                 (eval/funcall 'deactivate-mark))
-               (el/setq this-command nil)
-               (el/setq this-original-command nil)
-               (el/setq last-prefix-arg (data/symbol-value 'current-prefix-arg))
-               (el/setq last-command (data/symbol-value 'this-command))
-               (el/setq real-last-command (data/symbol-value 'this-command))))
-            (when-not (keymap/keymapp def)
-              (reset! char-buffer [])
-              (reset! event-buffer []))))))))
-
-(defn drain-input-stream [^InputStreamReader in]
-  (while (.ready in)
-    (.read in)))
-
-(defn start-input-loop []
+(defn start-command-loop []
   (reset! running true)
-  (drain-input-stream in)
   (future
+    ((ns-resolve 'deuce.emacs.keyboard 'drain-input-stream))
     (while (running?)
       (try
-        (read-key)
+        (let [def (keymap/key-binding (keyboard/read-key-sequence-vector nil))]
+          (when (and def (not (keymap/keymapp def)))
+            (keyboard/command-execute def)))
         (catch ExceptionInfo e
           (binding [*ns* (the-ns 'clojure.core)]
             (timbre/error (.getMessage e))))
         (catch Exception e
           ;; This is a simplification, but makes you aware of the error without tailing the log.
-          ((ns-resolve 'deuce.emacs.lread 'echo) (.getMessage e))
+          ((ns-resolve 'deuce.emacs.keyboard 'echo) (.getMessage e))
           (binding [*ns* (the-ns 'clojure.core)]
             (timbre/error (el/cause e) "An error occured during the input loop")))))))
 
@@ -311,7 +257,7 @@
 
 (defn start-ui []
   (start-render-loop)
-  (start-input-loop))
+  (start-command-loop))
 
 (declare init-user-classpath)
 

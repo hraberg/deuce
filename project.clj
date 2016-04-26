@@ -5,7 +5,7 @@
             :distribution :repo}
   :url "http://hraberg.github.io/deuce/"
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [clojure-lanterna "0.9.3"]
+                 [clojure-lanterna "0.9.4"]
                  [com.taoensso/timbre "4.3.1"]
                  [org.tcrawley/dynapath "0.2.3"]
                  [org.flatland/ordered "1.5.3"]

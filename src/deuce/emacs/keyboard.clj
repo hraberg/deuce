@@ -3,15 +3,22 @@
   (:require [clojure.core :as c]
             [clojure.java.shell :as sh]
             [lanterna.common]
+            [deuce.emacs.buffer :as buffer]
             [deuce.emacs.callint :as callint]
             [deuce.emacs.casefiddle :as casefiddle]
             [deuce.emacs.data :as data]
             [deuce.emacs.editfns :as editfns]
+            [deuce.emacs.eval :as eval]
+            [deuce.emacs.frame :as frame]
+            [deuce.emacs.keymap :as keymap]
             [deuce.emacs.macros :as macros]
             [deuce.emacs.term :as term]
             [deuce.emacs.terminal :as terminal]
-            [deuce.emacs-lisp.parser :as parser])
+            [deuce.emacs.window :as window]
+            [deuce.emacs-lisp.parser :as parser]
+            [taoensso.timbre :as timbre])
   (:import [sun.misc Signal SignalHandler]
+           [java.io InputStreamReader]
            [com.googlecode.lanterna.screen Screen])
   (:refer-clojure :exclude []))
 
@@ -505,6 +512,20 @@
   and its non-prefix bindings override ordinary bindings.
   Another difference is that it is global rather than keyboard-local.")
 
+;; We bypass Lanterna with System/in but utilize their setup of private mode, see deuce.emacs.keyboard
+;; We report our TERM as "lanterna" to allow terminal-init-lanterna to be run first, then init the real one.
+;; All this has only been tested on TERM=xterm
+;; input-decode-map is setup in term/xterm. We should also look in local-function-key-map
+;; This interfers badly with Lanterna's get-size, occasionally locks up, needs fix.
+
+(def ^InputStreamReader in (InputStreamReader. System/in))
+
+(def ^:private char-buffer (atom []))
+(def ^:private  event-buffer (atom []))
+
+(defn ^:private drain-input-stream []
+  (while (.ready in)
+    (.read in)))
 
 ;; DEUCE: For reference, this is the main low level read_char function in Emacs.
 ;;        We don't use nmaps (or most arguments yet).
@@ -562,9 +583,26 @@
 ;;    that time, stop waiting and return nil.
 
 ;;    Value is t if we showed a menu and the user rejected it.  */
+
 (defn ^:private read-char [commandflag maps prev-event used-mouse-menu end-time]
-  (lanterna.common/block-on #(.readInput (.getTerminal ^Screen (terminal/frame-terminal))) []
-                            (when end-time {:timeout (* 1000 (- end-time (System/currentTimeMillis)))}))  )
+  (loop []
+    (when (or (nil? end-time)
+              (> end-time (System/currentTimeMillis)))
+      (if (.ready in)
+        (.read in)
+        (do (Thread/sleep 15)
+            (recur))))))
+
+(defn ^:private echo [message]
+  ;; Emacs uses 2 echo areas and switches between them.
+  (let [echo-area (buffer/get-buffer-create " *Echo Area 0*")]
+    (if (seq message)
+      (binding [buffer/*current-buffer* echo-area]
+        (buffer/erase-buffer)
+        (editfns/insert message))
+      (binding [buffer/*current-buffer* echo-area]
+        (buffer/erase-buffer)))
+    (window/set-window-buffer (window/minibuffer-window) echo-area)))
 
 (defun event-convert-list (event-desc)
   "Convert the event description list EVENT-DESC to an event type.
@@ -635,12 +673,35 @@
   The argument SPECIAL, if non-nil, means that this command is executing
   a special event, so ignore the prefix argument and don't clear it."
   (el/check-type 'commandp cmd)
-  (when-not special
-    (el/setq current-prefix-arg (data/symbol-value 'prefix-arg))
-    (el/setq prefix-arg nil))
-  (if (or (data/stringp cmd) (data/vectorp cmd))
-    (macros/execute-kbd-macro cmd (when-not special (data/symbol-value 'current-prefix-arg)))
-    (callint/call-interactively cmd record-flag keys)))
+  (try
+    ;; There are many more things that can happen here
+    (el/setq last-event-frame (frame/selected-frame))
+    (el/setq last-command-event (last @event-buffer))
+    (el/setq last-nonmenu-event (last @event-buffer))
+    ;; this-command-keys and this-command-keys-vector return the entire event-buffer as string or vector.
+    ;; They are backed by one variable in C, this_command_keys.
+    (reset! event-buffer [])
+    (el/setq this-command cmd)
+    (el/setq this-original-command cmd) ;; Need to handle remap
+    (el/setq deactivate-mark nil)
+    (buffer/set-buffer (window/window-buffer (window/selected-window)))
+    (eval/run-hooks 'pre-command-hook)
+    (timbre/debug (format "command-execute: %s" cmd))
+    (when-not special
+      (el/setq current-prefix-arg (data/symbol-value 'prefix-arg))
+      (el/setq prefix-arg nil))
+    (if (or (data/stringp cmd) (data/vectorp cmd))
+      (macros/execute-kbd-macro cmd (when-not special (data/symbol-value 'current-prefix-arg)))
+      (callint/call-interactively cmd record-flag keys))
+    (finally
+      (eval/run-hooks 'post-command-hook)
+      (when (data/symbol-value 'deactivate-mark)
+        (eval/funcall 'deactivate-mark))
+      (el/setq this-command nil)
+      (el/setq this-original-command nil)
+      (el/setq last-prefix-arg (data/symbol-value 'current-prefix-arg))
+      (el/setq last-command (data/symbol-value 'this-command))
+      (el/setq real-last-command (data/symbol-value 'this-command)))))
 
 (Signal/handle (Signal. "CONT")
                (proxy [SignalHandler] []
@@ -671,7 +732,20 @@
 
 (defun read-key-sequence-vector (prompt &optional continue-echo dont-downcase-last can-return-switch-frame cmd-loop)
   "Like `read-key-sequence' but always return a vector."
-  )
+  (when prompt
+    (echo prompt))
+  (loop [c (.read in)]
+    (swap! char-buffer conj (char c))
+    (let [maybe-event (object-array @char-buffer)
+          decoded (keymap/lookup-key (data/symbol-value 'input-decode-map) maybe-event)]
+      (if (keymap/keymapp decoded)
+        (recur (.read in))
+        (do (reset! char-buffer [])
+            (let [event (if (data/vectorp decoded) decoded maybe-event)]
+              (swap! event-buffer (comp vec concat) event)
+              (if (keymap/keymapp (keymap/key-binding (object-array @event-buffer)))
+                (recur (.read in))
+                (object-array @event-buffer))))))))
 
 (defun set-input-mode (interrupt flow meta &optional quit)
   "Set mode of reading keyboard input.
@@ -733,7 +807,7 @@
   that this key sequence is being read by something that will
   read commands one after another.  It should be nil if the caller
   will read just one key sequence."
-  )
+  (apply str (map char (read-key-sequence prompt continue-echo dont-downcase-last can-return-switch-frame cmd-loop))))
 
 (defun posn-at-x-y (x y &optional frame-or-window whole)
   "Return position information for pixel coordinates X and Y.
