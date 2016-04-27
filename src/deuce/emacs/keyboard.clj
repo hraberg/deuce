@@ -931,7 +931,7 @@
 (defun abort-recursive-edit ()
   "Abort the command that requested this recursive edit or minibuffer input."
   (interactive)
-  (el/throw 'exit nil))
+  (el/throw 'exit true))
 
 (defun set-input-interrupt-mode (interrupt)
   "Set interrupt mode of reading keyboard input.
