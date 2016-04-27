@@ -68,11 +68,15 @@
   If BYTEPOS is out of range, the value is nil."
   )
 
+(declare buffer-string buffer-substring buffer-size point mark-marker goto-char
+         point-max point-min insert eobp bobp char-before message delete-region
+         field-beginning field-end)
+
 (defun field-string-no-properties (&optional pos)
   "Return the contents of the field around POS, without text properties.
   A field is a region of text with the same `field' property.
   If POS is nil, the value of point is used for POS."
-  )
+  (buffer-substring (field-beginning) (field-end)))
 
 (defn ^:private emacs-time-to-date [[high low usec]]
   (Date. (long (+ (* (+ (bit-shift-left high 16) low) 1000) (/ usec 1000)))))
@@ -81,9 +85,6 @@
   (let [now (.getTime date)
         seconds (int (/ now 1000))]
     (list (bit-shift-right seconds 16) (bit-and 0xffff seconds) (* 1000 (mod now 1000)))))
-
-(declare buffer-string buffer-substring buffer-size point mark-marker goto-char
-         point-max point-min insert eobp bobp char-before message delete-region)
 
 (defun decode-time (&optional specified-time)
   "Decode a time value as (SEC MINUTE HOUR DAY MONTH YEAR DOW DST ZONE).
@@ -150,7 +151,7 @@
   field, then the beginning of the *previous* field is returned.
   If LIMIT is non-nil, it is a buffer position; if the beginning of the field
   is before LIMIT, then LIMIT will be returned instead."
-  )
+  ((ns-resolve 'deuce.emacs.minibuf 'minibuffer-prompt-end)))
 
 (defun format (string &rest objects)
   "Format a string out of a format-string and arguments.
@@ -421,7 +422,7 @@
   "Return the contents of the field surrounding POS as a string.
   A field is a region of text with the same `field' property.
   If POS is nil, the value of point is used for POS."
-  )
+  (field-string-no-properties pos))
 
 (defun region-beginning ()
   "Return the integer value of point or mark, whichever is smaller."
@@ -477,7 +478,7 @@
   then the end of the *following* field is returned.
   If LIMIT is non-nil, it is a buffer position; if the end of the field
   is after LIMIT, then LIMIT will be returned instead."
-  )
+  (min (point-max) (or limit (point-max))))
 
 (defun user-login-name (&optional uid)
   "Return the name under which the user logged in, as a string.

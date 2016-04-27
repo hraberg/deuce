@@ -674,6 +674,9 @@
     (if (or (data/stringp cmd) (data/vectorp cmd))
       (macros/execute-kbd-macro cmd (when-not special (data/symbol-value 'current-prefix-arg)))
       (callint/call-interactively cmd record-flag keys))
+    ;; (catch ExceptionInfo e
+    ;;   (when-not (and (= 'exit (:tag (ex-data e))) (:value (ex-data e)))
+    ;;     (throw e)))
     (finally
       (eval/run-hooks 'post-command-hook)
       (when (data/symbol-value 'deactivate-mark)
@@ -829,13 +832,16 @@
             (when (and def (not (keymap/keymapp def)))
               (command-execute def)))
           (catch ExceptionInfo e
-            (if (= 'exit (:tag (ex-data e)))
-              (if (nil? (:value (ex-data e)))
-                (reset! running false)
-                (throw e))
-              (do (editfns/message (print/error-message-string (alloc/cons (:tag (ex-data e)) (:value (ex-data e)))))
-                  (binding [*ns* (the-ns 'clojure.core)]
-                    (timbre/error (.getMessage e))))))
+            (let [{:keys [tag value]} (ex-data e)]
+              (if (= 'exit tag)
+                (if (nil? value)
+                  (reset! running false)
+                  (throw e))
+                (do (editfns/message (print/error-message-string (alloc/cons tag value)))
+                    (binding [*ns* (the-ns 'clojure.core)]
+                      (if (= 'wrong-type-argument tag)
+                        (timbre/error e)
+                        (timbre/error (.getMessage e))))))))
           (catch Exception e
             ;; This is a simplification, but makes you aware of the error without tailing the log.
             ((ns-resolve 'deuce.emacs.keyboard 'echo) (.getMessage e))
@@ -867,7 +873,9 @@
   give to the command you invoke, if it asks for an argument."
   (interactive "P")
   (el/setq prefix-arg prefixarg)
-  (command-execute (symbol nil ((el/fun 'read-extended-command)))))
+  (command-execute
+   ;; (symbol nil ((el/fun 'read-extended-command)))
+   ((ns-resolve 'deuce.emacs.minibuf 'read-command) "M-x ")))
 
 (defun discard-input ()
   "Discard the contents of the terminal input buffer.

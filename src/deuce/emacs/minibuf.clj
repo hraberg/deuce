@@ -7,7 +7,11 @@
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data]
             [deuce.emacs.editfns :as editfns]
+            [deuce.emacs.eval :as eval]
             [deuce.emacs.fns :as fns]
+            [deuce.emacs.keyboard :as keyboard]
+            [deuce.emacs.keymap :as keymap]
+            [deuce.emacs.lread :as lread]
             [deuce.emacs.window :as window])
   (:refer-clojure :exclude [read-string]))
 
@@ -143,7 +147,7 @@
    confirmation if the user submitted the input right after any of the
    completion commands listed in `minibuffer-confirm-exit-commands'.")
 
-(declare filter-completions active-minibuffer-window)
+(declare filter-completions active-minibuffer-window minibuffer-contents read-minibuffer)
 
 (def ^:private minibuf-prompt (atom nil))
 
@@ -151,18 +155,26 @@
   "Return current depth of activations of minibuffer, a nonnegative integer."
   (if (active-minibuffer-window) 1 0))
 
-(defn ^:private minibuffer [prompt & [default]]
-  (let [minibuffer (buffer/get-buffer-create " *Minibuf-1*")]
-    (binding [buffer/*current-buffer* minibuffer]
-      (buffer/erase-buffer)
-      (when (seq prompt)
-        (editfns/insert prompt))
-      (when default
-        (editfns/insert (if (data/listp default) (data/car default) default))))
-    (reset! minibuf-prompt prompt)
-    (window/set-window-buffer (window/minibuffer-window) minibuffer)
-    (window/select-window (window/minibuffer-window))))
-
+(defn ^:private minibuffer [prompt & [default keymap]]
+  (let [minibuffer (buffer/get-buffer-create " *Minibuf-1*")
+        previous-window (window/selected-window)
+        previous-minibuffer (window/window-buffer (window/minibuffer-window))]
+    (try
+      (binding [buffer/*current-buffer* minibuffer]
+        (buffer/erase-buffer)
+        (when (seq prompt)
+          (editfns/insert prompt))
+        (when default
+          (editfns/insert (if (data/listp default) (data/car default) default))))
+      (reset! minibuf-prompt prompt)
+      (window/set-window-buffer (window/minibuffer-window) minibuffer)
+      (window/select-window (window/minibuffer-window))
+      (keymap/use-local-map (or keymap (data/symbol-value 'minibuffer-local-map)))
+      (keyboard/recursive-edit)
+      (minibuffer-contents)
+      (finally
+        (window/set-window-buffer (window/minibuffer-window) previous-minibuffer)
+        (window/select-window previous-window)))))
 
 (defun test-completion (string collection &optional predicate)
   "Return non-nil if STRING is a valid completion.
@@ -229,7 +241,7 @@
     `completion-ignore-case' is non-nil.
 
   See also `completing-read-function'."
-  (minibuffer prompt))
+  (minibuffer prompt initial-input))
 
 (defun read-from-minibuffer (prompt &optional initial-contents keymap read hist default-value inherit-input-method)
   "Read a string from the minibuffer, prompting with string PROMPT.
@@ -281,7 +293,8 @@
   one puts point at the beginning of the string.  *Note* that this
   behavior differs from the way such arguments are used in `completing-read'
   and some related functions, which use zero-indexing for POSITION."
-  )
+  (cond-> (minibuffer prompt (or default-value initial-contents) keymap)
+    read (-> lread/read-from-string data/car)))
 
 (defun assoc-string (key list &optional case-fold)
   "Like `assoc' but specifically for strings (and symbols).
@@ -319,7 +332,8 @@
   "Read the name of a command and return as a symbol.
   Prompt with PROMPT.  By default, return DEFAULT-VALUE or its first element
   if it is a list."
-  (minibuffer prompt default-value))
+  (alloc/make-symbol (minibuffer prompt (cond-> default-value
+                                          data/listp data/car))))
 
 (defn ^:private filter-completions [collection predicate]
   (map #(if (data/consp %) (car %) %)
@@ -375,7 +389,7 @@
   is a string to insert in the minibuffer before reading.
   (INITIAL-CONTENTS can also be a cons of a string and an integer.
   Such arguments are used as in `read-from-minibuffer'.)"
-  )
+  (eval/eval (read-minibuffer prompt initial-contents)))
 
 (defun read-string (prompt &optional initial-input history default-value inherit-input-method)
   "Read a string from the minibuffer, prompting with string PROMPT.
@@ -392,7 +406,7 @@
    empty string.
   Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
    the current input method and the setting of `enable-multibyte-characters'."
-  )
+  (minibuffer prompt (or default-value initial-input)))
 
 (defun minibuffer-prompt-end ()
   "Return the buffer position of the end of the minibuffer prompt.
@@ -480,12 +494,12 @@
   is a string to insert in the minibuffer before reading.
   (INITIAL-CONTENTS can also be a cons of a string and an integer.
   Such arguments are used as in `read-from-minibuffer'.)"
-  )
+  (read-from-minibuffer prompt initial-contents nil true))
 
 (defun minibuffer-contents-no-properties ()
   "Return the user input in a minibuffer as a string, without text-properties.
   If the current buffer is not a minibuffer, return its entire contents."
-  (editfns/buffer-string))
+  (minibuffer-contents))
 
 (defun minibuffer-contents ()
   "Return the user input in a minibuffer as a string.
