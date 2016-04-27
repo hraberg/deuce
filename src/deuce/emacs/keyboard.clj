@@ -598,7 +598,8 @@
   "Return t if command input is currently available with no wait.
   Actually, the value is nil only if we can be sure that no input is available;
   if there is a doubt, the value is t."
-  )
+  (when (.ready in)
+    true))
 
 (defun posn-at-point (&optional pos window)
   "Return position information for buffer POS in WINDOW.
