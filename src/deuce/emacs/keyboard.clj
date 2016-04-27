@@ -2,6 +2,7 @@
   (:use [deuce.emacs-lisp :only (defun defvar) :as el])
   (:require [clojure.core :as c]
             [clojure.java.shell :as sh]
+            [deuce.emacs.alloc :as alloc]
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.callint :as callint]
             [deuce.emacs.casefiddle :as casefiddle]
@@ -11,6 +12,7 @@
             [deuce.emacs.frame :as frame]
             [deuce.emacs.keymap :as keymap]
             [deuce.emacs.macros :as macros]
+            [deuce.emacs.print :as print]
             [deuce.emacs.term :as term]
             [deuce.emacs.terminal :as terminal]
             [deuce.emacs.window :as window]
@@ -652,6 +654,7 @@
   a special event, so ignore the prefix argument and don't clear it."
   (el/check-type 'commandp cmd)
   (try
+    (echo "")
     ;; There are many more things that can happen here
     (el/setq last-event-frame (frame/selected-frame))
     (el/setq last-command-event (last @event-buffer))
@@ -830,8 +833,9 @@
               (if (nil? (:value (ex-data e)))
                 (reset! running false)
                 (throw e))
-              (binding [*ns* (the-ns 'clojure.core)]
-                (timbre/error (.getMessage e)))))
+              (do (editfns/message (print/error-message-string (alloc/cons (:tag (ex-data e)) (:value (ex-data e)))))
+                  (binding [*ns* (the-ns 'clojure.core)]
+                    (timbre/error (.getMessage e))))))
           (catch Exception e
             ;; This is a simplification, but makes you aware of the error without tailing the log.
             ((ns-resolve 'deuce.emacs.keyboard 'echo) (.getMessage e))

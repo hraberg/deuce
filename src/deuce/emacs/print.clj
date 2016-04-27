@@ -1,9 +1,11 @@
 (ns deuce.emacs.print
   (:use [deuce.emacs-lisp :only (defun defvar)])
   (:require [clojure.core :as c]
+            [clojure.string :as s]
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.data :as data]
-            [deuce.emacs.editfns :as editfns])
+            [deuce.emacs.editfns :as editfns]
+            [deuce.emacs.fns :as fns])
   (:refer-clojure :exclude [print]))
 
 (defvar print-circle nil
@@ -111,7 +113,12 @@
   "Convert an error value (ERROR-SYMBOL . DATA) to an error message.
   See Info anchor `(elisp)Definition of signal' for some details on how this
   error message is constructed."
-  )
+  (let [error-symbol (data/car obj)
+        data (data/cdr obj)]
+    (str (or (fns/get error-symbol 'error-message)
+             (s/capitalize (s/join " " (s/split (str error-symbol) #"-"))))
+         (when (and (data/listp data) (not (nil? data)))
+           (str ": " (s/join ", " (map pr-str data)))))))
 
 (defun print (object &optional printcharfun)
   "Output the printed representation of OBJECT, with newlines around it.

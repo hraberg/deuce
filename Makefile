@@ -109,7 +109,7 @@ run: target/deuce
 	$<
 
 run-dev: emacs/lisp/loaddefs.el
-	lein run -Q --nrepl || reset
+	lein run -Q --nrepl
 
 docs/index.html: $(deuce_source_files)
 	git submodule update --init docs
