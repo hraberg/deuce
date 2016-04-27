@@ -17,7 +17,8 @@
             [deuce.emacs-lisp.parser :as parser]
             [taoensso.timbre :as timbre])
   (:import [sun.misc Signal SignalHandler]
-           [java.io InputStreamReader])
+           [java.io InputStreamReader]
+           [clojure.lang ExceptionInfo])
   (:refer-clojure :exclude []))
 
 (defvar last-command-event nil
@@ -524,7 +525,9 @@
 (def ^InputStreamReader in (InputStreamReader. System/in))
 
 (def ^:private char-buffer (atom []))
-(def ^:private  event-buffer (atom []))
+(def ^:private event-buffer (atom []))
+
+(def ^:private recursion-depth-level (atom -1))
 
 ;; DEUCE: For reference, this is the main low level read_char function in Emacs.
 ;;        We don't use nmaps (or most arguments yet).
@@ -703,7 +706,7 @@
 
 (defun recursion-depth ()
   "Return the current depth in recursive edits."
-  0)
+  (max @recursion-depth-level 0))
 
 (defun read-key-sequence-vector (prompt &optional continue-echo dont-downcase-last can-return-switch-frame cmd-loop)
   "Like `read-key-sequence' but always return a vector."
@@ -813,7 +816,27 @@
   ;;   recursive_edit_1 -> command_loop -> command_loop_2 -> command_loop_1
   ;; Each adding some layers of condition case and other things (redisplay, buffer).
   ;; command_loop_1 is the real command loop. Calls read_key_sequence.
-  (interactive))
+  (interactive)
+  (let [running (atom true)]
+    (try
+      (swap! recursion-depth-level inc)
+      (while @running
+        (try
+          (let [def (keymap/key-binding (read-key-sequence-vector nil))]
+            (when (and def (not (keymap/keymapp def)))
+              (command-execute def)))
+          (catch ExceptionInfo e
+            (if (and (= 'exit (:tag (ex-data e))) (nil? (:value (ex-data e))))
+              (reset! running false)
+              (binding [*ns* (the-ns 'clojure.core)]
+                (timbre/error (.getMessage e)))))
+          (catch Exception e
+            ;; This is a simplification, but makes you aware of the error without tailing the log.
+            ((ns-resolve 'deuce.emacs.keyboard 'echo) (.getMessage e))
+            (binding [*ns* (the-ns 'clojure.core)]
+              (timbre/error (el/cause e) "An error occured during the input loop")))))
+      (finally
+        (swap! recursion-depth-level dec)))))
 
 (defun this-command-keys-vector ()
   "Return the key sequence that invoked this command, as a vector.
@@ -892,7 +915,8 @@
 
 (defun exit-recursive-edit ()
   "Exit from the innermost recursive edit or minibuffer."
-  (interactive))
+  (interactive)
+  (el/throw 'exit nil))
 
 (defun set-quit-char (quit)
   "Specify character used for quitting.
@@ -906,7 +930,8 @@
 
 (defun abort-recursive-edit ()
   "Abort the command that requested this recursive edit or minibuffer input."
-  (interactive))
+  (interactive)
+  (el/throw 'exit nil))
 
 (defun set-input-interrupt-mode (interrupt)
   "Set interrupt mode of reading keyboard input.

@@ -16,10 +16,9 @@
             [taoensso.timbre :as timbre]
             [taoensso.timbre.appenders.core :as timbre-appenders]
             [dynapath.util :as dp])
-  (:import [java.io FileNotFoundException InputStreamReader]
+  (:import [java.io FileNotFoundException]
            [java.awt Toolkit]
-           [java.awt.datatransfer DataFlavor StringSelection]
-           [clojure.lang ExceptionInfo])
+           [java.awt.datatransfer DataFlavor StringSelection])
   (:gen-class))
 
 ;; Start Deuce like this:
@@ -85,29 +84,7 @@
           (throw e))))
     (reset! running nil)))
 
-(defn start-command-loop []
-  (reset! running true)
-  (future
-    (keyboard/discard-input)
-    (while (running?)
-      (try
-        (let [def (keymap/key-binding (keyboard/read-key-sequence-vector nil))]
-          (when (and def (not (keymap/keymapp def)))
-            (keyboard/command-execute def)))
-        (catch ExceptionInfo e
-          (binding [*ns* (the-ns 'clojure.core)]
-            (timbre/error (.getMessage e))))
-        (catch Exception e
-          ;; This is a simplification, but makes you aware of the error without tailing the log.
-          ((ns-resolve 'deuce.emacs.keyboard 'echo) (.getMessage e))
-          (binding [*ns* (the-ns 'clojure.core)]
-            (timbre/error (el/cause e) "An error occured during the input loop")))))))
-
-(defn start-ui []
-  (start-render-loop)
-  (start-command-loop))
-
-(defn stop-ui []
+(defn stop-render-loop []
   (reset! running :stop)
   (while @running
     (Thread/sleep frame-time-ms)))
@@ -138,18 +115,11 @@
                                                    (getenv-internal "TERM")))
 
       (init-clipboard)
-      (start-ui))
+      (start-render-loop))
     (catch Exception e
       (terminal/delete-terminal)
       (timbre/error e "An error occured during Lanterna init")
       (throw e))))
-
-(defn restart []
-  (let [args (next (data/symbol-value 'command-line-args))]
-    (terminal/delete-terminal)
-    (some-> 'deuce.main/-main resolve (apply args))
-    (terminal-init-lanterna)
-    :ok))
 
 (timbre/merge-config!
  {:appenders
@@ -192,4 +162,11 @@
       (load-user-init-file))
 
     ;; /* Enter editor command loop.  This never returns.  */
-    (keyboard/recursive-edit)))
+    (try
+      (keyboard/discard-input)
+      (keyboard/recursive-edit)
+      (catch Exception e
+        (timbre/error e "An error occured during the command loop, exiting.")
+        (throw e))
+      (finally
+        (terminal/delete-terminal)))))

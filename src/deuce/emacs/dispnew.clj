@@ -12,11 +12,11 @@
             [deuce.emacs.window :as window]
             [deuce.emacs.xdisp :as xdisp]
             [deuce.emacs-lisp.parser :as parser])
-  (:import [java.util HashSet]
+  (:import [java.util Collection HashSet]
            [com.googlecode.lanterna TerminalPosition SGR]
            [com.googlecode.lanterna TextColor$ANSI]
            [com.googlecode.lanterna.graphics TextGraphics]
-           [com.googlecode.lanterna.screen Screen]
+           [com.googlecode.lanterna.screen Screen TerminalScreen]
            [deuce.emacs.data Buffer Window])
   (:refer-clojure :exclude []))
 
@@ -142,7 +142,7 @@
     {:keys [styles fg bg] :or {styles #{} fg TextColor$ANSI/DEFAULT bg TextColor$ANSI/DEFAULT}}]
    (.setForegroundColor text-graphics fg)
    (.setBackgroundColor text-graphics bg)
-   (.putString text-graphics x y (str s) (HashSet. styles))))
+   (.putString text-graphics (int x) (int y) (str s) (HashSet. ^Collection styles))))
 
 (defn ^:private pad [s cols]
   (format (str "%-" cols "s") s))
@@ -295,7 +295,7 @@
 (defun redraw-display ()
   "Clear and redisplay all visible frames."
   (interactive)
-  (when-let [screen ^Screen (terminal/frame-terminal)]
+  (when-let [screen ^TerminalScreen (terminal/frame-terminal)]
     (.clear screen)
     (.clearScreen (.getTerminal screen))
     (.refresh screen)
