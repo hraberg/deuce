@@ -826,8 +826,10 @@
             (when (and def (not (keymap/keymapp def)))
               (command-execute def)))
           (catch ExceptionInfo e
-            (if (and (= 'exit (:tag (ex-data e))) (nil? (:value (ex-data e))))
-              (reset! running false)
+            (if (= 'exit (:tag (ex-data e)))
+              (if (nil? (:value (ex-data e)))
+                (reset! running false)
+                (throw e))
               (binding [*ns* (the-ns 'clojure.core)]
                 (timbre/error (.getMessage e)))))
           (catch Exception e
