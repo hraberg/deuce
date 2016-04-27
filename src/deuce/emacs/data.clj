@@ -9,7 +9,7 @@
   (:import [java.nio ByteOrder]
            [java.io Writer]
            [java.lang.reflect Field]
-           [clojure.lang Symbol Var])
+           [clojure.lang ExceptionInfo Symbol Var])
   (:refer-clojure :exclude [+ * - / aset set < = > max >= <= mod atom min]))
 
 (declare consp car cdr set-default default-boundp markerp)
@@ -274,7 +274,7 @@
 (declare symbol-function symbolp eq)
 
 ;; Navgeet's additions, not sure they've been tested against real world scenarios.
-(defn ^:private indirect_function [object]
+(defn ^:private find-indirect-function [object]
   (loop [hare object
          tortoise object]
     (if (symbolp hare)
@@ -297,14 +297,15 @@
   Signal a cyclic-function-indirection error if there is a loop in the
   function chain of symbols."
   (if (symbolp object)
-    (el/try-with-tag
+    (try
       (let [result (symbol-function object)]
         ;; Optimize for no indirection.
         (if (symbolp result)
-          (indirect_function result)
+          (find-indirect-function result)
           result))
-      (catch 'void-function e
-        (if noerror nil (throw e))))
+      (catch ExceptionInfo e
+        (when-not (and noerror (c/= 'void-function (:tag (ex-data e))))
+          (throw e))))
     object))
 
 (defun symbol-name (symbol)

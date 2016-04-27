@@ -913,18 +913,3 @@
   (if ((fun pred) x)
     x
     (deuce.emacs-lisp/throw 'wrong-type-argument (cons/list pred x))))
-
-;; Navgeet's helper macro, will revisit, basically condition-case but for use from Clojure
-(c/defmacro try-with-tag [& exprs]
-  (c/let [catch-clauses (c/filter #(c/= (first %) 'catch) exprs)
-          finally-clause (c/filter #(c/= (first %) 'finally) exprs)
-          try-exprs (c/remove #(c/or (c/= (first %) 'finally) (c/= (first %) 'catch)) exprs)]
-    `(try ~@try-exprs
-          ~@(for [expr catch-clauses]
-              (c/let [[_ tag e & exprs] expr]
-                `(catch ExceptionInfo e#
-                   (if (= ~tag (:tag (ex-data e#)))
-                     (c/let [~e e#]
-                       (do ~@exprs))
-                     (throw e#)))))
-          ~@finally-clause)))
