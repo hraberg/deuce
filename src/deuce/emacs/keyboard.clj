@@ -726,7 +726,8 @@
       (if (keymap/keymapp decoded)
         (recur (.read in))
         (do (reset! char-buffer [])
-            (let [event (if (data/vectorp decoded) decoded maybe-event)]
+            (let [event (if (data/vectorp decoded) decoded maybe-event)
+                  event (or (keymap/lookup-key (data/symbol-value 'local-function-key-map) event) event)]
               (swap! event-buffer (comp vec concat) event)
               (if (keymap/keymapp (keymap/key-binding (object-array @event-buffer)))
                 (recur (.read in))
