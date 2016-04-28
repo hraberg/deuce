@@ -675,9 +675,6 @@
     (if (or (data/stringp cmd) (data/vectorp cmd))
       (macros/execute-kbd-macro cmd (when-not special (data/symbol-value 'current-prefix-arg)))
       (callint/call-interactively cmd record-flag keys))
-    ;; (catch ExceptionInfo e
-    ;;   (when-not (and (= 'exit (:tag (ex-data e))) (:value (ex-data e)))
-    ;;     (throw e)))
     (finally
       (eval/run-hooks 'post-command-hook)
       (when (data/symbol-value 'deactivate-mark)
@@ -720,19 +717,20 @@
   (when prompt
     (echo prompt))
   (loop [c (.read in)]
-    (swap! char-buffer conj (char c))
-    (let [maybe-event (object-array @char-buffer)
-          decoded (keymap/lookup-key (data/symbol-value 'input-decode-map) maybe-event)]
-      (if (keymap/keymapp decoded)
-        (recur (.read in))
-        (do (reset! char-buffer [])
-            (let [event (if (data/vectorp decoded) decoded maybe-event)
-                  function-key (keymap/lookup-key (data/symbol-value 'local-function-key-map) event)
-                  event (if (data/vectorp function-key) function-key event)]
-              (swap! event-buffer (comp vec concat) event)
-              (if (keymap/keymapp (keymap/key-binding (object-array @event-buffer)))
-                (recur (.read in))
-                (object-array @event-buffer))))))))
+    (when-not (= -1 c)
+      (swap! char-buffer conj (char c))
+      (let [maybe-event (object-array @char-buffer)
+            decoded (keymap/lookup-key (data/symbol-value 'input-decode-map) maybe-event)]
+        (if (keymap/keymapp decoded)
+          (recur (.read in))
+          (do (reset! char-buffer [])
+              (let [event (if (data/vectorp decoded) decoded maybe-event)
+                    function-key (keymap/lookup-key (data/symbol-value 'local-function-key-map) event)
+                    event (if (data/vectorp function-key) function-key event)]
+                (swap! event-buffer (comp vec concat) event)
+                (if (keymap/keymapp (keymap/key-binding (object-array @event-buffer)))
+                  (recur (.read in))
+                  (object-array @event-buffer)))))))))
 
 (defun set-input-mode (interrupt flow meta &optional quit)
   "Set mode of reading keyboard input.

@@ -13,6 +13,7 @@
             [deuce.emacs.keymap :as keymap]
             [deuce.emacs.lread :as lread]
             [deuce.emacs.window :as window])
+  (:import [clojure.lang ExceptionInfo])
   (:refer-clojure :exclude [read-string]))
 
 (defvar minibuffer-history-variable nil
@@ -172,6 +173,10 @@
       (keymap/use-local-map (or keymap (data/symbol-value 'minibuffer-local-map)))
       (keyboard/recursive-edit)
       (minibuffer-contents)
+      (catch ExceptionInfo e
+        (if (and (= 'exit (:tag (ex-data e))) (:value (ex-data e)))
+          (el/throw 'quit nil)
+          (throw e)))
       (finally
         (window/set-window-buffer (window/minibuffer-window) previous-minibuffer)
         (window/select-window previous-window)))))
