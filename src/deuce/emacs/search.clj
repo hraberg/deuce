@@ -8,7 +8,8 @@
             [deuce.emacs-lisp.cons :as cons]
             [taoensso.timbre :as timbre])
   (:refer-clojure :exclude [])
-  (:import [java.util.regex Pattern PatternSyntaxException]))
+  (:import [java.util.regex Pattern PatternSyntaxException]
+           [deuce.emacs.data Buffer BufferText]))
 
 (defvar inhibit-changing-match-data nil
   "Internal use only.
@@ -28,6 +29,10 @@
          match-beginning match-end match-data set-match-data)
 
 (def ^:private current-match-data (atom nil))
+
+(defn ^:private buffer-sub-sequence [start end]
+  (.subSequence ^StringBuilder (.beg ^BufferText (.text ^Buffer (buffer/current-buffer)))
+                (dec start) (dec end)))
 
 (defun word-search-regexp (string &optional lax)
   "Return a regexp which matches words, ignoring punctuation.
@@ -87,7 +92,7 @@
        (loop [offset (editfns/goto-char bound)
               matches []]
          (if (string-match (el/check-type 'stringp regexp)
-                           (editfns/buffer-substring (editfns/point-min) point)
+                           (buffer-sub-sequence (editfns/point-min) point)
                            (dec offset))
            (when (< (editfns/goto-char (match-end 0)) point)
              (recur (editfns/point) (conj matches (match-data))))
@@ -199,7 +204,7 @@
   `match-end' and `match-data' access; save and restore the match
   data if you want to preserve them."
   (when (string-match (str "^" (el/check-type 'stringp regexp))
-                      (editfns/buffer-substring (editfns/point) (editfns/point-max)))
+                      (buffer-sub-sequence (editfns/point) (editfns/point-max)))
     true))
 
 (defun re-search-forward (regexp &optional bound noerror count)
@@ -226,7 +231,7 @@
      (let [bound (el/check-type 'integerp (or bound (editfns/point-max)))]
        (loop [count (dec count)]
          (if (string-match (el/check-type 'stringp regexp)
-                           (editfns/buffer-substring (editfns/point-min) bound)
+                           (buffer-sub-sequence (editfns/point-min) bound)
                            (dec (editfns/point)))
            (do (editfns/goto-char (inc (match-end 0)))
                (if (zero? count)
@@ -273,12 +278,14 @@
   matched by the parenthesis constructions in REGEXP."
   ;; http://www.gnu.org/software/emacs/manual/html_node/elisp/Regexp-Special.html
   (el/check-type 'stringp regexp)
-  (el/check-type 'stringp string)
-  (let [pattern (emacs-regex-to-java regexp)]
+  (when-not (instance? CharSequence string)
+    (el/check-type 'stringp string))
+  (let [pattern (emacs-regex-to-java regexp)
+        string ^CharSequence string]
     (let [offset (el/check-type 'integerp (or start 0))
           ignore-case? (data/symbol-value 'case-fold-search)
           m (re-matcher (re-pattern (str (if ignore-case? "(?iu)" "") pattern))
-                        (subs string offset))
+                        (.subSequence string offset (.length string)))
           inhibit? (data/symbol-value 'inhibit-changing-match-data)]
       (if (re-find m)
         (let [m (cons/maybe-seq
