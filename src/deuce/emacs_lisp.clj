@@ -3,9 +3,8 @@
             [clojure.string :as s]
             [clojure.pprint :as pp]
             [clojure.walk :as w]
-            [deuce.emacs-lisp.cons :as cons])
-  (:use [taoensso.timbre :as timbre
-         :only (trace debug info warn error fatal spy)])
+            [deuce.emacs-lisp.cons :as cons]
+            [taoensso.timbre :as timbre])
   (:import [clojure.lang Var ExceptionInfo IMeta]
            [java.io Writer]
            [java.lang.reflect Method])
@@ -192,9 +191,9 @@
                                     (not (namespace fst))
                                     (not (fun fst)))
                            (if (*disallow-undefined* fst)
-                             (do (debug fst "RECURSIVE UNDEFINED DISALLOWED")
+                             (do (timbre/debug fst "RECURSIVE UNDEFINED DISALLOWED")
                                  `(throw* '~'void-function '~fst))
-                             (do (debug fst "NOT DEFINED")
+                             (do (timbre/debug fst "NOT DEFINED")
                                  (list `delayed-eval x)))
 
                            (expand-dotted-lists (c/cons
@@ -256,7 +255,7 @@
       (throw e))
     (catch RuntimeException e
       (do
-        (error (-> e cause .getMessage) (with-out-str (pp/pprint emacs-lisp)))
+        (timbre/error (-> e cause .getMessage) (with-out-str (pp/pprint emacs-lisp)))
         (throw e)))))
 
 ;; Defined in eval.clj
@@ -320,7 +319,7 @@
        (~what ~(if needs-intern? needs-intern? name) ~(vec arglist)
               ~(when not-implemented?
                  `(binding [*ns* (the-ns 'clojure.core)]
-                    (warn ~(c/name name) "NOT IMPLEMENTED")))
+                    (timbre/warn ~(c/name name) "NOT IMPLEMENTED")))
               ~(if emacs-lisp?
                  `(c/let ~(if rest-arg
                             `[~rest-arg (if-let [r# ~rest-arg] (apply cons/list r#) nil)]
