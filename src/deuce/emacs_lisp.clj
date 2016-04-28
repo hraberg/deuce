@@ -792,9 +792,9 @@
       (save-excursion (save-restriction ...))"
   {:arglists '([&rest BODY])}
   [& body]
-  `(c/let [current-buffer# ~(with-meta `((fun 'current-buffer)) {:tag 'deuce.emacs.data.Buffer})
-           begv# @(.begv current-buffer#)
-           zv# @(.zv current-buffer#)]
+  `(c/let [current-buffer# ((fun 'current-buffer))
+           begv# @(:begv current-buffer#)
+           zv# @(:zv current-buffer#)]
      (try
        (progn ~@body)
        (finally
