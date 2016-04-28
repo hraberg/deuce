@@ -153,9 +153,9 @@
         [header-line mode-line] (when-not minibuffer?
                                   [(buffer/buffer-local-value 'header-line-format buffer)
                                    (buffer/buffer-local-value 'mode-line-format buffer)])
-        text (binding [buffer/*current-buffer* buffer]
-               (.beg ^BufferText (.text buffer)))
-        line-indexes ((ns-resolve 'deuce.emacs.cmds 'line-indexes) text)
+        ^StringBuilder text (binding [buffer/*current-buffer* buffer]
+                              (.beg ^BufferText (.text buffer)))
+        line-indexes ^ints ((ns-resolve 'deuce.emacs.cmds 'line-indexes) text)
         pos-to-line (partial (ns-resolve 'deuce.emacs.cmds 'pos-to-line) line-indexes)
         point-coords (partial (ns-resolve 'deuce.emacs.cmds 'point-coords) line-indexes)
         pt (- @(.pt buffer) (or @(.begv buffer) 0))
@@ -165,8 +165,7 @@
         mark-active? (buffer/buffer-local-value 'mark-active buffer)
         selected-window? (= window (window/selected-window))
         puts (partial puts text-graphics)]
-    (let [lines (s/split (str text) #"\n")
-          cols @(.total-cols window)
+    (let [cols @(.total-cols window)
           top-line @(.top-line window)
           top-line (if header-line (inc top-line) top-line)
           screen-coords (fn [[x y]] [x  (+ top-line (- y scroll))])] ;; Not dealing with horizontal scroll.
@@ -182,24 +181,32 @@
 
         (dotimes [n total-lines]
           (let [screen-line (+ top-line n)
-                text (pad (nth lines (+ scroll n) " ") cols)]
+                buffer-line (+ scroll n)
+                line-text (if (< buffer-line (alength line-indexes))
+                            (let [start-of-line (aget line-indexes buffer-line)
+                                  end-of-line (.indexOf text "\n" start-of-line)]
+                              (if (= -1 end-of-line)
+                                (.substring text start-of-line)
+                                (.substring text start-of-line end-of-line)))
+                            " ")
+                line-text (pad line-text cols)]
             (cond
              (= screen-line rby rey) (do
-                                       (puts 0 screen-line (subs text 0 rbx))
-                                       (puts rbx screen-line (subs text rbx rex) region-colors)
-                                       (puts rex screen-line (subs text rex)))
+                                       (puts 0 screen-line (subs line-text 0 rbx))
+                                       (puts rbx screen-line (subs line-text rbx rex) region-colors)
+                                       (puts rex screen-line (subs line-text rex)))
 
              (= screen-line rby) (do
-                                   (puts 0 screen-line (subs text 0 rbx))
-                                   (puts rbx screen-line (subs text rbx) region-colors))
+                                   (puts 0 screen-line (subs line-text 0 rbx))
+                                   (puts rbx screen-line (subs line-text rbx) region-colors))
 
              (= screen-line rey) (do
-                                   (puts 0 screen-line (subs text 0 rex) region-colors)
-                                   (puts rex screen-line (subs text rex)))
+                                   (puts 0 screen-line (subs line-text 0 rex) region-colors)
+                                   (puts rex screen-line (subs line-text rex)))
 
-             (< rby screen-line rey) (puts 0 screen-line text region-colors)
+             (< rby screen-line rey) (puts 0 screen-line line-text region-colors)
 
-             :else (puts 0 screen-line text)))))
+             :else (puts 0 screen-line line-text)))))
 
       (when selected-window?
         (let [[px py] (screen-coords (point-coords (dec pt)))]
