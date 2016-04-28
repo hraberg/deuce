@@ -131,7 +131,9 @@
    :println (merge (timbre-appenders/println-appender)
                    {:enabled? (inside-emacs?)})
    :spit (merge (timbre-appenders/spit-appender {:fname (str (io/file deuce-dot-d "deuce.log"))})
-                {:min-level :debug :enabled? true})}})
+                {:min-level :debug
+                 :enabled? true
+                 :output-fn (partial timbre/default-output-fn {:stacktrace-fonts {}})})}})
 
 ;; We want to support emacs -q initially. -q is --no-init-file
 (defn -main [& args]
