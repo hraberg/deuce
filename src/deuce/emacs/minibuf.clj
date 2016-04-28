@@ -171,6 +171,7 @@
       (window/set-window-buffer (window/minibuffer-window) minibuffer)
       (window/select-window (window/minibuffer-window))
       (keymap/use-local-map (or keymap (data/symbol-value 'minibuffer-local-map)))
+      (eval/run-hooks 'minibuffer-setup-hook)
       (keyboard/recursive-edit)
       (minibuffer-contents)
       (catch ExceptionInfo e
@@ -178,6 +179,7 @@
           (el/throw 'quit nil)
           (throw e)))
       (finally
+        (eval/run-hooks 'minibuffer-exit-hook)
         (window/set-window-buffer (window/minibuffer-window) previous-minibuffer)
         (window/select-window previous-window)))))
 
