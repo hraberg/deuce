@@ -5,7 +5,7 @@
             [deuce.emacs.data :as data]
             [deuce.emacs.fns :as fns])
   (:import [deuce.emacs.data CharTable])
-  (:refer-clojure "exclude" []))
+  (:refer-clojure :exclude []))
 
 (fns/put 'case-table 'char-table-extra-slots 3)
 
