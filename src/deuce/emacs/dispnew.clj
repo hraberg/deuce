@@ -17,7 +17,7 @@
            [com.googlecode.lanterna TextColor$ANSI]
            [com.googlecode.lanterna.graphics TextGraphics]
            [com.googlecode.lanterna.screen Screen TerminalScreen]
-           [deuce.emacs.data Buffer Window])
+           [deuce.emacs.data Buffer BufferText Window])
   (:refer-clojure :exclude []))
 
 (defvar no-redraw-on-reenter nil
@@ -154,7 +154,7 @@
                                   [(buffer/buffer-local-value 'header-line-format buffer)
                                    (buffer/buffer-local-value 'mode-line-format buffer)])
         text (binding [buffer/*current-buffer* buffer]
-               (editfns/buffer-string))
+               (.beg ^BufferText (.text buffer)))
         line-indexes ((ns-resolve 'deuce.emacs.cmds 'line-indexes) text)
         pos-to-line (partial (ns-resolve 'deuce.emacs.cmds 'pos-to-line) line-indexes)
         point-coords (partial (ns-resolve 'deuce.emacs.cmds 'point-coords) line-indexes)
@@ -165,7 +165,7 @@
         mark-active? (buffer/buffer-local-value 'mark-active buffer)
         selected-window? (= window (window/selected-window))
         puts (partial puts text-graphics)]
-    (let [lines (s/split text #"\n")
+    (let [lines (s/split (str text) #"\n")
           cols @(.total-cols window)
           top-line @(.top-line window)
           top-line (if header-line (inc top-line) top-line)

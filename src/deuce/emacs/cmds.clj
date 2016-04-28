@@ -14,9 +14,9 @@
   "Hook run at the end of `self-insert-command'.
   This is run after inserting the character.")
 
-(defn ^:private line-indexes [s]
+(defn ^:private line-indexes [^StringBuilder s]
   (loop [idx 0 acc [0]]
-    (let [idx (.indexOf (str s) (int \newline) idx)]
+    (let [idx (.indexOf s "\n" idx)]
       (if (>= idx 0)
         (recur (inc idx) (conj acc (inc idx)))
         (int-array acc)))))
@@ -26,7 +26,7 @@
     (if (neg? pos) (- (- pos) 2) pos)))
 
 (defn ^:private point-coords
-  ([^Buffer buffer] (point-coords (line-indexes (str (.beg ^BufferText (.text buffer)))) (dec @(.pt buffer))))
+  ([^Buffer buffer] (point-coords (line-indexes (.beg ^BufferText (.text buffer))) (dec @(.pt buffer))))
   ([line-indexes offset]
       (let [pos-to-line (partial pos-to-line line-indexes)
             line (max (pos-to-line offset) 0)
@@ -69,7 +69,8 @@
   With positive N, a non-empty line at the end counts as one line
   successfully moved (for the return value)."
   (interactive "^p")
-  (move-lines (editfns/buffer-string) (dec (editfns/point))
+  (move-lines (.beg ^BufferText (.text ^Buffer (buffer/current-buffer)))
+              (dec (editfns/point))
               (el/check-type 'integerp (or n 1))))
 
 (defun forward-char (&optional n)
@@ -126,7 +127,8 @@
   (interactive "^p")
   (when-not (contains? #{nil 1} n)
     (forward-line n))
-  (let [bol (.lastIndexOf (str (editfns/buffer-substring 1 (editfns/point))) (int \newline))]
+  (let [bol (.lastIndexOf ^StringBuilder (.beg ^BufferText (.text ^Buffer (buffer/current-buffer)))
+                          "\n" (dec (editfns/point)))]
     (if (= -1 bol)
       (editfns/goto-char 1)
       (editfns/goto-char (+ bol 2)))))
@@ -155,7 +157,8 @@
   (interactive "^p")
   (when-not (contains? #{nil 1} n)
     (forward-line n))
-  (let [eol (.indexOf (str (editfns/buffer-string)) (int \newline) (int (dec (editfns/point))))]
+  (let [eol (.indexOf ^StringBuilder (.beg ^BufferText (.text ^Buffer (buffer/current-buffer)))
+                      "\n" (int (dec (editfns/point))))]
     (if (= -1 eol)
       (editfns/goto-char (editfns/point-max))
       (editfns/goto-char (inc eol)))))

@@ -292,7 +292,7 @@
   If POS is out of range, the value is nil."
   (let [pos (dec (or pos (point)))]
     (when  (< -1 pos (buffer-size))
-      (.charAt (str (buffer-string)) pos))))
+      (.charAt ^StringBuilder (.beg ^BufferText (.text ^Buffer (buffer/current-buffer))) pos))))
 
 (defun gap-size ()
   "Return the size of the current buffer's gap.
@@ -627,7 +627,7 @@
   If POS is out of range, the value is nil."
   (let [pos (- (or pos (point)) 2)]
     (when (< -1 pos (buffer-size))
-      (.charAt (str (buffer-string)) pos))))
+      (.charAt ^StringBuilder (.beg ^BufferText (.text ^Buffer (buffer/current-buffer))) pos))))
 
 (defun char-to-string (char)
   "Convert arg CHAR to a string containing that character."
@@ -887,7 +887,7 @@
   This function copies the text properties of that part of the buffer
   into the result string; if you don't want the text properties,
   use `buffer-substring-no-properties' instead."
-  (subs (str (.beg ^BufferText (.text ^Buffer (buffer/current-buffer)))) (dec start) (dec end)))
+  (.substring ^StringBuilder (.beg ^BufferText (.text ^Buffer (buffer/current-buffer))) (dec start) (dec end)))
 
 (defun byte-to-string (byte)
   "Convert arg BYTE to a unibyte string containing that byte."

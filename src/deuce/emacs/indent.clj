@@ -30,7 +30,7 @@
   Text that has an invisible property is considered as having width 0, unless
   `buffer-invisibility-spec' specifies that it is replaced by an ellipsis."
   (let [point (editfns/point)
-        line (.lastIndexOf (subs (editfns/buffer-string) 0 (dec point)) "\n")]
+        line (.lastIndexOf (str (editfns/buffer-substring (editfns/point-min) point)) "\n")]
     (dec (if (= -1 line) point (dec (- point line))))))
 
 (defun compute-motion (from frompos to topos width offsets window)

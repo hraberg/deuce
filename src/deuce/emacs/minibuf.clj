@@ -504,7 +504,7 @@
 (defun minibuffer-contents ()
   "Return the user input in a minibuffer as a string.
   If the current buffer is not a minibuffer, return its entire contents."
-  (subs (editfns/buffer-string) (count @minibuf-prompt)))
+  (editfns/buffer-substring (minibuffer-prompt-end)))
 
 (defun read-variable (prompt &optional default-value)
   "Read the name of a user variable and return it as a symbol.

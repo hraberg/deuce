@@ -87,7 +87,7 @@
        (loop [offset (editfns/goto-char bound)
               matches []]
          (if (string-match (el/check-type 'stringp regexp)
-                           (subs (editfns/buffer-string) 0 (dec point))
+                           (editfns/buffer-substring (editfns/point-min) point)
                            (dec offset))
            (when (< (editfns/goto-char (match-end 0)) point)
              (recur (editfns/point) (conj matches (match-data))))
@@ -199,8 +199,7 @@
   `match-end' and `match-data' access; save and restore the match
   data if you want to preserve them."
   (when (string-match (str "^" (el/check-type 'stringp regexp))
-                      (editfns/buffer-string)
-                      (dec (editfns/point)))
+                      (editfns/buffer-substring (editfns/point) (editfns/point-max)))
     true))
 
 (defun re-search-forward (regexp &optional bound noerror count)
@@ -224,10 +223,10 @@
      (zero? count) point
      (neg? count) (re-search-backward regexp bound noerror (- count))
      :else
-     (let [bound (el/check-type 'integerp (or bound (inc (editfns/buffer-size))))]
+     (let [bound (el/check-type 'integerp (or bound (editfns/point-max)))]
        (loop [count (dec count)]
          (if (string-match (el/check-type 'stringp regexp)
-                           (subs (editfns/buffer-string) 0 (dec bound))
+                           (editfns/buffer-substring (editfns/point-min) bound)
                            (dec (editfns/point)))
            (do (editfns/goto-char (inc (match-end 0)))
                (if (zero? count)
