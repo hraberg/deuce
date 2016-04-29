@@ -121,6 +121,9 @@
 ;; Same issue in regexp-opt/regexp-opt. Calls this fn with earlier binding 'sorted-strings'
 (defun regexp-opt-group (strings &optional paren lax))
 
+;; Used by magic-fallback-mode-alist but we don't have image support.
+(defun image-type-auto-detected-p ())
+
 ;; Keymap setup, should in theory be in deuce.emacs.keymap, but cannot for a reason I forgot.
 (setq global-map (make-keymap))
 (use-global-map (symbol-value 'global-map))

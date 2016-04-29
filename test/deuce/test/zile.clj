@@ -16,11 +16,16 @@
         actual (with-redefs-fn {(resolve 'deuce.emacs/save-buffer) stub
                                 (resolve 'deuce.emacs/save-buffers-kill-emacs) stub}
                  (fn []
-                   (emacs (setq vc-handled-backends ())
-                          (setq pop-up-windows nil)
-                          (find-file "zile/tests/test.input"))
-                   (lread/load (.getAbsolutePath (io/file f)))
-                   (emacs (buffer-string))))]
+                   (try
+                     (emacs (setq vc-handled-backends ())
+                            (setq pop-up-windows nil)
+                            (find-file "zile/tests/test.input"))
+                     (lread/load (.getAbsolutePath (io/file f)))
+                     (emacs (buffer-string))
+                     (finally
+                       (emacs
+                        (when (get-buffer "test.input")
+                          (kill-buffer "test.input")))))))]
     (is (= expected actual) f)))
 
 (deftest zile

@@ -20,9 +20,13 @@
            (setq noninteractive true)
            (load "deuce-loadup.el"))))
 
+(def loadup-loaded? (atom false))
+
 (defn with-loadup []
   (use-fixtures :once (fn [t]
-                        (loadup)
+                        (when-not @loadup-loaded?
+                          (loadup)
+                          (reset! loadup-loaded? true))
                         (t))))
 
 (defn with-fresh-emacs []
@@ -32,15 +36,16 @@
                                                  (filter (comp var? val))
                                                  (map (fn [[n v]] [n (deref v)]))
                                                  (into {}))]
+                          (try
 
-                          (t)
-
-                          (clear-publics 'deuce.emacs fns)
-                          (clear-publics 'deuce.emacs-lisp.globals vars)
-                          (->> previous-vars
-                               (map (fn [[n v]] (alter-var-root (ns-resolve 'deuce.emacs-lisp.globals n)
-                                                                (constantly v))))
-                               doall)))))
+                            (t)
+                            (finally
+                              (clear-publics 'deuce.emacs fns)
+                              (clear-publics 'deuce.emacs-lisp.globals vars)
+                              (->> previous-vars
+                                   (map (fn [[n v]] (alter-var-root (ns-resolve 'deuce.emacs-lisp.globals n)
+                                                                    (constantly v))))
+                                   doall)))))))
 
 (defmacro repl [name & body]
   (let [parts (partition-by '#{⇒ -|} body)
