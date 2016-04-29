@@ -37,37 +37,38 @@
                                buffer/kill-buffer)))))]
     (is (= expected actual))))
 
-(doseq [:let [passing #{"backward-word.el"
-                        "beginning-of-line.el"
-                        "copy-region-as-kill.el"
-                        "copy-to-register.el"
-                        "end-of-line.el"
-                        "exchange-point-and-mark.el"
-                        "forward-line,.el"
-                        "goto-char.el"
-                        "goto-line.el"
-                        "insert-buffer.el"
-                        "insert-char.el"
-                        "just-one-space.el"
-                        "kill-buffer.el"
-                        "kill-word.el"
-                        "mark-whole-buffer.el"
-                        "mark-word.el"
-                        "newline.el"
-                        "next-line.el"
-                        "open-line.el"
-                        "search-forward.el"
-                        "search-forward-regexp.el"
-                        "switch-to-buffer.el"
-                        "toggle-read-onl.el"
-                        "transpose-chars.el"
-                        "transpose-lines.el"}]
-        ^File f (->> (io/file "zile/tests")
+(def passing? '#{backward-word
+                 beginning-of-line
+                 copy-region-as-kill
+                 copy-to-register
+                 end-of-line
+                 exchange-point-and-mark
+                 forward-line,
+                 goto-char
+                 goto-line
+                 insert-buffer
+                 insert-char
+                 just-one-space
+                 kill-buffer
+                 kill-word
+                 mark-whole-buffer
+                 mark-word
+                 newline
+                 next-line
+                 open-line
+                 search-forward
+                 search-forward-regexp
+                 switch-to-buffer
+                 toggle-read-onl
+                 transpose-chars
+                 transpose-lines})
+
+(doseq [^File f (->> (io/file "zile/tests")
                      .listFiles
                      (filter #(re-find #".el$" (str %)))
                      sort)
         :let [test-symbol (symbol (s/replace (.getName f) #".el$" ""))]]
-  (if (passing (.getName f))
+  (if (passing? test-symbol)
     (eval `(deftest ~test-symbol
              (zile-test ~(.getAbsolutePath ^File f))))
     (ns-unmap *ns* test-symbol)))
