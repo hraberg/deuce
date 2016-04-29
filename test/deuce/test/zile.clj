@@ -2,6 +2,9 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as s]
             [deuce.emacs]
+            [deuce.emacs-lisp :as el]
+            [deuce.emacs.buffer :as buffer]
+            [deuce.emacs.editfns :as editfns]
             [deuce.emacs.lread :as lread])
   (:use [clojure.test]
         [deuce.test.common])
@@ -12,28 +15,33 @@
 
 (defn zile-test [f]
   (let [expected (slurp (s/replace f #".el$" ".output"))
+        input-file (io/file (s/replace f #".el$" ".input"))
+        buffer-name (.getName input-file)
+        input-file (if (.exists input-file)
+                     (.getAbsolutePath input-file)
+                     "zile/tests/test.input")
         stub (constantly nil)
         actual (with-redefs-fn {(resolve 'deuce.emacs/save-buffer) stub
                                 (resolve 'deuce.emacs/save-buffers-kill-emacs) stub}
                  (fn []
                    (try
-                     (emacs (setq vc-handled-backends ())
-                            (setq pop-up-windows nil)
-                            (find-file "zile/tests/test.input"))
+                     (el/setq vc-handled-backends ())
+                     (el/setq pop-up-windows nil)
+                     ((resolve 'deuce.emacs/find-file) input-file)
+                     (deuce.emacs.buffer/rename-buffer buffer-name)
                      (lread/load (.getAbsolutePath (io/file f)))
-                     (emacs (buffer-string))
+                     (editfns/buffer-string)
                      (finally
-                       (emacs
-                        (when (get-buffer "test.input")
-                          (kill-buffer "test.input")))))))]
-    (is (= expected actual) f)))
+                       (some-> (buffer/get-buffer buffer-name)
+                               buffer/kill-buffer)))))]
+    (is (= expected actual))))
 
-(deftest zile
-  (doseq [:let [passing #{"insert-char.el"}]
-          f (->> (io/file "zile/tests")
-                 .listFiles
-                 (filter #(re-find #".el$" (str %)))
-                 (filter (comp passing #(.getName ^File %)))
-                 (map #(.getAbsolutePath ^File %))
-                 sort)]
-    (zile-test f)))
+(doseq [:let [passing #{"insert-buffer.el"
+                        "insert-char.el"}]
+        f (->> (io/file "zile/tests")
+               .listFiles
+               (filter #(re-find #".el$" (str %)))
+               (filter (comp passing #(.getName ^File %)))
+               sort)]
+  (eval `(deftest ~(symbol (s/replace (.getName ^File f) #".el$" ""))
+          (zile-test ~(.getAbsolutePath ^File f)))))

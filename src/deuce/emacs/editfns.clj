@@ -305,7 +305,7 @@
   Arguments START and END are character positions specifying the substring.
   They default to the values of (point-min) and (point-max) in BUFFER."
   (insert (binding [buffer/*current-buffer* buffer]
-            (buffer-substring start end))))
+            (buffer-substring (or start (point-min)) (or end (point-max))))))
 
 (defun point-min-marker ()
   "Return a marker to the minimum permissible value of point in this buffer.
