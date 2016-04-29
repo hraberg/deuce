@@ -6,6 +6,7 @@
             [deuce.emacs.buffer :as buffer]
             [deuce.emacs.editfns :as editfns]
             [deuce.emacs.lread :as lread])
+  (:refer-clojure :exclude [newline])
   (:use [clojure.test]
         [deuce.test.common])
   (:import [java.io File]))
@@ -36,12 +37,35 @@
                                buffer/kill-buffer)))))]
     (is (= expected actual))))
 
-(doseq [:let [passing #{"insert-buffer.el"
-                        "insert-char.el"}]
+(doseq [:let [passing #{"backward-word.el"
+                        "beginning-of-line.el"
+                        "copy-region-as-kill.el"
+                        "copy-to-register.el"
+                        "end-of-line.el"
+                        "exchange-point-and-mark.el"
+                        "forward-line,.el"
+                        "goto-char.el"
+                        "goto-line.el"
+                        "insert-buffer.el"
+                        "insert-char.el"
+                        "just-one-space.el"
+                        "kill-buffer.el"
+                        "kill-word.el"
+                        "mark-whole-buffer.el"
+                        "mark-word.el"
+                        "newline.el"
+                        "next-line.el"
+                        "open-line.el"
+                        "search-forward.el"
+                        "search-forward-regexp.el"
+                        "switch-to-buffer.el"
+                        "toggle-read-onl.el"
+                        "transpose-chars.el"
+                        "transpose-lines.el"}]
         f (->> (io/file "zile/tests")
                .listFiles
                (filter #(re-find #".el$" (str %)))
                (filter (comp passing #(.getName ^File %)))
                sort)]
   (eval `(deftest ~(symbol (s/replace (.getName ^File f) #".el$" ""))
-          (zile-test ~(.getAbsolutePath ^File f)))))
+           (zile-test ~(.getAbsolutePath ^File f)))))
