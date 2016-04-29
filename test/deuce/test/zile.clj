@@ -62,10 +62,12 @@
                         "toggle-read-onl.el"
                         "transpose-chars.el"
                         "transpose-lines.el"}]
-        f (->> (io/file "zile/tests")
-               .listFiles
-               (filter #(re-find #".el$" (str %)))
-               (filter (comp passing #(.getName ^File %)))
-               sort)]
-  (eval `(deftest ~(symbol (s/replace (.getName ^File f) #".el$" ""))
-           (zile-test ~(.getAbsolutePath ^File f)))))
+        ^File f (->> (io/file "zile/tests")
+                     .listFiles
+                     (filter #(re-find #".el$" (str %)))
+                     sort)
+        :let [test-symbol (symbol (s/replace (.getName f) #".el$" ""))]]
+  (if (passing (.getName f))
+    (eval `(deftest ~test-symbol
+             (zile-test ~(.getAbsolutePath ^File f))))
+    (ns-unmap *ns* test-symbol)))
