@@ -9,7 +9,7 @@
                  [com.taoensso/timbre "4.3.1"]
                  [org.tcrawley/dynapath "0.2.3"]
                  [org.flatland/ordered "1.5.3"]
-                 [fipp "0.5.1"]]
+                 [fipp "0.5.2"]]
   :plugins [[lein-difftest "2.0.0"]
             [lein-marginalia "0.9.0"]
             [lein-codox "0.9.5"]]
