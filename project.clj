@@ -5,7 +5,7 @@
             :distribution :repo}
   :url "http://hraberg.github.io/deuce/"
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [com.googlecode.lanterna/lanterna "3.0.0-beta2" :exclusions [junit]]
+                 [com.googlecode.lanterna/lanterna "3.0.0-beta3" :exclusions [junit]]
                  [com.taoensso/timbre "4.7.3"]
                  [org.tcrawley/dynapath "0.2.4"]
                  [org.flatland/ordered "1.5.4"]
