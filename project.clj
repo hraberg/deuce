@@ -6,9 +6,9 @@
   :url "http://hraberg.github.io/deuce/"
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [com.googlecode.lanterna/lanterna "3.0.0-beta2" :exclusions [junit]]
-                 [com.taoensso/timbre "4.4.0"]
+                 [com.taoensso/timbre "4.7.3"]
                  [org.tcrawley/dynapath "0.2.4"]
-                 [org.flatland/ordered "1.5.3"]
+                 [org.flatland/ordered "1.5.4"]
                  [fipp "0.5.2" :upgrade false]]
   :plugins [[lein-difftest "2.0.0"]
             [lein-marginalia "0.9.0"]

@@ -7,10 +7,12 @@
             [taoensso.timbre :as timbre])
   (:import [clojure.lang Var ExceptionInfo IMeta]
            [java.io Writer]
-           [java.lang.reflect Method])
+           [java.lang.reflect Method]
+           [java.util TimeZone])
   (:refer-clojure :exclude [defmacro and or cond let while eval set compile]))
 
-(timbre/merge-config! {:timestamp-opts {:pattern "HH:mm:ss,SSS"}
+(timbre/merge-config! {:timestamp-opts {:pattern "HH:mm:ss,SSS"
+                                        :timezone (TimeZone/getDefault)}
                        :appenders {:println {:min-level :error}}})
 
 (timbre/set-level! :debug)
